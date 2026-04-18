@@ -1,0 +1,43 @@
+{
+  "registration": {
+    "brand": "Toasted VR",
+    "title": "Crea tu cuenta y verifica tu correo",
+    "subtitle": "Registra tus datos y te enviaremos un codigo de 6 digitos para activar la cuenta.",
+    "labels": {
+      "fullName": "Nombre completo",
+      "email": "Correo electronico",
+      "username": "Usuario",
+      "password": "Contrasena",
+      "confirmPassword": "Confirmar contrasena"
+    },
+    "placeholders": {
+      "fullName": "Ingresa tu nombre completo",
+      "email": "Ingresa tu correo electronico",
+      "username": "Elige tu nombre de usuario",
+      "password": "Crea una contrasena segura",
+      "confirmPassword": "Repite tu contrasena"
+    },
+    "buttons": {
+      "submit": "Crear cuenta",
+      "loading": "Enviando codigo...",
+      "verify": "Verificar codigo",
+      "verifying": "Validando codigo...",
+      "createAnother": "Registrar otra cuenta"
+    },
+    "messages": {
+      "passwordMismatch": "Las contrasenas no coinciden.",
+      "invalidCodeLength": "Debes ingresar los 6 digitos del codigo."
+    },
+    "verification": {
+      "subtitle": "Tu cuenta quedara lista cuando confirmes el codigo enviado al correo registrado.",
+      "instructions": "Escribe el codigo de 6 digitos que enviamos a",
+      "timerLabel": "El codigo vence en"
+    },
+    "success": {
+      "badge": "Cuenta verificada",
+      "title": "Todo listo",
+      "subtitle": "Tu correo ya fue validado y la cuenta quedo habilitada correctamente.",
+      "accountCreated": "La cuenta fue creada y verificada correctamente para que continues con el siguiente paso."
+    }
+  }
+}

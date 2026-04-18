@@ -23,6 +23,18 @@ function App() {
     setVerifiedUser(null);
   };
 
+  const currentTitle = verifiedUser
+    ? texts.success.title
+    : pendingRegistration
+      ? texts.verification.title
+      : texts.title;
+
+  const currentSubtitle = verifiedUser
+    ? texts.success.subtitle
+    : pendingRegistration
+      ? texts.verification.subtitle
+      : texts.subtitle;
+
   return (
     <div className="app-shell">
       <div className="ambient-light ambient-light-left" />
@@ -31,14 +43,8 @@ function App() {
       <main className="auth-card">
         <header className="hero-copy">
           <p className="eyebrow">{texts.brand}</p>
-          <h1>{texts.title}</h1>
-          <p className="subtitle">
-            {verifiedUser
-              ? texts.success.subtitle
-              : pendingRegistration
-                ? texts.verification.subtitle
-                : texts.subtitle}
-          </p>
+          <h1 className="centered-title">{currentTitle}</h1>
+          {currentSubtitle && <p className="subtitle">{currentSubtitle}</p>}
         </header>
 
         {!pendingRegistration && (

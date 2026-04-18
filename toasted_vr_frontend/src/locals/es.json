@@ -1,8 +1,8 @@
 {
   "registration": {
     "brand": "Toasted VR",
-    "title": "Crea tu cuenta y verifica tu correo",
-    "subtitle": "Registra tus datos y te enviaremos un codigo de 6 digitos para activar la cuenta.",
+    "title": "Regístrate",
+    "subtitle": "",
     "labels": {
       "fullName": "Nombre completo",
       "email": "Correo electronico",
@@ -29,7 +29,8 @@
       "invalidCodeLength": "Debes ingresar los 6 digitos del codigo."
     },
     "verification": {
-      "subtitle": "Tu cuenta quedara lista cuando confirmes el codigo enviado al correo registrado.",
+      "title": "Verificación",
+      "subtitle": "",
       "instructions": "Escribe el codigo de 6 digitos que enviamos a",
       "timerLabel": "El codigo vence en"
     },

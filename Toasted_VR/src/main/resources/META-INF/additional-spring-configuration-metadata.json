@@ -1,0 +1,29 @@
+{
+  "properties": [
+    {
+      "name": "app.cors.allowed-origins",
+      "type": "java.lang.String",
+      "description": "Lista de origenes permitidos para CORS separada por comas."
+    },
+    {
+      "name": "app.mail.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Indica si el envio de correos por SMTP esta habilitado."
+    },
+    {
+      "name": "app.mail.from",
+      "type": "java.lang.String",
+      "description": "Correo remitente usado para los mensajes salientes."
+    },
+    {
+      "name": "app.verification.code-length",
+      "type": "java.lang.Integer",
+      "description": "Cantidad de digitos del codigo de verificacion."
+    },
+    {
+      "name": "app.verification.code-expiration-minutes",
+      "type": "java.lang.Integer",
+      "description": "Minutos de vigencia del codigo de verificacion."
+    }
+  ]
+}

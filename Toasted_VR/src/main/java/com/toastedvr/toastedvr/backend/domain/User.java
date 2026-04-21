@@ -30,7 +30,7 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false, columnDefinition = "boolean default false")
+    @Column(nullable = false)
     private boolean emailVerified;
 
     @Column(length = 10)
@@ -38,7 +38,7 @@ public class User {
 
     private LocalDateTime verificationCodeExpiresAt;
 
-    @Column(nullable = false, updatable = false, columnDefinition = "datetime default current_timestamp")
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     protected User() {

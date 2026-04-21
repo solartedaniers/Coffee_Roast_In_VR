@@ -1,99 +1,132 @@
-# Simulador Inmersivo VR del Proceso del Café
+# Simulador Inmersivo VR del Proceso del Cafe
 
-## Descripción General
-Este repositorio contiene el código fuente del ecosistema del **Simulador Inmersivo VR del Proceso del Café**, dividido en dos componentes principales:
-1. **Backend (`Toasted_VR`)**: Servidor de aplicaciones y APIs construido con Java y Spring Boot.
-2. **Frontend (`toasted_vr_frontend`)**: Aplicación web (Portal de acompañamiento / Companion App) desarrollada en React.js.
+## Descripcion General
+Este repositorio contiene el codigo fuente del ecosistema del **Simulador Inmersivo VR del Proceso del Cafe**, dividido en dos componentes principales:
 
----
+1. **Backend (`Toasted_VR`)**: servidor de aplicaciones y APIs construido con Java y Spring Boot.
+2. **Frontend (`toasted_vr_frontend`)**: aplicacion web de acompanamiento desarrollada en React.js.
 
-## 🛠 Arquitectura y Patrones de Diseño Utilizados
-
-El proyecto sigue una arquitectura cliente-servidor orientada a microservicios/APIs (REST). El backend actúa como proveedor de seguridad, persistencia de datos y reglas de negocio, mientras que el frontend actúa como la capa de presentación consumidora.
-
-### En el Backend (Spring Boot / Java)
-Se ha utilizado el **Patrón Arquitectónico en Capas (Layered Architecture)**, una derivación del clásico MVC, segmentado de la siguiente manera:
-- **Controladores (Controllers / Endpoints):** Capa encargada de exponer la API REST, recibir las peticiones HTTP y devolver las respuestas.
-- **Servicios (Services):** Capa donde reside toda la lógica y las reglas de negocio complejas (ej. validación de correos, cifrado, generación de códigos OTP).
-- **Repositorios (Repositories / DAO):** Capa encargada de la persistencia de datos. Maneja las consultas a MySQL utilizando **Spring Data JPA**.
-- **Modelos / Entidades (Entities):** Clases de Java mapeadas directamente a las tablas de la base de datos MySQL (ORM Hibernate).
-- **DTOs (Data Transfer Objects):** Patrón utilizado para transportar datos entre el cliente (React) y el servidor (Spring Boot) sin exponer la estructura interna ni los campos confidenciales de la base de datos.
-- **Seguridad:** Uso de **Spring Security** con tokens **JWT** para proteger las rutas.
-
-### En el Frontend (React.js)
-Se implementó una **Arquitectura Basada en Componentes (Component-Based Architecture)** y programación funcional:
-- **Componentes Funcionales y Hooks:** Se utilizan `useState` y funciones flecha para gestionar el estado de los componentes y su ciclo de vida.
-- **Renderizado Condicional:** Las interfaces mutan dinámicamente según el estado del usuario (ej. pasando de "Registro" a "Verificación de Código") sin recargar la página (comportamiento SPA - Single Page Application).
-- **Internacionalización / Centralización de Textos:** Separación de los copys y textos en archivos de configuración externos (como `src/locals/es.json`) para facilitar el mantenimiento y evitar texto *hardcodeado*.
-- **CSS Modular Variables:** Diseño compacto y responsivo basado en variables de entorno CSS (`--color-primary`, etc.) garantizando una estética de modo oscuro (Dark Mode), optimizada para no generar *scrolls* innecesarios y verse como una app premium.
+Actualmente el backend utiliza **Supabase** como proveedor administrado de **PostgreSQL**. La aplicacion se conecta mediante **Spring Data JPA + Hibernate**.
 
 ---
 
-## 🚀 Cómo Correr el Proyecto Localmente
+## Arquitectura y Patrones de Diseno
 
-Para ejecutar el proyecto, debes levantar el Backend y el Frontend en dos consolas/terminales separadas.
+El proyecto sigue una arquitectura cliente-servidor orientada a APIs REST. El backend centraliza la logica de negocio, seguridad y persistencia, mientras que el frontend consume la API y presenta la experiencia al usuario.
 
-### 1. Configurar y Ejecutar el Backend (Spring Boot)
+### Backend (Spring Boot / Java)
+- **Controllers**: exponen los endpoints REST.
+- **Services**: implementan la logica de negocio, validaciones, OTP y autenticacion.
+- **Repositories**: gestionan la persistencia con Spring Data JPA sobre PostgreSQL/Supabase.
+- **Entities**: mapean objetos Java a tablas PostgreSQL mediante Hibernate.
+- **DTOs**: desacoplan la API de las entidades internas.
+- **Security**: protege rutas y flujos sensibles.
 
-**Requisitos Previos:**
-- Java Development Kit (JDK) 17 o superior.
-- Motor de Base de Datos MySQL ejecutándose en el puerto `3306`.
+### Frontend (React.js)
+- Componentes funcionales y hooks.
+- Renderizado condicional para flujos de registro y verificacion.
+- Textos centralizados para facilitar mantenimiento.
+- CSS propio sin Bootstrap ni Tailwind.
 
-**Pasos:**
-1. Crear la base de datos manualmente en MySQL (por ejemplo, desde MySQL Workbench):
-   ```sql
-   CREATE DATABASE toasted_vr_db;
-   ```
-2. Abre una terminal y ve a la carpeta del backend:
+---
+
+## Como Correr el Proyecto Localmente
+
+Debes levantar backend y frontend en terminales separadas.
+
+### 1. Backend (`Toasted_VR`)
+
+**Requisitos previos**
+- JDK 17 o superior.
+- Un proyecto de Supabase creado.
+- Credenciales SMTP validas si vas a enviar correos reales.
+
+**Configurar Supabase**
+1. Crea un proyecto en Supabase.
+2. Entra al dashboard y abre `Connect`.
+3. Copia el `JDBC connection string`, el usuario y la contrasena de la base de datos.
+4. Crea `Toasted_VR/.env` tomando como base `Toasted_VR/.env.example`.
+
+**Variables importantes del `.env`**
+```env
+DB_URL=jdbc:postgresql://TU_HOST/postgres?sslmode=require
+DB_USERNAME=TU_USUARIO_SUPABASE
+DB_PASSWORD=TU_PASSWORD_SUPABASE
+DB_DRIVER_CLASS_NAME=org.postgresql.Driver
+JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
+JPA_DDL_AUTO=update
+JPA_SHOW_SQL=true
+```
+
+**Notas**
+- Si Supabase te entrega una conexion pooler por puerto `6543`, agrega `&prepareThreshold=0` al `DB_URL`.
+- Con `JPA_DDL_AUTO=update`, Hibernate crea o actualiza automaticamente las tablas necesarias.
+- No necesitas crear manualmente la tabla `users` si la app arranca correctamente contra Supabase.
+
+**Ejecutar el backend**
+1. Entra a la carpeta:
    ```bash
    cd Toasted_VR
    ```
-3. Verifica la configuración en tu archivo `.env`. Asegúrate de que las contraseñas de tu base de datos y tu servicio SMTP de Gmail sean correctas:
-   ```env
-   DB_URL=jdbc:mysql://localhost:3306/toasted_vr_db?useSSL=false&serverTimezone=UTC
-   DB_USERNAME=root
-   DB_PASSWORD=tu_contraseña_mysql
-   MAIL_USERNAME=tu_correo@gmail.com
-   MAIL_PASSWORD=tu_app_password_generado_en_gmail
-   ```
-4. Compila y arranca el servidor utilizando el wrapper de Maven que viene incluido:
-   - **En Windows:**
+2. Inicia la aplicacion:
+   - **Windows**
      ```bash
      mvnw.cmd spring-boot:run
      ```
-   - **En Linux/Mac:**
+   - **Linux/Mac**
      ```bash
      ./mvnw spring-boot:run
      ```
-5. El servidor backend quedará disponible en: `http://localhost:8081`
+3. El backend quedara disponible en `http://localhost:8081`.
 
-### 2. Configurar y Ejecutar el Frontend (React.js)
+### 2. Frontend (`toasted_vr_frontend`)
 
-**Requisitos Previos:**
-- Node.js (v18+) y NPM instalados en la máquina.
+**Requisitos previos**
+- Node.js 18 o superior.
+- NPM instalado.
 
-**Pasos:**
-1. Abre una nueva terminal y dirígete a la carpeta del frontend:
+**Ejecutar el frontend**
+1. Entra a la carpeta:
    ```bash
    cd toasted_vr_frontend
    ```
-2. Instala todas las dependencias y librerías necesarias:
+2. Instala dependencias:
    ```bash
    npm install
    ```
-3. Levanta el servidor de desarrollo web:
+3. Inicia el servidor de desarrollo:
    ```bash
    npm start
    ```
-4. El navegador se abrirá automáticamente y podrás interactuar con la aplicación en: `http://localhost:3000`
+4. La aplicacion quedara disponible en `http://localhost:3000`.
 
 ---
 
-## 📌 Contexto Importante para Futuros Desarrolladores
+## Contexto Importante para Futuros Desarrolladores
 
-Si te integras a este proyecto, aquí hay algunas reglas clave que debes conocer sobre lo que se ha hecho hasta ahora:
+1. **Base de datos actual:** el proyecto usa **Supabase** como proveedor administrado de **PostgreSQL**. Si en documentacion antigua aparece MySQL, ya no aplica.
+2. **Creacion automatica de esquema:** con `JPA_DDL_AUTO=update`, Spring Boot/Hibernate crea o actualiza tablas en PostgreSQL segun las entidades Java.
+3. **Verificacion por correo:** el registro envia un codigo OTP de 6 digitos con expiracion para confirmar el email del usuario.
+4. **SMTP real:** para Gmail debe usarse una App Password, no la contrasena normal de la cuenta.
+5. **Archivos sensibles:** el archivo `.env` no debe subirse al repositorio. Solo debe versionarse `.env.example`.
 
-1. **JPA DDL Auto:** El backend está configurado con `JPA_DDL_AUTO=update`. Esto significa que Spring Boot creará o modificará automáticamente las tablas en MySQL para coincidir con las Entidades de Java. ¡No es necesario crear las tablas manualmente por scripts SQL!
-2. **Autenticación en Dos Pasos (MFA por Correo):** El formulario de registro no activa la cuenta de inmediato. Al enviarse, la cuenta queda pendiente y el sistema dispara un código de seguridad OTP de 6 dígitos al correo del usuario. El Front-end tiene un componente específico con una cuenta regresiva de 2 minutos para validarlo.
-3. **Contraseñas de Aplicación de Gmail:** Para que el servidor backend envíe los correos OTP correctamente, la cuenta de Gmail utilizada en el `.env` NO utiliza la contraseña normal de inicio de sesión, sino una "Contraseña de Aplicación" (App Password) generada desde los ajustes de seguridad de Google (se requiere tener verificación de dos pasos activada en esa cuenta de Google).
-4. **Diseño Visual:** La interfaz no usa frameworks como Bootstrap ni Tailwind. Se construyó con "Vanilla CSS" buscando un acabado inmersivo de "Glassmorphism" con luces de ambiente (`ambient-light`). Si agregas componentes nuevos, intenta reutilizar las clases genéricas como `.primary-button` o `.field-input` ubicadas en `App.css`.
+---
+
+## Sobre el Diagrama de Arquitectura
+
+Si tu diagrama actualmente dice **PostgreSQL**, no esta mal, porque Supabase usa PostgreSQL por debajo. Pero para que quede mas claro y actualizado, conviene cambiar la caja de base de datos a alguno de estos nombres:
+
+- `Supabase (PostgreSQL)`
+- `Supabase PostgreSQL`
+- `Base de Datos Gestionada - Supabase (PostgreSQL)`
+
+Mi recomendacion es que no reemplaces `PostgreSQL` por completo, sino que lo dejes explicito como servicio administrado. Por ejemplo:
+
+`Servidor BD UCC` -> `Supabase`
+
+Y dentro de esa caja:
+- `PostgreSQL`
+- `Auth / Managed DB` solo si realmente vas a usar mas servicios de Supabase despues
+- `Backups Administrados` si quieres reflejar que la capa ya no es local/manual
+
+Si por ahora solo usas Supabase como base de datos, la forma mas clara y honesta es dejarlo como **`Supabase (PostgreSQL)`**.

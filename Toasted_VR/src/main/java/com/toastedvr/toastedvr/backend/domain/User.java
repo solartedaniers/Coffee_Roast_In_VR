@@ -2,6 +2,8 @@ package com.toastedvr.toastedvr.backend.domain;
 
 import java.time.LocalDateTime;
 
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -33,6 +35,13 @@ public class User {
     @Column(nullable = false)
     private boolean emailVerified;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, columnDefinition = "varchar(20) default 'PLAYER'")
+    private Role role;
+
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    private Boolean enabled;
+
     @Column(length = 10)
     private String verificationCode;
 
@@ -40,6 +49,8 @@ public class User {
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    private LocalDateTime lastLoginAt;
 
     protected User() {
     }
@@ -50,10 +61,20 @@ public class User {
         this.username = username;
         this.password = password;
         this.emailVerified = false;
+        this.role = Role.PLAYER;
+        this.enabled = true;
     }
 
     @PrePersist
     public void prePersist() {
+        if (role == null) {
+            role = Role.PLAYER;
+        }
+
+        if (enabled == null) {
+            enabled = true;
+        }
+
         if (createdAt == null) {
             createdAt = LocalDateTime.now();
         }
@@ -87,8 +108,24 @@ public class User {
         return verificationCode;
     }
 
+    public Role getRole() {
+        return role != null ? role : Role.PLAYER;
+    }
+
+    public boolean isEnabled() {
+        return enabled == null || enabled;
+    }
+
     public LocalDateTime getVerificationCodeExpiresAt() {
         return verificationCodeExpiresAt;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getLastLoginAt() {
+        return lastLoginAt;
     }
 
     public void setPassword(String password) {
@@ -105,5 +142,21 @@ public class User {
         this.emailVerified = true;
         this.verificationCode = null;
         this.verificationCodeExpiresAt = null;
+    }
+
+    public void assignRole(Role role) {
+        this.role = role;
+    }
+
+    public void block() {
+        this.enabled = false;
+    }
+
+    public void activate() {
+        this.enabled = true;
+    }
+
+    public void updateLastLoginAt(LocalDateTime lastLoginAt) {
+        this.lastLoginAt = lastLoginAt;
     }
 }

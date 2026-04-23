@@ -3,5 +3,5 @@ import App from './App';
 
 test('renders registration title', () => {
   render(<App />);
-  expect(screen.getByText(/crea tu cuenta y verifica tu correo/i)).toBeInTheDocument();
+  expect(screen.getByText(/registro de usuarios/i)).toBeInTheDocument();
 });

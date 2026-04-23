@@ -13,5 +13,8 @@ spring:
     port: 2525
 
 app:
+  jwt:
+    secret: VG9hc3RlZFZSU3VwZXJTZWNyZXRLZXlGb3JUZXN0aW5nMjAyNiFUb2FzdGVkVlI=
+    expiration-seconds: 3600
   mail:
     enabled: false

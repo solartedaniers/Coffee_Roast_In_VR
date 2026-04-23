@@ -1,19 +1,8 @@
-import axios from 'axios';
-import { apiBaseUrl } from '../config/env';
-
-const authApi = axios.create({
-  baseURL: apiBaseUrl,
-  headers: {
-    'Content-Type': 'application/json'
-  }
-});
-
-const getErrorMessage = (error) =>
-  error.response?.data?.message || 'No fue posible conectar con el servidor.';
+import apiClient, { getErrorMessage } from './apiClient';
 
 export const registerUser = async (payload) => {
   try {
-    const response = await authApi.post('/auth/register', payload);
+    const response = await apiClient.post('/auth/register', payload);
     return response.data;
   } catch (error) {
     throw new Error(getErrorMessage(error));
@@ -22,7 +11,25 @@ export const registerUser = async (payload) => {
 
 export const verifyEmailCode = async (payload) => {
   try {
-    const response = await authApi.post('/auth/verify-email', payload);
+    const response = await apiClient.post('/auth/verify-email', payload);
+    return response.data;
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+};
+
+export const loginUser = async (payload) => {
+  try {
+    const response = await apiClient.post('/auth/login', payload);
+    return response.data;
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+};
+
+export const logoutUser = async () => {
+  try {
+    const response = await apiClient.post('/auth/logout');
     return response.data;
   } catch (error) {
     throw new Error(getErrorMessage(error));

@@ -4,14 +4,23 @@ import java.time.LocalDateTime;
 import java.util.Locale;
 
 import com.toastedvr.toastedvr.backend.domain.User;
+import com.toastedvr.toastedvr.backend.dto.AuthenticatedUserResponse;
+import com.toastedvr.toastedvr.backend.dto.LoginRequest;
+import com.toastedvr.toastedvr.backend.dto.LoginResponse;
+import com.toastedvr.toastedvr.backend.dto.LogoutResponse;
 import com.toastedvr.toastedvr.backend.dto.RegisterUserRequest;
 import com.toastedvr.toastedvr.backend.dto.RegisterUserResponse;
 import com.toastedvr.toastedvr.backend.dto.UserResponse;
 import com.toastedvr.toastedvr.backend.dto.VerifyEmailRequest;
+import com.toastedvr.toastedvr.backend.exception.AccountBlockedException;
+import com.toastedvr.toastedvr.backend.exception.AuthenticationFailedException;
 import com.toastedvr.toastedvr.backend.exception.ConflictException;
+import com.toastedvr.toastedvr.backend.exception.EmailNotVerifiedException;
 import com.toastedvr.toastedvr.backend.exception.InvalidVerificationCodeException;
 import com.toastedvr.toastedvr.backend.exception.ResourceNotFoundException;
 import com.toastedvr.toastedvr.backend.repository.UserRepository;
+import com.toastedvr.toastedvr.backend.security.JwtService;
+import com.toastedvr.toastedvr.backend.security.UserPrincipal;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,6 +33,9 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final VerificationCodeGenerator verificationCodeGenerator;
     private final EmailService emailService;
+    private final JwtService jwtService;
+    private final TokenBlacklistService tokenBlacklistService;
+    private final AuditService auditService;
     private final int codeExpirationMinutes;
 
     public AuthService(
@@ -31,12 +43,18 @@ public class AuthService {
         PasswordEncoder passwordEncoder,
         VerificationCodeGenerator verificationCodeGenerator,
         EmailService emailService,
+        JwtService jwtService,
+        TokenBlacklistService tokenBlacklistService,
+        AuditService auditService,
         @Value("${app.verification.code-expiration-minutes:15}") int codeExpirationMinutes
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.verificationCodeGenerator = verificationCodeGenerator;
         this.emailService = emailService;
+        this.jwtService = jwtService;
+        this.tokenBlacklistService = tokenBlacklistService;
+        this.auditService = auditService;
         this.codeExpirationMinutes = codeExpirationMinutes;
     }
 
@@ -109,6 +127,58 @@ public class AuthService {
             user.isEmailVerified(),
             "La cuenta fue verificada y creada correctamente."
         );
+    }
+
+    @Transactional
+    public LoginResponse login(LoginRequest request) {
+        String identifier = request.identifier().trim();
+
+        User user = userRepository.findByUsernameIgnoreCase(identifier)
+            .or(() -> userRepository.findByEmailIgnoreCase(normalizeEmail(identifier)))
+            .orElseThrow(() -> new AuthenticationFailedException("Las credenciales ingresadas no son validas."));
+
+        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
+            throw new AuthenticationFailedException("Las credenciales ingresadas no son validas.");
+        }
+
+        if (!user.isEmailVerified()) {
+            throw new EmailNotVerifiedException("Debes verificar tu correo antes de iniciar sesion.");
+        }
+
+        if (!user.isEnabled()) {
+            throw new AccountBlockedException("La cuenta se encuentra bloqueada.");
+        }
+
+        user.updateLastLoginAt(LocalDateTime.now());
+        userRepository.save(user);
+
+        UserPrincipal principal = new UserPrincipal(user);
+        String token = jwtService.generateToken(principal);
+        auditService.logSuccessfulLogin(user.getId(), user.getUsername());
+
+        return new LoginResponse(
+            token,
+            "Bearer",
+            jwtService.getExpiration(token),
+            new AuthenticatedUserResponse(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getUsername(),
+                user.isEmailVerified(),
+                user.isEnabled(),
+                user.getRole(),
+                user.getLastLoginAt()
+            )
+        );
+    }
+
+    public LogoutResponse logout(String token) {
+        Long userId = jwtService.extractUserId(token);
+        String username = jwtService.extractUsername(token);
+        tokenBlacklistService.blacklistToken(token, jwtService.getExpiration(token));
+        auditService.logLogout(userId, username);
+        return new LogoutResponse("La sesion fue cerrada correctamente.");
     }
 
     private void validateUniqueness(String email, String username) {

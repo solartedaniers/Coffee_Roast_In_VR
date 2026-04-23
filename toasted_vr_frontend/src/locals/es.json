@@ -1,44 +1,145 @@
 {
-  "registration": {
-    "brand": "Toasted VR",
-    "title": "Regístrate",
-    "subtitle": "",
-    "labels": {
-      "fullName": "Nombre completo",
-      "email": "Correo electronico",
-      "username": "Usuario",
-      "password": "Contrasena",
-      "confirmPassword": "Confirmar contrasena"
+  "app": {
+    "brand": "Toasted VR"
+  },
+  "auth": {
+    "switcherLabel": "Selecciona una vista de autenticacion",
+    "login": {
+      "switchLabel": "Iniciar sesion",
+      "title": "Acceso administrativo",
+      "subtitle": "Inicia sesion con una cuenta ADMIN para gestionar usuarios registrados.",
+      "labels": {
+        "identifier": "Nombre de usuario",
+        "password": "Contrasena"
+      },
+      "placeholders": {
+        "identifier": "Ingresa tu nombre de usuario",
+        "password": "Escribe tu contrasena"
+      },
+      "buttons": {
+        "submit": "Entrar al panel",
+        "loading": "Validando acceso..."
+      }
+    },
+    "register": {
+      "switchLabel": "Registrar cuenta",
+      "title": "Registro de usuarios",
+      "subtitle": "Crea una cuenta nueva y verifica el correo antes de iniciar sesion.",
+      "labels": {
+        "fullName": "Nombre completo",
+        "email": "Correo electronico",
+        "username": "Usuario",
+        "password": "Contrasena",
+        "confirmPassword": "Confirmar contrasena"
+      },
+      "placeholders": {
+        "fullName": "Ingresa tu nombre completo",
+        "email": "Ingresa tu correo electronico",
+        "username": "Elige tu nombre de usuario",
+        "password": "Crea una contrasena segura",
+        "confirmPassword": "Repite tu contrasena"
+      },
+      "buttons": {
+        "submit": "Crear cuenta",
+        "loading": "Enviando codigo...",
+        "verify": "Verificar codigo",
+        "verifying": "Validando codigo...",
+        "createAnother": "Registrar otra cuenta",
+        "goToLogin": "Volver al inicio de sesion"
+      },
+      "messages": {
+        "passwordMismatch": "Las contrasenas no coinciden.",
+        "invalidCodeLength": "Debes ingresar los 6 digitos del codigo."
+      },
+      "verification": {
+        "title": "Verificacion de correo",
+        "subtitle": "Confirma el codigo enviado para habilitar la cuenta.",
+        "instructions": "Escribe el codigo de 6 digitos que enviamos a",
+        "timerLabel": "El codigo vence en"
+      },
+      "success": {
+        "badge": "Cuenta verificada",
+        "title": "Todo listo",
+        "subtitle": "Tu correo ya fue validado y la cuenta quedo habilitada correctamente.",
+        "accountCreated": "La cuenta fue creada y verificada correctamente para que continues con el siguiente paso."
+      }
+    }
+  },
+  "accessDenied": {
+    "badge": "Sin permiso",
+    "title": "Tu cuenta no tiene acceso administrativo",
+    "subtitle": "El backend solo habilita este modulo para usuarios con rol ADMIN.",
+    "helper": "Puedes cerrar sesion y entrar con una cuenta administradora.",
+    "button": "Cerrar sesion"
+  },
+  "admin": {
+    "badge": "RBAC activo",
+    "title": "Gestion administrativa de usuarios",
+    "subtitle": "Consulta usuarios, revisa sus detalles, activa o bloquea cuentas y cambia roles desde un unico panel.",
+    "accountLabel": "Sesion actual",
+    "listTitle": "Usuarios registrados",
+    "detailTitle": "Detalle del usuario",
+    "resultsLabel": "{count} usuarios",
+    "selectedLabel": "Usuario seleccionado",
+    "loadingUsers": "Cargando usuarios...",
+    "loadingDetail": "Cargando detalle...",
+    "empty": "No hay usuarios que coincidan con los filtros.",
+    "emptyDetail": "Selecciona un usuario para ver su detalle.",
+    "pageLabel": "Pagina {page} de {totalPages}",
+    "selfProtection": "No puedes bloquear tu propia cuenta ni cambiar tu propio rol.",
+    "yes": "Si",
+    "no": "No",
+    "filters": {
+      "name": "Nombre",
+      "email": "Correo",
+      "status": "Estado",
+      "role": "Rol"
     },
     "placeholders": {
-      "fullName": "Ingresa tu nombre completo",
-      "email": "Ingresa tu correo electronico",
-      "username": "Elige tu nombre de usuario",
-      "password": "Crea una contrasena segura",
-      "confirmPassword": "Repite tu contrasena"
+      "name": "Buscar por nombre",
+      "email": "Buscar por correo"
+    },
+    "options": {
+      "allStatuses": "Todos los estados",
+      "allRoles": "Todos los roles",
+      "active": "Activo",
+      "blocked": "Bloqueado"
+    },
+    "roles": {
+      "admin": "Administrador",
+      "player": "Jugador"
+    },
+    "metrics": {
+      "total": "Total visibles",
+      "active": "Activos",
+      "blocked": "Bloqueados",
+      "admins": "Administradores"
+    },
+    "table": {
+      "name": "Nombre",
+      "email": "Correo",
+      "role": "Rol",
+      "status": "Estado",
+      "actions": "Acciones"
+    },
+    "detail": {
+      "name": "Nombre",
+      "email": "Correo",
+      "username": "Usuario",
+      "verified": "Correo verificado",
+      "status": "Estado",
+      "createdAt": "Fecha de registro",
+      "role": "Rol"
     },
     "buttons": {
-      "submit": "Crear cuenta",
-      "loading": "Enviando codigo...",
-      "verify": "Verificar codigo",
-      "verifying": "Validando codigo...",
-      "createAnother": "Registrar otra cuenta"
-    },
-    "messages": {
-      "passwordMismatch": "Las contrasenas no coinciden.",
-      "invalidCodeLength": "Debes ingresar los 6 digitos del codigo."
-    },
-    "verification": {
-      "title": "Verificación",
-      "subtitle": "",
-      "instructions": "Escribe el codigo de 6 digitos que enviamos a",
-      "timerLabel": "El codigo vence en"
-    },
-    "success": {
-      "badge": "Cuenta verificada",
-      "title": "Todo listo",
-      "subtitle": "Tu correo ya fue validado y la cuenta quedo habilitada correctamente.",
-      "accountCreated": "La cuenta fue creada y verificada correctamente para que continues con el siguiente paso."
+      "logout": "Cerrar sesion",
+      "search": "Aplicar filtros",
+      "clear": "Limpiar",
+      "block": "Bloquear",
+      "activate": "Activar",
+      "saveRole": "Guardar rol",
+      "previous": "Anterior",
+      "next": "Siguiente"
     }
   }
 }

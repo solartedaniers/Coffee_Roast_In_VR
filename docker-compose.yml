@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: toasted_vr_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: toasted_vr_db
+      POSTGRES_USER: toasted_vr_user
+      POSTGRES_PASSWORD: toasted_vr_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - toasted_vr_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  toasted_vr_postgres_data:

@@ -130,3 +130,4 @@ Y dentro de esa caja:
 - `Backups Administrados` si quieres reflejar que la capa ya no es local/manual
 
 Si por ahora solo usas Supabase como base de datos, la forma mas clara y honesta es dejarlo como **`Supabase (PostgreSQL)`**.
+

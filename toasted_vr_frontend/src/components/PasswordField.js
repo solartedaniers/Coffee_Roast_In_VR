@@ -20,7 +20,7 @@ function PasswordField({ name, value, onChange, placeholder, label }) {
           type="button"
           className="toggle-visibility"
           onClick={() => setIsVisible((currentValue) => !currentValue)}
-          aria-label={isVisible ? 'Ocultar contrasena' : 'Mostrar contrasena'}
+          aria-label={isVisible ? 'Ocultar contraseña' : 'Mostrar contraseña'}
         >
           {isVisible ? (
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

@@ -3,65 +3,85 @@
     "brand": "Toasted VR"
   },
   "auth": {
-    "switcherLabel": "Selecciona una vista de autenticacion",
+    "entry": {
+      "title": "Simulador VR de tostión de café",
+      "subtitle": "Aprende, practica y explora el proceso de tostión en una experiencia inmersiva.",
+      "backToHome": "Volver al inicio",
+      "buttons": {
+        "login": "Iniciar sesión",
+        "register": "Registrarse"
+      }
+    },
+    "switcherLabel": "Selecciona una vista de autenticación",
     "login": {
-      "switchLabel": "Iniciar sesion",
-      "title": "Acceso administrativo",
-      "subtitle": "Inicia sesion con una cuenta ADMIN para gestionar usuarios registrados.",
+      "switchLabel": "Iniciar sesión",
+      "title": "Iniciar sesión",
+      "subtitle": "Ingresa con tu cuenta para continuar tu experiencia en Toasted VR.",
       "labels": {
         "identifier": "Nombre de usuario",
-        "password": "Contrasena"
+        "password": "Contraseña"
       },
       "placeholders": {
         "identifier": "Ingresa tu nombre de usuario",
-        "password": "Escribe tu contrasena"
+        "password": "Escribe tu contraseña"
       },
       "buttons": {
-        "submit": "Entrar al panel",
+        "submit": "Iniciar sesión",
         "loading": "Validando acceso..."
+      },
+      "links": {
+        "forgotPassword": "¿Olvidaste tu contraseña?",
+        "createAccount": "Crear cuenta"
+      },
+      "messages": {
+        "forgotPasswordUnavailable": "La recuperación de contraseña aún no está disponible en esta versión."
       }
     },
     "register": {
-      "switchLabel": "Registrar cuenta",
-      "title": "Registro de usuarios",
-      "subtitle": "Crea una cuenta nueva y verifica el correo antes de iniciar sesion.",
+      "switchLabel": "Registrarse",
+      "title": "Crear cuenta",
+      "subtitle": "Crea tu cuenta, valida tu correo y continúa con una experiencia premium inspirada en el café.",
       "labels": {
         "fullName": "Nombre completo",
-        "email": "Correo electronico",
+        "email": "Correo electrónico",
         "username": "Usuario",
-        "password": "Contrasena",
-        "confirmPassword": "Confirmar contrasena"
+        "password": "Contraseña",
+        "confirmPassword": "Confirmar contraseña"
       },
       "placeholders": {
         "fullName": "Ingresa tu nombre completo",
-        "email": "Ingresa tu correo electronico",
+        "email": "Ingresa tu correo electrónico",
         "username": "Elige tu nombre de usuario",
-        "password": "Crea una contrasena segura",
-        "confirmPassword": "Repite tu contrasena"
+        "password": "Crea una contraseña segura",
+        "confirmPassword": "Repite tu contraseña"
       },
       "buttons": {
-        "submit": "Crear cuenta",
-        "loading": "Enviando codigo...",
-        "verify": "Verificar codigo",
-        "verifying": "Validando codigo...",
+        "submit": "Registrarse",
+        "loading": "Enviando código...",
+        "verify": "Verificar código",
+        "verifying": "Validando código...",
         "createAnother": "Registrar otra cuenta",
-        "goToLogin": "Volver al inicio de sesion"
+        "goToLogin": "Ir a iniciar sesión"
+      },
+      "links": {
+        "login": "¿Ya tienes cuenta? Inicia sesión"
       },
       "messages": {
-        "passwordMismatch": "Las contrasenas no coinciden.",
-        "invalidCodeLength": "Debes ingresar los 6 digitos del codigo."
+        "passwordMismatch": "Las contraseñas no coinciden.",
+        "invalidCodeLength": "Debes ingresar los 6 dígitos del código."
       },
       "verification": {
-        "title": "Verificacion de correo",
-        "subtitle": "Confirma el codigo enviado para habilitar la cuenta.",
-        "instructions": "Escribe el codigo de 6 digitos que enviamos a",
-        "timerLabel": "El codigo vence en"
+        "badge": "Verificación por correo",
+        "title": "Verificación de correo",
+        "subtitle": "Confirma el código enviado para habilitar tu cuenta.",
+        "instructions": "Escribe el código de 6 dígitos que enviamos a",
+        "timerLabel": "El código vence en"
       },
       "success": {
         "badge": "Cuenta verificada",
         "title": "Todo listo",
-        "subtitle": "Tu correo ya fue validado y la cuenta quedo habilitada correctamente.",
-        "accountCreated": "La cuenta fue creada y verificada correctamente para que continues con el siguiente paso."
+        "subtitle": "Tu correo ya fue validado y la cuenta quedó habilitada correctamente.",
+        "accountCreated": "La cuenta fue creada y verificada correctamente para que continúes con el siguiente paso."
       }
     }
   },

@@ -9,6 +9,7 @@ import { logoutUser } from './services/authService';
 import { clearSession, readSession, saveSession } from './services/sessionService';
 
 const authViews = {
+  entry: 'entry',
   register: 'register',
   login: 'login'
 };
@@ -20,7 +21,7 @@ function App() {
   const accessDeniedTexts = esTexts.accessDenied;
   const brand = esTexts.app.brand;
 
-  const [authView, setAuthView] = useState(authViews.register);
+  const [authView, setAuthView] = useState(authViews.entry);
   const [pendingRegistration, setPendingRegistration] = useState(null);
   const [verifiedUser, setVerifiedUser] = useState(null);
   const [session, setSession] = useState(() => readSession());
@@ -45,7 +46,7 @@ function App() {
   const handleSwitchAuthView = (nextView) => {
     setAuthView(nextView);
 
-    if (nextView === authViews.login) {
+    if (nextView !== authViews.register) {
       setPendingRegistration(null);
       setVerifiedUser(null);
     }
@@ -70,7 +71,7 @@ function App() {
     } finally {
       clearSession();
       setSession(null);
-      setAuthView(authViews.login);
+      setAuthView(authViews.entry);
       setPendingRegistration(null);
       setVerifiedUser(null);
     }
@@ -131,70 +132,105 @@ function App() {
         ? registerTexts.verification.subtitle
         : registerTexts.subtitle;
 
+  const isEntryView = authView === authViews.entry;
+  const showBackButton = !isEntryView && !verifiedUser;
+  const isAuthPanelActive = !isEntryView;
+
   return (
-    <div className="app-shell">
+    <div className="app-shell auth-shell" style={{ '--auth-background-image': "url('/images/cafe.jpg')" }}>
       <div className="ambient-light ambient-light-left" />
       <div className="ambient-light ambient-light-right" />
 
-      <main className="auth-card">
-        <header className="hero-copy">
-          <p className="eyebrow">{brand}</p>
-          <h1 className="centered-title">{currentTitle}</h1>
-          {currentSubtitle && <p className="subtitle">{currentSubtitle}</p>}
-        </header>
+      <main className={`auth-experience ${isEntryView ? 'is-entry' : 'is-auth-active'}`}>
+        <section className={`auth-hero-panel ${isAuthPanelActive ? 'is-muted' : ''}`}>
+          <div className="auth-hero-content">
+            <p className="eyebrow">{brand}</p>
+            <h1 className="hero-title">{esTexts.auth.entry.title}</h1>
+            <p className="hero-description">{esTexts.auth.entry.subtitle}</p>
 
-        <div className="tab-strip" role="tablist" aria-label={esTexts.auth.switcherLabel}>
-          <button
-            type="button"
-            role="tab"
-            className={`tab-button ${authView === authViews.register ? 'is-active' : ''}`}
-            aria-selected={authView === authViews.register}
-            onClick={() => handleSwitchAuthView(authViews.register)}
-          >
-            {registerTexts.switchLabel}
-          </button>
-          <button
-            type="button"
-            role="tab"
-            className={`tab-button ${authView === authViews.login ? 'is-active' : ''}`}
-            aria-selected={authView === authViews.login}
-            onClick={() => handleSwitchAuthView(authViews.login)}
-          >
-            {loginTexts.switchLabel}
-          </button>
-        </div>
+            <div className="hero-actions">
+              <button
+                type="button"
+                className="primary-button hero-button"
+                onClick={() => handleSwitchAuthView(authViews.login)}
+              >
+                {esTexts.auth.entry.buttons.login}
+              </button>
+              <button
+                type="button"
+                className="secondary-button hero-button"
+                onClick={() => handleSwitchAuthView(authViews.register)}
+              >
+                {esTexts.auth.entry.buttons.register}
+              </button>
+            </div>
+          </div>
+        </section>
 
-        {authView === authViews.register && !pendingRegistration && (
-          <RegisterForm texts={registerTexts} onRegistrationSuccess={handleRegistrationSuccess} />
-        )}
+        <section
+          className={`auth-card auth-flow-card ${isAuthPanelActive ? 'is-visible' : 'is-hidden'}`}
+          aria-hidden={!isAuthPanelActive}
+        >
+          {isAuthPanelActive && (
+            <>
+              {showBackButton && (
+                <button
+                  type="button"
+                  className="text-link back-link"
+                  onClick={() => handleSwitchAuthView(authViews.entry)}
+                >
+                  {esTexts.auth.entry.backToHome}
+                </button>
+              )}
 
-        {authView === authViews.register && pendingRegistration && !verifiedUser && (
-          <VerificationForm
-            email={pendingRegistration.email}
-            expiresInMinutes={pendingRegistration.expiresInMinutes}
-            texts={registerTexts}
-            onVerificationSuccess={handleVerificationSuccess}
-          />
-        )}
+              <header className="hero-copy">
+                <p className="eyebrow">{brand}</p>
+                <h2 className="centered-title">{currentTitle}</h2>
+                {currentSubtitle && <p className="subtitle">{currentSubtitle}</p>}
+              </header>
 
-        {authView === authViews.register && verifiedUser && (
-          <section className="success-panel" aria-live="polite">
-            <div className="success-badge">{registerTexts.success.badge}</div>
-            <h2>{registerTexts.success.title}</h2>
-            <p>{registerTexts.success.accountCreated}</p>
-            <p className="success-email">{verifiedUser.email}</p>
-            <button type="button" onClick={() => handleSwitchAuthView(authViews.login)}>
-              {registerTexts.buttons.goToLogin}
-            </button>
-            <button type="button" className="secondary-button" onClick={handleRestartRegistration}>
-              {registerTexts.buttons.createAnother}
-            </button>
-          </section>
-        )}
+              {authView === authViews.register && !pendingRegistration && (
+                <RegisterForm
+                  texts={registerTexts}
+                  onRegistrationSuccess={handleRegistrationSuccess}
+                  onSwitchToLogin={() => handleSwitchAuthView(authViews.login)}
+                />
+              )}
 
-        {authView === authViews.login && (
-          <LoginForm texts={loginTexts} onLoginSuccess={handleLoginSuccess} />
-        )}
+              {authView === authViews.register && pendingRegistration && !verifiedUser && (
+                <VerificationForm
+                  email={pendingRegistration.email}
+                  expiresInMinutes={pendingRegistration.expiresInMinutes}
+                  texts={registerTexts}
+                  onVerificationSuccess={handleVerificationSuccess}
+                />
+              )}
+
+              {authView === authViews.register && verifiedUser && (
+                <section className="success-panel" aria-live="polite">
+                  <div className="success-badge">{registerTexts.success.badge}</div>
+                  <h2>{registerTexts.success.title}</h2>
+                  <p>{registerTexts.success.accountCreated}</p>
+                  <p className="success-email">{verifiedUser.email}</p>
+                  <button type="button" onClick={() => handleSwitchAuthView(authViews.login)}>
+                    {registerTexts.buttons.goToLogin}
+                  </button>
+                  <button type="button" className="secondary-button" onClick={handleRestartRegistration}>
+                    {registerTexts.buttons.createAnother}
+                  </button>
+                </section>
+              )}
+
+              {authView === authViews.login && (
+                <LoginForm
+                  texts={loginTexts}
+                  onLoginSuccess={handleLoginSuccess}
+                  onSwitchToRegister={() => handleSwitchAuthView(authViews.register)}
+                />
+              )}
+            </>
+          )}
+        </section>
       </main>
     </div>
   );

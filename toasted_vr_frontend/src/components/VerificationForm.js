@@ -60,7 +60,8 @@ function VerificationForm({ email, expiresInMinutes, texts, onVerificationSucces
   };
 
   return (
-    <section>
+    <section className="verification-panel">
+      <div className="verification-badge">{texts.verification.badge}</div>
       <p className="verification-copy">
         {texts.verification.instructions}{' '}
         <span className="verification-email">{email}</span>

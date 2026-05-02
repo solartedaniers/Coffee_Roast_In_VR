@@ -11,7 +11,7 @@ const initialFormData = {
   confirmPassword: ''
 };
 
-function RegisterForm({ texts, onRegistrationSuccess }) {
+function RegisterForm({ texts, onRegistrationSuccess, onSwitchToLogin }) {
   const [formData, setFormData] = useState(initialFormData);
   const [status, setStatus] = useState({ text: '', isError: false });
   const [isLoading, setIsLoading] = useState(false);
@@ -117,6 +117,12 @@ function RegisterForm({ texts, onRegistrationSuccess }) {
       <button className="primary-button" type="submit" disabled={isLoading}>
         {isLoading ? texts.buttons.loading : texts.buttons.submit}
       </button>
+
+      <div className="form-links">
+        <button type="button" className="text-link text-link-strong" onClick={onSwitchToLogin}>
+          {texts.links.login}
+        </button>
+      </div>
     </form>
   );
 }

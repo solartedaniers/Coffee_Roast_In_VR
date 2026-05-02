@@ -45,7 +45,7 @@ function VerificationCodeInput({ codeDigits, onChange }) {
           value={digit}
           onChange={(event) => handleDigitChange(index, event.target.value)}
           onKeyDown={(event) => handleKeyDown(index, event)}
-          aria-label={`Digito ${index + 1} del codigo`}
+          aria-label={`Dígito ${index + 1} del código`}
         />
       ))}
     </div>

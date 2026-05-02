@@ -7,7 +7,7 @@ const initialCredentials = {
   password: ''
 };
 
-function LoginForm({ texts, onLoginSuccess }) {
+function LoginForm({ texts, onLoginSuccess, onSwitchToRegister }) {
   const [credentials, setCredentials] = useState(initialCredentials);
   const [status, setStatus] = useState({ text: '', isError: false });
   const [isLoading, setIsLoading] = useState(false);
@@ -15,6 +15,10 @@ function LoginForm({ texts, onLoginSuccess }) {
   const handleChange = (event) => {
     const { name, value } = event.target;
     setCredentials((currentValue) => ({ ...currentValue, [name]: value }));
+  };
+
+  const handleForgotPassword = () => {
+    setStatus({ text: texts.messages.forgotPasswordUnavailable, isError: true });
   };
 
   const handleSubmit = async (event) => {
@@ -65,6 +69,15 @@ function LoginForm({ texts, onLoginSuccess }) {
       <button className="primary-button" type="submit" disabled={isLoading}>
         {isLoading ? texts.buttons.loading : texts.buttons.submit}
       </button>
+
+      <div className="form-links">
+        <button type="button" className="text-link" onClick={handleForgotPassword}>
+          {texts.links.forgotPassword}
+        </button>
+        <button type="button" className="text-link text-link-strong" onClick={onSwitchToRegister}>
+          {texts.links.createAccount}
+        </button>
+      </div>
     </form>
   );
 }

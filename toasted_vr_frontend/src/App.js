@@ -137,7 +137,7 @@ function App() {
   const isAuthPanelActive = !isEntryView;
 
   return (
-    <div className="app-shell auth-shell" style={{ '--auth-background-image': "url('/images/cafe.jpg')" }}>
+    <div className="app-shell auth-shell">
       <div className="ambient-light ambient-light-left" />
       <div className="ambient-light ambient-light-right" />
 

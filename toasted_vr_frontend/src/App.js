@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import './App.css';
 import esTexts from './locals/es.json';
 import AdminUserManagement from './components/AdminUserManagement';
+import RoastingSimulation from './components/simulation/RoastingSimulation';
 import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
 import VerificationForm from './components/VerificationForm';
@@ -18,7 +19,6 @@ function App() {
   const registerTexts = esTexts.auth.register;
   const loginTexts = esTexts.auth.login;
   const adminTexts = esTexts.admin;
-  const accessDeniedTexts = esTexts.accessDenied;
   const brand = esTexts.app.brand;
 
   const [authView, setAuthView] = useState(authViews.entry);
@@ -26,6 +26,7 @@ function App() {
   const [verifiedUser, setVerifiedUser] = useState(null);
   const [session, setSession] = useState(() => readSession());
 
+  const simulationTexts = esTexts.simulation;
   const currentUser = session?.user ?? null;
   const isAdmin = currentUser?.role === 'ADMIN';
 
@@ -92,25 +93,16 @@ function App() {
 
   if (currentUser && !isAdmin) {
     return (
-      <div className="app-shell">
+      <div className="app-shell admin-shell">
         <div className="ambient-light ambient-light-left" />
         <div className="ambient-light ambient-light-right" />
 
-        <main className="auth-card">
-          <header className="hero-copy">
-            <p className="eyebrow">{brand}</p>
-            <h1 className="centered-title">{accessDeniedTexts.title}</h1>
-            <p className="subtitle">{accessDeniedTexts.subtitle}</p>
-          </header>
-
-          <section className="success-panel" aria-live="polite">
-            <div className="success-badge">{accessDeniedTexts.badge}</div>
-            <p className="success-email">{currentUser.username}</p>
-            <p className="helper-copy">{accessDeniedTexts.helper}</p>
-            <button type="button" onClick={handleLogout}>
-              {accessDeniedTexts.button}
-            </button>
-          </section>
+        <main className="app-frame app-frame-wide">
+          <RoastingSimulation
+            texts={simulationTexts}
+            currentUser={currentUser}
+            onLogout={handleLogout}
+          />
         </main>
       </div>
     );

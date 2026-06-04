@@ -65,6 +65,7 @@ public class SecurityConfig {
                     "/swagger-ui.html"
                 ).permitAll()
                 .requestMatchers("/api/v1/auth/logout").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/v1/roasting/sessions").authenticated()
                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                 .anyRequest().denyAll()
             )

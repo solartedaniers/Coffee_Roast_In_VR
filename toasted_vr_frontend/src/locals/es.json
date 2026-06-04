@@ -85,6 +85,87 @@
       }
     }
   },
+  "simulation": {
+    "title": "Simulación de Tostado de Café Arábica",
+    "phases": {
+      "IDLE": "Listo para iniciar",
+      "PREHEAT": "Precalentando horno",
+      "READY": "Temperatura alcanzada",
+      "COOLDOWN": "Absorbiendo calor de los granos",
+      "ROASTING": "Proceso de tostión",
+      "FINISHED": "Tostión finalizada"
+    },
+    "labels": {
+      "temperature": "Temperatura",
+      "targetTemperature": "Temperatura objetivo",
+      "elapsedTime": "Tiempo total",
+      "roastingTime": "Tiempo de tostión",
+      "burnerPower": "Potencia del quemador",
+      "currentPhase": "Fase actual",
+      "firstCrack": "¡First Crack!",
+      "burnAlert": "⚠ El café se está quemando — baja la temperatura",
+      "grainState": "Estado del grano"
+    },
+    "power": {
+      "OFF": "Apagado",
+      "LOW": "Baja",
+      "MEDIUM": "Media",
+      "HIGH": "Alta"
+    },
+    "grainStates": {
+      "DRYING": "Secado",
+      "MAILLARD": "Reacción de Maillard",
+      "FIRST_CRACK": "First Crack",
+      "DARK": "Tueste oscuro",
+      "BURNED": "Café quemado"
+    },
+    "buttons": {
+      "startPreheat": "Encender horno",
+      "loadBeans": "Cargar granos",
+      "dischargeCoffee": "Descargar café",
+      "newSimulation": "Nueva simulación",
+      "logout": "Cerrar sesión"
+    },
+    "chart": {
+      "title": "Curva de temperatura en tiempo real",
+      "timeLabel": "Tiempo (seg)",
+      "tempLabel": "Temperatura (°C)",
+      "referenceLine180": "First Crack",
+      "referenceLine200": "Zona quemado"
+    },
+    "results": {
+      "title": "Evaluación del tueste",
+      "scoreLabel": "Puntuación",
+      "resultLabel": "Resultado",
+      "PERFECT": "Tueste Perfecto",
+      "RAW": "Café Crudo",
+      "BURNED": "Café Quemado",
+      "BAKED": "Café Horneado",
+      "descriptions": {
+        "PERFECT_100": "¡Excelente! Lograste el tueste ideal. Notas brillantes de caramelo, frutos rojos y acidez equilibrada.",
+        "PERFECT_GOOD": "Buen tueste. Café de calidad con cuerpo equilibrado. Ajusta temperatura y tiempo de desarrollo para alcanzar la perfección.",
+        "RAW": "El grano quedó sin desarrollar. Predominarán sabores ácidos, vegetales y astringentes.",
+        "BURNED": "El calor excesivo destruyó los aromas. Solo quedarán sabores amargos y de ceniza.",
+        "BAKED": "La temperatura se estancó en la fase crítica. El café resultará plano, sin carácter ni complejidad."
+      },
+      "stats": {
+        "finalTemp": "Temperatura final",
+        "totalTime": "Tiempo de tostión",
+        "firstCrack": "First crack alcanzado",
+        "devTime": "Tiempo de desarrollo",
+        "yes": "Sí",
+        "no": "No"
+      },
+      "saving": "Guardando resultado...",
+      "saved": "Resultado guardado",
+      "saveError": "No se pudo guardar el resultado"
+    },
+    "info": {
+      "preheatHelp": "La temperatura ideal de carga es entre 190°C y 210°C.",
+      "cooldownCountdown": "Giro en",
+      "developmentTime": "Tiempo desde first crack"
+    }
+  },
   "accessDenied": {
     "badge": "Sin permiso",
     "title": "Tu cuenta no tiene acceso administrativo",

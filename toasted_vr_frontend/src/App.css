@@ -695,6 +695,7 @@ select.field-input:focus {
   border-radius: 24px;
   background: var(--color-bg-surface);
   box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(14px);
 }
 
 .admin-account-card {
@@ -785,7 +786,7 @@ select.field-input:focus {
 .users-table td {
   padding: 14px 12px;
   text-align: left;
-  border-bottom: 1px solid rgba(139, 94, 60, 0.08);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .users-table th {
@@ -802,7 +803,7 @@ select.field-input:focus {
 
 .users-table tbody tr:hover,
 .users-table tbody tr.is-selected {
-  background: rgba(227, 201, 168, 0.16);
+  background: var(--color-bg-page-warm);
 }
 
 .status-pill.active {
@@ -837,7 +838,7 @@ select.field-input:focus {
   justify-content: space-between;
   gap: 16px;
   padding-bottom: 12px;
-  border-bottom: 1px solid rgba(139, 94, 60, 0.08);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .detail-row span {

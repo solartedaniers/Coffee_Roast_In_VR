@@ -173,7 +173,8 @@ public class AuthService {
                 user.isEmailVerified(),
                 user.isEnabled(),
                 user.getRole(),
-                user.getLastLoginAt()
+                user.getLastLoginAt(),
+                user.getKnowledgeLevel()
             )
         );
     }

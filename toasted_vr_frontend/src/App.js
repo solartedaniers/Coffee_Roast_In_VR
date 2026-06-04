@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import './App.css';
 import esTexts from './locals/es.json';
 import AdminUserManagement from './components/AdminUserManagement';
+import KnowledgeLevelSelection from './components/KnowledgeLevelSelection';
 import RoastingSimulation from './components/simulation/RoastingSimulation';
 import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
@@ -27,6 +28,7 @@ function App() {
   const [session, setSession] = useState(() => readSession());
 
   const simulationTexts = esTexts.simulation;
+  const knowledgeLevelTexts = esTexts.knowledgeLevel;
   const currentUser = session?.user ?? null;
   const isAdmin = currentUser?.role === 'ADMIN';
 
@@ -64,6 +66,12 @@ function App() {
     setSession(nextSession);
   };
 
+  const handleKnowledgeLevelSet = (updatedUser) => {
+    const nextSession = { ...session, user: updatedUser };
+    saveSession(nextSession);
+    setSession(nextSession);
+  };
+
   const handleLogout = async () => {
     try {
       await logoutUser();
@@ -92,6 +100,17 @@ function App() {
   }
 
   if (currentUser && !isAdmin) {
+    if (currentUser.knowledgeLevel == null) {
+      return (
+        <KnowledgeLevelSelection
+          texts={knowledgeLevelTexts}
+          currentUser={currentUser}
+          onSuccess={handleKnowledgeLevelSet}
+          onLogout={handleLogout}
+        />
+      );
+    }
+
     return (
       <div className="app-shell admin-shell">
         <div className="ambient-light ambient-light-left" />

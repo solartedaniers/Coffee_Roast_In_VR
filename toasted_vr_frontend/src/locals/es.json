@@ -85,6 +85,31 @@
       }
     }
   },
+  "knowledgeLevel": {
+    "title": "¿Cuánto sabes de café?",
+    "subtitle": "Configura tu experiencia de aprendizaje según tu nivel de conocimiento.",
+    "options": {
+      "BEGINNER": {
+        "label": "Principiante",
+        "description": "Estoy empezando a conocer el mundo del café y sus procesos.",
+        "hint": "Recibirás guías paso a paso y explicaciones de cada fase."
+      },
+      "INTERMEDIATE": {
+        "label": "Intermedio",
+        "description": "Conozco los conceptos básicos del tostado y el café de especialidad.",
+        "hint": "Verás información técnica de las fases sin guía detallada."
+      },
+      "ADVANCED": {
+        "label": "Avanzado",
+        "description": "Tengo experiencia con perfiles de tueste y variables del proceso.",
+        "hint": "Acceso completo a todos los datos y sin asistencia automática."
+      }
+    },
+    "button": "Comenzar simulación",
+    "loading": "Guardando nivel...",
+    "error": "No se pudo guardar tu selección. Intenta de nuevo.",
+    "logoutButton": "Cerrar sesión"
+  },
   "simulation": {
     "title": "Simulación de Tostado de Café Arábica",
     "phases": {

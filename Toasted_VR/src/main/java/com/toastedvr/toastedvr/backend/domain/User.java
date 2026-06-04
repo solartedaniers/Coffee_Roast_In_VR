@@ -52,6 +52,10 @@ public class User {
 
     private LocalDateTime lastLoginAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private KnowledgeLevel knowledgeLevel;
+
     @Column(length = 512)
     private String refreshToken;
 
@@ -163,6 +167,14 @@ public class User {
 
     public void updateLastLoginAt(LocalDateTime lastLoginAt) {
         this.lastLoginAt = lastLoginAt;
+    }
+
+    public KnowledgeLevel getKnowledgeLevel() {
+        return knowledgeLevel;
+    }
+
+    public void updateKnowledgeLevel(KnowledgeLevel knowledgeLevel) {
+        this.knowledgeLevel = knowledgeLevel;
     }
 
     public String getRefreshToken() {

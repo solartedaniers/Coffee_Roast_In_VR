@@ -40,7 +40,7 @@
     "register": {
       "switchLabel": "Registrarse",
       "title": "Crear cuenta",
-      "subtitle": "Crea tu cuenta, valida tu correo y continúa con una experiencia premium inspirada en el café.",
+      "subtitle": "Crea tu cuenta para acceder al simulador de tostión de café.",
       "labels": {
         "fullName": "Nombre completo",
         "email": "Correo electrónico",
@@ -88,15 +88,15 @@
   "accessDenied": {
     "badge": "Sin permiso",
     "title": "Tu cuenta no tiene acceso administrativo",
-    "subtitle": "El backend solo habilita este modulo para usuarios con rol ADMIN.",
-    "helper": "Puedes cerrar sesion y entrar con una cuenta administradora.",
-    "button": "Cerrar sesion"
+    "subtitle": "El backend solo habilita este módulo para usuarios con rol ADMIN.",
+    "helper": "Puedes cerrar sesión y entrar con una cuenta administradora.",
+    "button": "Cerrar sesión"
   },
   "admin": {
     "badge": "RBAC activo",
-    "title": "Gestion administrativa de usuarios",
-    "subtitle": "Consulta usuarios, revisa sus detalles, activa o bloquea cuentas y cambia roles desde un unico panel.",
-    "accountLabel": "Sesion actual",
+    "title": "Gestión administrativa de usuarios",
+    "subtitle": "Consulta usuarios, revisa sus detalles, activa o bloquea cuentas y cambia roles desde un único panel.",
+    "accountLabel": "Sesión actual",
     "listTitle": "Usuarios registrados",
     "detailTitle": "Detalle del usuario",
     "resultsLabel": "{count} usuarios",
@@ -105,9 +105,9 @@
     "loadingDetail": "Cargando detalle...",
     "empty": "No hay usuarios que coincidan con los filtros.",
     "emptyDetail": "Selecciona un usuario para ver su detalle.",
-    "pageLabel": "Pagina {page} de {totalPages}",
+    "pageLabel": "Página {page} de {totalPages}",
     "selfProtection": "No puedes bloquear tu propia cuenta ni cambiar tu propio rol.",
-    "yes": "Si",
+    "yes": "Sí",
     "no": "No",
     "filters": {
       "name": "Nombre",
@@ -152,7 +152,7 @@
       "role": "Rol"
     },
     "buttons": {
-      "logout": "Cerrar sesion",
+      "logout": "Cerrar sesión",
       "search": "Aplicar filtros",
       "clear": "Limpiar",
       "block": "Bloquear",

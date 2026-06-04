@@ -202,6 +202,50 @@
     "badge": "RBAC activo",
     "title": "Gestión administrativa de usuarios",
     "subtitle": "Consulta usuarios, revisa sus detalles, activa o bloquea cuentas y cambia roles desde un único panel.",
+    "nav": {
+      "users": "Usuarios",
+      "stats": "Estadísticas",
+      "roles": "Roles y acceso",
+      "simulations": "Simulaciones"
+    },
+    "statsSection": {
+      "title": "Estadísticas generales",
+      "subtitle": "Resumen de usuarios y sesiones de tostado registradas en el sistema.",
+      "knowledgeTitle": "Nivel de conocimiento",
+      "notSet": "Sin configurar",
+      "sessionResultsTitle": "Resultados de tostión",
+      "loadingStats": "Cargando estadísticas..."
+    },
+    "rolesSection": {
+      "title": "Roles y control de acceso",
+      "subtitle": "Administra roles y estado de cada cuenta de usuario."
+    },
+    "simulationsSection": {
+      "title": "Historial de simulaciones",
+      "subtitle": "Todas las sesiones de tostado registradas en el sistema.",
+      "columns": {
+        "user": "Usuario",
+        "result": "Resultado",
+        "score": "Puntuación",
+        "duration": "Duración",
+        "temp": "Temp. final",
+        "date": "Fecha"
+      },
+      "results": {
+        "PERFECT": "Perfecto",
+        "RAW": "Crudo",
+        "BURNED": "Quemado",
+        "BAKED": "Horneado"
+      },
+      "loading": "Cargando simulaciones...",
+      "empty": "No hay simulaciones registradas aún."
+    },
+    "detailPanel": {
+      "title": "Detalle del usuario",
+      "close": "Cerrar",
+      "roleSection": "Cambiar rol",
+      "actionsSection": "Acciones de cuenta"
+    },
     "accountLabel": "Sesión actual",
     "listTitle": "Usuarios registrados",
     "detailTitle": "Detalle del usuario",

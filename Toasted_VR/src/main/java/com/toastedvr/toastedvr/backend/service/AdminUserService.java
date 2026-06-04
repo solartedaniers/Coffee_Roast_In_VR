@@ -143,7 +143,8 @@ public class AdminUserService {
             user.isEmailVerified(),
             user.isEnabled(),
             user.getRole(),
-            user.getCreatedAt()
+            user.getCreatedAt(),
+            user.getKnowledgeLevel()
         );
     }
 

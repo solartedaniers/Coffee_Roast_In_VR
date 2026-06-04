@@ -92,7 +92,7 @@ function App() {
         <div className="ambient-light ambient-light-left" />
         <div className="ambient-light ambient-light-right" />
 
-        <main className="app-frame app-frame-wide">
+        <main className="admin-page-frame">
           <AdminUserManagement texts={adminTexts} currentUser={currentUser} onLogout={handleLogout} />
         </main>
       </div>

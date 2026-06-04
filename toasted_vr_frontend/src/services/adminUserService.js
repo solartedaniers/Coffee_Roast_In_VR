@@ -45,3 +45,23 @@ export const updateUserRole = async (userId, role) => {
     throw new Error(getErrorMessage(error));
   }
 };
+
+export const fetchAllSessions = async ({ page = 0, size = 20 } = {}) => {
+  try {
+    const response = await apiClient.get('/admin/roasting-sessions', {
+      params: { page, size, sort: 'createdAt,desc' }
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+};
+
+export const fetchAdminStats = async () => {
+  try {
+    const response = await apiClient.get('/admin/stats');
+    return response.data;
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+};

@@ -2,6 +2,8 @@ package com.toastedvr.toastedvr.backend.repository;
 
 import java.util.Optional;
 
+import com.toastedvr.toastedvr.backend.domain.KnowledgeLevel;
+import com.toastedvr.toastedvr.backend.domain.Role;
 import com.toastedvr.toastedvr.backend.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -17,4 +19,12 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
     Optional<User> findByUsernameIgnoreCase(String username);
 
     Optional<User> findByRefreshToken(String refreshToken);
+
+    long countByEnabled(boolean enabled);
+
+    long countByRole(Role role);
+
+    long countByKnowledgeLevel(KnowledgeLevel knowledgeLevel);
+
+    long countByKnowledgeLevelIsNull();
 }

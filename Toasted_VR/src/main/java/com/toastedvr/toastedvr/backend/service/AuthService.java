@@ -2,6 +2,7 @@ package com.toastedvr.toastedvr.backend.service;
 
 import java.time.LocalDateTime;
 import java.util.Locale;
+import java.util.Objects;
 
 import com.toastedvr.toastedvr.backend.domain.User;
 import com.toastedvr.toastedvr.backend.dto.AuthenticatedUserResponse;
@@ -215,7 +216,7 @@ public class AuthService {
         Long userId = jwtService.extractUserId(token);
         String username = jwtService.extractUsername(token);
         tokenBlacklistService.blacklistToken(token, jwtService.getExpiration(token));
-        userRepository.findById(userId).ifPresent(user -> {
+        userRepository.findById(Objects.requireNonNull(userId)).ifPresent(user -> {
             user.clearRefreshToken();
             userRepository.save(user);
         });

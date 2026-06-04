@@ -6,6 +6,7 @@ import com.toastedvr.toastedvr.backend.dto.AuthenticatedUserResponse;
 import com.toastedvr.toastedvr.backend.exception.ResourceNotFoundException;
 import com.toastedvr.toastedvr.backend.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import java.util.Objects;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -19,7 +20,7 @@ public class UserService {
 
     @Transactional
     public AuthenticatedUserResponse updateKnowledgeLevel(Long userId, KnowledgeLevel knowledgeLevel) {
-        User user = userRepository.findById(userId)
+        User user = userRepository.findById(Objects.requireNonNull(userId))
             .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado."));
 
         user.updateKnowledgeLevel(knowledgeLevel);

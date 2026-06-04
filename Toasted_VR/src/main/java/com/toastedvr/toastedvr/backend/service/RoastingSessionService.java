@@ -8,6 +8,7 @@ import com.toastedvr.toastedvr.backend.exception.ResourceNotFoundException;
 import com.toastedvr.toastedvr.backend.repository.RoastingSessionRepository;
 import com.toastedvr.toastedvr.backend.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import java.util.Objects;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -26,7 +27,7 @@ public class RoastingSessionService {
 
     @Transactional
     public SessionResultResponse saveSession(Long userId, SaveSessionRequest request) {
-        User user = userRepository.findById(userId)
+        User user = userRepository.findById(Objects.requireNonNull(userId))
             .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado."));
 
         RoastingSession session = new RoastingSession(

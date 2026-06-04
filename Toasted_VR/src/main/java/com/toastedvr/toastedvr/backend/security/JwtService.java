@@ -1,6 +1,7 @@
 package com.toastedvr.toastedvr.backend.security;
 
 import com.toastedvr.toastedvr.backend.domain.Role;
+import java.util.UUID;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -64,6 +65,10 @@ public class JwtService {
         return userId.equals(principal.getId())
             && username.equalsIgnoreCase(principal.getUsername())
             && expiration.after(new Date());
+    }
+
+    public String generateRefreshToken() {
+        return UUID.randomUUID().toString();
     }
 
     private Claims extractClaims(String token) {

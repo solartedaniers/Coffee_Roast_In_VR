@@ -8,6 +8,8 @@ import com.toastedvr.toastedvr.backend.dto.AuthenticatedUserResponse;
 import com.toastedvr.toastedvr.backend.dto.LoginRequest;
 import com.toastedvr.toastedvr.backend.dto.LoginResponse;
 import com.toastedvr.toastedvr.backend.dto.LogoutResponse;
+import com.toastedvr.toastedvr.backend.dto.RefreshTokenRequest;
+import com.toastedvr.toastedvr.backend.dto.RefreshTokenResponse;
 import com.toastedvr.toastedvr.backend.dto.RegisterUserRequest;
 import com.toastedvr.toastedvr.backend.dto.RegisterUserResponse;
 import com.toastedvr.toastedvr.backend.dto.UserResponse;
@@ -149,6 +151,8 @@ public class AuthService {
             throw new AccountBlockedException("La cuenta se encuentra bloqueada.");
         }
 
+        String refreshToken = jwtService.generateRefreshToken();
+        user.updateRefreshToken(refreshToken, LocalDateTime.now().plusDays(30));
         user.updateLastLoginAt(LocalDateTime.now());
         userRepository.save(user);
 
@@ -160,6 +164,7 @@ public class AuthService {
             token,
             "Bearer",
             jwtService.getExpiration(token),
+            refreshToken,
             new AuthenticatedUserResponse(
                 user.getId(),
                 user.getName(),
@@ -173,10 +178,46 @@ public class AuthService {
         );
     }
 
+    @Transactional
+    public RefreshTokenResponse refresh(RefreshTokenRequest request) {
+        User user = userRepository.findByRefreshToken(request.refreshToken())
+            .orElseThrow(() -> new AuthenticationFailedException("El refresh token no es valido."));
+
+        if (user.getRefreshTokenExpiresAt() == null
+            || user.getRefreshTokenExpiresAt().isBefore(LocalDateTime.now())) {
+            user.clearRefreshToken();
+            userRepository.save(user);
+            throw new AuthenticationFailedException("El refresh token expiro. Por favor inicia sesion nuevamente.");
+        }
+
+        if (!user.isEnabled()) {
+            throw new AccountBlockedException("La cuenta se encuentra bloqueada.");
+        }
+
+        String newRefreshToken = jwtService.generateRefreshToken();
+        user.updateRefreshToken(newRefreshToken, LocalDateTime.now().plusDays(30));
+        userRepository.save(user);
+
+        UserPrincipal principal = new UserPrincipal(user);
+        String newAccessToken = jwtService.generateToken(principal);
+
+        return new RefreshTokenResponse(
+            newAccessToken,
+            "Bearer",
+            jwtService.getExpiration(newAccessToken),
+            newRefreshToken
+        );
+    }
+
+    @Transactional
     public LogoutResponse logout(String token) {
         Long userId = jwtService.extractUserId(token);
         String username = jwtService.extractUsername(token);
         tokenBlacklistService.blacklistToken(token, jwtService.getExpiration(token));
+        userRepository.findById(userId).ifPresent(user -> {
+            user.clearRefreshToken();
+            userRepository.save(user);
+        });
         auditService.logLogout(userId, username);
         return new LogoutResponse("La sesion fue cerrada correctamente.");
     }

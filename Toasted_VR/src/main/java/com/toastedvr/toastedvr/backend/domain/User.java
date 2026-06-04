@@ -52,6 +52,11 @@ public class User {
 
     private LocalDateTime lastLoginAt;
 
+    @Column(length = 512)
+    private String refreshToken;
+
+    private LocalDateTime refreshTokenExpiresAt;
+
     protected User() {
     }
 
@@ -158,5 +163,23 @@ public class User {
 
     public void updateLastLoginAt(LocalDateTime lastLoginAt) {
         this.lastLoginAt = lastLoginAt;
+    }
+
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    public LocalDateTime getRefreshTokenExpiresAt() {
+        return refreshTokenExpiresAt;
+    }
+
+    public void updateRefreshToken(String refreshToken, LocalDateTime expiresAt) {
+        this.refreshToken = refreshToken;
+        this.refreshTokenExpiresAt = expiresAt;
+    }
+
+    public void clearRefreshToken() {
+        this.refreshToken = null;
+        this.refreshTokenExpiresAt = null;
     }
 }

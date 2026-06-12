@@ -166,17 +166,7 @@ public class AuthService {
             "Bearer",
             jwtService.getExpiration(token),
             refreshToken,
-            new AuthenticatedUserResponse(
-                user.getId(),
-                user.getName(),
-                user.getEmail(),
-                user.getUsername(),
-                user.isEmailVerified(),
-                user.isEnabled(),
-                user.getRole(),
-                user.getLastLoginAt(),
-                user.getKnowledgeLevel()
-            )
+            AuthenticatedUserResponse.from(user)
         );
     }
 

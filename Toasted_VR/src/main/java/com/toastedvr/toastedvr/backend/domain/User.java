@@ -32,6 +32,9 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    @Column(columnDefinition = "text")
+    private String profileImageUrl;
+
     @Column(nullable = false)
     private boolean emailVerified;
 
@@ -109,6 +112,10 @@ public class User {
         return password;
     }
 
+    public String getProfileImageUrl() {
+        return profileImageUrl;
+    }
+
     public boolean isEmailVerified() {
         return emailVerified;
     }
@@ -139,6 +146,12 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public void updateProfile(String name, String username, String profileImageUrl) {
+        this.name = name;
+        this.username = username;
+        this.profileImageUrl = profileImageUrl;
     }
 
     public void updateVerificationCode(String verificationCode, LocalDateTime expiresAt) {

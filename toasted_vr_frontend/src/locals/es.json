@@ -110,6 +110,42 @@
     "error": "No se pudo guardar tu selección. Intenta de nuevo.",
     "logoutButton": "Cerrar sesión"
   },
+  "profile": {
+    "badge": "Perfil",
+    "title": "Editar perfil",
+    "passwordSection": "Cambio de contraseÃ±a",
+    "labels": {
+      "name": "Nombre",
+      "username": "Usuario",
+      "knowledgeLevel": "Nivel de conocimiento",
+      "currentPassword": "ContraseÃ±a actual",
+      "newPassword": "Nueva contraseÃ±a",
+      "confirmPassword": "Confirmar nueva contraseÃ±a"
+    },
+    "placeholders": {
+      "currentPassword": "Necesaria solo si cambias la contraseÃ±a",
+      "newPassword": "Escribe una nueva contraseÃ±a",
+      "confirmPassword": "Repite la nueva contraseÃ±a"
+    },
+    "photo": {
+      "alt": "Foto de perfil",
+      "upload": "Cambiar foto",
+      "remove": "Quitar foto"
+    },
+    "buttons": {
+      "open": "Editar perfil",
+      "close": "Cerrar",
+      "save": "Guardar cambios",
+      "saving": "Guardando..."
+    },
+    "messages": {
+      "saved": "Perfil actualizado correctamente.",
+      "passwordMismatch": "Las contraseÃ±as no coinciden.",
+      "currentPasswordRequired": "Ingresa tu contraseÃ±a actual para crear una nueva.",
+      "invalidImage": "Selecciona una imagen valida.",
+      "imageTooLarge": "La imagen debe pesar menos de 900 KB."
+    }
+  },
   "simulation": {
     "title": "Simulación de Tostado de Café Arábica",
     "phases": {
@@ -189,6 +225,25 @@
       "preheatHelp": "La temperatura ideal de carga es entre 190°C y 210°C.",
       "cooldownCountdown": "Giro en",
       "developmentTime": "Tiempo desde first crack"
+    },
+    "guidance": {
+      "title": "GuÃ­a de proceso",
+      "complete": {
+        "IDLE": "Selecciona una temperatura objetivo entre 190Â°C y 210Â°C. Luego haz clic en Encender horno para precalentar; esto estabiliza el ambiente antes de cargar el cafÃ©.",
+        "PREHEAT": "Espera a que el horno llegue a la temperatura objetivo. No cargues los granos antes, porque un inicio frÃ­o hace que el cafÃ© pierda energÃ­a y quede plano.",
+        "READY": "Haz clic en Cargar granos. Al entrar, los granos absorberÃ¡n calor y la temperatura bajarÃ¡ antes de iniciar la tostiÃ³n real.",
+        "COOLDOWN": "Observa la cuenta regresiva. Esta caÃ­da de temperatura simula la carga de granos y prepara el sistema para controlar la curva.",
+        "ROASTING": "Ajusta la potencia con cuidado: usa Alta para recuperar energÃ­a, Media para sostener el desarrollo y Baja o Apagado si te acercas a 200Â°C. Descarga despuÃ©s del first crack cuando el desarrollo sea equilibrado.",
+        "FINISHED": "Revisa la curva, la temperatura final y el tiempo de desarrollo. Usa esa retroalimentaciÃ³n para ajustar tu siguiente intento."
+      },
+      "focused": {
+        "IDLE": "Define una temperatura de carga estable, idealmente cerca de 200Â°C.",
+        "PREHEAT": "Espera estabilidad antes de cargar para evitar una curva dÃ©bil.",
+        "READY": "Carga los granos e inicia el control de recuperaciÃ³n tÃ©rmica.",
+        "COOLDOWN": "Observa la caÃ­da inicial antes de aplicar potencia.",
+        "ROASTING": "Controla potencia, first crack y desarrollo. Evita superar 200Â°C por demasiado tiempo.",
+        "FINISHED": "Analiza curva, temperatura final y desarrollo para mejorar el siguiente perfil."
+      }
     }
   },
   "accessDenied": {

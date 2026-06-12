@@ -29,6 +29,7 @@ function App() {
 
   const simulationTexts = esTexts.simulation;
   const knowledgeLevelTexts = esTexts.knowledgeLevel;
+  const profileTexts = esTexts.profile;
   const currentUser = session?.user ?? null;
   const isAdmin = currentUser?.role === 'ADMIN';
 
@@ -72,6 +73,12 @@ function App() {
     setSession(nextSession);
   };
 
+  const handleUserUpdate = (updatedUser) => {
+    const nextSession = { ...session, user: updatedUser };
+    saveSession(nextSession);
+    setSession(nextSession);
+  };
+
   const handleLogout = async () => {
     try {
       await logoutUser();
@@ -93,7 +100,13 @@ function App() {
         <div className="ambient-light ambient-light-right" />
 
         <main className="admin-page-frame">
-          <AdminUserManagement texts={adminTexts} currentUser={currentUser} onLogout={handleLogout} />
+          <AdminUserManagement
+            texts={adminTexts}
+            profileTexts={profileTexts}
+            currentUser={currentUser}
+            onLogout={handleLogout}
+            onUserUpdate={handleUserUpdate}
+          />
         </main>
       </div>
     );
@@ -119,8 +132,11 @@ function App() {
         <main className="app-frame app-frame-wide">
           <RoastingSimulation
             texts={simulationTexts}
+            profileTexts={profileTexts}
+            knowledgeTexts={knowledgeLevelTexts}
             currentUser={currentUser}
             onLogout={handleLogout}
+            onUserUpdate={handleUserUpdate}
           />
         </main>
       </div>

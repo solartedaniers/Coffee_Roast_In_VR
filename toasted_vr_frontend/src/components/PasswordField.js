@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-function PasswordField({ name, value, onChange, placeholder, label }) {
+function PasswordField({ name, value, onChange, placeholder, label, required = true }) {
   const [isVisible, setIsVisible] = useState(false);
 
   return (
@@ -14,7 +14,7 @@ function PasswordField({ name, value, onChange, placeholder, label }) {
           placeholder={placeholder}
           value={value}
           onChange={onChange}
-          required
+          required={required}
         />
         <button
           type="button"

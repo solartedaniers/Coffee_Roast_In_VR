@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './RoastingSimulation.css';
+import ProfileSettings from '../ProfileSettings';
 import { saveRoastingSession } from '../../services/simulationService';
 
 // ================================================================
@@ -36,6 +37,24 @@ const POWER = Object.freeze({
   LOW: 'LOW',
   MEDIUM: 'MEDIUM',
   HIGH: 'HIGH',
+});
+
+const KNOWLEDGE_LEVEL_RULES = Object.freeze({
+  BEGINNER: {
+    guidanceMode: 'complete',
+    penaltyMultiplier: 0.78,
+    defectScoreAdjustment: 8,
+  },
+  INTERMEDIATE: {
+    guidanceMode: 'focused',
+    penaltyMultiplier: 1,
+    defectScoreAdjustment: 0,
+  },
+  ADVANCED: {
+    guidanceMode: 'hidden',
+    penaltyMultiplier: 1.28,
+    defectScoreAdjustment: -8,
+  },
 });
 
 const TEMP_RATE_PER_SECOND = Object.freeze({
@@ -106,7 +125,16 @@ function formatTime(totalSeconds) {
   return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 }
 
-function calculateQualityScore(finalSim) {
+function getKnowledgeLevelRules(knowledgeLevel) {
+  return KNOWLEDGE_LEVEL_RULES[knowledgeLevel] || KNOWLEDGE_LEVEL_RULES.INTERMEDIATE;
+}
+
+function adjustDefectScore(score, rules) {
+  return Math.max(5, Math.min(50, Math.round(score + rules.defectScoreAdjustment)));
+}
+
+function calculateQualityScore(finalSim, knowledgeLevel) {
+  const levelRules = getKnowledgeLevelRules(knowledgeLevel);
   const {
     finalTemperature,
     burnedSeconds,
@@ -118,30 +146,39 @@ function calculateQualityScore(finalSim) {
 
   if (!firstCrackReached || finalTemperature < 175) {
     const rawRatio = Math.max(0, (finalTemperature - AMBIENT_TEMP) / (175 - AMBIENT_TEMP));
-    return { score: Math.round(rawRatio * 38), result: 'RAW' };
+    return { score: adjustDefectScore(Math.round(rawRatio * 38), levelRules), result: 'RAW' };
   }
 
   if (burnedSeconds > BURN_ALERT_SECONDS || finalTemperature > 195) {
     const extra = Math.max(0, burnedSeconds - BURN_ALERT_SECONDS) * 0.4;
-    return { score: Math.max(5, Math.round(18 - extra)), result: 'BURNED' };
+    return { score: adjustDefectScore(Math.max(5, Math.round(18 - extra)), levelRules), result: 'BURNED' };
   }
 
   if (maillardStagnationFlag) {
-    return { score: 45, result: 'BAKED' };
+    return { score: adjustDefectScore(45, levelRules), result: 'BAKED' };
   }
 
   const developmentSeconds = roastingElapsedSeconds - (firstCrackTimeSeconds || 0);
   const totalMinutes = roastingElapsedSeconds / 60;
   const developmentMinutes = developmentSeconds / 60;
 
-  const tempPenalty = Math.abs(finalTemperature - 182.5) * 2.5;
-  const timePenalty = Math.abs(totalMinutes - 7) * 4;
-  const devPenalty = Math.abs(developmentMinutes - 1.5) * 8;
+  const tempPenalty = Math.abs(finalTemperature - 182.5) * 2.5 * levelRules.penaltyMultiplier;
+  const timePenalty = Math.abs(totalMinutes - 7) * 4 * levelRules.penaltyMultiplier;
+  const devPenalty = Math.abs(developmentMinutes - 1.5) * 8 * levelRules.penaltyMultiplier;
 
   return {
     score: Math.max(51, Math.min(100, Math.round(100 - tempPenalty - timePenalty - devPenalty))),
     result: 'PERFECT',
   };
+}
+
+function getGuidanceText(texts, phase, knowledgeLevel) {
+  const rules = getKnowledgeLevelRules(knowledgeLevel);
+  if (rules.guidanceMode === 'hidden') {
+    return null;
+  }
+
+  return texts.guidance?.[rules.guidanceMode]?.[phase] || null;
 }
 
 function createInitialSimState() {
@@ -279,12 +316,20 @@ function TemperatureChart({ data, texts }) {
 // MAIN COMPONENT
 // ================================================================
 
-export default function RoastingSimulation({ texts, currentUser, onLogout }) {
+export default function RoastingSimulation({
+  texts,
+  profileTexts,
+  knowledgeTexts,
+  currentUser,
+  onLogout,
+  onUserUpdate,
+}) {
   const [simState, setSimState] = useState(createInitialSimState);
   const [targetTempInput, setTargetTempInput] = useState(TARGET_TEMP_DEFAULT);
   const [roastResult, setRoastResult] = useState(null);
   const [savingState, setSavingState] = useState('idle'); // idle | saving | saved | error
   const [showCrackAlert, setShowCrackAlert] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const intervalRef = useRef(null);
   const crackFiredRef = useRef(false);
@@ -433,7 +478,7 @@ export default function RoastingSimulation({ texts, currentUser, onLogout }) {
       phase: PHASES.FINISHED,
       finalTemperature: current.temperature,
     };
-    const scoreResult = calculateQualityScore(finalSim);
+    const scoreResult = calculateQualityScore(finalSim, currentUser.knowledgeLevel);
 
     setSimState(finalSim);
     setRoastResult(scoreResult);
@@ -456,7 +501,7 @@ export default function RoastingSimulation({ texts, currentUser, onLogout }) {
     } catch (_) {
       setSavingState('error');
     }
-  }, [stopInterval]);
+  }, [currentUser.knowledgeLevel, stopInterval]);
 
   const handleNewSimulation = () => {
     crackFiredRef.current = false;
@@ -482,12 +527,21 @@ export default function RoastingSimulation({ texts, currentUser, onLogout }) {
   const ovenGlowOpacity = Math.min(0.6, Math.max(0, (s.temperature - 50) / 200));
   const thermFillPct = Math.max(2, (s.temperature / MAX_SAFE_TEMP) * 100);
   const thermColor = s.temperature >= BURN_THRESHOLD_TEMP ? 'var(--color-danger)' : 'var(--color-accent)';
+  const guidanceText = getGuidanceText(texts, s.phase, currentUser.knowledgeLevel);
 
   const sliderPct =
     ((targetTempInput - TARGET_TEMP_MIN) / (TARGET_TEMP_MAX - TARGET_TEMP_MIN)) * 100;
 
   return (
     <div className="sim-layout">
+      <ProfileSettings
+        texts={profileTexts}
+        knowledgeTexts={knowledgeTexts}
+        currentUser={currentUser}
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+        onUserUpdate={onUserUpdate}
+      />
 
       {/* ── Header ─────────────────────────────────────────── */}
       <header className="sim-header">
@@ -508,12 +562,31 @@ export default function RoastingSimulation({ texts, currentUser, onLogout }) {
         </div>
 
         <div className="sim-header-user">
-          <span className="sim-username-label">{currentUser.username}</span>
+          <div className="sim-user-chip">
+            <div className="sim-user-avatar">
+              {currentUser.profileImageUrl ? (
+                <img src={currentUser.profileImageUrl} alt={profileTexts.photo.alt} />
+              ) : (
+                <span>{currentUser.name.charAt(0).toUpperCase()}</span>
+              )}
+            </div>
+            <span className="sim-username-label">{currentUser.username}</span>
+          </div>
+          <button type="button" className="secondary-button sim-logout-btn" onClick={() => setIsProfileOpen(true)}>
+            {profileTexts.buttons.open}
+          </button>
           <button type="button" className="secondary-button sim-logout-btn" onClick={onLogout}>
             {texts.buttons.logout}
           </button>
         </div>
       </header>
+
+      {guidanceText && (
+        <section className="sim-guidance-panel" aria-live="polite">
+          <span className="sim-section-title">{texts.guidance.title}</span>
+          <p>{guidanceText}</p>
+        </section>
+      )}
 
       {/* ── Alerts ─────────────────────────────────────────── */}
       {showCrackAlert && (

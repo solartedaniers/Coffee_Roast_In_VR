@@ -67,6 +67,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/auth/logout").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/v1/roasting/sessions").authenticated()
                 .requestMatchers(HttpMethod.PATCH, "/api/v1/users/me/knowledge-level").authenticated()
+                .requestMatchers(HttpMethod.PATCH, "/api/v1/users/me/profile").authenticated()
                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                 .anyRequest().denyAll()
             )

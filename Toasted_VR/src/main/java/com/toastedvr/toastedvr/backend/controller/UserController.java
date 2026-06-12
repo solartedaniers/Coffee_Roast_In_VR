@@ -2,6 +2,7 @@ package com.toastedvr.toastedvr.backend.controller;
 
 import com.toastedvr.toastedvr.backend.dto.AuthenticatedUserResponse;
 import com.toastedvr.toastedvr.backend.dto.UpdateKnowledgeLevelRequest;
+import com.toastedvr.toastedvr.backend.dto.UpdateProfileRequest;
 import com.toastedvr.toastedvr.backend.security.UserPrincipal;
 import com.toastedvr.toastedvr.backend.service.UserService;
 import jakarta.validation.Valid;
@@ -27,5 +28,13 @@ public class UserController {
         @Valid @RequestBody UpdateKnowledgeLevelRequest request
     ) {
         return userService.updateKnowledgeLevel(principal.getId(), request.knowledgeLevel());
+    }
+
+    @PatchMapping("/me/profile")
+    public AuthenticatedUserResponse updateProfile(
+        @AuthenticationPrincipal UserPrincipal principal,
+        @Valid @RequestBody UpdateProfileRequest request
+    ) {
+        return userService.updateProfile(principal.getId(), request);
     }
 }

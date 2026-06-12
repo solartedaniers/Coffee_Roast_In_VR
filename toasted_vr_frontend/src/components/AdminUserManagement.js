@@ -645,7 +645,12 @@ function AdminUserManagement({ texts, profileTexts, currentUser, onLogout, onUse
       <aside className="admin-sidebar">
         <div className="admin-sidebar-top">
           <p className="eyebrow">{texts.badge}</p>
-          <div className="admin-sidebar-user-card">
+          <button
+            type="button"
+            className="admin-sidebar-user-card"
+            onClick={() => setIsProfileOpen(true)}
+            aria-label={profileTexts.buttons.open}
+          >
             <div className="admin-user-avatar">
               {currentUser.profileImageUrl ? (
                 <img src={currentUser.profileImageUrl} alt={profileTexts.photo.alt} />
@@ -659,7 +664,7 @@ function AdminUserManagement({ texts, profileTexts, currentUser, onLogout, onUse
                 {texts.roles[currentUser.role.toLowerCase()] || currentUser.role}
               </span>
             </div>
-          </div>
+          </button>
         </div>
 
         <nav className="admin-nav">
@@ -675,14 +680,6 @@ function AdminUserManagement({ texts, profileTexts, currentUser, onLogout, onUse
             </button>
           ))}
         </nav>
-
-        <button
-          type="button"
-          className="admin-sidebar-logout text-link"
-          onClick={() => setIsProfileOpen(true)}
-        >
-          {profileTexts.buttons.open}
-        </button>
 
         <button
           type="button"

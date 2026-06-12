@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import PasswordField from './PasswordField';
 import { updateProfile } from '../services/profileService';
 
@@ -33,6 +33,13 @@ export default function ProfileSettings({
   const [status, setStatus] = useState({ text: '', isError: false });
   const [isSaving, setIsSaving] = useState(false);
 
+  useEffect(() => {
+    if (isOpen) {
+      setFormData({ ...buildInitialForm(currentUser), ...initialPasswordFields });
+      setStatus({ text: '', isError: false });
+    }
+  }, [currentUser, isOpen]);
+
   if (!isOpen) {
     return null;
   }
@@ -65,10 +72,6 @@ export default function ProfileSettings({
     reader.readAsDataURL(file);
   };
 
-  const handleRemoveImage = () => {
-    setFormData((current) => ({ ...current, profileImageUrl: '' }));
-  };
-
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -87,7 +90,7 @@ export default function ProfileSettings({
 
     try {
       const updatedUser = await updateProfile({
-        name: formData.name,
+        name: currentUser.name,
         username: formData.username,
         profileImageUrl: formData.profileImageUrl || null,
         knowledgeLevel: currentUser.role === 'PLAYER' ? formData.knowledgeLevel || null : null,
@@ -96,7 +99,7 @@ export default function ProfileSettings({
       });
       setFormData({ ...buildInitialForm(updatedUser), ...initialPasswordFields });
       onUserUpdate(updatedUser);
-      setStatus({ text: texts.messages.saved, isError: false });
+      onClose();
     } catch (error) {
       setStatus({ text: error.message, isError: true });
     } finally {
@@ -108,12 +111,8 @@ export default function ProfileSettings({
 
   return (
     <div className="profile-modal-backdrop" role="presentation">
-      <section className="profile-modal" role="dialog" aria-modal="true" aria-labelledby="profile-title">
+      <section className="profile-modal" role="dialog" aria-modal="true" aria-label={texts.ariaLabel}>
         <header className="profile-modal-header">
-          <div>
-            <p className="eyebrow">{texts.badge}</p>
-            <h2 id="profile-title">{texts.title}</h2>
-          </div>
           <button type="button" className="secondary-button profile-close-button" onClick={onClose}>
             {texts.buttons.close}
           </button>
@@ -121,49 +120,32 @@ export default function ProfileSettings({
 
         <form className="profile-form" onSubmit={handleSubmit}>
           <div className="profile-photo-row">
-            <div className="profile-avatar-preview">
-              {formData.profileImageUrl ? (
-                <img src={formData.profileImageUrl} alt={texts.photo.alt} />
-              ) : (
-                <span>{avatarLabel}</span>
-              )}
-            </div>
-            <div className="profile-photo-actions">
-              <label className="secondary-button profile-upload-button">
-                {texts.photo.upload}
-                <input type="file" accept="image/*" onChange={handleImageChange} />
-              </label>
-              <button type="button" className="text-link" onClick={handleRemoveImage}>
-                {texts.photo.remove}
-              </button>
-            </div>
-          </div>
-
-          <div className="profile-grid">
-            <label className="field-group">
-              <span className="field-label">{texts.labels.name}</span>
-              <input
-                className="field-input"
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-              />
-            </label>
-
-            <label className="field-group">
-              <span className="field-label">{texts.labels.username}</span>
-              <input
-                className="field-input"
-                type="text"
-                name="username"
-                value={formData.username}
-                onChange={handleChange}
-                required
-              />
+            <label className="profile-photo-picker">
+              <span className="profile-avatar-preview">
+                {formData.profileImageUrl ? (
+                  <img src={formData.profileImageUrl} alt={texts.photo.alt} />
+                ) : (
+                  <span>{avatarLabel}</span>
+                )}
+              </span>
+              <span className="text-link profile-photo-action">
+                {formData.profileImageUrl ? texts.photo.edit : texts.photo.add}
+              </span>
+              <input type="file" accept="image/*" onChange={handleImageChange} />
             </label>
           </div>
+
+          <label className="field-group">
+            <span className="field-label">{texts.labels.username}</span>
+            <input
+              className="field-input"
+              type="text"
+              name="username"
+              value={formData.username}
+              onChange={handleChange}
+              required
+            />
+          </label>
 
           {currentUser.role === 'PLAYER' && (
             <label className="field-group">

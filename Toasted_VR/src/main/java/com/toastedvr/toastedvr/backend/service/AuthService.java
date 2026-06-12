@@ -134,10 +134,9 @@ public class AuthService {
 
     @Transactional
     public LoginResponse login(LoginRequest request) {
-        String identifier = request.identifier().trim();
+        String normalizedEmail = normalizeEmail(request.email());
 
-        User user = userRepository.findByUsernameIgnoreCase(identifier)
-            .or(() -> userRepository.findByEmailIgnoreCase(normalizeEmail(identifier)))
+        User user = userRepository.findByEmailIgnoreCase(normalizedEmail)
             .orElseThrow(() -> new AuthenticationFailedException("Las credenciales ingresadas no son validas."));
 
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {

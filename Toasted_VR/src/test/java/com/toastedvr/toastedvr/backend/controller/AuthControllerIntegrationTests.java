@@ -54,7 +54,7 @@ class AuthControllerIntegrationTests {
         mockMvc.perform(
                 post("/api/v1/auth/login")
                     .contentType(jsonMediaType())
-                    .content(requireJson(Map.of("identifier", "adminUser", "password", "Password123!")))
+                    .content(requireJson(Map.of("email", "admin@toastedvr.test", "password", "Password123!")))
             )
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.accessToken").isNotEmpty())
@@ -71,7 +71,7 @@ class AuthControllerIntegrationTests {
         mockMvc.perform(
                 post("/api/v1/auth/login")
                     .contentType(jsonMediaType())
-                    .content(requireJson(Map.of("identifier", "pendingUser", "password", "Password123!")))
+                    .content(requireJson(Map.of("email", "pending@toastedvr.test", "password", "Password123!")))
             )
             .andExpect(status().isForbidden())
             .andExpect(jsonPath("$.message").value("Debes verificar tu correo antes de iniciar sesion."));
@@ -84,7 +84,7 @@ class AuthControllerIntegrationTests {
         mockMvc.perform(
                 post("/api/v1/auth/login")
                     .contentType(jsonMediaType())
-                    .content(requireJson(Map.of("identifier", "blockedUser", "password", "Password123!")))
+                    .content(requireJson(Map.of("email", "blocked@toastedvr.test", "password", "Password123!")))
             )
             .andExpect(status().isForbidden())
             .andExpect(jsonPath("$.message").value("La cuenta se encuentra bloqueada."));
@@ -97,7 +97,7 @@ class AuthControllerIntegrationTests {
         String loginResponse = mockMvc.perform(
                 post("/api/v1/auth/login")
                     .contentType(jsonMediaType())
-                    .content(requireJson(Map.of("identifier", "admin@toastedvr.test", "password", "Password123!")))
+                    .content(requireJson(Map.of("email", "admin@toastedvr.test", "password", "Password123!")))
             )
             .andExpect(status().isOk())
             .andReturn()

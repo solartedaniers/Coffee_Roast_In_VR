@@ -3,7 +3,7 @@ import PasswordField from './PasswordField';
 import { loginUser } from '../services/authService';
 
 const initialCredentials = {
-  identifier: '',
+  email: '',
   password: ''
 };
 
@@ -40,13 +40,13 @@ function LoginForm({ texts, onLoginSuccess, onSwitchToRegister }) {
   return (
     <form className="form-grid" onSubmit={handleSubmit}>
       <label className="field-group">
-        <span className="field-label">{texts.labels.identifier}</span>
+        <span className="field-label">{texts.labels.email}</span>
         <input
           className="field-input"
-          type="text"
-          name="identifier"
-          placeholder={texts.placeholders.identifier}
-          value={credentials.identifier}
+          type="email"
+          name="email"
+          placeholder={texts.placeholders.email}
+          value={credentials.email}
           onChange={handleChange}
           required
         />

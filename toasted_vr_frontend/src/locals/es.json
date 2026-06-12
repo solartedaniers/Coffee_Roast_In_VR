@@ -18,12 +18,12 @@
       "title": "Iniciar sesión",
       "subtitle": "Ingresa con tu cuenta para continuar tu experiencia en Toasted VR.",
       "labels": {
-        "identifier": "Nombre de usuario",
-        "password": "Contraseña"
+        "password": "Contraseña",
+        "email": "Correo electrónico"
       },
       "placeholders": {
-        "identifier": "Ingresa tu nombre de usuario",
-        "password": "Escribe tu contraseña"
+        "password": "Escribe tu contraseña",
+        "email": "Ingresa tu correo electrónico"
       },
       "buttons": {
         "submit": "Iniciar sesión",
@@ -129,8 +129,8 @@
     },
     "photo": {
       "alt": "Foto de perfil",
-      "upload": "Cambiar foto",
-      "remove": "Quitar foto"
+      "add": "Agregar",
+      "edit": "Editar"
     },
     "buttons": {
       "open": "Editar perfil",
@@ -144,7 +144,8 @@
       "currentPasswordRequired": "Ingresa tu contraseÃ±a actual para crear una nueva.",
       "invalidImage": "Selecciona una imagen valida.",
       "imageTooLarge": "La imagen debe pesar menos de 900 KB."
-    }
+    },
+    "ariaLabel": "Editar perfil"
   },
   "simulation": {
     "title": "Simulación de Tostado de Café Arábica",

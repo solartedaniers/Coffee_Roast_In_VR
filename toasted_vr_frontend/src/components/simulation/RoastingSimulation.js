@@ -562,7 +562,12 @@ export default function RoastingSimulation({
         </div>
 
         <div className="sim-header-user">
-          <div className="sim-user-chip">
+          <button
+            type="button"
+            className="sim-user-chip"
+            onClick={() => setIsProfileOpen(true)}
+            aria-label={profileTexts.buttons.open}
+          >
             <div className="sim-user-avatar">
               {currentUser.profileImageUrl ? (
                 <img src={currentUser.profileImageUrl} alt={profileTexts.photo.alt} />
@@ -571,9 +576,6 @@ export default function RoastingSimulation({
               )}
             </div>
             <span className="sim-username-label">{currentUser.username}</span>
-          </div>
-          <button type="button" className="secondary-button sim-logout-btn" onClick={() => setIsProfileOpen(true)}>
-            {profileTexts.buttons.open}
           </button>
           <button type="button" className="secondary-button sim-logout-btn" onClick={onLogout}>
             {texts.buttons.logout}

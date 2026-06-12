@@ -74,6 +74,14 @@
   align-items: center;
   gap: 8px;
   min-width: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+}
+
+.sim-user-chip:hover .sim-username-label {
+  color: var(--color-accent-deep);
 }
 
 .sim-user-avatar {
@@ -100,6 +108,7 @@
 .sim-username-label {
   font-size: 0.875rem;
   color: var(--color-ink-muted);
+  transition: color 0.2s ease;
 }
 
 .sim-logout-btn {

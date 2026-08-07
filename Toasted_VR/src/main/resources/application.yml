@@ -22,7 +22,7 @@ spring:
     properties:
       hibernate:
         jdbc:
-          "time_zone": UTC
+          time_zone: UTC
 
   mail:
     host: ${MAIL_HOST:}

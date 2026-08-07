@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './App.css';
 import esTexts from './locals/es.json';
 import AdminUserManagement from './components/AdminUserManagement';
@@ -59,6 +59,7 @@ function App() {
   const handleLoginSuccess = (loginResponse) => {
     const nextSession = {
       accessToken: loginResponse.accessToken,
+      refreshToken: loginResponse.refreshToken,
       expiresAt: loginResponse.expiresAt,
       user: loginResponse.user
     };
@@ -79,19 +80,30 @@ function App() {
     setSession(nextSession);
   };
 
+  const resetToLoggedOutState = () => {
+    clearSession();
+    setSession(null);
+    setAuthView(authViews.entry);
+    setPendingRegistration(null);
+    setVerifiedUser(null);
+  };
+
   const handleLogout = async () => {
     try {
       await logoutUser();
     } catch (error) {
       // La sesion local debe cerrarse incluso si el token ya no es valido.
     } finally {
-      clearSession();
-      setSession(null);
-      setAuthView(authViews.entry);
-      setPendingRegistration(null);
-      setVerifiedUser(null);
+      resetToLoggedOutState();
     }
   };
+
+  // apiClient dispara este evento cuando el refresh token tambien expiro
+  // (o no se pudo renovar la sesion), para volver a la pantalla de login.
+  useEffect(() => {
+    window.addEventListener('toastedvr:session-expired', resetToLoggedOutState);
+    return () => window.removeEventListener('toastedvr:session-expired', resetToLoggedOutState);
+  }, []);
 
   if (currentUser && isAdmin) {
     return (

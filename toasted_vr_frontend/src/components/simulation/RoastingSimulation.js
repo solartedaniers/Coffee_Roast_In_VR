@@ -1,321 +1,91 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import './RoastingSimulation.css';
 import ProfileSettings from '../ProfileSettings';
+import ManualControlPanel from './ManualControlPanel';
+import TemperatureChart from './TemperatureChart';
+import RoastOvenVisual from './RoastOvenVisual';
+import RoastResultsPanel from './RoastResultsPanel';
+import GeneralSettingsPanel from './GeneralSettingsPanel';
 import { saveRoastingSession } from '../../services/simulationService';
 
-// ================================================================
-// SIMULATION CONSTANTS (physics parameters — not UI colors)
-// ================================================================
+import {
+  PHASES,
+  OPERATION_MODES,
+  TEMPERATURE_UNITS,
+  BATCH_WEIGHT_KG,
+  AMBIENT_TEMP_C,
+  CHARGE_TEMP_MIN_C,
+  CHARGE_TEMP_MAX_C,
+  CHARGE_TEMP_DEFAULT_C,
+  TARGET_TEMP_MIN_C,
+  TARGET_TEMP_MAX_C,
+  TARGET_TEMP_DEFAULT_C,
+  FLAME_POWER_DEFAULT_PCT,
+  CHARGE_DIP_DURATION_SEC,
+  BURN_THRESHOLD_TEMP_C,
+  MAILLARD_TEMP_START_C,
+  MAILLARD_TEMP_END_C,
+  MAILLARD_STAGNATION_LIMIT_SEC,
+  CRACK_SOUND_PATH,
+  SENSOR_CALIBRATION_DEFAULT_C,
+  ALARM_LIMIT_DEFAULT_C,
+  CHART_VERTICAL_STEP_C,
+} from '../../domain/roasting/RoastConstants';
+import RoastThermalModel from '../../domain/roasting/RoastThermalModel';
+import RoastMetrics from '../../domain/roasting/RoastMetrics';
+import FirstCrackDetector from '../../domain/roasting/FirstCrackDetector';
+import BurnRiskMonitor from '../../domain/roasting/BurnRiskMonitor';
+import RoastQualityEvaluator from '../../domain/roasting/RoastQualityEvaluator';
+import GrainAppearanceModel from '../../domain/roasting/GrainAppearanceModel';
+import KnowledgeLevelRules from '../../domain/roasting/KnowledgeLevelRules';
 
-const AMBIENT_TEMP = 20;
-const MAX_SAFE_TEMP = 240;
-const PREHEAT_RATE_PER_SECOND = 2;
-const COOLDOWN_DURATION_SECONDS = 60;
-const COOLDOWN_TOTAL_DROP = 45;
-const FIRST_CRACK_TEMP = 180;
-const BURN_THRESHOLD_TEMP = 200;
-const BURN_ALERT_SECONDS = 15;
-const MAILLARD_TEMP_START = 131;
-const MAILLARD_TEMP_END = 179;
-const MAILLARD_STAGNATION_LIMIT = 30;
-const TARGET_TEMP_MIN = 180;
-const TARGET_TEMP_MAX = 220;
-const TARGET_TEMP_DEFAULT = 200;
-const CRACK_SOUND_PATH = `${process.env.PUBLIC_URL}/assets/sounds/crack.mp3`;
-
-const PHASES = Object.freeze({
-  IDLE: 'IDLE',
-  PREHEAT: 'PREHEAT',
-  READY: 'READY',
-  COOLDOWN: 'COOLDOWN',
-  ROASTING: 'ROASTING',
-  FINISHED: 'FINISHED',
-});
-
-const POWER = Object.freeze({
-  OFF: 'OFF',
-  LOW: 'LOW',
-  MEDIUM: 'MEDIUM',
-  HIGH: 'HIGH',
-});
-
-const KNOWLEDGE_LEVEL_RULES = Object.freeze({
-  BEGINNER: {
-    guidanceMode: 'complete',
-    penaltyMultiplier: 0.78,
-    defectScoreAdjustment: 8,
-  },
-  INTERMEDIATE: {
-    guidanceMode: 'focused',
-    penaltyMultiplier: 1,
-    defectScoreAdjustment: 0,
-  },
-  ADVANCED: {
-    guidanceMode: 'hidden',
-    penaltyMultiplier: 1.28,
-    defectScoreAdjustment: -8,
-  },
-});
-
-const TEMP_RATE_PER_SECOND = Object.freeze({
-  [POWER.OFF]: -1.5,
-  [POWER.LOW]: -0.2,
-  [POWER.MEDIUM]: 0.7,
-  [POWER.HIGH]: 1.5,
-});
-
-// [temp_threshold, [r, g, b]] — physical color of coffee beans at each temperature
-const GRAIN_COLOR_STOPS = [
-  [20, [112, 130, 56]],
-  [130, [230, 214, 144]],
-  [179, [179, 139, 109]],
-  [180, [123, 63, 0]],
-  [199, [59, 34, 25]],
-  [200, [26, 17, 16]],
-];
-
-// ================================================================
-// PURE UTILITY FUNCTIONS
-// ================================================================
-
-function interpolateGrainColor(temperature) {
-  const stops = GRAIN_COLOR_STOPS;
-  if (temperature <= stops[0][0]) {
-    const [r, g, b] = stops[0][1];
-    return `rgb(${r},${g},${b})`;
-  }
-  const last = stops[stops.length - 1];
-  if (temperature >= last[0]) {
-    const [r, g, b] = last[1];
-    return `rgb(${r},${g},${b})`;
-  }
-  for (let i = 0; i < stops.length - 1; i++) {
-    const [t0, c0] = stops[i];
-    const [t1, c1] = stops[i + 1];
-    if (temperature >= t0 && temperature <= t1) {
-      const ratio = (temperature - t0) / (t1 - t0);
-      const r = Math.round(c0[0] + ratio * (c1[0] - c0[0]));
-      const g = Math.round(c0[1] + ratio * (c1[1] - c0[1]));
-      const b = Math.round(c0[2] + ratio * (c1[2] - c0[2]));
-      return `rgb(${r},${g},${b})`;
-    }
-  }
-  const [r, g, b] = last[1];
-  return `rgb(${r},${g},${b})`;
-}
-
-function getSmokeLevel(temperature) {
-  if (temperature < MAILLARD_TEMP_START) return 'none';
-  if (temperature < FIRST_CRACK_TEMP) return 'faint';
-  if (temperature < BURN_THRESHOLD_TEMP) return 'moderate';
-  return 'heavy';
-}
-
-function getGrainStateName(temperature) {
-  if (temperature <= 130) return 'DRYING';
-  if (temperature <= 179) return 'MAILLARD';
-  if (temperature <= 180) return 'FIRST_CRACK';
-  if (temperature <= 199) return 'DARK';
-  return 'BURNED';
-}
-
-function formatTime(totalSeconds) {
-  const mins = Math.floor(totalSeconds / 60);
-  const secs = totalSeconds % 60;
-  return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-}
-
-function getKnowledgeLevelRules(knowledgeLevel) {
-  return KNOWLEDGE_LEVEL_RULES[knowledgeLevel] || KNOWLEDGE_LEVEL_RULES.INTERMEDIATE;
-}
-
-function adjustDefectScore(score, rules) {
-  return Math.max(5, Math.min(50, Math.round(score + rules.defectScoreAdjustment)));
-}
-
-function calculateQualityScore(finalSim, knowledgeLevel) {
-  const levelRules = getKnowledgeLevelRules(knowledgeLevel);
-  const {
-    finalTemperature,
-    burnedSeconds,
-    firstCrackReached,
-    firstCrackTimeSeconds,
-    roastingElapsedSeconds,
-    maillardStagnationFlag,
-  } = finalSim;
-
-  if (!firstCrackReached || finalTemperature < 175) {
-    const rawRatio = Math.max(0, (finalTemperature - AMBIENT_TEMP) / (175 - AMBIENT_TEMP));
-    return { score: adjustDefectScore(Math.round(rawRatio * 38), levelRules), result: 'RAW' };
-  }
-
-  if (burnedSeconds > BURN_ALERT_SECONDS || finalTemperature > 195) {
-    const extra = Math.max(0, burnedSeconds - BURN_ALERT_SECONDS) * 0.4;
-    return { score: adjustDefectScore(Math.max(5, Math.round(18 - extra)), levelRules), result: 'BURNED' };
-  }
-
-  if (maillardStagnationFlag) {
-    return { score: adjustDefectScore(45, levelRules), result: 'BAKED' };
-  }
-
-  const developmentSeconds = roastingElapsedSeconds - (firstCrackTimeSeconds || 0);
-  const totalMinutes = roastingElapsedSeconds / 60;
-  const developmentMinutes = developmentSeconds / 60;
-
-  const tempPenalty = Math.abs(finalTemperature - 182.5) * 2.5 * levelRules.penaltyMultiplier;
-  const timePenalty = Math.abs(totalMinutes - 7) * 4 * levelRules.penaltyMultiplier;
-  const devPenalty = Math.abs(developmentMinutes - 1.5) * 8 * levelRules.penaltyMultiplier;
-
+function createInitialSimState({ chargeTemperature, targetTemperature, operationMode }) {
   return {
-    score: Math.max(51, Math.min(100, Math.round(100 - tempPenalty - timePenalty - devPenalty))),
-    result: 'PERFECT',
+    phase: PHASES.IDLE,
+    operationMode,
+    chargeTemperature,
+    targetTemperature,
+    temperature: AMBIENT_TEMP_C,
+    prevTemperature: AMBIENT_TEMP_C,
+    peakTemperature: AMBIENT_TEMP_C,
+    finalTemperature: null,
+
+    flamePowerPercent: FLAME_POWER_DEFAULT_PCT,
+    effectiveFlamePowerPercent: 0,
+
+    elapsedSeconds: 0,
+    roastingElapsedSeconds: 0,
+    chargeStartElapsedSeconds: null,
+    chartViewResetAtSeconds: null,
+    samples: [],
+
+    rateOfRisePerMinute: 0,
+
+    firstCrackThresholdTemp: null,
+    firstCrackReached: false,
+    firstCrackTimeSeconds: null,
+
+    consecutiveBurnSeconds: 0,
+    maxConsecutiveBurnSeconds: 0,
+    burnedFlag: false,
+
+    maillardStagnationSeconds: 0,
+    maillardStagnationFlag: false,
   };
 }
 
 function getGuidanceText(texts, phase, knowledgeLevel) {
-  const rules = getKnowledgeLevelRules(knowledgeLevel);
-  if (rules.guidanceMode === 'hidden') {
-    return null;
-  }
-
+  const rules = KnowledgeLevelRules.forLevel(knowledgeLevel);
+  if (rules.guidanceMode === 'hidden') return null;
   return texts.guidance?.[rules.guidanceMode]?.[phase] || null;
 }
 
-function createInitialSimState() {
-  return {
-    phase: PHASES.IDLE,
-    temperature: AMBIENT_TEMP,
-    targetTemperature: TARGET_TEMP_DEFAULT,
-    elapsedSeconds: 0,
-    roastingElapsedSeconds: 0,
-    burnerPower: POWER.MEDIUM,
-    firstCrackReached: false,
-    firstCrackTimeSeconds: null,
-    burnedSeconds: 0,
-    maillardStagnationSeconds: 0,
-    maillardStagnationFlag: false,
-    prevTemperature: AMBIENT_TEMP,
-    peakTemperature: AMBIENT_TEMP,
-    finalTemperature: null,
-    chartData: [],
-  };
-}
-
 // ================================================================
-// TEMPERATURE CHART (custom SVG — no external dependencies)
+// RoastingSimulation
+// Orquestador: controla el reloj y el estado de la simulación,
+// delega toda la matemática de dominio a las clases de roasting/*
+// y toda la renderización a los componentes de presentación de abajo.
 // ================================================================
-
-function TemperatureChart({ data, texts }) {
-  if (!data || data.length < 2) return null;
-
-  const VIEW_W = 820;
-  const VIEW_H = 230;
-  const PAD = { top: 15, right: 72, bottom: 48, left: 50 };
-  const plotW = VIEW_W - PAD.left - PAD.right;
-  const plotH = VIEW_H - PAD.top - PAD.bottom;
-
-  const maxTime = Math.max(data[data.length - 1].time, 120);
-  const maxTemp = 240;
-
-  const xScale = (t) => (t / maxTime) * plotW;
-  const yScale = (temp) => plotH - (temp / maxTemp) * plotH;
-
-  const pathD = data.reduce((acc, pt, i) => {
-    const x = xScale(pt.time).toFixed(1);
-    const y = yScale(pt.temp).toFixed(1);
-    return acc + `${i === 0 ? 'M' : 'L'}${x},${y} `;
-  }, '');
-
-  const yGridLines = [0, 50, 100, 150, 200];
-  const tickCount = Math.min(8, Math.floor(maxTime / 30) + 1);
-  const timeStep = Math.ceil(maxTime / tickCount);
-  const timeTicks = Array.from({ length: tickCount + 1 }, (_, i) =>
-    Math.min(maxTime, i * timeStep)
-  );
-
-  return (
-    <div className="chart-wrapper">
-      <svg
-        viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
-        width="100%"
-        className="temperature-chart"
-        aria-label={texts.chart.title}
-      >
-        <g transform={`translate(${PAD.left},${PAD.top})`}>
-          {yGridLines.map((temp) => (
-            <g key={temp}>
-              <line
-                x1={0} y1={yScale(temp)} x2={plotW} y2={yScale(temp)}
-                stroke="var(--color-border)" strokeDasharray="4 3" strokeWidth={1}
-              />
-              <text
-                x={-8} y={yScale(temp) + 4}
-                fontSize={11} fill="var(--color-ink-muted)" textAnchor="end"
-              >
-                {temp}
-              </text>
-            </g>
-          ))}
-
-          {/* First crack reference (180°C) */}
-          <line
-            x1={0} y1={yScale(180)} x2={plotW} y2={yScale(180)}
-            stroke="rgba(123,63,0,0.75)" strokeDasharray="6 3" strokeWidth={1.5}
-          />
-          <text x={plotW + 5} y={yScale(180) + 4} fontSize={10} fill="rgba(123,63,0,0.9)">
-            {texts.chart.referenceLine180}
-          </text>
-
-          {/* Burn zone reference (200°C) */}
-          <line
-            x1={0} y1={yScale(200)} x2={plotW} y2={yScale(200)}
-            stroke="var(--color-danger)" strokeDasharray="6 3" strokeWidth={1.5} opacity={0.65}
-          />
-          <text x={plotW + 5} y={yScale(200) + 4} fontSize={10} fill="var(--color-danger)">
-            {texts.chart.referenceLine200}
-          </text>
-
-          {/* Data line */}
-          <path d={pathD} fill="none" stroke="var(--color-accent)" strokeWidth={2.5} strokeLinejoin="round" />
-
-          {/* X axis baseline */}
-          <line x1={0} y1={plotH} x2={plotW} y2={plotH} stroke="var(--color-border)" />
-
-          {timeTicks.map((t) => (
-            <g key={t}>
-              <line x1={xScale(t)} y1={plotH} x2={xScale(t)} y2={plotH + 5} stroke="var(--color-border)" />
-              <text
-                x={xScale(t).toFixed(1)} y={plotH + 18}
-                fontSize={10} fill="var(--color-ink-muted)" textAnchor="middle"
-              >
-                {formatTime(t)}
-              </text>
-            </g>
-          ))}
-
-          {/* Axis labels */}
-          <text
-            transform={`translate(-36,${plotH / 2}) rotate(-90)`}
-            fontSize={11} fill="var(--color-ink-muted)" textAnchor="middle"
-          >
-            {texts.chart.tempLabel}
-          </text>
-          <text
-            x={plotW / 2} y={plotH + 38}
-            fontSize={11} fill="var(--color-ink-muted)" textAnchor="middle"
-          >
-            {texts.chart.timeLabel}
-          </text>
-        </g>
-      </svg>
-    </div>
-  );
-}
-
-// ================================================================
-// MAIN COMPONENT
-// ================================================================
-
 export default function RoastingSimulation({
   texts,
   profileTexts,
@@ -324,16 +94,37 @@ export default function RoastingSimulation({
   onLogout,
   onUserUpdate,
 }) {
-  const [simState, setSimState] = useState(createInitialSimState);
-  const [targetTempInput, setTargetTempInput] = useState(TARGET_TEMP_DEFAULT);
+  const [chargeTempSetup, setChargeTempSetup] = useState(CHARGE_TEMP_DEFAULT_C);
+  const [targetTempSetup, setTargetTempSetup] = useState(TARGET_TEMP_DEFAULT_C);
+
+  const [simState, setSimState] = useState(() =>
+    createInitialSimState({
+      chargeTemperature: chargeTempSetup,
+      targetTemperature: targetTempSetup,
+      operationMode: OPERATION_MODES.MANUAL,
+    })
+  );
   const [roastResult, setRoastResult] = useState(null);
-  const [savingState, setSavingState] = useState('idle'); // idle | saving | saved | error
+  const [savingState, setSavingState] = useState('idle');
+  const [saveErrorDetail, setSaveErrorDetail] = useState('');
   const [showCrackAlert, setShowCrackAlert] = useState(false);
+  const [showBurnedAlert, setShowBurnedAlert] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  // Ajustes del equipo: viven en el menú de configuración general y
+  // persisten entre tuestes (a diferencia de simState, que se reinicia
+  // en cada nueva simulación).
+  const [temperatureUnit, setTemperatureUnit] = useState(TEMPERATURE_UNITS.CELSIUS);
+  const [sensorCalibrationOffsetC, setSensorCalibrationOffsetC] = useState(SENSOR_CALIBRATION_DEFAULT_C);
+  const [alarmLimitTempC, setAlarmLimitTempC] = useState(ALARM_LIMIT_DEFAULT_C);
+  const [chartStepC, setChartStepC] = useState(CHART_VERTICAL_STEP_C);
+  const [showAlarmAlert, setShowAlarmAlert] = useState(false);
 
   const intervalRef = useRef(null);
   const crackFiredRef = useRef(false);
-  // Always holds the latest simState for use in effects and event handlers
+  const burnedFiredRef = useRef(false);
+  const alarmFiredRef = useRef(false);
   const latestSimRef = useRef(simState);
 
   useEffect(() => {
@@ -345,93 +136,104 @@ export default function RoastingSimulation({
     intervalRef.current = null;
   }, []);
 
-  // Simulation tick — uses functional setState to avoid stale closures
+  // ── Tick de la simulación ───────────────────────────────────────
   const runTick = useCallback(() => {
     setSimState((prev) => {
-      if (prev.phase === PHASES.PREHEAT) {
-        const newTemp = Math.min(
-          prev.targetTemperature,
-          prev.temperature + PREHEAT_RATE_PER_SECOND
-        );
-        const newElapsed = prev.elapsedSeconds + 1;
-        return {
-          ...prev,
-          temperature: parseFloat(newTemp.toFixed(1)),
-          elapsedSeconds: newElapsed,
-          chartData: [...prev.chartData, { time: newElapsed, temp: parseFloat(newTemp.toFixed(1)) }],
-          phase: newTemp >= prev.targetTemperature ? PHASES.READY : PHASES.PREHEAT,
-        };
+      if (
+        prev.phase !== PHASES.PREHEAT &&
+        prev.phase !== PHASES.CHARGE_DIP &&
+        prev.phase !== PHASES.ROASTING
+      ) {
+        return prev;
       }
 
-      if (prev.phase === PHASES.COOLDOWN) {
-        const coolRate = COOLDOWN_TOTAL_DROP / COOLDOWN_DURATION_SECONDS;
-        const newTemp = parseFloat(
-          Math.max(prev.targetTemperature - COOLDOWN_TOTAL_DROP, prev.temperature - coolRate).toFixed(1)
-        );
-        const newRoastingTime = prev.roastingElapsedSeconds + 1;
-        return {
-          ...prev,
-          temperature: newTemp,
-          elapsedSeconds: prev.elapsedSeconds + 1,
-          roastingElapsedSeconds: newRoastingTime,
-          chartData: [...prev.chartData, { time: newRoastingTime, temp: newTemp }],
-          phase: newRoastingTime >= COOLDOWN_DURATION_SECONDS ? PHASES.ROASTING : PHASES.COOLDOWN,
-        };
-      }
+      const effectivePower = RoastThermalModel.computeEffectivePower(
+        prev.effectiveFlamePowerPercent,
+        prev.flamePowerPercent
+      );
+      const baseRate = RoastThermalModel.computeHeatRatePerSecond(effectivePower, prev.temperature);
+      const dipLoss =
+        prev.phase === PHASES.CHARGE_DIP
+          ? RoastThermalModel.computeChargeDipLossPerSecond(prev.roastingElapsedSeconds)
+          : 0;
+      const newTemp = RoastThermalModel.computeNextTemperature(prev.temperature, baseRate - dipLoss);
 
+      const newElapsed = prev.elapsedSeconds + 1;
+      const newRoastingElapsed =
+        prev.phase === PHASES.PREHEAT ? 0 : prev.roastingElapsedSeconds + 1;
+
+      const newSamples = [...prev.samples, { time: newElapsed, temp: newTemp }];
+      const rateOfRisePerMinute = RoastMetrics.computeRateOfRisePerMinute(newSamples, newElapsed);
+
+      const newConsecutiveBurn = BurnRiskMonitor.computeConsecutiveSecondsOverThreshold(
+        prev.consecutiveBurnSeconds,
+        newTemp
+      );
+      const newMaxConsecutiveBurn = Math.max(prev.maxConsecutiveBurnSeconds, newConsecutiveBurn);
+      const newBurnedFlag = prev.burnedFlag || BurnRiskMonitor.isBurned(newConsecutiveBurn);
+
+      let newStagnationSecs = prev.maillardStagnationSeconds;
+      let newStagnationFlag = prev.maillardStagnationFlag;
       if (prev.phase === PHASES.ROASTING) {
-        const rate = TEMP_RATE_PER_SECOND[prev.burnerPower];
-        const newTemp = parseFloat(
-          Math.max(AMBIENT_TEMP, Math.min(MAX_SAFE_TEMP, prev.temperature + rate)).toFixed(1)
-        );
-        const newRoastingTime = prev.roastingElapsedSeconds + 1;
-
-        const newBurnedSeconds =
-          newTemp >= BURN_THRESHOLD_TEMP ? prev.burnedSeconds + 1 : prev.burnedSeconds;
-
-        const inMaillard = newTemp >= MAILLARD_TEMP_START && newTemp <= MAILLARD_TEMP_END;
+        const inMaillard = newTemp >= MAILLARD_TEMP_START_C && newTemp <= MAILLARD_TEMP_END_C;
         const tempDropped = newTemp <= prev.prevTemperature;
-        let newStagnationSecs = prev.maillardStagnationSeconds;
-        let newStagnationFlag = prev.maillardStagnationFlag;
-        if (inMaillard) {
-          if (tempDropped) {
-            newStagnationSecs += 1;
-            if (newStagnationSecs >= MAILLARD_STAGNATION_LIMIT) newStagnationFlag = true;
-          } else {
-            newStagnationSecs = 0;
-          }
+        if (inMaillard && tempDropped) {
+          newStagnationSecs += 1;
+          if (newStagnationSecs >= MAILLARD_STAGNATION_LIMIT_SEC) newStagnationFlag = true;
+        } else if (inMaillard) {
+          newStagnationSecs = 0;
         }
-
-        const hitFirstCrack = !prev.firstCrackReached && newTemp >= FIRST_CRACK_TEMP;
-
-        return {
-          ...prev,
-          temperature: newTemp,
-          prevTemperature: prev.temperature,
-          elapsedSeconds: prev.elapsedSeconds + 1,
-          roastingElapsedSeconds: newRoastingTime,
-          peakTemperature: Math.max(prev.peakTemperature, newTemp),
-          burnedSeconds: newBurnedSeconds,
-          maillardStagnationSeconds: newStagnationSecs,
-          maillardStagnationFlag: newStagnationFlag,
-          firstCrackReached: prev.firstCrackReached || hitFirstCrack,
-          firstCrackTimeSeconds: hitFirstCrack ? newRoastingTime : prev.firstCrackTimeSeconds,
-          chartData: [...prev.chartData, { time: newRoastingTime, temp: newTemp }],
-        };
       }
 
-      return prev;
+      const hitFirstCrack =
+        prev.phase === PHASES.ROASTING &&
+        !prev.firstCrackReached &&
+        prev.firstCrackThresholdTemp != null &&
+        FirstCrackDetector.hasReachedFirstCrack(newTemp, prev.firstCrackThresholdTemp);
+
+      const nextFlamePowerPercent =
+        prev.operationMode === OPERATION_MODES.AUTO
+          ? RoastThermalModel.computeAutoFlamePowerPercent(newTemp, prev.targetTemperature)
+          : prev.flamePowerPercent;
+
+      let nextPhase = prev.phase;
+      if (prev.phase === PHASES.PREHEAT && newTemp >= prev.chargeTemperature) {
+        nextPhase = PHASES.READY;
+      } else if (prev.phase === PHASES.CHARGE_DIP && newRoastingElapsed >= CHARGE_DIP_DURATION_SEC) {
+        nextPhase = PHASES.ROASTING;
+      }
+
+      return {
+        ...prev,
+        phase: nextPhase,
+        temperature: newTemp,
+        prevTemperature: prev.temperature,
+        peakTemperature: Math.max(prev.peakTemperature, newTemp),
+        effectiveFlamePowerPercent: effectivePower,
+        flamePowerPercent: nextFlamePowerPercent,
+        elapsedSeconds: newElapsed,
+        roastingElapsedSeconds: newRoastingElapsed,
+        samples: newSamples,
+        rateOfRisePerMinute,
+        consecutiveBurnSeconds: newConsecutiveBurn,
+        maxConsecutiveBurnSeconds: newMaxConsecutiveBurn,
+        burnedFlag: newBurnedFlag,
+        maillardStagnationSeconds: newStagnationSecs,
+        maillardStagnationFlag: newStagnationFlag,
+        firstCrackReached: prev.firstCrackReached || hitFirstCrack,
+        firstCrackTimeSeconds: hitFirstCrack ? newRoastingElapsed : prev.firstCrackTimeSeconds,
+      };
     });
   }, []);
 
-  // Stop interval when preheat completes
+  // Detiene el reloj cuando el tambor llega a la temperatura de carga y espera el café
   useEffect(() => {
     if (simState.phase === PHASES.READY) {
       stopInterval();
     }
   }, [simState.phase, stopInterval]);
 
-  // Trigger first crack sound and alert
+  // First crack: aviso y sonido, una sola vez por tueste
   useEffect(() => {
     if (simState.firstCrackReached && !crackFiredRef.current) {
       crackFiredRef.current = true;
@@ -444,31 +246,93 @@ export default function RoastingSimulation({
     }
   }, [simState.firstCrackReached]);
 
-  // Cleanup on unmount
+  // Quemado: aviso único al confirmarse la racha de 30 s sobre 200°C
+  useEffect(() => {
+    if (simState.burnedFlag && !burnedFiredRef.current) {
+      burnedFiredRef.current = true;
+      setShowBurnedAlert(true);
+      setTimeout(() => setShowBurnedAlert(false), 6000);
+    }
+  }, [simState.burnedFlag]);
+
+  // Alarma de seguridad del equipo: se dispara cada vez que la temperatura
+  // cruza el límite configurado por el operador, independiente de la
+  // regla fija de café quemado (BURN_THRESHOLD_TEMP_C, que nunca cambia).
+  useEffect(() => {
+    const isOverAlarm =
+      (simState.phase === PHASES.PREHEAT ||
+        simState.phase === PHASES.CHARGE_DIP ||
+        simState.phase === PHASES.ROASTING) &&
+      simState.temperature >= alarmLimitTempC;
+
+    if (isOverAlarm && !alarmFiredRef.current) {
+      alarmFiredRef.current = true;
+      setShowAlarmAlert(true);
+      setTimeout(() => setShowAlarmAlert(false), 6000);
+    } else if (!isOverAlarm) {
+      alarmFiredRef.current = false;
+    }
+  }, [simState.phase, simState.temperature, alarmLimitTempC]);
+
   useEffect(() => () => stopInterval(), [stopInterval]);
 
-  // ── Event handlers ──────────────────────────────────────────────
+  // ── Manejadores de eventos ──────────────────────────────────────
 
   const handleStartPreheat = () => {
     crackFiredRef.current = false;
+    burnedFiredRef.current = false;
     setRoastResult(null);
     setSavingState('idle');
     setSimState({
-      ...createInitialSimState(),
+      ...createInitialSimState({
+        chargeTemperature: chargeTempSetup,
+        targetTemperature: targetTempSetup,
+        operationMode: OPERATION_MODES.MANUAL,
+      }),
       phase: PHASES.PREHEAT,
-      targetTemperature: targetTempInput,
     });
     intervalRef.current = setInterval(runTick, 1000);
   };
 
   const handleLoadBeans = () => {
-    setSimState((prev) => ({ ...prev, phase: PHASES.COOLDOWN }));
+    setSimState((prev) => ({
+      ...prev,
+      phase: PHASES.CHARGE_DIP,
+      chargeStartElapsedSeconds: prev.elapsedSeconds,
+      firstCrackThresholdTemp: FirstCrackDetector.pickThresholdTemperature(),
+    }));
     intervalRef.current = setInterval(runTick, 1000);
   };
 
-  const handleChangePower = useCallback((power) => {
-    setSimState((prev) => ({ ...prev, burnerPower: power }));
+  const handleCommitTargetTemperature = useCallback((value) => {
+    setSimState((prev) => ({ ...prev, targetTemperature: value }));
   }, []);
+
+  const handleCommitFlamePower = useCallback((value) => {
+    setSimState((prev) => ({ ...prev, flamePowerPercent: value }));
+  }, []);
+
+  const handleChangeOperationMode = useCallback((mode) => {
+    setSimState((prev) => ({ ...prev, operationMode: mode }));
+  }, []);
+
+  const handleResetChartView = useCallback(() => {
+    setSimState((prev) => ({ ...prev, chartViewResetAtSeconds: prev.elapsedSeconds }));
+  }, []);
+
+  const handleAbort = useCallback(() => {
+    stopInterval();
+    setSimState(
+      createInitialSimState({
+        chargeTemperature: chargeTempSetup,
+        targetTemperature: targetTempSetup,
+        operationMode: OPERATION_MODES.MANUAL,
+      })
+    );
+    setRoastResult(null);
+    setSavingState('idle');
+    setSaveErrorDetail('');
+  }, [stopInterval, chargeTempSetup, targetTempSetup]);
 
   const handleDischarge = useCallback(async () => {
     stopInterval();
@@ -478,59 +342,81 @@ export default function RoastingSimulation({
       phase: PHASES.FINISHED,
       finalTemperature: current.temperature,
     };
-    const scoreResult = calculateQualityScore(finalSim, currentUser.knowledgeLevel);
+    const scoreResult = RoastQualityEvaluator.evaluate(finalSim, currentUser.knowledgeLevel);
 
     setSimState(finalSim);
     setRoastResult(scoreResult);
     setSavingState('saving');
+    setSaveErrorDetail('');
 
     try {
       await saveRoastingSession({
         targetTemperature: finalSim.targetTemperature,
-        totalDurationSeconds: finalSim.roastingElapsedSeconds,
+        totalDurationSeconds: Math.max(1, Math.round(finalSim.roastingElapsedSeconds)),
         finalTemperature: finalSim.finalTemperature,
         peakTemperature: finalSim.peakTemperature,
         result: scoreResult.result,
         qualityScore: scoreResult.score,
         firstCrackReached: finalSim.firstCrackReached,
         developmentTimeSeconds: finalSim.firstCrackReached
-          ? finalSim.roastingElapsedSeconds - (finalSim.firstCrackTimeSeconds || 0)
+          ? Math.max(0, Math.round(finalSim.roastingElapsedSeconds - (finalSim.firstCrackTimeSeconds || 0)))
           : 0,
       });
       setSavingState('saved');
-    } catch (_) {
+    } catch (error) {
+      // Se muestra el error real (antes se descartaba) para poder
+      // diagnosticar un guardado fallido desde la consola/red del navegador.
+      console.error('No se pudo guardar la sesión de tueste:', error);
+      setSaveErrorDetail(error?.message || '');
       setSavingState('error');
     }
   }, [currentUser.knowledgeLevel, stopInterval]);
 
   const handleNewSimulation = () => {
     crackFiredRef.current = false;
+    burnedFiredRef.current = false;
     stopInterval();
-    setSimState(createInitialSimState());
+    setChargeTempSetup(CHARGE_TEMP_DEFAULT_C);
+    setTargetTempSetup(TARGET_TEMP_DEFAULT_C);
+    setSimState(
+      createInitialSimState({
+        chargeTemperature: CHARGE_TEMP_DEFAULT_C,
+        targetTemperature: TARGET_TEMP_DEFAULT_C,
+        operationMode: OPERATION_MODES.MANUAL,
+      })
+    );
     setRoastResult(null);
     setSavingState('idle');
-    setTargetTempInput(TARGET_TEMP_DEFAULT);
+    setSaveErrorDetail('');
   };
 
-  // ── Derived render values ────────────────────────────────────────
+  // ── Valores derivados para el render ────────────────────────────
 
   const s = simState;
-  const grainColor = interpolateGrainColor(s.temperature);
-  const smokeLevel = getSmokeLevel(s.temperature);
-  const isBlackSmoke = s.temperature >= BURN_THRESHOLD_TEMP;
-  const smokeColor = isBlackSmoke ? 'rgba(40,40,40,0.8)' : 'rgba(210,210,210,0.75)';
+  const grainStateLabel = texts.grainStates[GrainAppearanceModel.getGrainStateName(s.temperature)];
   const showBeans =
-    s.phase === PHASES.COOLDOWN ||
-    s.phase === PHASES.ROASTING ||
-    s.phase === PHASES.FINISHED;
-  const showSmoke = showBeans && smokeLevel !== 'none';
-  const ovenGlowOpacity = Math.min(0.6, Math.max(0, (s.temperature - 50) / 200));
-  const thermFillPct = Math.max(2, (s.temperature / MAX_SAFE_TEMP) * 100);
-  const thermColor = s.temperature >= BURN_THRESHOLD_TEMP ? 'var(--color-danger)' : 'var(--color-accent)';
+    s.phase === PHASES.CHARGE_DIP || s.phase === PHASES.ROASTING || s.phase === PHASES.FINISHED;
   const guidanceText = getGuidanceText(texts, s.phase, currentUser.knowledgeLevel);
+  const roastTimeDisplay = RoastMetrics.formatDecimalMinutes(s.roastingElapsedSeconds);
 
-  const sliderPct =
-    ((targetTempInput - TARGET_TEMP_MIN) / (TARGET_TEMP_MAX - TARGET_TEMP_MIN)) * 100;
+  const chartPoints = useMemo(() => {
+    if (s.chargeStartElapsedSeconds == null) return [];
+    const origin = Math.max(s.chargeStartElapsedSeconds, s.chartViewResetAtSeconds ?? -Infinity);
+    return s.samples
+      .filter((sample) => sample.time >= origin)
+      .map((sample) => ({ time: sample.time - origin, temp: sample.temp }));
+  }, [s.samples, s.chargeStartElapsedSeconds, s.chartViewResetAtSeconds]);
+
+  const chargeSliderPct =
+    ((chargeTempSetup - CHARGE_TEMP_MIN_C) / (CHARGE_TEMP_MAX_C - CHARGE_TEMP_MIN_C)) * 100;
+  const targetSliderPct =
+    ((targetTempSetup - TARGET_TEMP_MIN_C) / (TARGET_TEMP_MAX_C - TARGET_TEMP_MIN_C)) * 100;
+
+  const showManualPanel =
+    s.phase === PHASES.PREHEAT ||
+    s.phase === PHASES.READY ||
+    s.phase === PHASES.CHARGE_DIP ||
+    s.phase === PHASES.ROASTING;
 
   return (
     <div className="sim-layout">
@@ -543,22 +429,31 @@ export default function RoastingSimulation({
         onUserUpdate={onUserUpdate}
       />
 
-      {/* ── Header ─────────────────────────────────────────── */}
+      <GeneralSettingsPanel
+        texts={texts.settings}
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        operationMode={s.operationMode}
+        onChangeOperationMode={handleChangeOperationMode}
+        temperatureUnit={temperatureUnit}
+        onChangeTemperatureUnit={setTemperatureUnit}
+        sensorCalibrationOffsetC={sensorCalibrationOffsetC}
+        onChangeSensorCalibrationOffset={setSensorCalibrationOffsetC}
+        alarmLimitTempC={alarmLimitTempC}
+        onChangeAlarmLimitTemp={setAlarmLimitTempC}
+        chartStepC={chartStepC}
+        onChangeChartStepC={setChartStepC}
+      />
+
+      {/* ── Cabecera ───────────────────────────────────────── */}
       <header className="sim-header">
         <div className="sim-header-brand">
           <span className="sim-brand-name">{texts.title.split(' ').slice(0, 2).join(' ')}</span>
+          <span className="sim-batch-badge">{texts.labels.batchWeight}: {BATCH_WEIGHT_KG} kg</span>
         </div>
 
         <div className="sim-header-status">
           <span className="sim-phase-badge">{texts.phases[s.phase]}</span>
-          {s.phase !== PHASES.IDLE && (
-            <span className="sim-temp-display">{s.temperature.toFixed(1)}°C</span>
-          )}
-          {(s.phase === PHASES.ROASTING || s.phase === PHASES.COOLDOWN || s.phase === PHASES.FINISHED) && (
-            <span className="sim-time-display">
-              {texts.labels.roastingTime}: {formatTime(s.roastingElapsedSeconds)}
-            </span>
-          )}
         </div>
 
         <div className="sim-header-user">
@@ -590,211 +485,142 @@ export default function RoastingSimulation({
         </section>
       )}
 
-      {/* ── Alerts ─────────────────────────────────────────── */}
+      {/* ── Avisos ─────────────────────────────────────────── */}
       {showCrackAlert && (
         <div className="sim-crack-alert" role="alert" aria-live="assertive">
           {texts.labels.firstCrack}
         </div>
       )}
-      {s.phase === PHASES.ROASTING && s.temperature >= BURN_THRESHOLD_TEMP && (
+      {showBurnedAlert && (
+        <div className="sim-burned-alert" role="alert" aria-live="assertive">
+          {texts.labels.burnedNotice}
+        </div>
+      )}
+      {showAlarmAlert && (
+        <div className="sim-burned-alert" role="alert" aria-live="assertive">
+          {texts.labels.alarmNotice}
+        </div>
+      )}
+      {s.phase === PHASES.ROASTING && s.temperature >= BURN_THRESHOLD_TEMP_C && !s.burnedFlag && (
         <div className="sim-burn-alert" role="alert" aria-live="polite">
           {texts.labels.burnAlert}
         </div>
       )}
 
-      {/* ── Main grid: oven + controls ─────────────────────── */}
+      {/* ── Cuadrícula principal: horno + controles ─────────── */}
       <div className="sim-main-grid">
-
-        {/* Left: Oven visualization */}
         <div className="sim-oven-col">
           <span className="sim-section-label">{texts.labels.grainState}</span>
-
-          <div className="sim-oven-wrapper">
-            <div
-              className={`oven-body${s.phase !== PHASES.IDLE ? ' oven-active' : ''}`}
-              style={{ '--oven-glow': `rgba(185,100,30,${ovenGlowOpacity})` }}
-            >
-              <div className="oven-window">
-                {s.phase !== PHASES.IDLE && (
-                  <div
-                    className="oven-heat-glow"
-                    style={{ opacity: ovenGlowOpacity }}
-                  />
-                )}
-
-                {showBeans && (
-                  <div className="beans-cluster">
-                    {[0, 1, 2, 3, 4, 5, 6].map((i) => (
-                      <div
-                        key={i}
-                        className={`coffee-bean bean-pos-${i}`}
-                        style={{ backgroundColor: grainColor }}
-                      />
-                    ))}
-                  </div>
-                )}
-
-                {showSmoke && (
-                  <div className={`smoke-container smoke-${smokeLevel}`}>
-                    {[0, 1, 2].map((i) => (
-                      <div
-                        key={i}
-                        className="smoke-puff"
-                        style={{ '--smoke-color': smokeColor }}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Thermometer */}
-            <div className="sim-thermometer">
-              <div className="therm-track">
-                <div
-                  className="therm-fill"
-                  style={{ height: `${thermFillPct}%`, backgroundColor: thermColor }}
-                />
-              </div>
-              <span className="therm-label">{s.temperature.toFixed(0)}°C</span>
-            </div>
-          </div>
-
-          {showBeans && (
-            <span className="sim-grain-state">{texts.grainStates[getGrainStateName(s.temperature)]}</span>
-          )}
+          <RoastOvenVisual
+            phase={s.phase}
+            temperature={s.temperature}
+            showBeans={showBeans}
+            grainStateLabel={grainStateLabel}
+            isIdle={s.phase === PHASES.IDLE}
+            sensorCalibrationOffsetC={sensorCalibrationOffsetC}
+            temperatureUnit={temperatureUnit}
+          />
         </div>
 
-        {/* Right: Control panel */}
         <div className="sim-controls-col">
-
-          {/* IDLE — target temperature setup */}
           {s.phase === PHASES.IDLE && (
             <div className="control-section">
-              <div className="control-section-title">{texts.labels.targetTemperature}</div>
+              <div className="control-section-title">{texts.labels.chargeTemperature}</div>
               <div className="target-temp-control">
-                <span className="temp-range-label">{TARGET_TEMP_MIN}°C</span>
+                <span className="temp-range-label">{CHARGE_TEMP_MIN_C}°C</span>
                 <input
                   type="range"
                   className="temp-slider"
-                  min={TARGET_TEMP_MIN}
-                  max={TARGET_TEMP_MAX}
-                  step={5}
-                  value={targetTempInput}
-                  style={{ '--slider-pct': `${sliderPct}%` }}
-                  onChange={(e) => setTargetTempInput(Number(e.target.value))}
+                  min={CHARGE_TEMP_MIN_C}
+                  max={CHARGE_TEMP_MAX_C}
+                  step={1}
+                  value={chargeTempSetup}
+                  style={{ '--slider-pct': `${chargeSliderPct}%` }}
+                  onChange={(e) => setChargeTempSetup(Number(e.target.value))}
                 />
-                <span className="temp-range-label">{TARGET_TEMP_MAX}°C</span>
+                <span className="temp-range-label">{CHARGE_TEMP_MAX_C}°C</span>
               </div>
-              <div className="target-temp-display">{targetTempInput}°C</div>
-              <button
-                type="button"
-                className="primary-button sim-action-btn"
-                onClick={handleStartPreheat}
-              >
+              <div className="target-temp-display">{chargeTempSetup}°C</div>
+
+              <div className="control-section-title">{texts.labels.targetTemperature}</div>
+              <div className="target-temp-control">
+                <span className="temp-range-label">{TARGET_TEMP_MIN_C}°C</span>
+                <input
+                  type="range"
+                  className="temp-slider"
+                  min={TARGET_TEMP_MIN_C}
+                  max={TARGET_TEMP_MAX_C}
+                  step={5}
+                  value={targetTempSetup}
+                  style={{ '--slider-pct': `${targetSliderPct}%` }}
+                  onChange={(e) => setTargetTempSetup(Number(e.target.value))}
+                />
+                <span className="temp-range-label">{TARGET_TEMP_MAX_C}°C</span>
+              </div>
+              <div className="target-temp-display">{targetTempSetup}°C</div>
+
+              <p className="sim-hint-text">{texts.info.preheatHelp}</p>
+
+              <button type="button" className="primary-button sim-action-btn" onClick={handleStartPreheat}>
                 {texts.buttons.startPreheat}
               </button>
             </div>
           )}
 
-          {/* PREHEAT — progress bar */}
-          {s.phase === PHASES.PREHEAT && (
-            <div className="control-section">
-              <div className="control-section-title">{texts.phases.PREHEAT}</div>
-              <div className="preheat-progress">
-                <div className="preheat-progress-track">
-                  <div
-                    className="preheat-progress-fill"
-                    style={{
-                      width: `${((s.temperature - AMBIENT_TEMP) / (s.targetTemperature - AMBIENT_TEMP)) * 100}%`,
-                    }}
-                  />
-                </div>
-                <div className="preheat-temps">
-                  <span>{s.temperature.toFixed(0)}°C</span>
-                  <span>/ {s.targetTemperature}°C</span>
-                </div>
-              </div>
-            </div>
+          {showManualPanel && (
+            <ManualControlPanel
+              texts={texts.controlPanel}
+              phase={s.phase}
+              statusLabel={texts.status[s.phase]}
+              operationMode={s.operationMode}
+              targetTemperature={s.targetTemperature}
+              onCommitTargetTemperature={handleCommitTargetTemperature}
+              rateOfRisePerMinute={s.rateOfRisePerMinute}
+              flamePowerPercent={Math.round(s.flamePowerPercent)}
+              onCommitFlamePower={handleCommitFlamePower}
+              beanTemperature={s.temperature}
+              sensorCalibrationOffsetC={sensorCalibrationOffsetC}
+              temperatureUnit={temperatureUnit}
+              roastTimeDisplay={roastTimeDisplay}
+              onOpenSettings={() => setIsSettingsOpen(true)}
+              onResetChart={handleResetChartView}
+              onAbort={handleAbort}
+            />
           )}
 
-          {/* READY — load beans */}
           {s.phase === PHASES.READY && (
             <div className="control-section">
-              <div className="control-section-title ready-badge">{texts.phases.READY}</div>
-              <button
-                type="button"
-                className="primary-button sim-action-btn"
-                onClick={handleLoadBeans}
-              >
+              <button type="button" className="primary-button sim-action-btn" onClick={handleLoadBeans}>
                 {texts.buttons.loadBeans}
               </button>
             </div>
           )}
 
-          {/* COOLDOWN — countdown display */}
-          {s.phase === PHASES.COOLDOWN && (
+          {s.phase === PHASES.ROASTING && (
             <div className="control-section">
-              <div className="control-section-title">{texts.phases.COOLDOWN}</div>
-              <div className="sim-muted-info">
-                {texts.info.cooldownCountdown}: {formatTime(Math.max(0, COOLDOWN_DURATION_SECONDS - s.roastingElapsedSeconds))}
-              </div>
+              <button type="button" className="primary-button sim-action-btn" onClick={handleDischarge}>
+                {texts.buttons.dischargeCoffee}
+              </button>
             </div>
           )}
 
-          {/* ROASTING — burner power + discharge */}
-          {s.phase === PHASES.ROASTING && (
-            <>
-              <div className="control-section">
-                <div className="control-section-title">{texts.labels.burnerPower}</div>
-                <div className="power-buttons">
-                  {Object.values(POWER).map((power) => (
-                    <button
-                      key={power}
-                      type="button"
-                      className={`power-btn${s.burnerPower === power ? ' power-btn-active' : ''}`}
-                      onClick={() => handleChangePower(power)}
-                    >
-                      {texts.power[power]}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="control-section">
-                <button
-                  type="button"
-                  className="primary-button sim-action-btn"
-                  onClick={handleDischarge}
-                >
-                  {texts.buttons.dischargeCoffee}
-                </button>
-              </div>
-            </>
-          )}
-
-          {/* Live stats (cooldown + roasting) */}
-          {(s.phase === PHASES.COOLDOWN || s.phase === PHASES.ROASTING) && (
+          {(s.phase === PHASES.CHARGE_DIP || s.phase === PHASES.ROASTING) && (
             <div className="sim-stats-mini">
               <div className="stat-item">
                 <span className="stat-label">{texts.labels.elapsedTime}</span>
-                <span className="stat-value">{formatTime(s.elapsedSeconds)}</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-label">{texts.labels.roastingTime}</span>
-                <span className="stat-value">{formatTime(s.roastingElapsedSeconds)}</span>
+                <span className="stat-value">{RoastMetrics.formatClockTime(s.elapsedSeconds)}</span>
               </div>
               {s.firstCrackReached && (
                 <div className="stat-item stat-highlight">
                   <span className="stat-label">{texts.labels.firstCrack}</span>
-                  <span className="stat-value">{formatTime(s.firstCrackTimeSeconds)}</span>
+                  <span className="stat-value">{RoastMetrics.formatClockTime(s.firstCrackTimeSeconds)}</span>
                 </div>
               )}
               {s.firstCrackReached && (
                 <div className="stat-item stat-highlight">
                   <span className="stat-label">{texts.info.developmentTime}</span>
                   <span className="stat-value">
-                    {formatTime(s.roastingElapsedSeconds - (s.firstCrackTimeSeconds || 0))}
+                    {RoastMetrics.formatClockTime(s.roastingElapsedSeconds - (s.firstCrackTimeSeconds || 0))}
                   </span>
                 </div>
               )}
@@ -803,106 +629,33 @@ export default function RoastingSimulation({
         </div>
       </div>
 
-      {/* ── Temperature chart ───────────────────────────────── */}
-      {s.chartData.length > 1 && (
+      {/* ── Gráfica de temperatura ───────────────────────────── */}
+      {chartPoints.length > 1 && (
         <div className="sim-chart-section">
           <h3 className="sim-section-title">{texts.chart.title}</h3>
-          <TemperatureChart data={s.chartData} texts={texts} />
+          <TemperatureChart
+            data={chartPoints}
+            chargeTemperature={s.chargeTemperature}
+            targetTemperature={s.targetTemperature}
+            sensorCalibrationOffsetC={sensorCalibrationOffsetC}
+            temperatureUnit={temperatureUnit}
+            chartStepC={chartStepC}
+            texts={texts.chart}
+          />
         </div>
       )}
 
-      {/* ── Results ─────────────────────────────────────────── */}
+      {/* ── Resultados ─────────────────────────────────────── */}
       {s.phase === PHASES.FINISHED && roastResult && (
-        <div className="sim-results-section">
-          <h3 className="sim-section-title">{texts.results.title}</h3>
-
-          <div className="results-grid">
-            {/* Bean visual */}
-            <div className="results-visual">
-              <div className="results-bean" style={{ backgroundColor: grainColor }} />
-              {showSmoke && (
-                <div className={`smoke-container smoke-${smokeLevel} smoke-results`}>
-                  {[0, 1, 2].map((i) => (
-                    <div
-                      key={i}
-                      className="smoke-puff"
-                      style={{ '--smoke-color': smokeColor }}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Score + details */}
-            <div className="results-score-col">
-              <div className="score-display">
-                <div className="score-bar-track">
-                  <div
-                    className="score-bar-fill"
-                    style={{ width: `${roastResult.score}%` }}
-                  />
-                </div>
-                <span className="score-number">{roastResult.score}%</span>
-              </div>
-
-              <div className={`result-badge result-badge-${roastResult.result}`}>
-                {texts.results[roastResult.result]}
-              </div>
-
-              <p className="result-description">
-                {roastResult.score === 100
-                  ? texts.results.descriptions.PERFECT_100
-                  : roastResult.result === 'PERFECT'
-                    ? texts.results.descriptions.PERFECT_GOOD
-                    : texts.results.descriptions[roastResult.result]}
-              </p>
-
-              <div className="results-stats">
-                <div className="stat-row">
-                  <span>{texts.results.stats.finalTemp}</span>
-                  <span>{s.finalTemperature?.toFixed(1)}°C</span>
-                </div>
-                <div className="stat-row">
-                  <span>{texts.results.stats.totalTime}</span>
-                  <span>{formatTime(s.roastingElapsedSeconds)}</span>
-                </div>
-                <div className="stat-row">
-                  <span>{texts.results.stats.firstCrack}</span>
-                  <span>
-                    {s.firstCrackReached ? texts.results.stats.yes : texts.results.stats.no}
-                  </span>
-                </div>
-                {s.firstCrackReached && s.firstCrackTimeSeconds != null && (
-                  <div className="stat-row">
-                    <span>{texts.results.stats.devTime}</span>
-                    <span>
-                      {formatTime(s.roastingElapsedSeconds - s.firstCrackTimeSeconds)}
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {savingState === 'saving' && (
-                <p className="sim-saving-text">{texts.results.saving}</p>
-              )}
-              {savingState === 'saved' && (
-                <p className="sim-saved-text">{texts.results.saved}</p>
-              )}
-              {savingState === 'error' && (
-                <p className="sim-save-error-text">{texts.results.saveError}</p>
-              )}
-
-              <button
-                type="button"
-                className="primary-button sim-action-btn"
-                onClick={handleNewSimulation}
-                style={{ marginTop: '8px' }}
-              >
-                {texts.buttons.newSimulation}
-              </button>
-            </div>
-          </div>
-        </div>
+        <RoastResultsPanel
+          sim={s}
+          roastResult={roastResult}
+          savingState={savingState}
+          saveErrorDetail={saveErrorDetail}
+          temperatureUnit={temperatureUnit}
+          texts={texts.results}
+          onNewSimulation={handleNewSimulation}
+        />
       )}
     </div>
   );

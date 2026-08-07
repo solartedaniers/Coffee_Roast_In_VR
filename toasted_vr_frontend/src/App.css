@@ -26,6 +26,25 @@
   --shadow-button: 0 14px 28px rgba(139, 94, 60, 0.18);
   --font-display: "Playfair Display", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
   --font-body: Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+
+  /* Simulación de tueste — tokens semánticos (los tríos RGB se combinan
+     con una opacidad en tiempo real vía rgba(var(--x), alpha)) */
+  --color-oven-glow-rgb: 185, 100, 30;
+  --color-smoke-light: rgba(210, 210, 210, 0.75);
+  --color-smoke-dark: rgba(40, 40, 40, 0.8);
+  --color-chart-temp-line: #c0392b;
+  --color-chart-charge-line: var(--color-success);
+  --color-chart-target-line: var(--color-success);
+  --color-status-heating: var(--color-highlight);
+  --color-status-heating-soft: var(--color-highlight-soft);
+  --color-status-ready: var(--color-success);
+  --color-status-ready-soft: var(--color-success-soft);
+  --color-status-roasting: var(--color-success);
+  --color-status-roasting-soft: var(--color-success-soft);
+  --color-status-finished: var(--color-accent-deep);
+  --color-status-finished-soft: rgba(139, 94, 60, 0.1);
+  --color-flame-tile: var(--color-danger);
+  --color-flame-tile-soft: var(--color-danger-soft);
 }
 
 * {

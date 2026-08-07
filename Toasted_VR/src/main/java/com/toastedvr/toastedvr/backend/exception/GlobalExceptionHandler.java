@@ -24,7 +24,7 @@ public class GlobalExceptionHandler {
         String message = exception.getBindingResult()
             .getFieldErrors()
             .stream()
-            .map(FieldError::getDefaultMessage)
+            .map(fieldError -> fieldError.getDefaultMessage())
             .findFirst()
             .orElse("La solicitud no es valida");
 

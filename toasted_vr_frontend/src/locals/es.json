@@ -171,7 +171,7 @@
       "elapsedTime": "Tiempo total",
       "firstCrack": "¡First Crack!",
       "burnAlert": "⚠ El café supera los 200°C — reduce la potencia de llama",
-      "burnedNotice": "🔥 El café se quemó: lleva más de 30 s sobre 200°C. Descárgalo de inmediato.",
+      "burnedNotice": "🔥 El café se quemó: lleva más de 15 s sobre 200°C. Descárgalo de inmediato.",
       "alarmNotice": "🚨 Alarma de seguridad: se superó el límite máximo del equipo.",
       "grainState": "Estado del grano",
       "batchWeight": "Capacidad"
@@ -286,7 +286,7 @@
         "PREHEAT": "Sube la Potencia % Llama desde el panel de control manual hasta que el horno alcance tu temperatura de carga. Increm °T te muestra qué tan rápido está subiendo.",
         "READY": "Haz clic en Cargar granos. Al entrar, los granos absorberán calor y la temperatura de café bajará antes de iniciar la tostión real.",
         "CHARGE_DIP": "Observa la caída de temperatura. Esta absorción de calor simula la carga de granos y prepara el sistema para controlar la curva.",
-        "ROASTING": "Ajusta la Potencia % Llama con cuidado según Increm °T y la distancia a tu Temp Ctrl: sube potencia para recuperar energía, bájala si te acercas a 200°C. El crack ocurre entre 189°C y 198°C. Descarga después del first crack cuando el desarrollo sea equilibrado, y nunca dejes el café más de 30 s sobre 200°C.",
+        "ROASTING": "Ajusta la Potencia % Llama con cuidado según Increm °T y la distancia a tu Temp Ctrl: alrededor del 30% suele ser un valor eficiente y estable; mantener el 100% sostenido es un riesgo extremo. El crack ocurre entre 189°C y 198°C. Descarga después del first crack cuando el desarrollo sea equilibrado (idealmente entre 15% y 25% del tiempo total), y nunca dejes el café más de 15 s sobre 200°C.",
         "FINISHED": "Revisa la curva, la temperatura final y el tiempo de desarrollo. Usa esa retroalimentación para ajustar tu siguiente intento."
       },
       "focused": {
@@ -294,7 +294,7 @@
         "PREHEAT": "Regula la Potencia % Llama hasta alcanzar la temperatura de carga; evita una curva demasiado lenta o demasiado agresiva.",
         "READY": "Carga los granos e inicia el control de recuperación térmica.",
         "CHARGE_DIP": "Observa la caída inicial antes de reforzar la potencia de llama.",
-        "ROASTING": "Controla Potencia % Llama, Increm °T, first crack y desarrollo. Evita superar 200°C por más de 30 segundos.",
+        "ROASTING": "Controla Potencia % Llama, Increm °T, first crack y desarrollo. Evita superar 200°C por más de 15 segundos.",
         "FINISHED": "Analiza curva, temperatura final y desarrollo para mejorar el siguiente perfil."
       }
     }

@@ -57,15 +57,18 @@ export const FLAME_POWER_DEFAULT_PCT = 30;
 
 // °C/s que puede sumar el quemador al 100% de potencia, desde un
 // tambor frío, antes de pérdidas.
-export const BURNER_MAX_HEAT_RATE_C_PER_SEC = 1.0;
+export const BURNER_MAX_HEAT_RATE_C_PER_SEC = 2.0;
 
 // Temperatura del tambor en la que se estabilizaría el quemador si se
 // mantuviera al 100% de potencia indefinidamente (lote de referencia).
-// A propósito está por encima de MAX_SAFE_TEMP_C: la potencia máxima
-// nunca se estabiliza de verdad, solo sigue subiendo hacia el límite
-// de seguridad, obligando al operador a bajarla conforme se acerca a
-// Temp Ctrl en vez de dejar la llama al máximo todo el tueste.
-export const HEAT_LOSS_REFERENCE_EQUILIBRIUM_C = 410;
+// Calibrado para que el 30% de potencia — el valor "eficiente y
+// estable" que se observa en tostadoras reales — sea suficiente para
+// completar un tueste medio (llegar al rango de first crack en unos
+// 9 minutos). El 100% sostenido apunta muy por encima de
+// MAX_SAFE_TEMP_C: nunca se estabiliza de verdad, solo sigue subiendo
+// hacia el límite de seguridad — es una condición de riesgo extremo
+// que arrebata el grano en pocos minutos, no un valor de operación normal.
+export const HEAT_LOSS_REFERENCE_EQUILIBRIUM_C = 800;
 
 export const HEAT_LOSS_COEFF_PER_SEC =
   BURNER_MAX_HEAT_RATE_C_PER_SEC / (HEAT_LOSS_REFERENCE_EQUILIBRIUM_C - AMBIENT_TEMP_C);
@@ -91,8 +94,17 @@ export const FIRST_CRACK_TEMP_MAX_C = 198;
 
 // ---- Riesgo de quemado ------------------------------------------------
 
+// Zona de riesgo: a partir de aquí se cuenta el tiempo consecutivo
+// expuesto (regla de tiempo excesivo, ver BurnRiskMonitor).
 export const BURN_THRESHOLD_TEMP_C = 200;
-export const BURN_CONSECUTIVE_LIMIT_SEC = 30;
+export const BURN_CONSECUTIVE_LIMIT_SEC = 15;
+
+// Techo absoluto de temperatura final: superarlo quema el lote de
+// inmediato al momento de evaluar, sin importar cuánto tiempo estuvo
+// ahí. Queda por encima de BURN_THRESHOLD_TEMP_C a propósito, para
+// permitir tuestes medios y medios-altos que pasan por los 200°C
+// brevemente sin penalizarlos injustamente.
+export const BURN_ABSOLUTE_CEILING_TEMP_C = 213;
 
 // ---- Estancamiento en Maillard (defecto "horneado") --------------------
 
@@ -102,24 +114,67 @@ export const MAILLARD_STAGNATION_LIMIT_SEC = 30;
 
 // ---- Controlador del modo automático -----------------------------------
 
-// Controlador proporcional: potencia = base + ganancia * (Temp Ctrl - actual).
-// La ganancia es lo bastante alta para que el error en estado estable
-// quede unos grados por debajo de Temp Ctrl (nunca por encima),
-// cayendo dentro del rango de first crack en vez de quedarse corto.
+// Controlador proporcional-derivativo: potencia = base
+//   + ganancia * (Temp Ctrl - actual)
+//   - amortiguación * (Increm °T actual).
+// El término derivativo hace que el modo automático empiece a soltar
+// potencia en cuanto detecta que el café ya está subiendo rápido, sin
+// esperar a que la temperatura realmente cruce el objetivo — así evita
+// pasarse de largo por la inercia del quemador. El techo de potencia
+// mantiene al modo automático dentro del mismo rango "eficiente y
+// estable" (30%) que se recomienda en modo manual, en vez de tirar
+// siempre al máximo.
 export const AUTO_MODE_BASE_POWER_PCT = 10;
 export const AUTO_MODE_GAIN_PCT_PER_C = 8;
+export const AUTO_MODE_DAMPING_PCT_PER_C_PER_MIN = 1.2;
+export const AUTO_MODE_MAX_POWER_PCT = 30;
 
 // ---- Eje vertical de la gráfica ------------------------------------------
 
 export const CHART_VERTICAL_STEP_C = 33;
 export const CHART_VERTICAL_TICK_COUNT = 6;
 
-// ---- Referencias para evaluar la calidad del tueste ----------------------
+// ---- Evaluación: Crudo --------------------------------------------------
 
 export const RAW_TEMP_CEILING_C = FIRST_CRACK_TEMP_MIN_C - 10;
+export const RAW_SCORE_MAX = 38;
+
+// ---- Evaluación: Quemado --------------------------------------------------
+
+export const BURN_SCORE_BASE = 18;
+export const BURN_SCORE_PENALTY_PER_EXTRA_SEC = 0.4;
+
+// ---- Evaluación: Horneado (estancamiento en Maillard) ----------------------
+
+// El puntaje ya no es fijo: arranca en BAKED_SCORE_AT_THRESHOLD justo
+// al momento en que el estancamiento dispara el defecto (30 s) y baja
+// de forma proporcional por cada segundo adicional que el grano se
+// mantuvo estancado, hasta un piso de BAKED_SCORE_FLOOR.
+export const BAKED_SCORE_AT_THRESHOLD = 45;
+export const BAKED_SCORE_FLOOR = 10;
+export const BAKED_SCORE_PENALTY_PER_EXTRA_SEC = 0.5;
+
+// ---- Rango común de puntajes defectuosos (Crudo/Quemado/Horneado) ----------
+
+export const DEFECT_SCORE_MIN = 5;
+export const DEFECT_SCORE_MAX = 50;
+
+// ---- Evaluación: Perfecto --------------------------------------------------
+
 export const IDEAL_FINAL_TEMP_C = (FIRST_CRACK_TEMP_MIN_C + FIRST_CRACK_TEMP_MAX_C) / 2;
 export const IDEAL_TOTAL_ROAST_MINUTES = 9;
-export const IDEAL_DEVELOPMENT_MINUTES = 1.8;
+export const PERFECT_TEMP_PENALTY_WEIGHT = 2.5;
+export const PERFECT_TIME_PENALTY_WEIGHT = 4;
+export const PERFECT_SCORE_MIN = 51;
+export const PERFECT_SCORE_MAX = 100;
+
+// Ratio de Desarrollo (DTR — Development Time Ratio): proporción del
+// tueste transcurrida después del first crack, estándar de la
+// industria del tueste. Dentro del rango ideal no hay penalización;
+// fuera de él, se penaliza proporcionalmente a cuánto se desvía.
+export const DTR_IDEAL_MIN_RATIO = 0.15;
+export const DTR_IDEAL_MAX_RATIO = 0.25;
+export const DTR_PENALTY_PER_RATIO_POINT = 100;
 
 export const CRACK_SOUND_PATH = `${process.env.PUBLIC_URL}/assets/sounds/crack.mp3`;
 

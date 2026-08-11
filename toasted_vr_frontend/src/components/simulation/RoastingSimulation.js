@@ -193,7 +193,7 @@ export default function RoastingSimulation({
 
       const nextFlamePowerPercent =
         prev.operationMode === OPERATION_MODES.AUTO
-          ? RoastThermalModel.computeAutoFlamePowerPercent(newTemp, prev.targetTemperature)
+          ? RoastThermalModel.computeAutoFlamePowerPercent(newTemp, prev.targetTemperature, rateOfRisePerMinute)
           : prev.flamePowerPercent;
 
       let nextPhase = prev.phase;

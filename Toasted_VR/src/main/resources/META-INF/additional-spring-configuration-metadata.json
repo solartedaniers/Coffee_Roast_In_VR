@@ -24,6 +24,43 @@
       "name": "app.verification.code-expiration-minutes",
       "type": "java.lang.Integer",
       "description": "Minutos de vigencia del codigo de verificacion."
+    },
+    {
+      "name": "app.jwt.secret",
+      "type": "java.lang.String",
+      "description": "Clave secreta usada para firmar los tokens JWT."
+    },
+    {
+      "name": "app.jwt.expiration-seconds",
+      "type": "java.lang.Long",
+      "description": "Segundos de vigencia de un token JWT antes de expirar.",
+      "defaultValue": 3600
+    },
+    {
+      "name": "app.bootstrap-admin.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Indica si se debe crear un usuario administrador al iniciar la aplicacion.",
+      "defaultValue": false
+    },
+    {
+      "name": "app.bootstrap-admin.name",
+      "type": "java.lang.String",
+      "description": "Nombre del administrador creado al iniciar la aplicacion."
+    },
+    {
+      "name": "app.bootstrap-admin.email",
+      "type": "java.lang.String",
+      "description": "Correo del administrador creado al iniciar la aplicacion."
+    },
+    {
+      "name": "app.bootstrap-admin.username",
+      "type": "java.lang.String",
+      "description": "Usuario del administrador creado al iniciar la aplicacion."
+    },
+    {
+      "name": "app.bootstrap-admin.password",
+      "type": "java.lang.String",
+      "description": "Contrasena inicial del administrador creado al iniciar la aplicacion."
     }
   ]
 }

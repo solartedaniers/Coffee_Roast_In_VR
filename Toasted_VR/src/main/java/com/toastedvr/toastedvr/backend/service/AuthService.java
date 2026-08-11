@@ -134,10 +134,9 @@ public class AuthService {
 
     @Transactional
     public LoginResponse login(LoginRequest request) {
-        String identifier = request.identifier().trim();
+        String normalizedEmail = normalizeEmail(request.email());
 
-        User user = userRepository.findByUsernameIgnoreCase(identifier)
-            .or(() -> userRepository.findByEmailIgnoreCase(normalizeEmail(identifier)))
+        User user = userRepository.findByEmailIgnoreCase(normalizedEmail)
             .orElseThrow(() -> new AuthenticationFailedException("Las credenciales ingresadas no son validas."));
 
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
@@ -166,17 +165,7 @@ public class AuthService {
             "Bearer",
             jwtService.getExpiration(token),
             refreshToken,
-            new AuthenticatedUserResponse(
-                user.getId(),
-                user.getName(),
-                user.getEmail(),
-                user.getUsername(),
-                user.isEmailVerified(),
-                user.isEnabled(),
-                user.getRole(),
-                user.getLastLoginAt(),
-                user.getKnowledgeLevel()
-            )
+            AuthenticatedUserResponse.from(user)
         );
     }
 

@@ -18,12 +18,12 @@
       "title": "Iniciar sesión",
       "subtitle": "Ingresa con tu cuenta para continuar tu experiencia en Toasted VR.",
       "labels": {
-        "identifier": "Nombre de usuario",
-        "password": "Contraseña"
+        "password": "Contraseña",
+        "email": "Correo electrónico"
       },
       "placeholders": {
-        "identifier": "Ingresa tu nombre de usuario",
-        "password": "Escribe tu contraseña"
+        "password": "Escribe tu contraseña",
+        "email": "Ingresa tu correo electrónico"
       },
       "buttons": {
         "submit": "Iniciar sesión",
@@ -110,32 +110,71 @@
     "error": "No se pudo guardar tu selección. Intenta de nuevo.",
     "logoutButton": "Cerrar sesión"
   },
+  "profile": {
+    "badge": "Perfil",
+    "title": "Editar perfil",
+    "passwordSection": "Cambio de contraseña",
+    "labels": {
+      "name": "Nombre",
+      "username": "Usuario",
+      "knowledgeLevel": "Nivel de conocimiento",
+      "currentPassword": "contraseña actual",
+      "newPassword": "Nueva contraseña",
+      "confirmPassword": "Confirmar nueva contraseña"
+    },
+    "placeholders": {
+      "currentPassword": "Necesaria solo si cambias la contraseña",
+      "newPassword": "Escribe una nueva contraseña",
+      "confirmPassword": "Repite la nueva contraseña"
+    },
+    "photo": {
+      "alt": "Foto de perfil",
+      "add": "Agregar",
+      "edit": "Editar"
+    },
+    "buttons": {
+      "open": "Editar perfil",
+      "close": "Cerrar",
+      "save": "Guardar cambios",
+      "saving": "Guardando..."
+    },
+    "messages": {
+      "saved": "Perfil actualizado correctamente.",
+      "passwordMismatch": "Las contraseñas no coinciden.",
+      "currentPasswordRequired": "Ingresa tu contraseña actual para crear una nueva.",
+      "invalidImage": "Selecciona una imagen valida.",
+      "imageTooLarge": "La imagen debe pesar menos de 900 KB."
+    },
+    "ariaLabel": "Editar perfil"
+  },
   "simulation": {
     "title": "Simulación de Tostado de Café Arábica",
     "phases": {
       "IDLE": "Listo para iniciar",
       "PREHEAT": "Precalentando horno",
-      "READY": "Temperatura alcanzada",
-      "COOLDOWN": "Absorbiendo calor de los granos",
+      "READY": "Temperatura de carga alcanzada",
+      "CHARGE_DIP": "Absorbiendo calor de los granos",
       "ROASTING": "Proceso de tostión",
       "FINISHED": "Tostión finalizada"
     },
+    "status": {
+      "PREHEAT": "Calentando",
+      "READY": "Listo para cargar",
+      "CHARGE_DIP": "Cargando granos",
+      "ROASTING": "Tostando",
+      "FINISHED": "Finalizado"
+    },
     "labels": {
       "temperature": "Temperatura",
-      "targetTemperature": "Temperatura objetivo",
+      "chargeTemperature": "Temperatura de carga",
+      "targetTemperature": "Temp Ctrl (objetivo)",
       "elapsedTime": "Tiempo total",
-      "roastingTime": "Tiempo de tostión",
-      "burnerPower": "Potencia del quemador",
-      "currentPhase": "Fase actual",
       "firstCrack": "¡First Crack!",
-      "burnAlert": "⚠ El café se está quemando — baja la temperatura",
-      "grainState": "Estado del grano"
-    },
-    "power": {
-      "OFF": "Apagado",
-      "LOW": "Baja",
-      "MEDIUM": "Media",
-      "HIGH": "Alta"
+      "burnAlert": "⚠ El café supera los 200°C — reduce la potencia de llama",
+      "burnedNotice": "🔥 El café se quemó: lleva más de 15 s sobre 200°C. Descárgalo de inmediato.",
+      "alarmNotice": "🚨 Alarma de seguridad: se superó el límite máximo del equipo.",
+      "grainState": "Estado del grano",
+      "batchWeight": "Capacidad"
     },
     "grainStates": {
       "DRYING": "Secado",
@@ -148,27 +187,76 @@
       "startPreheat": "Encender horno",
       "loadBeans": "Cargar granos",
       "dischargeCoffee": "Descargar café",
-      "newSimulation": "Nueva simulación",
       "logout": "Cerrar sesión"
+    },
+    "controlPanel": {
+      "menuButton": "Menú",
+      "targetTempTile": "Temp Ctrl",
+      "targetTempEditAria": "Editar temperatura objetivo",
+      "rateOfRiseTile": "Increm °T",
+      "rateOfRiseUnit": "°C/Min",
+      "flamePowerTile": "Potencia % Llama",
+      "flamePowerEditAria": "Editar potencia de llama",
+      "beanTempTile": "Temp café",
+      "roastTimeTile": "Tiempo Tueste",
+      "roastTimeUnit": "min",
+      "menu": {
+        "openGeneralSettings": "Configuración general",
+        "resetChart": "Reiniciar gráfica",
+        "abort": "Salir del tueste",
+        "close": "Cerrar menú"
+      }
+    },
+    "settings": {
+      "title": "Configuración general",
+      "subtitle": "Ajustes del equipo — separados de los parámetros de cada tueste.",
+      "close": "Cerrar",
+      "calibration": {
+        "title": "Calibración de sensores",
+        "description": "Corrige la lectura de las termocuplas del café y del tambor si no coincide con la temperatura real.",
+        "offsetLabel": "Offset de temperatura (°C)"
+      },
+      "alarms": {
+        "title": "Alarmas y límites de seguridad",
+        "description": "Umbral máximo del equipo. Al superarlo se dispara una alarma de seguridad, independiente de la regla de café quemado.",
+        "limitLabel": "Límite máximo (°C)"
+      },
+      "mode": {
+        "title": "Modo de operación",
+        "description": "Cambia entre control manual y control automático del quemador.",
+        "manual": "Manual",
+        "auto": "Automático"
+      },
+      "network": {
+        "title": "Comunicación y red",
+        "description": "Conexión entre esta pantalla y el autómata (PLC) que controla la válvula de gas y los motores.",
+        "hostLabel": "Dirección IP del PLC",
+        "portLabel": "Puerto",
+        "testButton": "Probar conexión",
+        "testing": "Probando conexión...",
+        "connected": "Conexión simulada correctamente"
+      },
+      "display": {
+        "title": "Parámetros de visualización y unidades",
+        "description": "Escala de la gráfica y unidad de temperatura mostrada en pantalla.",
+        "unitLabel": "Unidad de temperatura",
+        "chartStepLabel": "Escala de la gráfica"
+      }
     },
     "chart": {
       "title": "Curva de temperatura en tiempo real",
-      "timeLabel": "Tiempo (seg)",
-      "tempLabel": "Temperatura (°C)",
-      "referenceLine180": "First Crack",
-      "referenceLine200": "Zona quemado"
+      "timeLabel": "Tiempo (min)",
+      "tempLabel": "Temperatura"
     },
     "results": {
       "title": "Evaluación del tueste",
-      "scoreLabel": "Puntuación",
-      "resultLabel": "Resultado",
       "PERFECT": "Tueste Perfecto",
       "RAW": "Café Crudo",
       "BURNED": "Café Quemado",
       "BAKED": "Café Horneado",
       "descriptions": {
         "PERFECT_100": "¡Excelente! Lograste el tueste ideal. Notas brillantes de caramelo, frutos rojos y acidez equilibrada.",
-        "PERFECT_GOOD": "Buen tueste. Café de calidad con cuerpo equilibrado. Ajusta temperatura y tiempo de desarrollo para alcanzar la perfección.",
+        "PERFECT_GOOD": "Buen tueste. Café de calidad con cuerpo equilibrado. Ajusta la potencia de llama y el tiempo de desarrollo para alcanzar la perfección.",
         "RAW": "El grano quedó sin desarrollar. Predominarán sabores ácidos, vegetales y astringentes.",
         "BURNED": "El calor excesivo destruyó los aromas. Solo quedarán sabores amargos y de ceniza.",
         "BAKED": "La temperatura se estancó en la fase crítica. El café resultará plano, sin carácter ni complejidad."
@@ -179,16 +267,36 @@
         "firstCrack": "First crack alcanzado",
         "devTime": "Tiempo de desarrollo",
         "yes": "Sí",
-        "no": "No"
+        "no": "No",
+        "minutesUnit": "min"
       },
       "saving": "Guardando resultado...",
       "saved": "Resultado guardado",
-      "saveError": "No se pudo guardar el resultado"
+      "saveError": "No se pudo guardar el resultado",
+      "newSimulationButton": "Nueva simulación"
     },
     "info": {
-      "preheatHelp": "La temperatura ideal de carga es entre 190°C y 210°C.",
-      "cooldownCountdown": "Giro en",
-      "developmentTime": "Tiempo desde first crack"
+      "preheatHelp": "Define la temperatura de carga y el Temp Ctrl objetivo antes de encender el horno. El horno se calienta con la potencia de llama que definas una vez inicie.",
+      "developmentTime": "Tiempo desde el crack"
+    },
+    "guidance": {
+      "title": "Guía de proceso",
+      "complete": {
+        "IDLE": "Define la temperatura de carga (cuándo echarás el café) y el Temp Ctrl objetivo. Luego haz clic en Encender horno para precalentar con la potencia de llama que ajustes.",
+        "PREHEAT": "Sube la Potencia % Llama desde el panel de control manual hasta que el horno alcance tu temperatura de carga. Increm °T te muestra qué tan rápido está subiendo.",
+        "READY": "Haz clic en Cargar granos. Al entrar, los granos absorberán calor y la temperatura de café bajará antes de iniciar la tostión real.",
+        "CHARGE_DIP": "Observa la caída de temperatura. Esta absorción de calor simula la carga de granos y prepara el sistema para controlar la curva.",
+        "ROASTING": "Ajusta la Potencia % Llama con cuidado según Increm °T y la distancia a tu Temp Ctrl: alrededor del 30% suele ser un valor eficiente y estable; mantener el 100% sostenido es un riesgo extremo. El crack ocurre entre 189°C y 198°C. Descarga después del first crack cuando el desarrollo sea equilibrado (idealmente entre 15% y 25% del tiempo total), y nunca dejes el café más de 15 s sobre 200°C.",
+        "FINISHED": "Revisa la curva, la temperatura final y el tiempo de desarrollo. Usa esa retroalimentación para ajustar tu siguiente intento."
+      },
+      "focused": {
+        "IDLE": "Define una temperatura de carga estable y un Temp Ctrl cercano a 200°C.",
+        "PREHEAT": "Regula la Potencia % Llama hasta alcanzar la temperatura de carga; evita una curva demasiado lenta o demasiado agresiva.",
+        "READY": "Carga los granos e inicia el control de recuperación térmica.",
+        "CHARGE_DIP": "Observa la caída inicial antes de reforzar la potencia de llama.",
+        "ROASTING": "Controla Potencia % Llama, Increm °T, first crack y desarrollo. Evita superar 200°C por más de 15 segundos.",
+        "FINISHED": "Analiza curva, temperatura final y desarrollo para mejorar el siguiente perfil."
+      }
     }
   },
   "accessDenied": {

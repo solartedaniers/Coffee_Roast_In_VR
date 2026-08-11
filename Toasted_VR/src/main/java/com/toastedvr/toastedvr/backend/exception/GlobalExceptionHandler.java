@@ -8,7 +8,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -24,7 +23,7 @@ public class GlobalExceptionHandler {
         String message = exception.getBindingResult()
             .getFieldErrors()
             .stream()
-            .map(FieldError::getDefaultMessage)
+            .map(fieldError -> fieldError.getDefaultMessage())
             .findFirst()
             .orElse("La solicitud no es valida");
 

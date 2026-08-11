@@ -23,12 +23,25 @@
   flex-wrap: wrap;
 }
 
+.sim-header-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .sim-brand-name {
   font-family: var(--font-display);
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--color-ink-strong);
   letter-spacing: -0.01em;
+}
+
+.sim-batch-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-ink-muted);
+  letter-spacing: 0.02em;
 }
 
 .sim-header-status {
@@ -69,14 +82,68 @@
   gap: 12px;
 }
 
+.sim-user-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+}
+
+.sim-user-chip:hover .sim-username-label {
+  color: var(--color-accent-deep);
+}
+
+.sim-user-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  color: #fff;
+  font-size: 0.86rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-deep));
+  box-shadow: 0 4px 12px rgba(139, 94, 60, 0.2);
+}
+
+.sim-user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .sim-username-label {
   font-size: 0.875rem;
   color: var(--color-ink-muted);
+  transition: color 0.2s ease;
 }
 
 .sim-logout-btn {
   padding: 7px 16px;
   font-size: 0.8rem;
+}
+
+.sim-guidance-panel {
+  display: grid;
+  gap: 8px;
+  padding: 16px 20px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255, 253, 250, 0.96), rgba(248, 241, 233, 0.9));
+  box-shadow: var(--shadow-soft);
+}
+
+.sim-guidance-panel p {
+  margin: 0;
+  color: var(--color-ink-base);
+  line-height: 1.6;
+  font-size: 0.92rem;
 }
 
 /* ----------------------------------------------------------------
@@ -104,6 +171,25 @@
   font-weight: 600;
   font-size: 0.875rem;
   text-align: center;
+}
+
+.sim-burned-alert {
+  padding: 12px 20px;
+  border-radius: 10px;
+  background: var(--color-danger);
+  color: #fffdfa;
+  font-weight: 700;
+  font-size: 1rem;
+  text-align: center;
+  letter-spacing: 0.02em;
+  animation: pulseAlert 0.5s ease-in-out 3;
+}
+
+.sim-hint-text {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--color-ink-muted);
+  line-height: 1.5;
 }
 
 @keyframes pulseAlert {
@@ -173,7 +259,7 @@
 .oven-body.oven-active {
   box-shadow:
     inset 0 0 28px rgba(0, 0, 0, 0.6),
-    0 0 28px var(--oven-glow, transparent),
+    0 0 28px rgba(var(--color-oven-glow-rgb), var(--oven-glow-opacity, 0)),
     0 12px 36px rgba(58, 26, 10, 0.35);
 }
 
@@ -239,8 +325,12 @@
 .smoke-puff {
   position: absolute;
   border-radius: 50%;
-  background: var(--smoke-color, rgba(210, 210, 210, 0.7));
+  background: var(--color-smoke-light);
   animation: smokeDrift 2.4s ease-out infinite;
+}
+
+.smoke-burnt .smoke-puff {
+  background: var(--color-smoke-dark);
 }
 
 .smoke-container .smoke-puff:nth-child(1) {
@@ -276,7 +366,7 @@
   }
   40% {
     transform: translateY(-20px) translateX(6px) scale(1.1);
-    opacity: calc(inherit * 0.7);
+    opacity: 0.55;
   }
   100% {
     transform: translateY(-52px) translateX(-4px) scale(1.7);
@@ -310,8 +400,13 @@
 .therm-fill {
   width: 100%;
   border-radius: 99px;
+  background: var(--color-accent);
   transition: height 0.8s ease, background-color 1.5s ease;
   min-height: 2px;
+}
+
+.therm-fill-danger {
+  background: var(--color-danger);
 }
 
 .therm-label {
@@ -449,38 +544,6 @@
 /* Ready badge */
 .ready-badge {
   color: var(--color-success);
-}
-
-/* Power buttons */
-.power-buttons {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-}
-
-.power-btn {
-  padding: 10px 8px;
-  border: 2px solid var(--color-border);
-  border-radius: 10px;
-  background: var(--color-bg-input);
-  color: var(--color-ink-base);
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.18s ease;
-  text-align: center;
-}
-
-.power-btn:hover {
-  border-color: var(--color-accent);
-  color: var(--color-accent-deep);
-}
-
-.power-btn-active {
-  background: linear-gradient(135deg, var(--color-accent-deep), var(--color-highlight));
-  border-color: transparent;
-  color: #fff;
-  box-shadow: 0 4px 14px rgba(139, 94, 60, 0.3);
 }
 
 /* Stats mini panel */
@@ -729,4 +792,322 @@
   font-size: 0.8rem;
   color: var(--color-danger);
   margin: 0;
+}
+
+/* ================================================================
+   PANEL DE CONTROL MANUAL (layout de referencia tipo HMI industrial)
+   ================================================================ */
+
+.manual-control-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 24px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  box-shadow: var(--shadow-soft);
+}
+
+.manual-control-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* Indicador de estado ("CALENTANDO" / "TOSTANDO") */
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 22px;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 1.05rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+}
+
+.status-indicator-idle {
+  background: var(--color-bg-input);
+  color: var(--color-ink-muted);
+  border-color: var(--color-border);
+}
+
+.status-indicator-heating {
+  background: var(--color-status-heating-soft);
+  color: var(--color-status-heating);
+  border-color: var(--color-status-heating);
+}
+
+.status-indicator-ready {
+  background: var(--color-status-ready-soft);
+  color: var(--color-status-ready);
+  border-color: var(--color-status-ready);
+}
+
+.status-indicator-roasting {
+  background: var(--color-status-roasting-soft);
+  color: var(--color-status-roasting);
+  border-color: var(--color-status-roasting);
+  animation: pulseAlert 2.2s ease-in-out infinite;
+}
+
+.status-indicator-finished {
+  background: var(--color-status-finished-soft);
+  color: var(--color-status-finished);
+  border-color: var(--color-status-finished);
+}
+
+/* Botón de menú + desplegable */
+.roast-menu-anchor {
+  position: relative;
+}
+
+.roast-menu-button {
+  padding: 10px 20px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+}
+
+.roast-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 210;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: default;
+}
+
+.roast-menu-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 211;
+  width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 14px;
+  background: var(--color-bg-surface-strong);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(16px);
+}
+
+.roast-menu-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.roast-menu-section-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-ink-muted);
+}
+
+.roast-menu-mode-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.roast-menu-mode-btn {
+  padding: 8px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 10px;
+  background: var(--color-bg-input);
+  color: var(--color-ink-base);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.roast-menu-mode-btn-active {
+  background: linear-gradient(135deg, var(--color-accent-deep), var(--color-highlight));
+  border-color: transparent;
+  color: #fff;
+}
+
+.roast-menu-item {
+  padding: 10px 12px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--color-ink-base);
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-align: left;
+}
+
+.roast-menu-item:hover {
+  background: rgba(185, 133, 92, 0.1);
+  color: var(--color-accent-deep);
+}
+
+.roast-menu-item-danger {
+  color: var(--color-danger);
+}
+
+.roast-menu-item-danger:hover {
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+
+/* Cuadrícula de casillas del HMI */
+.hmi-tile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.hmi-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-bg-input);
+}
+
+.hmi-tile-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-ink-muted);
+  text-align: center;
+}
+
+.hmi-tile-value {
+  width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: #fffdfa;
+  padding: 8px 6px;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--color-ink-strong);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  cursor: default;
+}
+
+.hmi-tile-editable .hmi-tile-value {
+  cursor: pointer;
+  border-color: var(--color-accent);
+}
+
+.hmi-tile-editable .hmi-tile-value:hover {
+  box-shadow: 0 0 0 3px rgba(185, 133, 92, 0.18);
+}
+
+.hmi-tile-unit {
+  margin-left: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  opacity: 0.75;
+}
+
+.hmi-tile-input {
+  width: 100%;
+  border: 2px solid var(--color-accent-deep);
+  border-radius: 8px;
+  background: #fffdfa;
+  padding: 8px 6px;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--color-ink-strong);
+  text-align: center;
+}
+
+.hmi-tile-live .hmi-tile-value {
+  background: var(--color-bg-card);
+  color: var(--color-accent-deep);
+}
+
+.hmi-tile-info .hmi-tile-value {
+  background: var(--color-bg-card);
+  color: var(--color-ink-base);
+}
+
+.hmi-tile-flame {
+  border-color: var(--color-flame-tile);
+}
+
+.hmi-tile-flame .hmi-tile-value {
+  background: var(--color-flame-tile-soft);
+  color: var(--color-flame-tile);
+  border-color: var(--color-flame-tile);
+}
+
+@media (max-width: 700px) {
+  .hmi-tile-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ================================================================
+   PANEL DE CONFIGURACIÓN GENERAL (menú → "Configuración general")
+   ================================================================ */
+
+.settings-modal {
+  max-width: 640px;
+}
+
+.settings-modal h2 {
+  margin: 0 0 4px;
+  font-family: var(--font-display);
+  font-weight: 400;
+  color: var(--color-ink-strong);
+}
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.settings-field span {
+  font-size: 0.82rem;
+  color: var(--color-ink-base);
+  font-weight: 500;
+}
+
+.settings-field-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.settings-field-narrow {
+  max-width: 160px;
+}
+
+.settings-connection-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }

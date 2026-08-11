@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './App.css';
 import esTexts from './locals/es.json';
 import AdminUserManagement from './components/AdminUserManagement';
@@ -29,6 +29,7 @@ function App() {
 
   const simulationTexts = esTexts.simulation;
   const knowledgeLevelTexts = esTexts.knowledgeLevel;
+  const profileTexts = esTexts.profile;
   const currentUser = session?.user ?? null;
   const isAdmin = currentUser?.role === 'ADMIN';
 
@@ -58,6 +59,7 @@ function App() {
   const handleLoginSuccess = (loginResponse) => {
     const nextSession = {
       accessToken: loginResponse.accessToken,
+      refreshToken: loginResponse.refreshToken,
       expiresAt: loginResponse.expiresAt,
       user: loginResponse.user
     };
@@ -72,19 +74,36 @@ function App() {
     setSession(nextSession);
   };
 
+  const handleUserUpdate = (updatedUser) => {
+    const nextSession = { ...session, user: updatedUser };
+    saveSession(nextSession);
+    setSession(nextSession);
+  };
+
+  const resetToLoggedOutState = () => {
+    clearSession();
+    setSession(null);
+    setAuthView(authViews.entry);
+    setPendingRegistration(null);
+    setVerifiedUser(null);
+  };
+
   const handleLogout = async () => {
     try {
       await logoutUser();
     } catch (error) {
       // La sesion local debe cerrarse incluso si el token ya no es valido.
     } finally {
-      clearSession();
-      setSession(null);
-      setAuthView(authViews.entry);
-      setPendingRegistration(null);
-      setVerifiedUser(null);
+      resetToLoggedOutState();
     }
   };
+
+  // apiClient dispara este evento cuando el refresh token tambien expiro
+  // (o no se pudo renovar la sesion), para volver a la pantalla de login.
+  useEffect(() => {
+    window.addEventListener('toastedvr:session-expired', resetToLoggedOutState);
+    return () => window.removeEventListener('toastedvr:session-expired', resetToLoggedOutState);
+  }, []);
 
   if (currentUser && isAdmin) {
     return (
@@ -93,7 +112,13 @@ function App() {
         <div className="ambient-light ambient-light-right" />
 
         <main className="admin-page-frame">
-          <AdminUserManagement texts={adminTexts} currentUser={currentUser} onLogout={handleLogout} />
+          <AdminUserManagement
+            texts={adminTexts}
+            profileTexts={profileTexts}
+            currentUser={currentUser}
+            onLogout={handleLogout}
+            onUserUpdate={handleUserUpdate}
+          />
         </main>
       </div>
     );
@@ -119,8 +144,11 @@ function App() {
         <main className="app-frame app-frame-wide">
           <RoastingSimulation
             texts={simulationTexts}
+            profileTexts={profileTexts}
+            knowledgeTexts={knowledgeLevelTexts}
             currentUser={currentUser}
             onLogout={handleLogout}
+            onUserUpdate={handleUserUpdate}
           />
         </main>
       </div>

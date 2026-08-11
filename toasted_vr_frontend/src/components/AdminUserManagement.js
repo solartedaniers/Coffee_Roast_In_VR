@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import ProfileSettings from './ProfileSettings';
 import {
   fetchUsers,
   fetchUserDetail,
@@ -44,8 +45,9 @@ function formatDuration(totalSeconds) {
 }
 
 // ── Component ──────────────────────────────────────────────────────
-function AdminUserManagement({ texts, currentUser, onLogout }) {
+function AdminUserManagement({ texts, profileTexts, currentUser, onLogout, onUserUpdate }) {
   const [activeSection, setActiveSection] = useState(SECTIONS.USERS);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   // --- Users/Roles state ---
   const [filters, setFilters] = useState(initialFilters);
@@ -621,6 +623,15 @@ function AdminUserManagement({ texts, currentUser, onLogout }) {
 
   return (
     <div className="admin-sidebar-layout">
+      <ProfileSettings
+        texts={profileTexts}
+        knowledgeTexts={{ options: {} }}
+        currentUser={currentUser}
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+        onUserUpdate={onUserUpdate}
+      />
+
       {/* Backdrop for sliding panel */}
       {panel.isOpen && (
         <div
@@ -634,9 +645,18 @@ function AdminUserManagement({ texts, currentUser, onLogout }) {
       <aside className="admin-sidebar">
         <div className="admin-sidebar-top">
           <p className="eyebrow">{texts.badge}</p>
-          <div className="admin-sidebar-user-card">
+          <button
+            type="button"
+            className="admin-sidebar-user-card"
+            onClick={() => setIsProfileOpen(true)}
+            aria-label={profileTexts.buttons.open}
+          >
             <div className="admin-user-avatar">
-              {currentUser.name.charAt(0).toUpperCase()}
+              {currentUser.profileImageUrl ? (
+                <img src={currentUser.profileImageUrl} alt={profileTexts.photo.alt} />
+              ) : (
+                currentUser.name.charAt(0).toUpperCase()
+              )}
             </div>
             <div className="admin-sidebar-user-info">
               <strong>{currentUser.name}</strong>
@@ -644,7 +664,7 @@ function AdminUserManagement({ texts, currentUser, onLogout }) {
                 {texts.roles[currentUser.role.toLowerCase()] || currentUser.role}
               </span>
             </div>
-          </div>
+          </button>
         </div>
 
         <nav className="admin-nav">

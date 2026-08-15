@@ -100,6 +100,30 @@ JPA_SHOW_SQL=true
    ```
 4. La aplicacion quedara disponible en `http://localhost:3000`.
 
+### 3. Retroalimentacion con IA (Ollama + Phi-3) - Opcional
+
+El backend usa un modelo local via [Ollama](https://ollama.com) para generar
+la retroalimentacion de IA que se muestra al finalizar un tueste.
+
+**Instalacion**
+1. Instala Ollama desde [https://ollama.com](https://ollama.com).
+2. Descarga el modelo:
+   ```bash
+   ollama pull phi3
+   ```
+3. Confirma que quedo instalado:
+   ```bash
+   ollama --version
+   ```
+
+Por defecto el backend busca Ollama en `http://localhost:11434` (variable
+`OLLAMA_BASE_URL` en `Toasted_VR/.env`, ver `Toasted_VR/.env.example`).
+
+**Es opcional.** Si Ollama no esta instalado o no esta corriendo, el resto de
+la aplicacion funciona con normalidad; simplemente no se muestra la
+retroalimentacion de IA y en su lugar aparece el mensaje "Retroalimentacion
+no disponible por ahora".
+
 ---
 
 ## Contexto Importante para Futuros Desarrolladores

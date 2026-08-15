@@ -165,7 +165,7 @@ export const IDEAL_FINAL_TEMP_C = (FIRST_CRACK_TEMP_MIN_C + FIRST_CRACK_TEMP_MAX
 export const IDEAL_TOTAL_ROAST_MINUTES = 9;
 export const PERFECT_TEMP_PENALTY_WEIGHT = 2.5;
 export const PERFECT_TIME_PENALTY_WEIGHT = 4;
-export const PERFECT_SCORE_MIN = 51;
+export const PERFECT_SCORE_MIN = 0;
 export const PERFECT_SCORE_MAX = 100;
 
 // Ratio de Desarrollo (DTR — Development Time Ratio): proporción del

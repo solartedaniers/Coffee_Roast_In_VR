@@ -6,7 +6,7 @@ import TemperatureChart from './TemperatureChart';
 import RoastOvenVisual from './RoastOvenVisual';
 import RoastResultsPanel from './RoastResultsPanel';
 import GeneralSettingsPanel from './GeneralSettingsPanel';
-import { saveRoastingSession } from '../../services/simulationService';
+import { saveRoastingSession, getRoastingFeedback } from '../../services/simulationService';
 
 import {
   PHASES,
@@ -30,6 +30,7 @@ import {
   SENSOR_CALIBRATION_DEFAULT_C,
   ALARM_LIMIT_DEFAULT_C,
   CHART_VERTICAL_STEP_C,
+  CHART_TIME_WINDOW_SECONDS,
 } from '../../domain/roasting/RoastConstants';
 import RoastThermalModel from '../../domain/roasting/RoastThermalModel';
 import RoastMetrics from '../../domain/roasting/RoastMetrics';
@@ -107,6 +108,8 @@ export default function RoastingSimulation({
   const [roastResult, setRoastResult] = useState(null);
   const [savingState, setSavingState] = useState('idle');
   const [saveErrorDetail, setSaveErrorDetail] = useState('');
+  const [feedbackState, setFeedbackState] = useState('idle');
+  const [feedbackText, setFeedbackText] = useState('');
   const [showCrackAlert, setShowCrackAlert] = useState(false);
   const [showBurnedAlert, setShowBurnedAlert] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -332,6 +335,8 @@ export default function RoastingSimulation({
     setRoastResult(null);
     setSavingState('idle');
     setSaveErrorDetail('');
+    setFeedbackState('idle');
+    setFeedbackText('');
   }, [stopInterval, chargeTempSetup, targetTempSetup]);
 
   const handleDischarge = useCallback(async () => {
@@ -350,7 +355,7 @@ export default function RoastingSimulation({
     setSaveErrorDetail('');
 
     try {
-      await saveRoastingSession({
+      const saved = await saveRoastingSession({
         targetTemperature: finalSim.targetTemperature,
         totalDurationSeconds: Math.max(1, Math.round(finalSim.roastingElapsedSeconds)),
         finalTemperature: finalSim.finalTemperature,
@@ -363,6 +368,22 @@ export default function RoastingSimulation({
           : 0,
       });
       setSavingState('saved');
+
+      setFeedbackState('loading');
+      try {
+        const feedback = await getRoastingFeedback(saved.id);
+        if (feedback) {
+          setFeedbackText(feedback);
+          setFeedbackState('ready');
+        } else {
+          setFeedbackState('unavailable');
+        }
+      } catch (feedbackError) {
+        // La retroalimentación de IA es un plus sobre el resultado ya
+        // guardado — si Ollama no responde, no debe romper el flujo.
+        console.warn('No se pudo generar retroalimentación:', feedbackError);
+        setFeedbackState('unavailable');
+      }
     } catch (error) {
       // Se muestra el error real (antes se descartaba) para poder
       // diagnosticar un guardado fallido desde la consola/red del navegador.
@@ -388,6 +409,8 @@ export default function RoastingSimulation({
     setRoastResult(null);
     setSavingState('idle');
     setSaveErrorDetail('');
+    setFeedbackState('idle');
+    setFeedbackText('');
   };
 
   // ── Valores derivados para el render ────────────────────────────
@@ -401,11 +424,19 @@ export default function RoastingSimulation({
 
   const chartPoints = useMemo(() => {
     if (s.chargeStartElapsedSeconds == null) return [];
-    const origin = Math.max(s.chargeStartElapsedSeconds, s.chartViewResetAtSeconds ?? -Infinity);
+    const windowStart = Math.max(
+      s.chargeStartElapsedSeconds,
+      s.chartViewResetAtSeconds ?? -Infinity,
+      s.elapsedSeconds - CHART_TIME_WINDOW_SECONDS
+    );
+    // El tiempo se mantiene relativo a la carga del café (no a la
+    // ventana móvil): así el eje sigue leyéndose como "duración real
+    // de la tostión" y avanza/hace scroll con ella, en vez de
+    // reiniciarse a 0 cada vez que la ventana se desplaza.
     return s.samples
-      .filter((sample) => sample.time >= origin)
-      .map((sample) => ({ time: sample.time - origin, temp: sample.temp }));
-  }, [s.samples, s.chargeStartElapsedSeconds, s.chartViewResetAtSeconds]);
+      .filter((sample) => sample.time >= windowStart)
+      .map((sample) => ({ time: sample.time - s.chargeStartElapsedSeconds, temp: sample.temp }));
+  }, [s.samples, s.chargeStartElapsedSeconds, s.chartViewResetAtSeconds, s.elapsedSeconds]);
 
   const chargeSliderPct =
     ((chargeTempSetup - CHARGE_TEMP_MIN_C) / (CHARGE_TEMP_MAX_C - CHARGE_TEMP_MIN_C)) * 100;
@@ -652,6 +683,8 @@ export default function RoastingSimulation({
           roastResult={roastResult}
           savingState={savingState}
           saveErrorDetail={saveErrorDetail}
+          feedbackState={feedbackState}
+          feedbackText={feedbackText}
           temperatureUnit={temperatureUnit}
           texts={texts.results}
           onNewSimulation={handleNewSimulation}

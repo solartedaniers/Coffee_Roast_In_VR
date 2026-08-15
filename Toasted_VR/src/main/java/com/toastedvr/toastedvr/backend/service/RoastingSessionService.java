@@ -46,6 +46,17 @@ public class RoastingSessionService {
         return toResponse(saved);
     }
 
+    public RoastingSession getOwnedSession(Long userId, Long sessionId) {
+        RoastingSession session = roastingSessionRepository.findById(sessionId)
+            .orElseThrow(() -> new ResourceNotFoundException("Sesión de tueste no encontrada."));
+
+        if (!session.getUser().getId().equals(userId)) {
+            throw new ResourceNotFoundException("Sesión de tueste no encontrada.");
+        }
+
+        return session;
+    }
+
     private SessionResultResponse toResponse(RoastingSession session) {
         return new SessionResultResponse(
             session.getId(),

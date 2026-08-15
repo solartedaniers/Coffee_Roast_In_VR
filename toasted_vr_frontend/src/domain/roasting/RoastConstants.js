@@ -75,8 +75,11 @@ export const HEAT_LOSS_COEFF_PER_SEC =
 
 // La válvula de gas trabaja en pulsos cortos en vez de responder al
 // instante — la potencia de llama se acerca a su valor objetivo
-// gradualmente en lugar de saltar directo a él.
-export const FLAME_RESPONSE_LAG_PER_SEC = 0.05 * THERMAL_MASS_FACTOR;
+// gradualmente en lugar de saltar directo a él. Calibrado para un
+// tiempo de asentamiento de ~10-15 s: suficientemente gradual para
+// sentirse real, pero un cambio de potencia debe verse reflejado en
+// la curva dentro de ese margen, no tomar minutos.
+export const FLAME_RESPONSE_LAG_PER_SEC = 0.15 * THERMAL_MASS_FACTOR;
 
 // ---- Carga del café --------------------------------------------
 
@@ -133,6 +136,17 @@ export const AUTO_MODE_MAX_POWER_PCT = 30;
 
 export const CHART_VERTICAL_STEP_C = 33;
 export const CHART_VERTICAL_TICK_COUNT = 6;
+
+// ---- Ventana de tiempo de la gráfica ---------------------------------
+
+// La gráfica muestra una ventana móvil de los últimos N segundos en
+// vez de estirar todo el tueste (9-15 min) en el mismo ancho: así los
+// picos y valles reales (caída al cargar el café, reacción a cambios
+// de potencia) se ven con detalle en vez de aplanarse. Igual a
+// CHART_HORIZONTAL_TICK_COUNT minutos exactos para que la ventana
+// llene todo el ancho del eje sin dejar un margen vacío al final.
+export const CHART_HORIZONTAL_TICK_COUNT = 6;
+export const CHART_TIME_WINDOW_SECONDS = CHART_HORIZONTAL_TICK_COUNT * 60;
 
 // ---- Evaluación: Crudo --------------------------------------------------
 

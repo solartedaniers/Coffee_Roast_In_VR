@@ -46,12 +46,12 @@ export default class RoastQualityEvaluator {
     }
 
     const developmentSeconds = roastingElapsedSeconds - (firstCrackTimeSeconds || 0);
-    const score = PerfectRoastEvaluator.computeScore(
+    const { score, tempPenalty, timePenalty, dtrPenalty } = PerfectRoastEvaluator.computeBreakdown(
       finalTemperature,
       roastingElapsedSeconds,
       developmentSeconds,
       rules.penaltyMultiplier
     );
-    return { score, result: RESULTS.PERFECT };
+    return { score, result: RESULTS.PERFECT, breakdown: { tempPenalty, timePenalty, dtrPenalty } };
   }
 }

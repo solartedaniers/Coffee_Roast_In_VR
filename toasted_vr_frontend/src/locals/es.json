@@ -227,15 +227,6 @@
         "manual": "Manual",
         "auto": "Automático"
       },
-      "network": {
-        "title": "Comunicación y red",
-        "description": "Conexión entre esta pantalla y el autómata (PLC) que controla la válvula de gas y los motores.",
-        "hostLabel": "Dirección IP del PLC",
-        "portLabel": "Puerto",
-        "testButton": "Probar conexión",
-        "testing": "Probando conexión...",
-        "connected": "Conexión simulada correctamente"
-      },
       "display": {
         "title": "Parámetros de visualización y unidades",
         "description": "Escala de la gráfica y unidad de temperatura mostrada en pantalla.",
@@ -256,10 +247,15 @@
       "BAKED": "Café Horneado",
       "descriptions": {
         "PERFECT_100": "¡Excelente! Lograste el tueste ideal. Notas brillantes de caramelo, frutos rojos y acidez equilibrada.",
-        "PERFECT_GOOD": "Buen tueste. Café de calidad con cuerpo equilibrado. Ajusta la potencia de llama y el tiempo de desarrollo para alcanzar la perfección.",
-        "RAW": "El grano quedó sin desarrollar. Predominarán sabores ácidos, vegetales y astringentes.",
-        "BURNED": "El calor excesivo destruyó los aromas. Solo quedarán sabores amargos y de ceniza.",
-        "BAKED": "La temperatura se estancó en la fase crítica. El café resultará plano, sin carácter ni complejidad."
+        "PERFECT_BRIGHT": "Tueste claro, con un tiempo de desarrollo corto tras el first crack: predominarán notas brillantes, afrutadas y una acidez viva.",
+        "PERFECT_BALANCED": "Tiempo de desarrollo dentro del rango ideal: cuerpo equilibrado, con notas de caramelo y un dulzor agradable.",
+        "PERFECT_DEEP": "Desarrollo más largo tras el first crack: notas más profundas de chocolate y frutos secos, con menor acidez.",
+        "RAW_SEVERE": "El grano quedó muy crudo, lejos del punto de first crack: predominarán sabores ácidos, vegetales y astringentes muy marcados.",
+        "RAW_CLOSE": "El grano casi alcanza el desarrollo, pero se retiró antes de tiempo: quedará una acidez punzante con fondo vegetal.",
+        "BURNED_MILD": "El calor se mantuvo unos segundos de más sobre el límite: aparecerán notas amargas y ahumadas que taparán el resto del perfil.",
+        "BURNED_SEVERE": "El grano estuvo mucho tiempo por encima del límite de quemado: quedará prácticamente carbonizado, con sabor a ceniza y sin aromas rescatables.",
+        "BAKED_MILD": "La temperatura se estancó brevemente en la fase de Maillard: el café perderá parte de su complejidad y se sentirá algo plano.",
+        "BAKED_SEVERE": "La temperatura se estancó mucho tiempo en la fase de Maillard: el café quedará plano y sin carácter, con un perfil apagado de principio a fin."
       },
       "stats": {
         "finalTemp": "Temperatura final",
@@ -273,6 +269,17 @@
       "saving": "Guardando resultado...",
       "saved": "Resultado guardado",
       "saveError": "No se pudo guardar el resultado",
+      "breakdown": {
+        "title": "Qué restó puntos",
+        "tempPenalty": "Temperatura final alejada del ideal: -{points} pts",
+        "timePenalty": "Duración total alejada del ideal: -{points} pts",
+        "dtrPenalty": "Tiempo de desarrollo fuera de rango: -{points} pts"
+      },
+      "feedback": {
+        "title": "Retroalimentación del maestro tostador",
+        "loading": "Generando retroalimentación...",
+        "unavailable": "Retroalimentación no disponible por ahora."
+      },
       "newSimulationButton": "Nueva simulación"
     },
     "info": {

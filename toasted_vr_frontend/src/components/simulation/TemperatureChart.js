@@ -2,12 +2,11 @@ import React from 'react';
 import ChartAxisScale from '../../domain/roasting/ChartAxisScale';
 import RoastMetrics from '../../domain/roasting/RoastMetrics';
 import TemperatureUnitConverter from '../../domain/roasting/TemperatureUnitConverter';
-import { CHART_VERTICAL_STEP_C } from '../../domain/roasting/RoastConstants';
+import { CHART_VERTICAL_STEP_C, CHART_HORIZONTAL_TICK_COUNT } from '../../domain/roasting/RoastConstants';
 
 const VIEW_W = 820;
 const VIEW_H = 230;
 const PAD = { top: 15, right: 20, bottom: 40, left: 46 };
-const X_TICK_COUNT = 6;
 
 // ================================================================
 // TemperatureChart
@@ -37,6 +36,7 @@ export default function TemperatureChart({
 
   const calibratedData = data.map((point) => ({ time: point.time, temp: point.temp + sensorCalibrationOffsetC }));
 
+  const minTimeMinutes = calibratedData[0].time / 60;
   const maxTimeMinutes = calibratedData[calibratedData.length - 1].time / 60;
   const maxObservedTemp = Math.max(
     targetTemperature,
@@ -44,13 +44,14 @@ export default function TemperatureChart({
   );
 
   const verticalTicks = ChartAxisScale.computeVerticalTicks(maxObservedTemp, chartStepC);
-  const timeTicks = ChartAxisScale.computeHorizontalTicks(maxTimeMinutes, X_TICK_COUNT);
+  const timeTicks = ChartAxisScale.computeHorizontalTicks(minTimeMinutes, maxTimeMinutes, CHART_HORIZONTAL_TICK_COUNT);
 
   const minTick = verticalTicks[0];
   const maxTick = verticalTicks[verticalTicks.length - 1];
-  const maxTimeTick = timeTicks[timeTicks.length - 1] || 1;
+  const minTimeTick = timeTicks[0];
+  const maxTimeTick = timeTicks[timeTicks.length - 1];
 
-  const xScale = (timeSeconds) => (timeSeconds / 60 / maxTimeTick) * plotW;
+  const xScale = (timeSeconds) => ((timeSeconds / 60 - minTimeTick) / (maxTimeTick - minTimeTick)) * plotW;
   const yScale = (temp) => plotH - ((temp - minTick) / (maxTick - minTick)) * plotH;
   const formatTemp = (celsius) => Math.round(TemperatureUnitConverter.toDisplay(celsius, temperatureUnit));
 

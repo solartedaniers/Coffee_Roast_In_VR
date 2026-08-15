@@ -23,12 +23,16 @@ export default class ChartAxisScale {
     return ticks;
   }
 
-  static computeHorizontalTicks(maxObservedMinutes, tickCount) {
-    const span = Math.max(maxObservedMinutes, tickCount);
+  // El dominio no siempre arranca en 0: una vez que la ventana móvil
+  // de la gráfica se activa, minObservedMinutes avanza junto con el
+  // tueste, y las marcas del eje deben reflejar ese avance (hacer
+  // scroll) en vez de reiniciarse.
+  static computeHorizontalTicks(minObservedMinutes, maxObservedMinutes, tickCount) {
+    const span = Math.max(maxObservedMinutes - minObservedMinutes, tickCount);
     const step = Math.max(1, Math.ceil(span / tickCount));
     const ticks = [];
     for (let i = 0; i <= tickCount; i++) {
-      ticks.push(Math.min(span, i * step));
+      ticks.push(minObservedMinutes + Math.min(span, i * step));
     }
     return ticks;
   }

@@ -32,11 +32,15 @@ export default function ProfileSettings({
   const [formData, setFormData] = useState(() => buildInitialForm(currentUser));
   const [status, setStatus] = useState({ text: '', isError: false });
   const [isSaving, setIsSaving] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isPasswordChangeVisible, setIsPasswordChangeVisible] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
       setFormData({ ...buildInitialForm(currentUser), ...initialPasswordFields });
       setStatus({ text: '', isError: false });
+      setIsEditing(false);
+      setIsPasswordChangeVisible(false);
     }
   }, [currentUser, isOpen]);
 
@@ -47,6 +51,30 @@ export default function ProfileSettings({
   const handleChange = (event) => {
     const { name, value } = event.target;
     setFormData((current) => ({ ...current, [name]: value }));
+  };
+
+  const handleStartEditing = () => {
+    setStatus({ text: '', isError: false });
+    setIsEditing(true);
+    setIsPasswordChangeVisible(false);
+  };
+
+  const handleCancelEditing = () => {
+    setFormData({ ...buildInitialForm(currentUser), ...initialPasswordFields });
+    setStatus({ text: '', isError: false });
+    setIsEditing(false);
+    setIsPasswordChangeVisible(false);
+  };
+
+  const handleStartPasswordChange = () => {
+    setStatus({ text: '', isError: false });
+    setIsPasswordChangeVisible(true);
+  };
+
+  const handleCancelPasswordChange = () => {
+    setFormData((current) => ({ ...current, ...initialPasswordFields }));
+    setStatus({ text: '', isError: false });
+    setIsPasswordChangeVisible(false);
   };
 
   const handleImageChange = (event) => {
@@ -99,6 +127,8 @@ export default function ProfileSettings({
       });
       setFormData({ ...buildInitialForm(updatedUser), ...initialPasswordFields });
       onUserUpdate(updatedUser);
+      setIsEditing(false);
+      setIsPasswordChangeVisible(false);
       onClose();
     } catch (error) {
       setStatus({ text: error.message, isError: true });
@@ -120,7 +150,7 @@ export default function ProfileSettings({
 
         <form className="profile-form" onSubmit={handleSubmit}>
           <div className="profile-photo-row">
-            <label className="profile-photo-picker">
+            <div className="profile-photo-picker">
               <span className="profile-avatar-preview">
                 {formData.profileImageUrl ? (
                   <img src={formData.profileImageUrl} alt={texts.photo.alt} />
@@ -128,73 +158,100 @@ export default function ProfileSettings({
                   <span>{avatarLabel}</span>
                 )}
               </span>
-              <span className="text-link profile-photo-action">
-                {formData.profileImageUrl ? texts.photo.edit : texts.photo.add}
-              </span>
-              <input type="file" accept="image/*" onChange={handleImageChange} />
-            </label>
-          </div>
-
-          <label className="field-group">
-            <span className="field-label">{texts.labels.username}</span>
-            <input
-              className="field-input"
-              type="text"
-              name="username"
-              value={formData.username}
-              onChange={handleChange}
-              required
-            />
-          </label>
-
-          {currentUser.role === 'PLAYER' && (
-            <label className="field-group">
-              <span className="field-label">{texts.labels.knowledgeLevel}</span>
-              <select
-                className="field-input"
-                name="knowledgeLevel"
-                value={formData.knowledgeLevel}
-                onChange={handleChange}
-                required
-              >
-                {PLAYER_LEVELS.map((level) => (
-                  <option key={level} value={level}>
-                    {knowledgeTexts.options[level].label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
-
-          <div className="profile-password-section">
-            <span className="profile-section-title">{texts.passwordSection}</span>
-            <PasswordField
-              name="currentPassword"
-              value={formData.currentPassword}
-              onChange={handleChange}
-              placeholder={texts.placeholders.currentPassword}
-              label={texts.labels.currentPassword}
-              required={false}
-            />
-            <div className="profile-grid">
-              <PasswordField
-                name="newPassword"
-                value={formData.newPassword}
-                onChange={handleChange}
-                placeholder={texts.placeholders.newPassword}
-                label={texts.labels.newPassword}
-                required={false}
-              />
-              <PasswordField
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                placeholder={texts.placeholders.confirmPassword}
-                label={texts.labels.confirmPassword}
-                required={false}
-              />
+              {isEditing && (
+                <label className="text-link profile-photo-action">
+                  {formData.profileImageUrl ? texts.photo.edit : texts.photo.add}
+                  <input type="file" accept="image/*" onChange={handleImageChange} />
+                </label>
+              )}
             </div>
           </div>
+
+          <div className="profile-details-grid">
+            <label className="field-group">
+              <span className="field-label">{texts.labels.name}</span>
+              <input className="field-input" type="text" value={currentUser.name} readOnly />
+            </label>
+
+            <label className="field-group">
+              <span className="field-label">{texts.labels.email}</span>
+              <input className="field-input" type="email" value={currentUser.email} readOnly />
+            </label>
+
+            <label className="field-group">
+              <span className="field-label">{texts.labels.username}</span>
+              <input
+                className="field-input"
+                type="text"
+                name="username"
+                value={formData.username}
+                onChange={handleChange}
+                readOnly={!isEditing}
+                required
+              />
+            </label>
+
+            {currentUser.role === 'PLAYER' && (
+              <label className="field-group">
+                <span className="field-label">{texts.labels.knowledgeLevel}</span>
+                <select
+                  className="field-input"
+                  name="knowledgeLevel"
+                  value={formData.knowledgeLevel}
+                  onChange={handleChange}
+                  disabled={!isEditing}
+                  required
+                >
+                  {PLAYER_LEVELS.map((level) => (
+                    <option key={level} value={level}>
+                      {knowledgeTexts.options[level].label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+          </div>
+
+          {isEditing && !isPasswordChangeVisible && (
+            <button type="button" className="text-link profile-password-toggle" onClick={handleStartPasswordChange}>
+              {texts.buttons.changePassword}
+            </button>
+          )}
+
+          {isEditing && isPasswordChangeVisible && (
+            <div className="profile-password-section">
+              <span className="profile-section-title">{texts.passwordSection}</span>
+              <PasswordField
+                name="currentPassword"
+                value={formData.currentPassword}
+                onChange={handleChange}
+                placeholder={texts.placeholders.currentPassword}
+                label={texts.labels.currentPassword}
+                required={isPasswordChangeVisible}
+              />
+              <div className="profile-grid">
+                <PasswordField
+                  name="newPassword"
+                  value={formData.newPassword}
+                  onChange={handleChange}
+                  placeholder={texts.placeholders.newPassword}
+                  label={texts.labels.newPassword}
+                  required={isPasswordChangeVisible}
+                />
+                <PasswordField
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  placeholder={texts.placeholders.confirmPassword}
+                  label={texts.labels.confirmPassword}
+                  required={isPasswordChangeVisible}
+                />
+              </div>
+              <button type="button" className="text-link profile-password-toggle" onClick={handleCancelPasswordChange}>
+                {texts.buttons.cancelPasswordChange}
+              </button>
+            </div>
+          )}
 
           {status.text && (
             <p className={`status-message ${status.isError ? 'error' : 'success'}`} aria-live="polite">
@@ -202,9 +259,20 @@ export default function ProfileSettings({
             </p>
           )}
 
-          <button type="submit" className="primary-button profile-save-button" disabled={isSaving}>
-            {isSaving ? texts.buttons.saving : texts.buttons.save}
-          </button>
+          {isEditing ? (
+            <div className="profile-actions">
+              <button type="button" className="secondary-button" onClick={handleCancelEditing} disabled={isSaving}>
+                {texts.buttons.cancel}
+              </button>
+              <button type="submit" className="primary-button profile-save-button" disabled={isSaving}>
+                {isSaving ? texts.buttons.saving : texts.buttons.save}
+              </button>
+            </div>
+          ) : (
+            <button type="button" className="primary-button profile-save-button" onClick={handleStartEditing}>
+              {texts.buttons.edit}
+            </button>
+          )}
         </form>
       </section>
     </div>

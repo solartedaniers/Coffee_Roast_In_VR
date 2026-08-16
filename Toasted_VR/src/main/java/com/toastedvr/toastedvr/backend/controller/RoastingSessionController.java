@@ -49,7 +49,10 @@ public class RoastingSessionController {
         @PathVariable Long id
     ) {
         RoastingSession session = roastingSessionService.getOwnedSession(principal.getId(), id);
-        String feedback = Objects.requireNonNullElse(ollamaFeedbackService.generateFeedback(session), "");
+        String feedback = Objects.requireNonNullElse(
+            ollamaFeedbackService.generateFeedback(session, session.getUser().getKnowledgeLevel()),
+            ""
+        );
         return Map.of("feedback", feedback);
     }
 }

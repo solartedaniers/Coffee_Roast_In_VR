@@ -236,6 +236,7 @@
     },
     "chart": {
       "title": "Curva de temperatura en tiempo real",
+      "titleFinal": "Curva de temperatura obtenida",
       "timeLabel": "Tiempo (min)",
       "tempLabel": "Temperatura"
     },

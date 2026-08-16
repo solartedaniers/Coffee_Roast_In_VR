@@ -438,6 +438,22 @@ export default function RoastingSimulation({
       .map((sample) => ({ time: sample.time - s.chargeStartElapsedSeconds, temp: sample.temp }));
   }, [s.samples, s.chargeStartElapsedSeconds, s.chartViewResetAtSeconds, s.elapsedSeconds]);
 
+  // Curva sin ventana móvil, para la pantalla de resultado final de
+  // tuestes largos. Solo se calcula al terminar (s.samples ya no crece
+  // en ese momento): mientras se tuesta devuelve un arreglo vacío para
+  // no mapear el historial completo en cada muestra nueva.
+  const fullRoastChartPoints = useMemo(() => {
+    if (s.phase !== PHASES.FINISHED || s.chargeStartElapsedSeconds == null) return [];
+    return s.samples
+      .filter((sample) => sample.time >= s.chargeStartElapsedSeconds)
+      .map((sample) => ({ time: sample.time - s.chargeStartElapsedSeconds, temp: sample.temp }));
+  }, [s.phase, s.samples, s.chargeStartElapsedSeconds]);
+
+  const isFinished = s.phase === PHASES.FINISHED;
+  const isLongFinishedRoast = isFinished && s.roastingElapsedSeconds > CHART_TIME_WINDOW_SECONDS;
+  const displayedChartPoints = isLongFinishedRoast ? fullRoastChartPoints : chartPoints;
+  const chartTitle = isFinished ? texts.chart.titleFinal : texts.chart.title;
+
   const chargeSliderPct =
     ((chargeTempSetup - CHARGE_TEMP_MIN_C) / (CHARGE_TEMP_MAX_C - CHARGE_TEMP_MIN_C)) * 100;
   const targetSliderPct =
@@ -661,11 +677,11 @@ export default function RoastingSimulation({
       </div>
 
       {/* ── Gráfica de temperatura ───────────────────────────── */}
-      {chartPoints.length > 1 && (
+      {displayedChartPoints.length > 1 && (
         <div className="sim-chart-section">
-          <h3 className="sim-section-title">{texts.chart.title}</h3>
+          <h3 className="sim-section-title">{chartTitle}</h3>
           <TemperatureChart
-            data={chartPoints}
+            data={displayedChartPoints}
             chargeTemperature={s.chargeTemperature}
             targetTemperature={s.targetTemperature}
             sensorCalibrationOffsetC={sensorCalibrationOffsetC}

@@ -1,5 +1,6 @@
 package com.toastedvr.toastedvr.backend.service;
 
+import com.toastedvr.toastedvr.backend.domain.KnowledgeLevel;
 import com.toastedvr.toastedvr.backend.domain.RoastingSession;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -47,11 +48,11 @@ public class OllamaFeedbackService {
 
     // Devuelve null si Ollama no está disponible o falla — es un extra
     // sobre el resultado ya calculado, nunca debe tumbar el flujo principal.
-    public String generateFeedback(RoastingSession session) {
+    public String generateFeedback(RoastingSession session, KnowledgeLevel knowledgeLevel) {
         try {
             Map<String, Object> requestBody = Map.of(
                 "model", MODEL_NAME,
-                "prompt", RoastFeedbackPromptBuilder.build(session),
+                "prompt", RoastFeedbackPromptBuilder.build(session, knowledgeLevel),
                 "stream", false,
                 "keep_alive", KEEP_ALIVE_DURATION,
                 // phi3 a veces sigue generando texto tras un salto de línea
@@ -59,7 +60,7 @@ public class OllamaFeedbackService {
                 // "stop" lo evita casi siempre; el corte en cutAtFirstBlankLine
                 // es el respaldo para cuando no lo evita.
                 "stop", java.util.List.of("\n\n"),
-                "options", Map.of("temperature", 0.4, "num_predict", 180)
+                "options", Map.of("temperature", 0.4, "num_predict", 240)
             );
 
             Map<String, Object> response = restClient.post()
@@ -81,6 +82,24 @@ public class OllamaFeedbackService {
     // salto de línea doble, así que solo nos quedamos con lo anterior.
     private static String cutAtFirstBlankLine(String text) {
         int blankLineIndex = text.indexOf("\n\n");
-        return blankLineIndex >= 0 ? text.substring(0, blankLineIndex).strip() : text;
+        String trimmed = blankLineIndex >= 0 ? text.substring(0, blankLineIndex).strip() : text;
+        return dropTrailingPartialSentence(trimmed);
+    }
+
+    // num_predict corta la generación por presupuesto de tokens, no por
+    // palabra completa, así que a veces la respuesta termina a mitad de una
+    // palabra. Si el texto no cierra en una oración, se recorta hasta la
+    // última que sí cierre.
+    private static String dropTrailingPartialSentence(String text) {
+        if (text.isEmpty() || isSentenceEnding(text.charAt(text.length() - 1))) {
+            return text;
+        }
+
+        int lastSentenceEnd = Math.max(text.lastIndexOf('.'), Math.max(text.lastIndexOf('!'), text.lastIndexOf('?')));
+        return lastSentenceEnd >= 0 ? text.substring(0, lastSentenceEnd + 1).strip() : text;
+    }
+
+    private static boolean isSentenceEnding(char character) {
+        return character == '.' || character == '!' || character == '?';
     }
 }

@@ -44,6 +44,10 @@ function formatDuration(totalSeconds) {
   return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 }
 
+function formatDate(value) {
+  return value ? new Date(value).toLocaleDateString() : '—';
+}
+
 // ── Component ──────────────────────────────────────────────────────
 function AdminUserManagement({ texts, profileTexts, currentUser, onLogout, onUserUpdate }) {
   const [activeSection, setActiveSection] = useState(SECTIONS.USERS);
@@ -96,8 +100,8 @@ function AdminUserManagement({ texts, profileTexts, currentUser, onLogout, onUse
         totalPages: res.totalPages,
         totalElements: res.totalElements,
       }));
-    } catch (err) {
-      setStatus({ text: err.message, isError: true });
+    } catch {
+      setStatus({ text: texts.messages.usersLoadError, isError: true });
     } finally {
       setIsLoadingUsers(false);
     }
@@ -155,7 +159,7 @@ function AdminUserManagement({ texts, profileTexts, currentUser, onLogout, onUse
       const detail = await fetchUserDetail(userSummary.id);
       setPanel((prev) => ({ ...prev, user: detail, pendingRole: detail.role }));
     } catch {
-      // keep summary data if detail fails
+      setStatus({ text: texts.messages.detailLoadError, isError: true });
     } finally {
       setIsLoadingDetail(false);
     }
@@ -196,11 +200,14 @@ function AdminUserManagement({ texts, profileTexts, currentUser, onLogout, onUse
     setIsPendingAction(true);
     try {
       const res = await updateUserStatus(panel.user.id, !panel.user.enabled);
-      setStatus({ text: res.message, isError: false });
+      setStatus({
+        text: res.enabled ? texts.messages.accountActivated : texts.messages.accountBlocked,
+        isError: false,
+      });
       setPanel((prev) => ({ ...prev, user: res }));
       await loadUsers(usersPage.number);
-    } catch (err) {
-      setStatus({ text: err.message, isError: true });
+    } catch {
+      setStatus({ text: texts.messages.statusUpdateError, isError: true });
     } finally {
       setIsPendingAction(false);
     }
@@ -233,22 +240,25 @@ function AdminUserManagement({ texts, profileTexts, currentUser, onLogout, onUse
           <tr>
             <th>{texts.table.name}</th>
             <th>{texts.table.email}</th>
+            <th>{texts.table.username}</th>
             <th>{texts.table.role}</th>
             <th>{texts.table.status}</th>
+            <th>{texts.table.verified}</th>
+            <th>{texts.table.createdAt}</th>
             {showActions && <th>{texts.table.actions}</th>}
           </tr>
         </thead>
         <tbody>
           {isLoadingUsers && (
             <tr>
-              <td colSpan={showActions ? 5 : 4} className="empty-state">
+              <td colSpan={showActions ? 8 : 7} className="empty-state">
                 {texts.loadingUsers}
               </td>
             </tr>
           )}
           {!isLoadingUsers && users.length === 0 && (
             <tr>
-              <td colSpan={showActions ? 5 : 4} className="empty-state">
+              <td colSpan={showActions ? 8 : 7} className="empty-state">
                 {texts.empty}
               </td>
             </tr>
@@ -262,12 +272,15 @@ function AdminUserManagement({ texts, profileTexts, currentUser, onLogout, onUse
             >
               <td><strong>{user.name}</strong></td>
               <td className="admin-muted-cell">{user.email}</td>
+              <td>{user.username}</td>
               <td>{texts.roles[user.role.toLowerCase()] || user.role}</td>
               <td>
                 <span className={`status-pill ${user.enabled ? 'active' : 'blocked'}`}>
                   {user.enabled ? texts.options.active : texts.options.blocked}
                 </span>
               </td>
+              <td>{user.emailVerified ? texts.yes : texts.no}</td>
+              <td>{formatDate(user.createdAt)}</td>
               {showActions && (
                 <td>
                   <button
@@ -565,7 +578,7 @@ function AdminUserManagement({ texts, profileTexts, currentUser, onLogout, onUse
                 [texts.detail.username, user.username],
                 [texts.detail.verified, user.emailVerified ? texts.yes : texts.no],
                 [texts.detail.status, user.enabled ? texts.options.active : texts.options.blocked],
-                [texts.detail.createdAt, new Date(user.createdAt).toLocaleDateString()],
+                [texts.detail.createdAt, formatDate(user.createdAt)],
               ].map(([label, value]) => (
                 <div className="detail-row" key={label}>
                   <span>{label}</span>

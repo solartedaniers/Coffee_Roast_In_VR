@@ -42,6 +42,16 @@ import KnowledgeLevelRules from '../../domain/roasting/KnowledgeLevelRules';
 import GreenBeanProfileFactory from '../../domain/roasting/GreenBeanProfileFactory';
 import ChartSmoothingFilter from '../../domain/roasting/ChartSmoothingFilter';
 
+// El precalentamiento y la carga terminan en muy pocos segundos simulados
+// (el aire responde rápido, a propósito — ver AIR_RESPONSE_RATE_PER_SEC),
+// y como cada tick real dura lo mismo en cualquier fase, esas dos fases se
+// sienten apuradas comparadas con el tueste. Sin tocar ninguna constante
+// de física ya calibrada, se hace que el reloj REAL vaya más lento solo en
+// esas fases (2.5x) — el tueste cargado sigue a su ritmo normal de 1
+// segundo simulado por segundo real.
+const NORMAL_TICK_INTERVAL_MS = 1000;
+const SLOW_TICK_INTERVAL_MS = 2500;
+
 function createInitialSimState({ chargeTemperature, targetTemperature, operationMode }) {
   const beanProfile = GreenBeanProfileFactory.createRandom();
   return {
@@ -287,6 +297,17 @@ export default function RoastingSimulation({
     }
   }, [simState.phase, stopInterval]);
 
+  // La transición CHARGE_DIP → ROASTING ocurre sola dentro de runTick (no
+  // por un clic del usuario, a diferencia de handleStartPreheat/
+  // handleLoadBeans), así que es acá donde hay que acelerar el reloj real
+  // de vuelta al ritmo normal justo al entrar a tueste.
+  useEffect(() => {
+    if (simState.phase === PHASES.ROASTING && intervalRef.current) {
+      stopInterval();
+      intervalRef.current = setInterval(runTick, NORMAL_TICK_INTERVAL_MS);
+    }
+  }, [simState.phase, stopInterval, runTick]);
+
   // First crack: aviso y sonido, una sola vez por tueste
   useEffect(() => {
     if (simState.firstCrackReached && !crackFiredRef.current) {
@@ -363,7 +384,7 @@ export default function RoastingSimulation({
       }),
       phase: PHASES.PREHEAT,
     });
-    intervalRef.current = setInterval(runTick, 1000);
+    intervalRef.current = setInterval(runTick, SLOW_TICK_INTERVAL_MS);
   };
 
   const handleLoadBeans = () => {
@@ -389,7 +410,7 @@ export default function RoastingSimulation({
     // cargar en LISTO, donde ya estaba detenido) — se detiene primero para
     // no terminar con dos intervalos duplicando cada tick.
     stopInterval();
-    intervalRef.current = setInterval(runTick, 1000);
+    intervalRef.current = setInterval(runTick, SLOW_TICK_INTERVAL_MS);
   };
 
   const handleCommitTargetTemperature = useCallback((value) => {

@@ -30,20 +30,51 @@ export const RESULTS = Object.freeze({
   BAKED: 'BAKED',
 });
 
+// ---- Perfil del grano verde (aleatorio por sesión) ------------------------
+// Estas variables no son decorativas: alimentan directo la transferencia de
+// calor (RoastAirModel/BeanHeatTransferCalculator) y los umbrales de crack,
+// para que un grano más denso o más húmedo se comporte distinto en la curva,
+// igual que en un tueste real. Se sortean una vez por sesión, mismo patrón
+// que FirstCrackDetector.pickThresholdTemperature().
+
+export const BEAN_DENSITY_MIN = 0.65;
+export const BEAN_DENSITY_MAX = 0.85;
+export const BEAN_DENSITY_REFERENCE = 0.75;
+
+export const BEAN_MOISTURE_MIN_PCT = 8;
+export const BEAN_MOISTURE_MAX_PCT = 12;
+export const BEAN_MOISTURE_REFERENCE_PCT = 10;
+
+export const BEAN_MESH_SIZE_MIN = 14;
+export const BEAN_MESH_SIZE_MAX = 18;
+
+// °C que se desplaza el umbral de first/second crack por cada unidad de
+// densidad por encima/debajo de BEAN_DENSITY_REFERENCE — un grano más denso
+// tarda más en agrietarse.
+export const CRACK_DENSITY_SHIFT_C_PER_DENSITY_UNIT = 40;
+
 // ---- Lote / masa térmica ----------------------------------------
 
-export const BATCH_WEIGHT_KG = 5;
+export const BATCH_WEIGHT_MIN_KG = 5;
+export const BATCH_WEIGHT_MAX_KG = 6;
 export const REFERENCE_BATCH_WEIGHT_KG = 5;
-export const THERMAL_MASS_FACTOR = REFERENCE_BATCH_WEIGHT_KG / BATCH_WEIGHT_KG;
 
 // ---- Límites de temperatura --------------------------------------
 
 export const AMBIENT_TEMP_C = 20;
 export const MAX_SAFE_TEMP_C = 250;
 
-export const CHARGE_TEMP_MIN_C = 60;
-export const CHARGE_TEMP_MAX_C = 150;
-export const CHARGE_TEMP_DEFAULT_C = 80;
+// Rango del slider de precalentado: no es un tope duro de calidad, solo el
+// límite mecánico del control. 180-200°C es el rango "recomendado" para la
+// carga del grano (ver más abajo); el usuario puede elegir fuera de él, a
+// su propio riesgo de puntaje.
+export const CHARGE_TEMP_MIN_C = 150;
+export const CHARGE_TEMP_MAX_C = 220;
+export const CHARGE_TEMP_DEFAULT_C = 190;
+
+export const CHARGE_TEMP_IDEAL_MIN_C = 180;
+export const CHARGE_TEMP_IDEAL_MAX_C = 200;
+export const CHARGE_TEMP_PENALTY_WEIGHT = 1.5;
 
 export const TARGET_TEMP_MIN_C = 150;
 export const TARGET_TEMP_MAX_C = 230;
@@ -55,31 +86,71 @@ export const FLAME_POWER_MIN_PCT = 0;
 export const FLAME_POWER_MAX_PCT = 100;
 export const FLAME_POWER_DEFAULT_PCT = 30;
 
-// °C/s que puede sumar el quemador al 100% de potencia, desde un
-// tambor frío, antes de pérdidas.
-export const BURNER_MAX_HEAT_RATE_C_PER_SEC = 2.0;
+// ---- Modelo de aire/tambor (ET) -----------------------------------------
+// Modelo de dos cuerpos: el aire/tambor persigue un objetivo que depende de
+// la potencia del quemador, y el grano persigue al aire (ver más abajo). Es
+// el mismo tipo de curva de primer orden que ya usaba el modelo anterior
+// (FLAME_RESPONSE_LAG_PER_SEC), solo que ahora el aire es una serie propia
+// en vez de mezclarse directo con la temperatura del grano.
 
-// Temperatura del tambor en la que se estabilizaría el quemador si se
-// mantuviera al 100% de potencia indefinidamente (lote de referencia).
-// Calibrado para que el 30% de potencia — el valor "eficiente y
-// estable" que se observa en tostadoras reales — sea suficiente para
-// completar un tueste medio (llegar al rango de first crack en unos
-// 9 minutos). El 100% sostenido apunta muy por encima de
-// MAX_SAFE_TEMP_C: nunca se estabiliza de verdad, solo sigue subiendo
-// hacia el límite de seguridad — es una condición de riesgo extremo
-// que arrebata el grano en pocos minutos, no un valor de operación normal.
-export const HEAT_LOSS_REFERENCE_EQUILIBRIUM_C = 800;
+// Temperatura de equilibrio del aire si el quemador se sostuviera al 100%
+// de potencia indefinidamente. Bajado de 800 a 750 (junto con
+// HEAT_TRANSFER_COEFF_PER_SEC más abajo): con el aire respondiendo rápido
+// (~15-20s), un techo tan alto hacía que el aire llegara casi de inmediato
+// a ~254°C a potencia "eficiente" (30%) y se quedara ahí fijo el resto del
+// tueste, exponiendo al grano a un salto térmico enorme desde el primer
+// segundo de carga — la curva subía mucho más agresivo de lo creíble. Con
+// 750 el pico de subida baja de ~35°C/min a ~30°C/min (validado con
+// simulación numérica, no solo el test). Sigue por encima del rango de
+// first crack, así el grano nunca alcanza del todo al aire.
+export const MIN_AIR_TEMP_C = AMBIENT_TEMP_C;
+export const MAX_AIR_TEMP_C = 750;
 
-export const HEAT_LOSS_COEFF_PER_SEC =
-  BURNER_MAX_HEAT_RATE_C_PER_SEC / (HEAT_LOSS_REFERENCE_EQUILIBRIUM_C - AMBIENT_TEMP_C);
+// El aire tiene poca masa térmica frente al grano, así que debe responder
+// rápido a un cambio de potencia — 0.18 da un asentamiento de ~15s al 95%
+// y ~23s al 99%, dentro de los 10-20s que pide el documento físico. La
+// lentitud real de un tueste (8-10 min a first crack) no debe salir de
+// aquí: sale de HEAT_TRANSFER_COEFF_PER_SEC más abajo, que representa la
+// masa térmica del grano, mucho mayor que la del aire.
+export const AIR_RESPONSE_RATE_PER_SEC = 0.18;
 
-// La válvula de gas trabaja en pulsos cortos en vez de responder al
-// instante — la potencia de llama se acerca a su valor objetivo
-// gradualmente en lugar de saltar directo a él. Calibrado para un
-// tiempo de asentamiento de ~10-15 s: suficientemente gradual para
-// sentirse real, pero un cambio de potencia debe verse reflejado en
-// la curva dentro de ese margen, no tomar minutos.
-export const FLAME_RESPONSE_LAG_PER_SEC = 0.15 * THERMAL_MASS_FACTOR;
+// ---- Transferencia de calor aire → grano ---------------------------------
+
+// Coeficiente de conducción: cuánto del diferencial (aire - grano) se
+// transfiere al grano por segundo. Se escala por masa térmica (lotes más
+// grandes calientan más lento) y se divide por la densidad del grano
+// (grano más denso absorbe más lento) y por el "calor específico efectivo"
+// (grano más húmedo necesita más energía para subir un grado). Calibrado
+// (junto con AIR_RESPONSE_RATE_PER_SEC y MAX_AIR_TEMP_C de arriba) para
+// que un lote de referencia (5 kg, grano de densidad/humedad promedio) a
+// potencia "eficiente" (30%) llegue al first crack en 8-12 min — ver
+// RoastThermalModel.test.js, que es la herramienta usada para calibrar
+// este valor. La ventana se amplió de 8-10 a 8-12 min a propósito: es el
+// costo de bajar el pico de subida a algo más creíble (ver MAX_AIR_TEMP_C).
+export const HEAT_TRANSFER_COEFF_PER_SEC = 0.0019;
+export const SPECIFIC_HEAT_MOISTURE_FACTOR = 0.02;
+
+// ---- Evaporación de humedad -----------------------------------------------
+
+// Por debajo de este umbral casi no hay pérdida de agua libre relevante
+// (el grano todavía está en fase de secado sin generar el efecto de
+// enfriamiento evaporativo notorio de la curva real).
+export const EVAP_THRESHOLD_TEMP_C = 120;
+export const EVAP_RATE_CONSTANT_PER_SEC = 0.00025;
+// Humedad residual mínima: el grano nunca queda completamente seco durante
+// el tueste, así que la pérdida se corta cerca de este piso.
+export const MOISTURE_FLOOR_PCT = 1.5;
+// °C de enfriamiento por cada punto porcentual de humedad perdido por
+// segundo — convierte la tasa de pérdida de agua en el término Q_evap de
+// la ecuación 3.2 del modelo.
+export const EVAP_COOLING_FACTOR_C_PER_PCT = 3.0;
+
+// ---- Reacción exotérmica post first crack --------------------------------
+
+// Calor propio que libera el grano una vez pasado el first crack —
+// mantiene la curva subiendo aunque baje la potencia, como en un tueste
+// real.
+export const EXO_HEAT_RATE_C_PER_SEC = 0.03;
 
 // ---- Carga del café --------------------------------------------
 
@@ -95,6 +166,11 @@ export const RATE_OF_RISE_WINDOW_SEC = 30;
 export const FIRST_CRACK_TEMP_MIN_C = 189;
 export const FIRST_CRACK_TEMP_MAX_C = 198;
 
+// ---- Second crack ---------------------------------------------------
+
+export const SECOND_CRACK_TEMP_MIN_C = 224;
+export const SECOND_CRACK_TEMP_MAX_C = 228;
+
 // ---- Riesgo de quemado ------------------------------------------------
 
 // Zona de riesgo: a partir de aquí se cuenta el tiempo consecutivo
@@ -108,6 +184,12 @@ export const BURN_CONSECUTIVE_LIMIT_SEC = 15;
 // permitir tuestes medios y medios-altos que pasan por los 200°C
 // brevemente sin penalizarlos injustamente.
 export const BURN_ABSOLUTE_CEILING_TEMP_C = 213;
+
+// Condición combinada (sección 5 del modelo): un incremento de temperatura
+// demasiado agresivo mientras casi no queda humedad para amortiguarlo
+// también quema el grano, aunque no se cumpla la regla de tiempo.
+export const ROR_SCORCH_THRESHOLD_C_PER_MIN = 35;
+export const MOISTURE_SCORCH_THRESHOLD_PCT = 2;
 
 // ---- Estancamiento en Maillard (defecto "horneado") --------------------
 
@@ -148,6 +230,23 @@ export const CHART_VERTICAL_TICK_COUNT = 6;
 export const CHART_HORIZONTAL_TICK_COUNT = 6;
 export const CHART_TIME_WINDOW_SECONDS = CHART_HORIZONTAL_TICK_COUNT * 60;
 
+// Suavizado visual de caídas bruscas (ej. al cargar el grano en el tambor
+// caliente): ninguna caída entre puntos consecutivos de la línea dibujada
+// supera este valor — el exceso se reparte hacia adelante. Solo afecta la
+// línea de la gráfica, nunca las muestras crudas que alimentan el panel de
+// datos ni el puntaje. Subido de 3 a 9: con la gráfica mostrando una sola
+// línea desde el encendido (aire antes de cargar, grano después), la caída
+// real al momento de la carga puede ser de 150-230°C — con 3°C/muestra
+// tardaba más de un minuto en verse completa; con 9 se resuelve en ~20-25s,
+// como el "punto de giro" de una curva de tueste real, no como un glitch.
+export const CHART_SMOOTHING_MAX_DROP_C_PER_SAMPLE = 9;
+
+// Línea de referencia fija (piso) de la gráfica — no depende de ningún
+// slider ni del rango recomendado de carga (180-200°C, ver
+// CHARGE_TEMP_IDEAL_MIN_C/MAX_C): es solo una marca visual de referencia
+// baja en el eje.
+export const CHART_FLOOR_REFERENCE_TEMP_C = 80;
+
 // ---- Evaluación: Crudo --------------------------------------------------
 
 export const RAW_TEMP_CEILING_C = FIRST_CRACK_TEMP_MIN_C - 10;
@@ -176,7 +275,11 @@ export const DEFECT_SCORE_MAX = 50;
 // ---- Evaluación: Perfecto --------------------------------------------------
 
 export const IDEAL_FINAL_TEMP_C = (FIRST_CRACK_TEMP_MIN_C + FIRST_CRACK_TEMP_MAX_C) / 2;
-export const IDEAL_TOTAL_ROAST_MINUTES = 9;
+// Con el modelo térmico realista, un lote de 5-6 kg a potencia "eficiente"
+// llega al first crack en 8-10 min y un tueste completo típico dura
+// 12-15 min — el punto medio de esa ventana es el nuevo ideal (antes 9,
+// calibrado para el modelo simplificado anterior).
+export const IDEAL_TOTAL_ROAST_MINUTES = 13;
 export const PERFECT_TEMP_PENALTY_WEIGHT = 2.5;
 export const PERFECT_TIME_PENALTY_WEIGHT = 4;
 export const PERFECT_SCORE_MIN = 0;

@@ -12,7 +12,6 @@ import {
   PHASES,
   OPERATION_MODES,
   TEMPERATURE_UNITS,
-  BATCH_WEIGHT_KG,
   AMBIENT_TEMP_C,
   CHARGE_TEMP_MIN_C,
   CHARGE_TEMP_MAX_C,
@@ -35,24 +34,30 @@ import {
 import RoastThermalModel from '../../domain/roasting/RoastThermalModel';
 import RoastMetrics from '../../domain/roasting/RoastMetrics';
 import FirstCrackDetector from '../../domain/roasting/FirstCrackDetector';
+import SecondCrackDetector from '../../domain/roasting/SecondCrackDetector';
 import BurnRiskMonitor from '../../domain/roasting/BurnRiskMonitor';
 import RoastQualityEvaluator from '../../domain/roasting/RoastQualityEvaluator';
 import GrainAppearanceModel from '../../domain/roasting/GrainAppearanceModel';
 import KnowledgeLevelRules from '../../domain/roasting/KnowledgeLevelRules';
+import GreenBeanProfileFactory from '../../domain/roasting/GreenBeanProfileFactory';
+import ChartSmoothingFilter from '../../domain/roasting/ChartSmoothingFilter';
 
 function createInitialSimState({ chargeTemperature, targetTemperature, operationMode }) {
+  const beanProfile = GreenBeanProfileFactory.createRandom();
   return {
     phase: PHASES.IDLE,
     operationMode,
     chargeTemperature,
     targetTemperature,
+    beanProfile,
+    airTemperature: AMBIENT_TEMP_C,
     temperature: AMBIENT_TEMP_C,
     prevTemperature: AMBIENT_TEMP_C,
     peakTemperature: AMBIENT_TEMP_C,
     finalTemperature: null,
+    moisturePct: beanProfile.moisture0Pct,
 
     flamePowerPercent: FLAME_POWER_DEFAULT_PCT,
-    effectiveFlamePowerPercent: 0,
 
     elapsedSeconds: 0,
     roastingElapsedSeconds: 0,
@@ -65,6 +70,10 @@ function createInitialSimState({ chargeTemperature, targetTemperature, operation
     firstCrackThresholdTemp: null,
     firstCrackReached: false,
     firstCrackTimeSeconds: null,
+
+    secondCrackThresholdTemp: null,
+    secondCrackReached: false,
+    secondCrackTimeSeconds: null,
 
     consecutiveBurnSeconds: 0,
     maxConsecutiveBurnSeconds: 0,
@@ -111,6 +120,7 @@ export default function RoastingSimulation({
   const [feedbackState, setFeedbackState] = useState('idle');
   const [feedbackText, setFeedbackText] = useState('');
   const [showCrackAlert, setShowCrackAlert] = useState(false);
+  const [showSecondCrackAlert, setShowSecondCrackAlert] = useState(false);
   const [showBurnedAlert, setShowBurnedAlert] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -126,6 +136,7 @@ export default function RoastingSimulation({
 
   const intervalRef = useRef(null);
   const crackFiredRef = useRef(false);
+  const secondCrackFiredRef = useRef(false);
   const burnedFiredRef = useRef(false);
   const alarmFiredRef = useRef(false);
   const latestSimRef = useRef(simState);
@@ -150,22 +161,48 @@ export default function RoastingSimulation({
         return prev;
       }
 
-      const effectivePower = RoastThermalModel.computeEffectivePower(
-        prev.effectiveFlamePowerPercent,
-        prev.flamePowerPercent
-      );
-      const baseRate = RoastThermalModel.computeHeatRatePerSecond(effectivePower, prev.temperature);
+      // Modelo de dos cuerpos: el aire persigue su objetivo según la
+      // potencia del quemador; el grano persigue al aire (solo una vez
+      // cargado — antes de eso el grano ni siquiera está en el tambor).
+      const { thermalMassFactor, density } = prev.beanProfile;
       const dipLoss =
         prev.phase === PHASES.CHARGE_DIP
           ? RoastThermalModel.computeChargeDipLossPerSecond(prev.roastingElapsedSeconds)
           : 0;
-      const newTemp = RoastThermalModel.computeNextTemperature(prev.temperature, baseRate - dipLoss);
+      const newAirTemp = Math.max(
+        AMBIENT_TEMP_C,
+        RoastThermalModel.computeNextAirTemp(prev.airTemperature, prev.flamePowerPercent, thermalMassFactor) -
+          dipLoss
+      );
+
+      const beanIsCharged = prev.phase === PHASES.CHARGE_DIP || prev.phase === PHASES.ROASTING;
+      const newTemp = beanIsCharged
+        ? RoastThermalModel.computeNextBeanTemp({
+            airTemp: newAirTemp,
+            beanTemp: prev.temperature,
+            density,
+            moisturePct: prev.moisturePct,
+            thermalMassFactor,
+            firstCrackReached: prev.firstCrackReached,
+          })
+        : prev.temperature;
+      const newMoisturePct = beanIsCharged
+        ? RoastThermalModel.computeNextMoisture(prev.moisturePct, newTemp)
+        : prev.moisturePct;
 
       const newElapsed = prev.elapsedSeconds + 1;
       const newRoastingElapsed =
         prev.phase === PHASES.PREHEAT ? 0 : prev.roastingElapsedSeconds + 1;
 
-      const newSamples = [...prev.samples, { time: newElapsed, temp: newTemp }];
+      // Una sola señal, con sentido físico en todo momento: el aire
+      // mientras el café no está cargado (es lo único presente en el
+      // tambor) y el grano una vez cargado — mismo gate que beanIsCharged.
+      // La alimenta tanto el Incremento °C/min como la gráfica (más abajo),
+      // que ahora dibuja una sola línea continua desde el encendido — el
+      // ChartSmoothingFilter se encarga de que el cambio de identidad en el
+      // momento de la carga se vea como un descenso rápido, no un salto.
+      const displayTemp = beanIsCharged ? newTemp : newAirTemp;
+      const newSamples = [...prev.samples, { time: newElapsed, temp: displayTemp }];
       const rateOfRisePerMinute = RoastMetrics.computeRateOfRisePerMinute(newSamples, newElapsed);
 
       const newConsecutiveBurn = BurnRiskMonitor.computeConsecutiveSecondsOverThreshold(
@@ -173,7 +210,11 @@ export default function RoastingSimulation({
         newTemp
       );
       const newMaxConsecutiveBurn = Math.max(prev.maxConsecutiveBurnSeconds, newConsecutiveBurn);
-      const newBurnedFlag = prev.burnedFlag || BurnRiskMonitor.isBurned(newConsecutiveBurn);
+      const scorchedByRateAndMoisture =
+        prev.phase === PHASES.ROASTING &&
+        BurnRiskMonitor.isScorchedByRateAndMoisture(rateOfRisePerMinute, newMoisturePct);
+      const newBurnedFlag =
+        prev.burnedFlag || BurnRiskMonitor.isBurned(newConsecutiveBurn) || scorchedByRateAndMoisture;
 
       let newStagnationSecs = prev.maillardStagnationSeconds;
       let newStagnationFlag = prev.maillardStagnationFlag;
@@ -194,13 +235,20 @@ export default function RoastingSimulation({
         prev.firstCrackThresholdTemp != null &&
         FirstCrackDetector.hasReachedFirstCrack(newTemp, prev.firstCrackThresholdTemp);
 
+      const hitSecondCrack =
+        prev.phase === PHASES.ROASTING &&
+        (prev.firstCrackReached || hitFirstCrack) &&
+        !prev.secondCrackReached &&
+        prev.secondCrackThresholdTemp != null &&
+        SecondCrackDetector.hasReachedSecondCrack(newTemp, prev.secondCrackThresholdTemp);
+
       const nextFlamePowerPercent =
         prev.operationMode === OPERATION_MODES.AUTO
           ? RoastThermalModel.computeAutoFlamePowerPercent(newTemp, prev.targetTemperature, rateOfRisePerMinute)
           : prev.flamePowerPercent;
 
       let nextPhase = prev.phase;
-      if (prev.phase === PHASES.PREHEAT && newTemp >= prev.chargeTemperature) {
+      if (prev.phase === PHASES.PREHEAT && newAirTemp >= prev.chargeTemperature) {
         nextPhase = PHASES.READY;
       } else if (prev.phase === PHASES.CHARGE_DIP && newRoastingElapsed >= CHARGE_DIP_DURATION_SEC) {
         nextPhase = PHASES.ROASTING;
@@ -209,10 +257,11 @@ export default function RoastingSimulation({
       return {
         ...prev,
         phase: nextPhase,
+        airTemperature: newAirTemp,
         temperature: newTemp,
         prevTemperature: prev.temperature,
         peakTemperature: Math.max(prev.peakTemperature, newTemp),
-        effectiveFlamePowerPercent: effectivePower,
+        moisturePct: newMoisturePct,
         flamePowerPercent: nextFlamePowerPercent,
         elapsedSeconds: newElapsed,
         roastingElapsedSeconds: newRoastingElapsed,
@@ -225,6 +274,8 @@ export default function RoastingSimulation({
         maillardStagnationFlag: newStagnationFlag,
         firstCrackReached: prev.firstCrackReached || hitFirstCrack,
         firstCrackTimeSeconds: hitFirstCrack ? newRoastingElapsed : prev.firstCrackTimeSeconds,
+        secondCrackReached: prev.secondCrackReached || hitSecondCrack,
+        secondCrackTimeSeconds: hitSecondCrack ? newRoastingElapsed : prev.secondCrackTimeSeconds,
       };
     });
   }, []);
@@ -249,6 +300,20 @@ export default function RoastingSimulation({
     }
   }, [simState.firstCrackReached]);
 
+  // Second crack: mismo patrón que el first crack, reutiliza el mismo
+  // efecto de sonido (no hay un asset propio para el segundo crack).
+  useEffect(() => {
+    if (simState.secondCrackReached && !secondCrackFiredRef.current) {
+      secondCrackFiredRef.current = true;
+      setShowSecondCrackAlert(true);
+      setTimeout(() => setShowSecondCrackAlert(false), 5000);
+      try {
+        const audio = new Audio(CRACK_SOUND_PATH);
+        audio.play().catch(() => {});
+      } catch (_) {}
+    }
+  }, [simState.secondCrackReached]);
+
   // Quemado: aviso único al confirmarse la racha de 30 s sobre 200°C
   useEffect(() => {
     if (simState.burnedFlag && !burnedFiredRef.current) {
@@ -262,11 +327,14 @@ export default function RoastingSimulation({
   // cruza el límite configurado por el operador, independiente de la
   // regla fija de café quemado (BURN_THRESHOLD_TEMP_C, que nunca cambia).
   useEffect(() => {
-    const isOverAlarm =
-      (simState.phase === PHASES.PREHEAT ||
-        simState.phase === PHASES.CHARGE_DIP ||
-        simState.phase === PHASES.ROASTING) &&
-      simState.temperature >= alarmLimitTempC;
+    // Durante PREHEAT/READY el grano todavía no está en el tambor (su
+    // temperatura queda congelada en ambiente bajo el modelo nuevo), así
+    // que la alarma debe mirar la temperatura del aire en esas fases; una
+    // vez cargado el café, vuelve a mirar la temperatura del grano.
+    const isPreCharge = simState.phase === PHASES.PREHEAT || simState.phase === PHASES.READY;
+    const isPostCharge = simState.phase === PHASES.CHARGE_DIP || simState.phase === PHASES.ROASTING;
+    const relevantTemp = isPreCharge ? simState.airTemperature : simState.temperature;
+    const isOverAlarm = (isPreCharge || isPostCharge) && relevantTemp >= alarmLimitTempC;
 
     if (isOverAlarm && !alarmFiredRef.current) {
       alarmFiredRef.current = true;
@@ -275,7 +343,7 @@ export default function RoastingSimulation({
     } else if (!isOverAlarm) {
       alarmFiredRef.current = false;
     }
-  }, [simState.phase, simState.temperature, alarmLimitTempC]);
+  }, [simState.phase, simState.temperature, simState.airTemperature, alarmLimitTempC]);
 
   useEffect(() => () => stopInterval(), [stopInterval]);
 
@@ -283,6 +351,7 @@ export default function RoastingSimulation({
 
   const handleStartPreheat = () => {
     crackFiredRef.current = false;
+    secondCrackFiredRef.current = false;
     burnedFiredRef.current = false;
     setRoastResult(null);
     setSavingState('idle');
@@ -301,9 +370,25 @@ export default function RoastingSimulation({
     setSimState((prev) => ({
       ...prev,
       phase: PHASES.CHARGE_DIP,
+      // Sobrescribe la temperatura de carga "planeada" (la del slider de
+      // configuración) por la temperatura real del aire en el momento en
+      // que de verdad se cargó — ahora que se puede cargar en cualquier
+      // punto del precalentado, es esta lectura real la que debe afectar
+      // el puntaje/IA, no la intención original. A partir de aquí,
+      // ninguna otra lógica lee chargeTemperature en el sentido de
+      // "meta del slider" (la alerta de sobrecalentamiento y la
+      // transición automática a LISTO solo miran este campo antes de
+      // cargar).
+      chargeTemperature: prev.airTemperature,
       chargeStartElapsedSeconds: prev.elapsedSeconds,
-      firstCrackThresholdTemp: FirstCrackDetector.pickThresholdTemperature(),
+      firstCrackThresholdTemp: FirstCrackDetector.pickThresholdTemperature(prev.beanProfile.density),
+      secondCrackThresholdTemp: SecondCrackDetector.pickThresholdTemperature(prev.beanProfile.density),
     }));
+    // Ahora se puede cargar desde PRECALENTANDO, cuando el intervalo del
+    // precalentamiento todavía puede estar corriendo (antes solo se podía
+    // cargar en LISTO, donde ya estaba detenido) — se detiene primero para
+    // no terminar con dos intervalos duplicando cada tick.
+    stopInterval();
     intervalRef.current = setInterval(runTick, 1000);
   };
 
@@ -356,6 +441,7 @@ export default function RoastingSimulation({
 
     try {
       const saved = await saveRoastingSession({
+        chargeTemperature: finalSim.chargeTemperature,
         targetTemperature: finalSim.targetTemperature,
         totalDurationSeconds: Math.max(1, Math.round(finalSim.roastingElapsedSeconds)),
         finalTemperature: finalSim.finalTemperature,
@@ -395,6 +481,7 @@ export default function RoastingSimulation({
 
   const handleNewSimulation = () => {
     crackFiredRef.current = false;
+    secondCrackFiredRef.current = false;
     burnedFiredRef.current = false;
     stopInterval();
     setChargeTempSetup(CHARGE_TEMP_DEFAULT_C);
@@ -422,35 +509,52 @@ export default function RoastingSimulation({
   const guidanceText = getGuidanceText(texts, s.phase, currentUser.knowledgeLevel);
   const roastTimeDisplay = RoastMetrics.formatDecimalMinutes(s.roastingElapsedSeconds);
 
+  // Luz de sobrecalentamiento de precalentado: relativa a la meta que el
+  // propio usuario fijó en el slider (s.chargeTemperature), no a un
+  // umbral fijo — se apaga sola en cuanto el aire vuelve a bajar de ese
+  // valor, sin necesidad de un temporizador.
+  const showChargeOvershootAlert =
+    (s.phase === PHASES.PREHEAT || s.phase === PHASES.READY) && s.airTemperature > s.chargeTemperature;
+
+  // El termómetro/gráfica del horno debe mostrar la temperatura del
+  // aire/tambor mientras el café no está cargado (es lo único que sube
+  // durante el precalentado bajo el modelo de dos cuerpos) y pasar a la
+  // temperatura del grano una vez cargado — mismo gate que beanIsCharged
+  // en runTick.
+  const ovenDisplayTemp =
+    s.phase === PHASES.PREHEAT || s.phase === PHASES.READY ? s.airTemperature : s.temperature;
+
+  // La gráfica dibuja una sola línea continua desde el encendido del
+  // horno: aire/tambor mientras el café no está cargado, grano después
+  // (ver displayTemp en runTick). El "salto" de identidad en el momento
+  // de la carga es real (el aire estaba caliente, el grano entra frío),
+  // pero ChartSmoothingFilter lo dibuja como un descenso rápido y
+  // continuo en vez de un corte vertical — así se ve como el punto de
+  // giro de una curva de tueste real, no como un glitch. El tiempo es
+  // relativo al encendido (elapsedSeconds ya arranca en 0 ahí).
   const chartPoints = useMemo(() => {
-    if (s.chargeStartElapsedSeconds == null) return [];
-    const windowStart = Math.max(
-      s.chargeStartElapsedSeconds,
-      s.chartViewResetAtSeconds ?? -Infinity,
-      s.elapsedSeconds - CHART_TIME_WINDOW_SECONDS
-    );
-    // El tiempo se mantiene relativo a la carga del café (no a la
-    // ventana móvil): así el eje sigue leyéndose como "duración real
-    // de la tostión" y avanza/hace scroll con ella, en vez de
-    // reiniciarse a 0 cada vez que la ventana se desplaza.
-    return s.samples
-      .filter((sample) => sample.time >= windowStart)
-      .map((sample) => ({ time: sample.time - s.chargeStartElapsedSeconds, temp: sample.temp }));
-  }, [s.samples, s.chargeStartElapsedSeconds, s.chartViewResetAtSeconds, s.elapsedSeconds]);
+    if (s.samples.length === 0) return [];
+    const windowStart = Math.max(0, s.chartViewResetAtSeconds ?? -Infinity, s.elapsedSeconds - CHART_TIME_WINDOW_SECONDS);
+    const windowed = s.samples.filter((sample) => sample.time >= windowStart);
+    return ChartSmoothingFilter.smooth(windowed);
+  }, [s.samples, s.chartViewResetAtSeconds, s.elapsedSeconds]);
 
   // Curva sin ventana móvil, para la pantalla de resultado final de
   // tuestes largos. Solo se calcula al terminar (s.samples ya no crece
   // en ese momento): mientras se tuesta devuelve un arreglo vacío para
   // no mapear el historial completo en cada muestra nueva.
   const fullRoastChartPoints = useMemo(() => {
-    if (s.phase !== PHASES.FINISHED || s.chargeStartElapsedSeconds == null) return [];
-    return s.samples
-      .filter((sample) => sample.time >= s.chargeStartElapsedSeconds)
-      .map((sample) => ({ time: sample.time - s.chargeStartElapsedSeconds, temp: sample.temp }));
-  }, [s.phase, s.samples, s.chargeStartElapsedSeconds]);
+    if (s.phase !== PHASES.FINISHED) return [];
+    return ChartSmoothingFilter.smooth(s.samples);
+  }, [s.phase, s.samples]);
 
   const isFinished = s.phase === PHASES.FINISHED;
-  const isLongFinishedRoast = isFinished && s.roastingElapsedSeconds > CHART_TIME_WINDOW_SECONDS;
+  // s.elapsedSeconds (no roastingElapsedSeconds): la gráfica arranca en el
+  // encendido, así que el criterio de "tueste largo" debe usar el mismo
+  // reloj que el filtro de chartPoints (más abajo) — si no, el precalentado
+  // se recorta cuando el total pasa de 6 min aunque la parte cargada sola
+  // no llegue a esa marca.
+  const isLongFinishedRoast = isFinished && s.elapsedSeconds > CHART_TIME_WINDOW_SECONDS;
   const displayedChartPoints = isLongFinishedRoast ? fullRoastChartPoints : chartPoints;
   const chartTitle = isFinished ? texts.chart.titleFinal : texts.chart.title;
 
@@ -496,7 +600,7 @@ export default function RoastingSimulation({
       <header className="sim-header">
         <div className="sim-header-brand">
           <span className="sim-brand-name">{texts.title.split(' ').slice(0, 2).join(' ')}</span>
-          <span className="sim-batch-badge">{texts.labels.batchWeight}: {BATCH_WEIGHT_KG} kg</span>
+          <span className="sim-batch-badge">{texts.labels.batchWeight}: {s.beanProfile.batchWeightKg} kg</span>
         </div>
 
         <div className="sim-header-status">
@@ -538,6 +642,16 @@ export default function RoastingSimulation({
           {texts.labels.firstCrack}
         </div>
       )}
+      {showSecondCrackAlert && (
+        <div className="sim-crack-alert" role="alert" aria-live="assertive">
+          {texts.labels.secondCrack}
+        </div>
+      )}
+      {showChargeOvershootAlert && (
+        <div className="sim-charge-overheat-alert" role="alert" aria-live="assertive">
+          {texts.labels.chargeOverheatAlert}
+        </div>
+      )}
       {showBurnedAlert && (
         <div className="sim-burned-alert" role="alert" aria-live="assertive">
           {texts.labels.burnedNotice}
@@ -560,7 +674,7 @@ export default function RoastingSimulation({
           <span className="sim-section-label">{texts.labels.grainState}</span>
           <RoastOvenVisual
             phase={s.phase}
-            temperature={s.temperature}
+            temperature={ovenDisplayTemp}
             showBeans={showBeans}
             grainStateLabel={grainStateLabel}
             isIdle={s.phase === PHASES.IDLE}
@@ -625,7 +739,7 @@ export default function RoastingSimulation({
               rateOfRisePerMinute={s.rateOfRisePerMinute}
               flamePowerPercent={Math.round(s.flamePowerPercent)}
               onCommitFlamePower={handleCommitFlamePower}
-              beanTemperature={s.temperature}
+              beanTemperature={showBeans ? s.temperature : 0}
               sensorCalibrationOffsetC={sensorCalibrationOffsetC}
               temperatureUnit={temperatureUnit}
               roastTimeDisplay={roastTimeDisplay}
@@ -635,7 +749,7 @@ export default function RoastingSimulation({
             />
           )}
 
-          {s.phase === PHASES.READY && (
+          {(s.phase === PHASES.PREHEAT || s.phase === PHASES.READY) && (
             <div className="control-section">
               <button type="button" className="primary-button sim-action-btn" onClick={handleLoadBeans}>
                 {texts.buttons.loadBeans}
@@ -682,7 +796,6 @@ export default function RoastingSimulation({
           <h3 className="sim-section-title">{chartTitle}</h3>
           <TemperatureChart
             data={displayedChartPoints}
-            chargeTemperature={s.chargeTemperature}
             targetTemperature={s.targetTemperature}
             sensorCalibrationOffsetC={sensorCalibrationOffsetC}
             temperatureUnit={temperatureUnit}

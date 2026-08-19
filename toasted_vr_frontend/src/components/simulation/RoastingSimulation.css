@@ -197,6 +197,26 @@
   50% { transform: scale(1.02); box-shadow: 0 4px 20px rgba(107, 62, 62, 0.4); }
 }
 
+/* Luz de sobrecalentamiento de precalentado: parpadea mientras la
+   condición siga activa (no un aviso que desaparece solo), a diferencia
+   de pulseAlert. */
+.sim-charge-overheat-alert {
+  padding: 10px 20px;
+  border-radius: 10px;
+  background: var(--color-danger);
+  color: #fffdfa;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-align: center;
+  letter-spacing: 0.02em;
+  animation: blinkAlert 0.9s ease-in-out infinite;
+}
+
+@keyframes blinkAlert {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
 /* ----------------------------------------------------------------
    MAIN GRID
    ---------------------------------------------------------------- */

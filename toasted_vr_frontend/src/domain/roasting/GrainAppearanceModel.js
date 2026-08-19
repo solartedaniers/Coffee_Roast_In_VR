@@ -1,4 +1,11 @@
-import { MAILLARD_TEMP_START_C, MAILLARD_TEMP_END_C, BURN_THRESHOLD_TEMP_C } from './RoastConstants';
+import {
+  MAILLARD_TEMP_START_C,
+  MAILLARD_TEMP_END_C,
+  FIRST_CRACK_TEMP_MAX_C,
+  SECOND_CRACK_TEMP_MAX_C,
+  BURN_ABSOLUTE_CEILING_TEMP_C,
+  BURN_THRESHOLD_TEMP_C,
+} from './RoastConstants';
 
 // Pigmento del grano en cada punto de temperatura — esto es física
 // simulada (cómo se ve el café), no un color de diseño, por eso vive
@@ -17,6 +24,7 @@ const GRAIN_STATES = Object.freeze({
   MAILLARD: 'MAILLARD',
   FIRST_CRACK: 'FIRST_CRACK',
   DARK: 'DARK',
+  SECOND_CRACK: 'SECOND_CRACK',
   BURNED: 'BURNED',
 });
 
@@ -66,8 +74,9 @@ export default class GrainAppearanceModel {
   static getGrainStateName(temperature) {
     if (temperature <= MAILLARD_TEMP_START_C) return GRAIN_STATES.DRYING;
     if (temperature <= MAILLARD_TEMP_END_C) return GRAIN_STATES.MAILLARD;
-    if (temperature <= 189) return GRAIN_STATES.FIRST_CRACK;
-    if (temperature <= 198) return GRAIN_STATES.DARK;
+    if (temperature <= FIRST_CRACK_TEMP_MAX_C) return GRAIN_STATES.FIRST_CRACK;
+    if (temperature <= BURN_ABSOLUTE_CEILING_TEMP_C) return GRAIN_STATES.DARK;
+    if (temperature <= SECOND_CRACK_TEMP_MAX_C) return GRAIN_STATES.SECOND_CRACK;
     return GRAIN_STATES.BURNED;
   }
 }

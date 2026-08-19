@@ -32,6 +32,7 @@ public class RoastingSessionService {
 
         RoastingSession session = new RoastingSession(
             user,
+            request.chargeTemperature(),
             request.targetTemperature(),
             request.totalDurationSeconds(),
             request.finalTemperature(),

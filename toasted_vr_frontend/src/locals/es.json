@@ -170,9 +170,11 @@
       "targetTemperature": "Temp Ctrl (objetivo)",
       "elapsedTime": "Tiempo total",
       "firstCrack": "¡First Crack!",
+      "secondCrack": "¡Segundo crack!",
       "burnAlert": "⚠ El café supera los 200°C — reduce la potencia de llama",
       "burnedNotice": "🔥 El café se quemó: lleva más de 15 s sobre 200°C. Descárgalo de inmediato.",
       "alarmNotice": "🚨 Alarma de seguridad: se superó el límite máximo del equipo.",
+      "chargeOverheatAlert": "⚠ Superaste la temperatura de carga que fijaste como objetivo",
       "grainState": "Estado del grano",
       "batchWeight": "Capacidad"
     },
@@ -181,6 +183,7 @@
       "MAILLARD": "Reacción de Maillard",
       "FIRST_CRACK": "First Crack",
       "DARK": "Tueste oscuro",
+      "SECOND_CRACK": "Segundo crack",
       "BURNED": "Café quemado"
     },
     "buttons": {
@@ -237,7 +240,6 @@
     "chart": {
       "title": "Curva de temperatura en tiempo real",
       "titleFinal": "Curva de temperatura obtenida",
-      "timeLabel": "Tiempo (min)",
       "tempLabel": "Temperatura"
     },
     "results": {
@@ -274,7 +276,8 @@
         "title": "Qué restó puntos",
         "tempPenalty": "Temperatura final alejada del ideal: -{points} pts",
         "timePenalty": "Duración total alejada del ideal: -{points} pts",
-        "dtrPenalty": "Tiempo de desarrollo fuera de rango: -{points} pts"
+        "dtrPenalty": "Tiempo de desarrollo fuera de rango: -{points} pts",
+        "chargeTempPenalty": "Temperatura de carga fuera del rango recomendado: -{points} pts"
       },
       "feedback": {
         "title": "Retroalimentación del maestro tostador",
@@ -284,7 +287,7 @@
       "newSimulationButton": "Nueva simulación"
     },
     "info": {
-      "preheatHelp": "Define la temperatura de carga y el Temp Ctrl objetivo antes de encender el horno. El horno se calienta con la potencia de llama que definas una vez inicie.",
+      "preheatHelp": "Define la temperatura de carga y el Temp Ctrl objetivo antes de encender el horno. El rango recomendado para cargar el grano es 180-200°C: fuera de él tu puntaje se penaliza. El horno se calienta con la potencia de llama que definas una vez inicie.",
       "developmentTime": "Tiempo desde el crack"
     },
     "guidance": {

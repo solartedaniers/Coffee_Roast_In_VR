@@ -22,7 +22,7 @@ final class RoastFeedbackPromptBuilder {
         Datos de una sesión de tueste de café en un simulador por computadora \
         (no hay objetos físicos: solo estos números).
         Resultado: %s. Puntaje: %d/100.
-        Temperatura objetivo: %.1f°C. Temperatura final: %.1f°C.
+        Temperatura de carga: %s. Temperatura objetivo: %.1f°C. Temperatura final: %.1f°C.
         Duración: %d segundos. First crack alcanzado: %s. Tiempo de desarrollo \
         tras el first crack: %s segundos.
         Nivel del usuario: %s.
@@ -39,6 +39,12 @@ final class RoastFeedbackPromptBuilder {
     private static final String NO = "no";
     private static final String NOT_AVAILABLE = "N/A";
 
+    // Rango recomendado para cargar el grano — mismo valor que
+    // CHARGE_TEMP_IDEAL_MIN_C/MAX_C en RoastConstants.js del frontend
+    // (no hay constantes compartidas entre backend y frontend hoy).
+    private static final double CHARGE_IDEAL_MIN_C = 180.0;
+    private static final double CHARGE_IDEAL_MAX_C = 200.0;
+
     private RoastFeedbackPromptBuilder() {
     }
 
@@ -47,6 +53,9 @@ final class RoastFeedbackPromptBuilder {
         return PROMPT_TEMPLATE.formatted(
             session.getResult(),
             session.getQualityScore(),
+            session.getChargeTemperature() != null
+                ? chargeTemperatureText(session.getChargeTemperature())
+                : NOT_AVAILABLE,
             session.getTargetTemperature(),
             session.getFinalTemperature(),
             session.getTotalDurationSeconds(),
@@ -55,6 +64,17 @@ final class RoastFeedbackPromptBuilder {
             shortLabelFor(level),
             vocabularyReminderFor(level)
         );
+    }
+
+    // Le señala al modelo cuando la carga quedó fuera del rango
+    // recomendado, para que lo mencione en la retroalimentación — mismo
+    // criterio que ya penaliza el puntaje en ChargeTemperaturePenaltyCalculator.js.
+    private static String chargeTemperatureText(double chargeTemperature) {
+        boolean outOfRange = chargeTemperature < CHARGE_IDEAL_MIN_C || chargeTemperature > CHARGE_IDEAL_MAX_C;
+        String note = outOfRange
+            ? " (fuera del rango recomendado de %.0f-%.0f°C)".formatted(CHARGE_IDEAL_MIN_C, CHARGE_IDEAL_MAX_C)
+            : "";
+        return "%.1f°C%s".formatted(chargeTemperature, note);
     }
 
     // Traduce el nivel de conocimiento del usuario a la instrucción de

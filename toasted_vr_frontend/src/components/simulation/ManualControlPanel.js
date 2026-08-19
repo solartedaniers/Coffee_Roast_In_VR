@@ -33,8 +33,11 @@ export default function ManualControlPanel({
   sensorCalibrationOffsetC = 0,
   temperatureUnit,
   roastTimeDisplay,
+  onOpenAutoControl,
+  onOpenManualControl,
   onOpenSettings,
-  onResetChart,
+  onOpenDataHistory,
+  onOpenHelp,
   onAbort,
 }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -65,13 +68,26 @@ export default function ManualControlPanel({
             texts={texts.menu}
             isOpen={isMenuOpen}
             onClose={() => setIsMenuOpen(false)}
+            operationMode={operationMode}
+            onOpenAutoControl={() => {
+              setIsMenuOpen(false);
+              onOpenAutoControl();
+            }}
+            onOpenManualControl={() => {
+              setIsMenuOpen(false);
+              onOpenManualControl();
+            }}
             onOpenSettings={() => {
               setIsMenuOpen(false);
               onOpenSettings();
             }}
-            onResetChart={() => {
+            onOpenDataHistory={() => {
               setIsMenuOpen(false);
-              onResetChart();
+              onOpenDataHistory();
+            }}
+            onOpenHelp={() => {
+              setIsMenuOpen(false);
+              onOpenHelp();
             }}
             onAbort={() => {
               setIsMenuOpen(false);

@@ -204,14 +204,19 @@
       "roastTimeTile": "Tiempo Tueste",
       "roastTimeUnit": "min",
       "menu": {
-        "openGeneralSettings": "Configuración general",
-        "resetChart": "Reiniciar gráfica",
+        "autoControl": "Control de Tueste Automático",
+        "autoControlSubtitle": "Selec de Curvas de Tueste",
+        "viewProcess": "Visualizar Proceso de Tueste",
+        "manualControl": "Control de Tueste Manual",
+        "openGeneralSettings": "Configuración Interna",
+        "dataHistory": "Guardar Datos",
+        "helpButton": "Ayuda",
         "abort": "Salir del tueste",
         "close": "Cerrar menú"
       }
     },
     "settings": {
-      "title": "Configuración general",
+      "title": "Configuración Interna",
       "subtitle": "Ajustes del equipo — separados de los parámetros de cada tueste.",
       "close": "Cerrar",
       "calibration": {
@@ -236,6 +241,30 @@
         "unitLabel": "Unidad de temperatura",
         "chartStepLabel": "Escala de la gráfica"
       }
+    },
+    "curveProgramming": {
+      "title": "Programación de Curvas",
+      "subtitle": "Temperaturas de referencia por curva — todavía no se aplican al tueste en curso.",
+      "close": "Cerrar",
+      "curveColumn": "Curva",
+      "curveLabel": "Curva",
+      "startColumn": "Inicio (°C)",
+      "crackleColumn": "Crepitación (°C)",
+      "finalColumn": "Final (°C)"
+    },
+    "dataHistory": {
+      "title": "Guardar Datos",
+      "close": "Cerrar",
+      "unavailable": "El historial de tuestes guardados todavía no está disponible en esta versión."
+    },
+    "help": {
+      "title": "Ayuda",
+      "close": "Cerrar",
+      "paragraphs": [
+        "Precalienta el horno hasta la temperatura de carga que definas, luego carga el café cuando quieras — cargar muy pronto o muy tarde afecta tu puntaje final.",
+        "Ajusta la Potencia % Llama durante el tueste: más potencia sube la temperatura más rápido, pero mantenerla muy alta arriesga quemar el café.",
+        "El first crack marca el inicio de la fase de desarrollo. Descargar demasiado pronto deja el café crudo; descargar muy tarde lo quema."
+      ]
     },
     "chart": {
       "title": "Curva de temperatura en tiempo real",

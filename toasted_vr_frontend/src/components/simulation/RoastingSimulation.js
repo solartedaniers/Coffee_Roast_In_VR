@@ -6,6 +6,9 @@ import TemperatureChart from './TemperatureChart';
 import RoastOvenVisual from './RoastOvenVisual';
 import RoastResultsPanel from './RoastResultsPanel';
 import GeneralSettingsPanel from './GeneralSettingsPanel';
+import CurveProgrammingPanel from './CurveProgrammingPanel';
+import RoastDataHistoryPanel from './RoastDataHistoryPanel';
+import HelpPanel from './HelpPanel';
 import { saveRoastingSession, getRoastingFeedback } from '../../services/simulationService';
 
 import {
@@ -30,6 +33,11 @@ import {
   ALARM_LIMIT_DEFAULT_C,
   CHART_VERTICAL_STEP_C,
   CHART_TIME_WINDOW_SECONDS,
+  FIRST_CRACK_TEMP_MIN_C,
+  FIRST_CRACK_TEMP_MAX_C,
+  IDEAL_FINAL_TEMP_C,
+  CHARGE_TEMP_IDEAL_MAX_C,
+  BURN_ABSOLUTE_CEILING_TEMP_C,
 } from '../../domain/roasting/RoastConstants';
 import RoastThermalModel from '../../domain/roasting/RoastThermalModel';
 import RoastMetrics from '../../domain/roasting/RoastMetrics';
@@ -41,6 +49,34 @@ import GrainAppearanceModel from '../../domain/roasting/GrainAppearanceModel';
 import KnowledgeLevelRules from '../../domain/roasting/KnowledgeLevelRules';
 import GreenBeanProfileFactory from '../../domain/roasting/GreenBeanProfileFactory';
 import ChartSmoothingFilter from '../../domain/roasting/ChartSmoothingFilter';
+import RoastCurveProfile from '../../domain/roasting/RoastCurveProfile';
+
+// Valores de ejemplo para las 3 curvas de "Programación de Curvas" —
+// reutilizan constantes de dominio ya existentes en vez de inventar
+// números nuevos. Las curvas todavía no se aplican a ningún tueste real
+// (ver RoastCurveProfile.js).
+function createDefaultRoastCurves() {
+  return [
+    new RoastCurveProfile({
+      curveNumber: 1,
+      startTemp: CHARGE_TEMP_DEFAULT_C,
+      crackleTemp: FIRST_CRACK_TEMP_MIN_C,
+      finalTemp: Math.round(IDEAL_FINAL_TEMP_C),
+    }),
+    new RoastCurveProfile({
+      curveNumber: 2,
+      startTemp: CHARGE_TEMP_DEFAULT_C,
+      crackleTemp: Math.round(IDEAL_FINAL_TEMP_C),
+      finalTemp: FIRST_CRACK_TEMP_MAX_C,
+    }),
+    new RoastCurveProfile({
+      curveNumber: 3,
+      startTemp: CHARGE_TEMP_IDEAL_MAX_C,
+      crackleTemp: FIRST_CRACK_TEMP_MAX_C,
+      finalTemp: BURN_ABSOLUTE_CEILING_TEMP_C - 3,
+    }),
+  ];
+}
 
 // El precalentamiento y la carga terminan en muy pocos segundos simulados
 // (el aire responde rápido, a propósito — ver AIR_RESPONSE_RATE_PER_SEC),
@@ -134,6 +170,10 @@ export default function RoastingSimulation({
   const [showBurnedAlert, setShowBurnedAlert] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isCurveProgrammingOpen, setIsCurveProgrammingOpen] = useState(false);
+  const [isDataHistoryOpen, setIsDataHistoryOpen] = useState(false);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [roastCurves, setRoastCurves] = useState(createDefaultRoastCurves);
 
   // Ajustes del equipo: viven en el menú de configuración general y
   // persisten entre tuestes (a diferencia de simState, que se reinicia
@@ -425,6 +465,28 @@ export default function RoastingSimulation({
     setSimState((prev) => ({ ...prev, operationMode: mode }));
   }, []);
 
+  // "Control de Tueste Automático" del menú: cambia a modo AUTO y abre la
+  // selección de curvas en el mismo clic — el subtítulo del recuadro
+  // ("Selec de Curvas de Tueste") es literalmente lo que hace.
+  const handleOpenAutoControl = useCallback(() => {
+    handleChangeOperationMode(OPERATION_MODES.AUTO);
+    setIsCurveProgrammingOpen(true);
+  }, [handleChangeOperationMode]);
+
+  // "Control de Tueste Manual" del menú: el espejo del anterior — cambia a
+  // modo MANUAL directo, sin panel propio (ya es la pantalla que se ve).
+  const handleOpenManualControl = useCallback(() => {
+    handleChangeOperationMode(OPERATION_MODES.MANUAL);
+  }, [handleChangeOperationMode]);
+
+  const handleChangeCurve = useCallback((curveNumber, field, value) => {
+    setRoastCurves((prev) =>
+      prev.map((curve) =>
+        curve.curveNumber === curveNumber ? new RoastCurveProfile({ ...curve, [field]: value }) : curve
+      )
+    );
+  }, []);
+
   const handleResetChartView = useCallback(() => {
     setSimState((prev) => ({ ...prev, chartViewResetAtSeconds: prev.elapsedSeconds }));
   }, []);
@@ -617,6 +679,22 @@ export default function RoastingSimulation({
         onChangeChartStepC={setChartStepC}
       />
 
+      <CurveProgrammingPanel
+        texts={texts.curveProgramming}
+        isOpen={isCurveProgrammingOpen}
+        onClose={() => setIsCurveProgrammingOpen(false)}
+        curves={roastCurves}
+        onChangeCurve={handleChangeCurve}
+      />
+
+      <RoastDataHistoryPanel
+        texts={texts.dataHistory}
+        isOpen={isDataHistoryOpen}
+        onClose={() => setIsDataHistoryOpen(false)}
+      />
+
+      <HelpPanel texts={texts.help} isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
+
       {/* ── Cabecera ───────────────────────────────────────── */}
       <header className="sim-header">
         <div className="sim-header-brand">
@@ -764,7 +842,11 @@ export default function RoastingSimulation({
               sensorCalibrationOffsetC={sensorCalibrationOffsetC}
               temperatureUnit={temperatureUnit}
               roastTimeDisplay={roastTimeDisplay}
+              onOpenAutoControl={handleOpenAutoControl}
+              onOpenManualControl={handleOpenManualControl}
               onOpenSettings={() => setIsSettingsOpen(true)}
+              onOpenDataHistory={() => setIsDataHistoryOpen(true)}
+              onOpenHelp={() => setIsHelpOpen(true)}
               onResetChart={handleResetChartView}
               onAbort={handleAbort}
             />

@@ -48,13 +48,13 @@ public class AdminUserService {
     }
 
     public UserAdminResponse getUserById(Long id) {
-        return toAdminResponse(findOrThrow(id), "Usuario encontrado.");
+        return toAdminResponse(findOrThrow(id), "User found.");
     }
 
     @Transactional
     public UserAdminResponse updateStatus(Long targetId, Long requesterId, UpdateUserStatusRequest request) {
         if (targetId.equals(requesterId) && Boolean.FALSE.equals(request.enabled())) {
-            throw new ConflictException("No puedes bloquear tu propia cuenta.");
+            throw new ConflictException("You cannot block your own account.");
         }
 
         User user = findOrThrow(targetId);
@@ -67,8 +67,8 @@ public class AdminUserService {
 
         auditService.logStatusChange(requesterId, user.getId(), user.isEnabled());
 
-        String action = user.isEnabled() ? "activada" : "bloqueada";
-        return toAdminResponse(user, "La cuenta fue " + action + " correctamente.");
+        String action = user.isEnabled() ? "activated" : "blocked";
+        return toAdminResponse(user, "The account was " + action + " successfully.");
     }
 
     @Transactional
@@ -87,7 +87,7 @@ public class AdminUserService {
 
     private @NonNull User findOrThrow(Long id) {
         User user = userRepository.findById(Objects.requireNonNull(id))
-            .orElseThrow(() -> new ResourceNotFoundException("No existe un usuario con ese ID."));
+            .orElseThrow(() -> new ResourceNotFoundException("No user exists with this ID."));
 
         return Objects.requireNonNull(user, "Resolved user must not be null.");
     }

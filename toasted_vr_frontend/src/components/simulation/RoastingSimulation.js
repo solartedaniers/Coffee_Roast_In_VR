@@ -196,6 +196,7 @@ export default function RoastingSimulation({
     setSimState((prev) => {
       if (
         prev.phase !== PHASES.PREHEAT &&
+        prev.phase !== PHASES.READY &&
         prev.phase !== PHASES.CHARGE_DIP &&
         prev.phase !== PHASES.ROASTING
       ) {
@@ -243,8 +244,11 @@ export default function RoastingSimulation({
         : prev.moisturePct;
 
       const newElapsed = prev.elapsedSeconds + 1;
+      // LISTO cuenta como precalentando para este reloj: el café todavía no
+      // se cargó, así que roastingElapsedSeconds debe seguir en 0 aunque la
+      // física ya no se detenga al llegar a la temperatura de carga.
       const newRoastingElapsed =
-        prev.phase === PHASES.PREHEAT ? 0 : prev.roastingElapsedSeconds + 1;
+        prev.phase === PHASES.PREHEAT || prev.phase === PHASES.READY ? 0 : prev.roastingElapsedSeconds + 1;
 
       // Una sola señal, con sentido físico en todo momento: el aire
       // mientras el café no está cargado (es lo único presente en el
@@ -338,12 +342,10 @@ export default function RoastingSimulation({
     });
   }, []);
 
-  // Detiene el reloj cuando el tambor llega a la temperatura de carga y espera el café
-  useEffect(() => {
-    if (simState.phase === PHASES.READY) {
-      stopInterval();
-    }
-  }, [simState.phase, stopInterval]);
+  // LISTO ya NO detiene el reloj: el aire debe seguir respondiendo a la
+  // potencia (subir o bajar) hasta que el usuario decida cargar el café —
+  // llegar a la temperatura de carga solo enciende la alerta visual
+  // (showChargeOvershootAlert, ya reacciona sola a la fase LISTO).
 
   // La transición CHARGE_DIP → ROASTING ocurre sola dentro de runTick (no
   // por un clic del usuario, a diferencia de handleStartPreheat/
@@ -599,12 +601,14 @@ export default function RoastingSimulation({
     s.phase === PHASES.CHARGE_DIP || s.phase === PHASES.ROASTING || s.phase === PHASES.FINISHED;
   const guidanceText = getGuidanceText(texts, s.phase, currentUser.knowledgeLevel);
   // Durante el precalentamiento, roastingElapsedSeconds se mantiene en 0 a
-  // propósito (no cuenta el precalentamiento) — para que el reloj mostrado
-  // suba de verdad hacia los 8-10 min simulados mientras se precalienta,
-  // se muestra elapsedSeconds (el tiempo total desde el encendido) solo en
-  // esa fase; el resto del tiempo vuelve a ser el contador real del tueste.
+  // propósito (no cuenta el precalentamiento ni la espera en LISTO) — para
+  // que el reloj mostrado suba de verdad hacia los 8-10 min simulados
+  // mientras se precalienta, y siga subiendo aunque ya se haya alcanzado
+  // la temperatura de carga, se muestra elapsedSeconds (el tiempo total
+  // desde el encendido) en ambas fases; el resto del tiempo vuelve a ser
+  // el contador real del tueste.
   const roastTimeDisplay = RoastMetrics.formatDecimalMinutes(
-    s.phase === PHASES.PREHEAT ? s.elapsedSeconds : s.roastingElapsedSeconds
+    s.phase === PHASES.PREHEAT || s.phase === PHASES.READY ? s.elapsedSeconds : s.roastingElapsedSeconds
   );
 
   // Luz de sobrecalentamiento de precalentado: relativa a la meta que el

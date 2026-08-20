@@ -272,12 +272,14 @@ export const CHART_TIME_WINDOW_SECONDS = CHART_HORIZONTAL_TICK_COUNT * 60;
 // caliente): ninguna caída entre puntos consecutivos de la línea dibujada
 // supera este valor — el exceso se reparte hacia adelante. Solo afecta la
 // línea de la gráfica, nunca las muestras crudas que alimentan el panel de
-// datos ni el puntaje. Subido de 3 a 9: con la gráfica mostrando una sola
-// línea desde el encendido (aire antes de cargar, grano después), la caída
-// real al momento de la carga puede ser de 150-230°C — con 3°C/muestra
-// tardaba más de un minuto en verse completa; con 9 se resuelve en ~20-25s,
-// como el "punto de giro" de una curva de tueste real, no como un glitch.
-export const CHART_SMOOTHING_MAX_DROP_C_PER_SAMPLE = 9;
+// datos ni el puntaje. El valor anterior (9) se calibró asumiendo ~1
+// segundo real por muestra, sin contar que durante la carga cada muestra
+// tarda CHARGE_DIP_TICK_INTERVAL_MS (2.5s) en tiempo real — con 9 la caída
+// real (150-230°C) tardaba ~45-50s reales en verse completa, casi el
+// doble de lo pretendido. Subido a 19 para que, a 2.5s/muestra, vuelva a
+// resolverse en ~20-25s reales (caso de referencia: carga a 190°C, salto
+// de 170°C → 9 muestras → 22.5s).
+export const CHART_SMOOTHING_MAX_DROP_C_PER_SAMPLE = 19;
 
 // Línea de referencia fija (piso) de la gráfica — no depende de ningún
 // slider ni del rango recomendado de carga (180-200°C, ver

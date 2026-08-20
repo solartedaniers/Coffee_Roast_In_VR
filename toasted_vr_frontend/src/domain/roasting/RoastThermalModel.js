@@ -1,6 +1,4 @@
 import {
-  CHARGE_DIP_DURATION_SEC,
-  CHARGE_DIP_PEAK_LOSS_C_PER_SEC,
   AUTO_MODE_BASE_POWER_PCT,
   AUTO_MODE_GAIN_PCT_PER_C,
   AUTO_MODE_DAMPING_PCT_PER_C_PER_MIN,
@@ -20,9 +18,12 @@ import MoistureModel from './MoistureModel';
 // Sin React, sin efectos secundarios.
 // ================================================================
 export default class RoastThermalModel {
-  static computeNextAirTemp(currentAirTemp, flamePowerPercent, thermalMassFactor) {
+  // airResponseRatePerSec es opcional (default = la tasa de carga/tueste ya
+  // validada en RoastAirModel) — el precalentamiento pasa la suya propia,
+  // más lenta, a través de RoastPacingProfile.js.
+  static computeNextAirTemp(currentAirTemp, flamePowerPercent, thermalMassFactor, airResponseRatePerSec) {
     const targetAirTemp = RoastAirModel.computeAirTargetTemp(flamePowerPercent);
-    return RoastAirModel.computeNextAirTemp(currentAirTemp, targetAirTemp, thermalMassFactor);
+    return RoastAirModel.computeNextAirTemp(currentAirTemp, targetAirTemp, thermalMassFactor, airResponseRatePerSec);
   }
 
   static computeNextBeanTemp({ airTemp, beanTemp, density, moisturePct, thermalMassFactor, firstCrackReached }) {
@@ -38,14 +39,6 @@ export default class RoastThermalModel {
 
   static computeNextMoisture(currentMoisturePct, beanTemp) {
     return MoistureModel.computeNextMoisture(currentMoisturePct, beanTemp);
-  }
-
-  // Calor extra que se le resta al grano justo después de cargarlo frío
-  // en el tambor caliente, decayendo linealmente a cero en
-  // CHARGE_DIP_DURATION_SEC.
-  static computeChargeDipLossPerSecond(secondsSinceCharge) {
-    const progress = Math.min(1, secondsSinceCharge / CHARGE_DIP_DURATION_SEC);
-    return CHARGE_DIP_PEAK_LOSS_C_PER_SEC * (1 - progress);
   }
 
   // Controlador proporcional-derivativo usado solo en modo AUTO: pide

@@ -114,6 +114,21 @@ export const MAX_AIR_TEMP_C = 750;
 // masa térmica del grano, mucho mayor que la del aire.
 export const AIR_RESPONSE_RATE_PER_SEC = 0.18;
 
+// Velocidad de respuesta del aire SOLO durante el precalentamiento — mucho
+// más lenta que AIR_RESPONSE_RATE_PER_SEC de arriba (que sigue igual para
+// carga/tueste, sin tocar). Calibrado para que a potencia "eficiente"
+// (30%) y temperatura de carga por defecto, el precalentamiento tenga una
+// duración SIMULADA realista de 8-10 min, en vez de los 8-60s que daba
+// antes al compartir la misma tasa rápida del tueste.
+export const PREHEAT_AIR_RESPONSE_RATE_PER_SEC = 0.0028;
+
+// Ritmo del reloj REAL solo durante el precalentamiento: comprime esos
+// 8-10 min simulados a ~2 min reales de espera para el usuario — el
+// tiempo mostrado en pantalla sigue siendo el tiempo simulado real del
+// modelo (no es un reloj cosmético desconectado de la física), solo que
+// cada segundo simulado toma menos tiempo real en llegar.
+export const PREHEAT_TICK_INTERVAL_MS = 225;
+
 // ---- Transferencia de calor aire → grano ---------------------------------
 
 // Coeficiente de conducción: cuánto del diferencial (aire - grano) se
@@ -152,10 +167,33 @@ export const EVAP_COOLING_FACTOR_C_PER_PCT = 3.0;
 // real.
 export const EXO_HEAT_RATE_C_PER_SEC = 0.03;
 
-// ---- Carga del café --------------------------------------------
+// ---- Carga del café (caída al cargar, ya no fija) --------------------
 
-export const CHARGE_DIP_DURATION_SEC = 45;
-export const CHARGE_DIP_PEAK_LOSS_C_PER_SEC = 0.9;
+// °C/s de pérdida pico por cada grado que el aire estaba sobre la
+// temperatura ambiente al momento de la carga — calibrado para reproducir
+// ~0.9°C/s en las condiciones de referencia (carga a 190°C, ver
+// ChargeDipCalculator.js): 0.9 / (190 - 20).
+export const CHARGE_DIP_LOSS_COEFF_PER_DEGREE_C = 0.00529;
+
+// Duración base de la caída, a la potencia de referencia
+// (FLAME_POWER_DEFAULT_PCT); se escala según la potencia real en cada
+// instante — más potencia, recuperación más rápida y viceversa. Ya no es
+// una duración fija: ver ChargeDipCalculator.computeEffectiveDurationSeconds,
+// que también decide cuándo la fase pasa de carga a tueste, para que ese
+// cambio de fase y el fin real de la caída siempre coincidan.
+export const CHARGE_DIP_DURATION_BASE_SEC = 45;
+
+// Piso de potencia para el cálculo de duración — evita dividir por cero
+// (o una duración absurdamente larga) si la potencia está en 0%.
+export const CHARGE_DIP_MIN_POWER_FOR_DURATION_PCT = 5;
+
+// ---- Ritmo del reloj real por fase --------------------------------
+
+// Carga y tueste no cambian de lo ya validado: el reloj real corre más
+// lento durante la carga (2.5x) para que no se sienta apurada, y a ritmo
+// normal (1:1) una vez empieza el tueste — ver RoastPacingProfile.js.
+export const CHARGE_DIP_TICK_INTERVAL_MS = 2500;
+export const ROASTING_TICK_INTERVAL_MS = 1000;
 
 // ---- Incremento de temperatura (Increm °T) ------------------------
 

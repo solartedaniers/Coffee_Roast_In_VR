@@ -15,10 +15,12 @@ export default class RoastAirModel {
 
   // El aire persigue su objetivo de forma asintótica: nunca lo supera, así
   // que no hace falta un techo superior — solo un piso en la temperatura
-  // ambiente.
-  static computeNextAirTemp(currentAirTemp, targetAirTemp, thermalMassFactor) {
+  // ambiente. airResponseRatePerSec es configurable (default = la tasa de
+  // carga/tueste ya validada) porque el precalentamiento usa su propia
+  // tasa, mucho más lenta — ver RoastPacingProfile.js.
+  static computeNextAirTemp(currentAirTemp, targetAirTemp, thermalMassFactor, airResponseRatePerSec = AIR_RESPONSE_RATE_PER_SEC) {
     const next =
-      currentAirTemp + (targetAirTemp - currentAirTemp) * AIR_RESPONSE_RATE_PER_SEC * thermalMassFactor;
+      currentAirTemp + (targetAirTemp - currentAirTemp) * airResponseRatePerSec * thermalMassFactor;
     return parseFloat(Math.max(MIN_AIR_TEMP_C, next).toFixed(2));
   }
 }

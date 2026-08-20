@@ -23,7 +23,6 @@ import {
   TARGET_TEMP_MAX_C,
   TARGET_TEMP_DEFAULT_C,
   FLAME_POWER_DEFAULT_PCT,
-  CHARGE_DIP_DURATION_SEC,
   BURN_THRESHOLD_TEMP_C,
   MAILLARD_TEMP_START_C,
   MAILLARD_TEMP_END_C,
@@ -50,6 +49,8 @@ import KnowledgeLevelRules from '../../domain/roasting/KnowledgeLevelRules';
 import GreenBeanProfileFactory from '../../domain/roasting/GreenBeanProfileFactory';
 import ChartSmoothingFilter from '../../domain/roasting/ChartSmoothingFilter';
 import RoastCurveProfile from '../../domain/roasting/RoastCurveProfile';
+import RoastPacingProfile from '../../domain/roasting/RoastPacingProfile';
+import ChargeDipCalculator from '../../domain/roasting/ChargeDipCalculator';
 
 // Valores de ejemplo para las 3 curvas de "Programación de Curvas" —
 // reutilizan constantes de dominio ya existentes en vez de inventar
@@ -77,16 +78,6 @@ function createDefaultRoastCurves() {
     }),
   ];
 }
-
-// El precalentamiento y la carga terminan en muy pocos segundos simulados
-// (el aire responde rápido, a propósito — ver AIR_RESPONSE_RATE_PER_SEC),
-// y como cada tick real dura lo mismo en cualquier fase, esas dos fases se
-// sienten apuradas comparadas con el tueste. Sin tocar ninguna constante
-// de física ya calibrada, se hace que el reloj REAL vaya más lento solo en
-// esas fases (2.5x) — el tueste cargado sigue a su ritmo normal de 1
-// segundo simulado por segundo real.
-const NORMAL_TICK_INTERVAL_MS = 1000;
-const SLOW_TICK_INTERVAL_MS = 2500;
 
 function createInitialSimState({ chargeTemperature, targetTemperature, operationMode }) {
   const beanProfile = GreenBeanProfileFactory.createRandom();
@@ -214,15 +205,26 @@ export default function RoastingSimulation({
       // Modelo de dos cuerpos: el aire persigue su objetivo según la
       // potencia del quemador; el grano persigue al aire (solo una vez
       // cargado — antes de eso el grano ni siquiera está en el tambor).
+      // La tasa de respuesta del aire depende de la fase (el
+      // precalentamiento es mucho más lento/realista que carga/tueste).
       const { thermalMassFactor, density } = prev.beanProfile;
+      const { airResponseRatePerSec } = RoastPacingProfile.forPhase(prev.phase);
       const dipLoss =
         prev.phase === PHASES.CHARGE_DIP
-          ? RoastThermalModel.computeChargeDipLossPerSecond(prev.roastingElapsedSeconds)
+          ? ChargeDipCalculator.computeLossPerSecond({
+              airTempAtCharge: prev.chargeTemperature,
+              flamePowerPercent: prev.flamePowerPercent,
+              secondsSinceCharge: prev.roastingElapsedSeconds,
+            })
           : 0;
       const newAirTemp = Math.max(
         AMBIENT_TEMP_C,
-        RoastThermalModel.computeNextAirTemp(prev.airTemperature, prev.flamePowerPercent, thermalMassFactor) -
-          dipLoss
+        RoastThermalModel.computeNextAirTemp(
+          prev.airTemperature,
+          prev.flamePowerPercent,
+          thermalMassFactor,
+          airResponseRatePerSec
+        ) - dipLoss
       );
 
       const beanIsCharged = prev.phase === PHASES.CHARGE_DIP || prev.phase === PHASES.ROASTING;
@@ -300,7 +302,13 @@ export default function RoastingSimulation({
       let nextPhase = prev.phase;
       if (prev.phase === PHASES.PREHEAT && newAirTemp >= prev.chargeTemperature) {
         nextPhase = PHASES.READY;
-      } else if (prev.phase === PHASES.CHARGE_DIP && newRoastingElapsed >= CHARGE_DIP_DURATION_SEC) {
+      } else if (
+        prev.phase === PHASES.CHARGE_DIP &&
+        // Misma duración que calcula el dipLoss de arriba (con la potencia
+        // real de este tick): así el cambio de fase y el fin real de la
+        // caída siempre coinciden, aunque la potencia cambie en vivo.
+        newRoastingElapsed >= ChargeDipCalculator.computeEffectiveDurationSeconds(prev.flamePowerPercent)
+      ) {
         nextPhase = PHASES.ROASTING;
       }
 
@@ -344,7 +352,7 @@ export default function RoastingSimulation({
   useEffect(() => {
     if (simState.phase === PHASES.ROASTING && intervalRef.current) {
       stopInterval();
-      intervalRef.current = setInterval(runTick, NORMAL_TICK_INTERVAL_MS);
+      intervalRef.current = setInterval(runTick, RoastPacingProfile.forPhase(PHASES.ROASTING).tickIntervalMs);
     }
   }, [simState.phase, stopInterval, runTick]);
 
@@ -424,7 +432,7 @@ export default function RoastingSimulation({
       }),
       phase: PHASES.PREHEAT,
     });
-    intervalRef.current = setInterval(runTick, SLOW_TICK_INTERVAL_MS);
+    intervalRef.current = setInterval(runTick, RoastPacingProfile.forPhase(PHASES.PREHEAT).tickIntervalMs);
   };
 
   const handleLoadBeans = () => {
@@ -450,7 +458,7 @@ export default function RoastingSimulation({
     // cargar en LISTO, donde ya estaba detenido) — se detiene primero para
     // no terminar con dos intervalos duplicando cada tick.
     stopInterval();
-    intervalRef.current = setInterval(runTick, SLOW_TICK_INTERVAL_MS);
+    intervalRef.current = setInterval(runTick, RoastPacingProfile.forPhase(PHASES.CHARGE_DIP).tickIntervalMs);
   };
 
   const handleCommitTargetTemperature = useCallback((value) => {
@@ -590,7 +598,14 @@ export default function RoastingSimulation({
   const showBeans =
     s.phase === PHASES.CHARGE_DIP || s.phase === PHASES.ROASTING || s.phase === PHASES.FINISHED;
   const guidanceText = getGuidanceText(texts, s.phase, currentUser.knowledgeLevel);
-  const roastTimeDisplay = RoastMetrics.formatDecimalMinutes(s.roastingElapsedSeconds);
+  // Durante el precalentamiento, roastingElapsedSeconds se mantiene en 0 a
+  // propósito (no cuenta el precalentamiento) — para que el reloj mostrado
+  // suba de verdad hacia los 8-10 min simulados mientras se precalienta,
+  // se muestra elapsedSeconds (el tiempo total desde el encendido) solo en
+  // esa fase; el resto del tiempo vuelve a ser el contador real del tueste.
+  const roastTimeDisplay = RoastMetrics.formatDecimalMinutes(
+    s.phase === PHASES.PREHEAT ? s.elapsedSeconds : s.roastingElapsedSeconds
+  );
 
   // Luz de sobrecalentamiento de precalentado: relativa a la meta que el
   // propio usuario fijó en el slider (s.chargeTemperature), no a un

@@ -112,10 +112,11 @@
   },
   "profile": {
     "badge": "Perfil",
-    "title": "Editar perfil",
+    "title": "Perfil",
     "passwordSection": "Cambio de contraseña",
     "labels": {
       "name": "Nombre",
+      "email": "Correo electrónico",
       "username": "Usuario",
       "knowledgeLevel": "Nivel de conocimiento",
       "currentPassword": "contraseña actual",
@@ -133,9 +134,13 @@
       "edit": "Editar"
     },
     "buttons": {
-      "open": "Editar perfil",
+      "open": "Perfil",
       "close": "Cerrar",
+      "edit": "Editar perfil",
+      "changePassword": "¿Quieres cambiar tu contraseña?",
       "save": "Guardar cambios",
+      "cancel": "Cancelar",
+      "cancelPasswordChange": "No, cancelar cambio de contraseña",
       "saving": "Guardando..."
     },
     "messages": {
@@ -145,7 +150,7 @@
       "invalidImage": "Selecciona una imagen valida.",
       "imageTooLarge": "La imagen debe pesar menos de 900 KB."
     },
-    "ariaLabel": "Editar perfil"
+    "ariaLabel": "Perfil"
   },
   "simulation": {
     "title": "Simulación de Tostado de Café Arábica",
@@ -405,6 +410,13 @@
     "emptyDetail": "Selecciona un usuario para ver su detalle.",
     "pageLabel": "Página {page} de {totalPages}",
     "selfProtection": "No puedes bloquear tu propia cuenta ni cambiar tu propio rol.",
+    "messages": {
+      "accountActivated": "La cuenta fue activada correctamente.",
+      "accountBlocked": "La cuenta fue bloqueada correctamente.",
+      "statusUpdateError": "No fue posible actualizar el estado de la cuenta. Intenta de nuevo.",
+      "detailLoadError": "No fue posible cargar el detalle del usuario.",
+      "usersLoadError": "No fue posible cargar los usuarios. Intenta de nuevo."
+    },
     "yes": "Sí",
     "no": "No",
     "filters": {
@@ -436,8 +448,11 @@
     "table": {
       "name": "Nombre",
       "email": "Correo",
+      "username": "Usuario",
       "role": "Rol",
       "status": "Estado",
+      "verified": "Correo verificado",
+      "createdAt": "Fecha de registro",
       "actions": "Acciones"
     },
     "detail": {

@@ -11,12 +11,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -75,6 +77,26 @@ class AdminUserControllerSecurityTests {
             .andExpect(status().isOk());
     }
 
+    @Test
+    void shouldRejectUserDetailsForNonAdminRole() throws Exception {
+        mockMvc.perform(
+                get("/api/v1/admin/users/{id}", 1)
+                    .header("Authorization", "Bearer " + playerToken)
+            )
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void shouldRejectStatusUpdateForNonAdminRole() throws Exception {
+        mockMvc.perform(
+                patch("/api/v1/admin/users/{id}/status", 1)
+                    .header("Authorization", "Bearer " + playerToken)
+                    .contentType(jsonMediaType())
+                    .content("{\"enabled\":false}")
+            )
+            .andExpect(status().isForbidden());
+    }
+
     private @NonNull User buildUser(String name, String email, String username, Role role) {
         User user = new User(name, email, username, passwordEncoder.encode("Password123!"));
         user.markEmailAsVerified();
@@ -85,5 +107,9 @@ class AdminUserControllerSecurityTests {
 
     private @NonNull User requireUser(@Nullable User user) {
         return Objects.requireNonNull(user, "Saved user must not be null.");
+    }
+
+    private @NonNull MediaType jsonMediaType() {
+        return Objects.requireNonNull(MediaType.APPLICATION_JSON, "Media type must not be null.");
     }
 }

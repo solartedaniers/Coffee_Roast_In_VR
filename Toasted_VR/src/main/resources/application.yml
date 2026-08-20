@@ -52,7 +52,7 @@ app:
     username: ${APP_BOOTSTRAP_ADMIN_USERNAME:}
     password: ${APP_BOOTSTRAP_ADMIN_PASSWORD:}
   mail:
-    enabled: ${MAIL_ENABLED:false}
+    enabled: ${MAIL_ENABLED:true}
     from: ${MAIL_FROM:${MAIL_USERNAME:no-reply@toastedvr.local}}
   verification:
     code-length: ${VERIFICATION_CODE_LENGTH:6}

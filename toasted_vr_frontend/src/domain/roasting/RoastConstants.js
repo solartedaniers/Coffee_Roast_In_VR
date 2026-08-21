@@ -291,8 +291,10 @@ export const CHART_VERTICAL_TICK_COUNT = 6;
 // picos y valles reales (caída al cargar el café, reacción a cambios
 // de potencia) se ven con detalle en vez de aplanarse. Igual a
 // CHART_HORIZONTAL_TICK_COUNT minutos exactos para que la ventana
-// llene todo el ancho del eje sin dejar un margen vacío al final.
-export const CHART_HORIZONTAL_TICK_COUNT = 6;
+// llene todo el ancho del eje sin dejar un margen vacío al final —
+// 15 min para un ritmo de avance pausado (~0.84 px/s), cercano al que
+// había antes de que existiera esta ventana.
+export const CHART_HORIZONTAL_TICK_COUNT = 15;
 export const CHART_TIME_WINDOW_SECONDS = CHART_HORIZONTAL_TICK_COUNT * 60;
 
 // Suavizado visual de caídas bruscas (ej. al cargar el grano en el tambor

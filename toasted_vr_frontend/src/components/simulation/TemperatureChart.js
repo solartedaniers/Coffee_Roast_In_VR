@@ -5,6 +5,7 @@ import {
   CHART_VERTICAL_STEP_C,
   CHART_VERTICAL_TICK_COUNT,
   CHART_FLOOR_REFERENCE_TEMP_C,
+  CHART_TIME_WINDOW_SECONDS,
 } from '../../domain/roasting/RoastConstants';
 
 const VIEW_W = 820;
@@ -14,14 +15,13 @@ const VIEW_H = 230;
 // del panel de control, no hace falta repetirlo aquí.
 const PAD = { top: 15, right: 20, bottom: 12, left: 46 };
 
-// Velocidad fija de píxeles/segundo, calculada sobre una duración total
-// asumida (15-16 min, el máximo esperado de un tueste completo con
-// precalentamiento) — NO se recalcula según cuántos puntos existan en cada
-// momento. Con esto, un punto ya dibujado nunca se vuelve a mover: la
-// curva solo avanza hacia la derecha con cada segundo real, igual que en
-// la máquina real. Si el tueste termina antes de esa duración asumida, la
-// línea simplemente no llega a ocupar todo el ancho — no pasa nada.
-const ASSUMED_TOTAL_DURATION_SECONDS = 16 * 60;
+// Margen vacío antes del primer punto y después del último en la vista de
+// resultado final (fitToData) — para que quede claro que la curva empieza/
+// termina ahí porque el proceso real empezó/terminó ahí, no porque se acabó
+// el espacio del gráfico. Solo aplica ahí: en vivo, el punto más reciente
+// debe seguir tocando el borde (así se ve una ventana deslizante en tiempo
+// real).
+const EDGE_PADDING_PX = 40;
 
 // ================================================================
 // TemperatureChart
@@ -32,8 +32,8 @@ const ASSUMED_TOTAL_DURATION_SECONDS = 16 * 60;
 // panel de control): un piso fijo (CHART_FLOOR_REFERENCE_TEMP_C, no
 // depende de ningún slider) y un techo que es la Temp Ctrl que fijó
 // el operador. El eje horizontal es tiempo real a velocidad fija (ver
-// ASSUMED_TOTAL_DURATION_SECONDS), sin números (el tiempo total ya se
-// ve en la casilla "Tiempo Tueste" del panel de control).
+// pxPerSecond más abajo), sin números (el tiempo total ya se ve en la
+// casilla "Tiempo Tueste" del panel de control).
 //
 // Toda la geometría interna (dónde caen las líneas) se calcula
 // siempre en Celsius para que el eje y la curva nunca se desalineen;
@@ -77,14 +77,23 @@ export default function TemperatureChart({
   const maxTick = verticalTicks[verticalTicks.length - 1];
 
   const minTime = calibratedData[0].time;
-  const pxPerSecond = basePlotW / ASSUMED_TOTAL_DURATION_SECONDS;
+  // Velocidad fija de píxeles/segundo, calculada sobre la ventana móvil
+  // real (CHART_TIME_WINDOW_SECONDS) — no una duración asumida aparte —
+  // así la ventana en vivo llena todo el ancho apenas se completa, en vez
+  // de ocupar solo una fracción. NO se recalcula según cuántos puntos
+  // existan en cada momento: con esto, un punto ya dibujado nunca se
+  // vuelve a mover, la curva solo avanza hacia la derecha con cada
+  // segundo real, igual que en la máquina real.
+  const pxPerSecond = basePlotW / CHART_TIME_WINDOW_SECONDS;
   const pxPerDegreeReference = basePlotH / ((CHART_VERTICAL_TICK_COUNT - 1) * chartStepC);
 
   const actualDurationSeconds = calibratedData[calibratedData.length - 1].time - minTime;
-  const plotW = fitToData ? Math.max(basePlotW, actualDurationSeconds * pxPerSecond) : basePlotW;
+  const dataPlotW = fitToData ? Math.max(basePlotW, actualDurationSeconds * pxPerSecond) : basePlotW;
+  const edgePaddingPx = fitToData ? EDGE_PADDING_PX : 0;
+  const plotW = dataPlotW + 2 * edgePaddingPx;
   const plotH = fitToData ? Math.max(basePlotH, (maxTick - minTick) * pxPerDegreeReference) : basePlotH;
 
-  const xScale = (timeSeconds) => Math.min(plotW, (timeSeconds - minTime) * pxPerSecond);
+  const xScale = (timeSeconds) => edgePaddingPx + Math.min(dataPlotW, (timeSeconds - minTime) * pxPerSecond);
   const yScale = (temp) => plotH - ((temp - minTick) / (maxTick - minTick)) * plotH;
   const formatTemp = (celsius) => Math.round(TemperatureUnitConverter.toDisplay(celsius, temperatureUnit));
 

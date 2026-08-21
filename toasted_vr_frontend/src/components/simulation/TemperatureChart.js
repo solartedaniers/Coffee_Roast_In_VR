@@ -15,12 +15,12 @@ const VIEW_H = 230;
 // del panel de control, no hace falta repetirlo aquí.
 const PAD = { top: 15, right: 20, bottom: 12, left: 46 };
 
-// Margen vacío antes del primer punto y después del último en la vista de
-// resultado final (fitToData) — para que quede claro que la curva empieza/
-// termina ahí porque el proceso real empezó/terminó ahí, no porque se acabó
-// el espacio del gráfico. Solo aplica ahí: en vivo, el punto más reciente
-// debe seguir tocando el borde (así se ve una ventana deslizante en tiempo
-// real).
+// Margen vacío después del último punto (siempre, vivo y resultado final)
+// para que la curva nunca se vea "cortada" justo en el borde — y antes del
+// primero solo en el resultado final (en vivo, el inicio se deja tocando
+// el borde izquierdo tal como estaba). Desplazamiento constante, no
+// reescala nada, así que no rompe la regla de "un punto ya dibujado nunca
+// se mueve".
 const EDGE_PADDING_PX = 40;
 
 // ================================================================
@@ -89,11 +89,11 @@ export default function TemperatureChart({
 
   const actualDurationSeconds = calibratedData[calibratedData.length - 1].time - minTime;
   const dataPlotW = fitToData ? Math.max(basePlotW, actualDurationSeconds * pxPerSecond) : basePlotW;
-  const edgePaddingPx = fitToData ? EDGE_PADDING_PX : 0;
-  const plotW = dataPlotW + 2 * edgePaddingPx;
+  const startPaddingPx = fitToData ? EDGE_PADDING_PX : 0;
+  const plotW = dataPlotW + startPaddingPx + EDGE_PADDING_PX;
   const plotH = fitToData ? Math.max(basePlotH, (maxTick - minTick) * pxPerDegreeReference) : basePlotH;
 
-  const xScale = (timeSeconds) => edgePaddingPx + Math.min(dataPlotW, (timeSeconds - minTime) * pxPerSecond);
+  const xScale = (timeSeconds) => startPaddingPx + Math.min(dataPlotW, (timeSeconds - minTime) * pxPerSecond);
   const yScale = (temp) => plotH - ((temp - minTick) / (maxTick - minTick)) * plotH;
   const formatTemp = (celsius) => Math.round(TemperatureUnitConverter.toDisplay(celsius, temperatureUnit));
 

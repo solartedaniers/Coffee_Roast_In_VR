@@ -48,6 +48,13 @@ export const BEAN_MOISTURE_REFERENCE_PCT = 10;
 export const BEAN_MESH_SIZE_MIN = 14;
 export const BEAN_MESH_SIZE_MAX = 18;
 
+// Temperatura real del grano al momento de cargarlo — antes siempre
+// exactamente AMBIENT_TEMP_C (20°C fijo); ahora varía por sesión como el
+// resto del perfil del grano, reflejando que la bodega/ambiente donde
+// esperaba el lote no es siempre igual.
+export const BEAN_ENTRY_TEMP_MIN_C = 15;
+export const BEAN_ENTRY_TEMP_MAX_C = 25;
+
 // °C que se desplaza el umbral de first/second crack por cada unidad de
 // densidad por encima/debajo de BEAN_DENSITY_REFERENCE — un grano más denso
 // tarda más en agrietarse.
@@ -187,12 +194,31 @@ export const CHARGE_DIP_DURATION_BASE_SEC = 45;
 // (o una duración absurdamente larga) si la potencia está en 0%.
 export const CHARGE_DIP_MIN_POWER_FOR_DURATION_PCT = 5;
 
+// Piso real del grano al momento de cargar (dónde "toca fondo" antes de
+// empezar a subir) — ya no es siempre entryTempC fijo: una rampa continua
+// centrada en el medio de la zona segura (180-220°C), con clamp en cada
+// extremo. Cargar más frío que lo seguro profundiza el piso (menos calor
+// disponible, recuperación más lenta, riesgo de quedar crudo); cargar más
+// caliente lo eleva (el grano casi no "siente" la carga, pero llega antes
+// al rango de riesgo de quemado) — ver ChargeDipCalculator.computeEffectiveChargeFloor.
+export const CHARGE_DIP_FLOOR_CENTER_C = 200;
+export const CHARGE_DIP_FLOOR_SLOPE_C_PER_DEGREE = 1 / 6;
+// Saturan justo en los límites físicos que ya existen para el aire en el
+// resto del modelo — no números nuevos inventados: del lado frío, en
+// AMBIENT_TEMP_C (no puede haber menos calor disponible que el ambiente);
+// del lado caliente, en MAX_AIR_TEMP_C (el aire no puede pasar de ahí).
+export const CHARGE_DIP_COLD_EXTRA_DROP_MAX_C =
+  (CHARGE_DIP_FLOOR_CENTER_C - AMBIENT_TEMP_C) * CHARGE_DIP_FLOOR_SLOPE_C_PER_DEGREE;
+export const CHARGE_DIP_HOT_CUSHION_MAX_C =
+  (MAX_AIR_TEMP_C - CHARGE_DIP_FLOOR_CENTER_C) * CHARGE_DIP_FLOOR_SLOPE_C_PER_DEGREE;
+
 // ---- Ritmo del reloj real por fase --------------------------------
 
 // Antes la carga corría a 2.5x más lento que el tueste (deliberado, para
 // que no se sintiera apurada), pero eso hacía que la curva se dibujara a
-// saltos (un punto nuevo cada 2.5s reales) en vez de fluida — ahora carga
-// y tueste comparten el mismo ritmo real (1:1) — ver RoastPacingProfile.js.
+// saltos (un punto nuevo cada 2.5s reales) en vez de fluida. Se probaron
+// 1000ms y 500ms; a 500ms se sentía demasiado rápida/apurada, así que
+// queda igual al ritmo del tueste (1:1) — ver RoastPacingProfile.js.
 export const CHARGE_DIP_TICK_INTERVAL_MS = 1000;
 export const ROASTING_TICK_INTERVAL_MS = 1000;
 

@@ -1,4 +1,4 @@
-import { AMBIENT_TEMP_C, MAX_SAFE_TEMP_C } from './RoastConstants';
+import { MAX_SAFE_TEMP_C } from './RoastConstants';
 import ConductiveHeatGainTerm from './ConductiveHeatGainTerm';
 import EvaporativeCoolingTerm from './EvaporativeCoolingTerm';
 import ExothermicReactionTerm from './ExothermicReactionTerm';
@@ -23,7 +23,12 @@ export default class BeanHeatTransferCalculator {
       (total, { term, sign }) => total + sign * term.computeRatePerSecond(context),
       0
     );
+    // Sin piso en AMBIENT_TEMP_C: la conducción ya se autolimita (persigue
+    // al aire, que nunca baja de ahí), y el piso de carga en frío
+    // (ChargeDipCalculator.computeEffectiveChargeFloor) puede arrancar por
+    // debajo del ambiente a propósito — forzarlo de vuelta aquí borraba
+    // ese efecto en un solo tick.
     const next = context.beanTemp + ratePerSecond;
-    return parseFloat(Math.min(MAX_SAFE_TEMP_C, Math.max(AMBIENT_TEMP_C, next)).toFixed(2));
+    return parseFloat(Math.min(MAX_SAFE_TEMP_C, next).toFixed(2));
   }
 }

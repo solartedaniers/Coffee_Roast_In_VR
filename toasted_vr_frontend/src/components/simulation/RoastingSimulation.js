@@ -451,6 +451,11 @@ export default function RoastingSimulation({
       // transición automática a LISTO solo miran este campo antes de
       // cargar).
       chargeTemperature: prev.airTemperature,
+      // Punto de partida real del grano al tocar el tambor — ya no
+      // AMBIENT_TEMP_C fijo, sino el piso efectivo según qué tan lejos
+      // estaba el aire de la zona segura al momento de cargar (ver
+      // ChargeDipCalculator.computeEffectiveChargeFloor).
+      temperature: ChargeDipCalculator.computeEffectiveChargeFloor(prev.airTemperature, prev.beanProfile.entryTempC),
       chargeStartElapsedSeconds: prev.elapsedSeconds,
       firstCrackThresholdTemp: FirstCrackDetector.pickThresholdTemperature(prev.beanProfile.density),
       secondCrackThresholdTemp: SecondCrackDetector.pickThresholdTemperature(prev.beanProfile.density),

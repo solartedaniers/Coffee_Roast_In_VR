@@ -8,6 +8,8 @@ import {
   BEAN_MESH_SIZE_MAX,
   BATCH_WEIGHT_MIN_KG,
   BATCH_WEIGHT_MAX_KG,
+  BEAN_ENTRY_TEMP_MIN_C,
+  BEAN_ENTRY_TEMP_MAX_C,
 } from './RoastConstants';
 
 function randomInRange(min, max) {
@@ -28,6 +30,7 @@ export default class GreenBeanProfileFactory {
       moisture0Pct: parseFloat(randomInRange(BEAN_MOISTURE_MIN_PCT, BEAN_MOISTURE_MAX_PCT).toFixed(1)),
       meshSize: Math.round(randomInRange(BEAN_MESH_SIZE_MIN, BEAN_MESH_SIZE_MAX)),
       batchWeightKg: parseFloat(randomInRange(BATCH_WEIGHT_MIN_KG, BATCH_WEIGHT_MAX_KG).toFixed(1)),
+      entryTempC: parseFloat(randomInRange(BEAN_ENTRY_TEMP_MIN_C, BEAN_ENTRY_TEMP_MAX_C).toFixed(1)),
     });
   }
 }

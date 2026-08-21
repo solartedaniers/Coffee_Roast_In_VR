@@ -1,7 +1,11 @@
 import React from 'react';
 import ChartAxisScale from '../../domain/roasting/ChartAxisScale';
 import TemperatureUnitConverter from '../../domain/roasting/TemperatureUnitConverter';
-import { CHART_VERTICAL_STEP_C, CHART_FLOOR_REFERENCE_TEMP_C } from '../../domain/roasting/RoastConstants';
+import {
+  CHART_VERTICAL_STEP_C,
+  CHART_VERTICAL_TICK_COUNT,
+  CHART_FLOOR_REFERENCE_TEMP_C,
+} from '../../domain/roasting/RoastConstants';
 
 const VIEW_W = 820;
 const VIEW_H = 230;
@@ -42,11 +46,20 @@ export default function TemperatureChart({
   temperatureUnit,
   chartStepC = CHART_VERTICAL_STEP_C,
   texts,
+  // Vista de resultado final de un tueste largo: en vez de recortar el
+  // proceso completo al tamaño normal, el viewBox crece en la misma
+  // escala real (píxeles por segundo/grado de una sesión típica) para
+  // que quepa completo — y es el propio SVG (preserveAspectRatio, ver
+  // el estilo aspectRatio más abajo) el que encoge el dibujo entero
+  // para que quepa en el mismo espacio en pantalla, sin recortar ni
+  // deformar proporciones. La vista en vivo (fitToData=false, default)
+  // no cambia: sigue con el tamaño fijo de siempre.
+  fitToData = false,
 }) {
   if (!data || data.length < 2) return null;
 
-  const plotW = VIEW_W - PAD.left - PAD.right;
-  const plotH = VIEW_H - PAD.top - PAD.bottom;
+  const basePlotW = VIEW_W - PAD.left - PAD.right;
+  const basePlotH = VIEW_H - PAD.top - PAD.bottom;
 
   const calibratedData = data.map((point) => ({ time: point.time, temp: point.temp + sensorCalibrationOffsetC }));
 
@@ -64,7 +77,12 @@ export default function TemperatureChart({
   const maxTick = verticalTicks[verticalTicks.length - 1];
 
   const minTime = calibratedData[0].time;
-  const pxPerSecond = plotW / ASSUMED_TOTAL_DURATION_SECONDS;
+  const pxPerSecond = basePlotW / ASSUMED_TOTAL_DURATION_SECONDS;
+  const pxPerDegreeReference = basePlotH / ((CHART_VERTICAL_TICK_COUNT - 1) * chartStepC);
+
+  const actualDurationSeconds = calibratedData[calibratedData.length - 1].time - minTime;
+  const plotW = fitToData ? Math.max(basePlotW, actualDurationSeconds * pxPerSecond) : basePlotW;
+  const plotH = fitToData ? Math.max(basePlotH, (maxTick - minTick) * pxPerDegreeReference) : basePlotH;
 
   const xScale = (timeSeconds) => Math.min(plotW, (timeSeconds - minTime) * pxPerSecond);
   const yScale = (temp) => plotH - ((temp - minTick) / (maxTick - minTick)) * plotH;
@@ -76,11 +94,20 @@ export default function TemperatureChart({
     return acc + `${i === 0 ? 'M' : 'L'}${x},${y} `;
   }, '');
 
+  const viewBoxW = plotW + PAD.left + PAD.right;
+  const viewBoxH = plotH + PAD.top + PAD.bottom;
+
   return (
     <div className="chart-wrapper">
       <svg
-        viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
+        viewBox={`0 0 ${viewBoxW} ${viewBoxH}`}
         width="100%"
+        // Proporción fija en pantalla (la de siempre) sin importar qué tan
+        // grande sea el viewBox interno — así preserveAspectRatio="xMidYMid
+        // meet" (el default de SVG) encoge el contenido completo para que
+        // quepa en el mismo espacio, en vez de que el elemento crezca de
+        // alto al tener un viewBox más grande.
+        style={{ aspectRatio: `${VIEW_W} / ${VIEW_H}` }}
         className="temperature-chart"
         aria-label={texts.title}
       >

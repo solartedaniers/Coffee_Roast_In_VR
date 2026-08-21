@@ -928,6 +928,7 @@ export default function RoastingSimulation({
             temperatureUnit={temperatureUnit}
             chartStepC={chartStepC}
             texts={texts.chart}
+            fitToData={isLongFinishedRoast}
           />
         </div>
       )}

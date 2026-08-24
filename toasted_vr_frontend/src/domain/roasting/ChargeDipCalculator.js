@@ -4,10 +4,8 @@ import {
   CHARGE_DIP_LOSS_COEFF_PER_DEGREE_C,
   CHARGE_DIP_DURATION_BASE_SEC,
   CHARGE_DIP_MIN_POWER_FOR_DURATION_PCT,
-  CHARGE_DIP_FLOOR_CENTER_C,
-  CHARGE_DIP_FLOOR_SLOPE_C_PER_DEGREE,
-  CHARGE_DIP_COLD_EXTRA_DROP_MAX_C,
-  CHARGE_DIP_HOT_CUSHION_MAX_C,
+  CHARGE_DIP_FLOOR_AIR_WEIGHT,
+  MAX_SAFE_TEMP_C,
 } from './RoastConstants';
 
 // ================================================================
@@ -33,13 +31,15 @@ export default class ChargeDipCalculator {
     return Math.max(0, peakLoss * (1 - progress));
   }
 
-  // Dónde "toca fondo" el grano al cargar — rampa continua centrada en la
-  // zona segura (CHARGE_DIP_FLOOR_CENTER_C), con clamp a cada lado: más
-  // fría profundiza el piso (recuperación más lenta), más caliente lo
-  // eleva (casi no hay caída, pero llega antes al rango de quemado).
+  // Dónde "toca fondo" el grano al cargar — promedio ponderado entre el
+  // aire al cargar (variable principal, CHARGE_DIP_FLOOR_AIR_WEIGHT) y la
+  // temperatura de entrada del grano (variable secundaria): un ambiente
+  // caliente amortigua el choque térmico, así que el grano nunca "siente"
+  // del todo lo frío que estaba. Clamp de seguridad en MAX_SAFE_TEMP_C —
+  // sin techo natural propio como antes, porque el piso ahora crece
+  // proporcional al aire sin límite.
   static computeEffectiveChargeFloor(airTempAtCharge, entryTempC) {
-    const raw = CHARGE_DIP_FLOOR_SLOPE_C_PER_DEGREE * (airTempAtCharge - CHARGE_DIP_FLOOR_CENTER_C);
-    const clamped = Math.min(CHARGE_DIP_HOT_CUSHION_MAX_C, Math.max(-CHARGE_DIP_COLD_EXTRA_DROP_MAX_C, raw));
-    return entryTempC + clamped;
+    const raw = CHARGE_DIP_FLOOR_AIR_WEIGHT * airTempAtCharge + (1 - CHARGE_DIP_FLOOR_AIR_WEIGHT) * entryTempC;
+    return Math.min(MAX_SAFE_TEMP_C, raw);
   }
 }

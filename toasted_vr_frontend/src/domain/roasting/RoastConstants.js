@@ -195,22 +195,21 @@ export const CHARGE_DIP_DURATION_BASE_SEC = 45;
 export const CHARGE_DIP_MIN_POWER_FOR_DURATION_PCT = 5;
 
 // Piso real del grano al momento de cargar (dónde "toca fondo" antes de
-// empezar a subir) — ya no es siempre entryTempC fijo: una rampa continua
-// centrada en el medio de la zona segura (180-220°C), con clamp en cada
-// extremo. Cargar más frío que lo seguro profundiza el piso (menos calor
-// disponible, recuperación más lenta, riesgo de quedar crudo); cargar más
-// caliente lo eleva (el grano casi no "siente" la carga, pero llega antes
-// al rango de riesgo de quemado) — ver ChargeDipCalculator.computeEffectiveChargeFloor.
-export const CHARGE_DIP_FLOOR_CENTER_C = 200;
-export const CHARGE_DIP_FLOOR_SLOPE_C_PER_DEGREE = 1 / 6;
-// Saturan justo en los límites físicos que ya existen para el aire en el
-// resto del modelo — no números nuevos inventados: del lado frío, en
-// AMBIENT_TEMP_C (no puede haber menos calor disponible que el ambiente);
-// del lado caliente, en MAX_AIR_TEMP_C (el aire no puede pasar de ahí).
-export const CHARGE_DIP_COLD_EXTRA_DROP_MAX_C =
-  (CHARGE_DIP_FLOOR_CENTER_C - AMBIENT_TEMP_C) * CHARGE_DIP_FLOOR_SLOPE_C_PER_DEGREE;
-export const CHARGE_DIP_HOT_CUSHION_MAX_C =
-  (MAX_AIR_TEMP_C - CHARGE_DIP_FLOOR_CENTER_C) * CHARGE_DIP_FLOOR_SLOPE_C_PER_DEGREE;
+// empezar a subir) — promedio ponderado entre la temperatura del aire al
+// cargar y la temperatura de entrada del grano, con el aire como variable
+// principal: un ambiente caliente amortigua el choque térmico del grano
+// frío (el grano "no alcanza a sentir" lo frío que estaba). Con
+// AIR_WEIGHT=0.5, cargar a 200°C da un piso de ~110°C en vez de quedarse
+// cerca de la temperatura de entrada (~20°C) como antes.
+//
+// ADVERTENCIA: con este peso, el first crack ya NO cae siempre dentro de
+// la ventana 8-12 min que valida RoastThermalModel.test.js para el caso
+// de referencia (sin carga) — a partir de ~180-200°C de carga, el tueste
+// se adelanta notablemente (ver simulación de la sesión que introdujo
+// este cambio). Decisión consciente: se priorizó el realismo físico del
+// piso sobre esa ventana de tiempo. RoastThermalModel.test.js no lo
+// detecta porque simula un tueste sin fase de carga — sigue pasando.
+export const CHARGE_DIP_FLOOR_AIR_WEIGHT = 0.5;
 
 // ---- Ritmo del reloj real por fase --------------------------------
 

@@ -1,6 +1,7 @@
 package com.toastedvr.toastedvr.backend.service;
 
 import com.toastedvr.toastedvr.backend.domain.KnowledgeLevel;
+import com.toastedvr.toastedvr.backend.domain.RoastingResult;
 import com.toastedvr.toastedvr.backend.domain.RoastingSession;
 
 // ================================================================
@@ -23,10 +24,11 @@ final class RoastFeedbackPromptBuilder {
         (no hay objetos físicos: solo estos números).
         Resultado: %s. Puntaje: %d/100.
         Temperatura de carga: %s. Temperatura objetivo: %.1f°C. Temperatura final: %.1f°C.
+        Fase del tueste alcanzada al finalizar: %s.
         Duración: %d segundos. First crack alcanzado: %s. Tiempo de desarrollo \
         tras el first crack: %s segundos.
         Nivel del usuario: %s.
-
+        %s
         Escribe 2 o 3 frases en español, en texto plano, explicando qué salió \
         bien o mal según esos datos y una sugerencia concreta para el próximo \
         tueste. No inventes objetos, herramientas ni escenas que no estén en \
@@ -45,6 +47,18 @@ final class RoastFeedbackPromptBuilder {
     private static final double CHARGE_IDEAL_MIN_C = 180.0;
     private static final double CHARGE_IDEAL_MAX_C = 200.0;
 
+    // Umbrales de fase del tueste — mismos valores que MAILLARD_TEMP_START_C,
+    // MAILLARD_TEMP_END_C y SECOND_CRACK_TEMP_MIN_C en RoastConstants.js del
+    // frontend (no hay constantes compartidas entre backend y frontend hoy).
+    private static final double DRYING_PHASE_END_C = 131.0;
+    private static final double MAILLARD_PHASE_END_C = 179.0;
+    private static final double SECOND_CRACK_PHASE_START_C = 224.0;
+
+    private static final String DRYING_PHASE_LABEL = "Secado";
+    private static final String MAILLARD_PHASE_LABEL = "Caramelización (reacción de Maillard)";
+    private static final String FIRST_CRACK_PHASE_LABEL = "Primer Crack";
+    private static final String SECOND_CRACK_PHASE_LABEL = "Segundo Crack";
+
     private RoastFeedbackPromptBuilder() {
     }
 
@@ -58,12 +72,49 @@ final class RoastFeedbackPromptBuilder {
                 : NOT_AVAILABLE,
             session.getTargetTemperature(),
             session.getFinalTemperature(),
+            resolveRoastPhaseLabel(session.getFinalTemperature()),
             session.getTotalDurationSeconds(),
             Boolean.TRUE.equals(session.isFirstCrackReached()) ? YES : NO,
             session.getDevelopmentTimeSeconds() != null ? session.getDevelopmentTimeSeconds().toString() : NOT_AVAILABLE,
             shortLabelFor(level),
+            secondCrackZoneNote(session),
             vocabularyReminderFor(level)
         );
+    }
+
+    // Traduce la temperatura final a la fase oficial del tueste alcanzada
+    // (Secado, Caramelización, Primer Crack o Segundo Crack) — mismo umbral
+    // que GrainAppearanceModel.getGrainStateName() del frontend, colapsando
+    // sus estados intermedios (DARK) dentro de "Primer Crack", que sigue
+    // siendo la fase vigente hasta el segundo crack.
+    private static String resolveRoastPhaseLabel(double finalTemperature) {
+        if (finalTemperature <= DRYING_PHASE_END_C) {
+            return DRYING_PHASE_LABEL;
+        }
+        if (finalTemperature <= MAILLARD_PHASE_END_C) {
+            return MAILLARD_PHASE_LABEL;
+        }
+        if (finalTemperature < SECOND_CRACK_PHASE_START_C) {
+            return FIRST_CRACK_PHASE_LABEL;
+        }
+        return SECOND_CRACK_PHASE_LABEL;
+    }
+
+    // Cuando el tueste terminó en zona de segundo crack pero el resultado es
+    // BURNED (el techo de quemado queda debajo de esa zona a propósito, ver
+    // RoastFlavorProfileDescriber.js del frontend), le pide al modelo que
+    // explique la causa real en vez de solo decir "se quemó".
+    private static String secondCrackZoneNote(RoastingSession session) {
+        boolean reachedSecondCrackZone = session.getResult() == RoastingResult.BURNED
+            && session.getFinalTemperature() >= SECOND_CRACK_PHASE_START_C;
+        if (!reachedSecondCrackZone) {
+            return "";
+        }
+        return "Importante: esta sesión llegó a temperatura de SEGUNDO CRACK. Debes decir, con esta idea "
+            + "exacta y sin suavizarla: la temperatura alcanzada habría sido ideal para un tueste OSCURO, "
+            + "pero este simulador valida un perfil de tueste MEDIO, por eso el resultado es quemado. "
+            + "No uses frases vagas como \"se tostó correctamente hasta cierto punto\" ni evites nombrar "
+            + "el segundo crack o la palabra OSCURO.";
     }
 
     // Le señala al modelo cuando la carga quedó fuera del rango

@@ -5,6 +5,7 @@ import {
   BURN_CONSECUTIVE_LIMIT_SEC,
   MAILLARD_STAGNATION_LIMIT_SEC,
   RAW_TEMP_CEILING_C,
+  SECOND_CRACK_TEMP_MIN_C,
 } from './RoastConstants';
 
 // ================================================================
@@ -34,6 +35,11 @@ export default class RoastFlavorProfileDescriber {
         return RAW_TEMP_CEILING_C - finalTemperature > 15 ? 'RAW_SEVERE' : 'RAW_CLOSE';
 
       case RESULTS.BURNED:
+        // Distingue "quemado real" de "entró en zona de segundo crack": el
+        // techo de quemado (BURN_ABSOLUTE_CEILING_TEMP_C) queda por debajo
+        // de SECOND_CRACK_TEMP_MIN_C a propósito, así que este resultado
+        // sigue siendo BURNED, pero la causa es otra y merece otro texto.
+        if (finalTemperature >= SECOND_CRACK_TEMP_MIN_C) return 'BURNED_SECOND_CRACK_ZONE';
         return maxConsecutiveBurnSeconds - BURN_CONSECUTIVE_LIMIT_SEC > BURN_CONSECUTIVE_LIMIT_SEC
           ? 'BURNED_SEVERE'
           : 'BURNED_MILD';

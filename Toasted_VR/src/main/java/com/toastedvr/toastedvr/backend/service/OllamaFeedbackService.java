@@ -21,7 +21,7 @@ import org.springframework.web.client.RestClient;
 public class OllamaFeedbackService {
 
     private static final Logger log = LoggerFactory.getLogger(OllamaFeedbackService.class);
-    private static final String MODEL_NAME = "phi3";
+    private static final String MODEL_NAME = "phi4-mini";
     private static final String GENERATE_ENDPOINT = "/api/generate";
     private static final String RESPONSE_FIELD = "response";
     private static final int CONNECT_TIMEOUT_MS = 5_000;

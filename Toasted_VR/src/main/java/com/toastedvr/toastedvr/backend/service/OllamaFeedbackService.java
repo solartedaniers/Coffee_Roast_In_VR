@@ -25,8 +25,8 @@ public class OllamaFeedbackService {
     private static final String GENERATE_ENDPOINT = "/api/generate";
     private static final String RESPONSE_FIELD = "response";
     private static final int CONNECT_TIMEOUT_MS = 5_000;
-    // Phi-3 sobre CPU puede tardar hasta ~50s solo en cargar el modelo si
-    // Ollama lo había descargado de memoria (ver KEEP_ALIVE_DURATION).
+    // Phi-4-mini sobre CPU puede tardar hasta ~50s solo en cargar el modelo
+    // si Ollama lo había descargado de memoria (ver KEEP_ALIVE_DURATION).
     private static final int READ_TIMEOUT_MS = 120_000;
     // Le pide a Ollama que mantenga el modelo cargado en memoria tras cada
     // respuesta, para que la siguiente petición no pague de nuevo el costo
@@ -55,7 +55,7 @@ public class OllamaFeedbackService {
                 "prompt", RoastFeedbackPromptBuilder.build(session, knowledgeLevel),
                 "stream", false,
                 "keep_alive", KEEP_ALIVE_DURATION,
-                // phi3 a veces sigue generando texto tras un salto de línea
+                // phi4-mini a veces sigue generando texto tras un salto de línea
                 // doble (repite instrucciones o inventa una sección nueva).
                 // "stop" lo evita casi siempre; el corte en cutAtFirstBlankLine
                 // es el respaldo para cuando no lo evita.

@@ -100,7 +100,7 @@ JPA_SHOW_SQL=true
    ```
 4. La aplicacion quedara disponible en `http://localhost:3000`.
 
-### 3. Retroalimentacion con IA (Ollama + Phi-3) - Opcional
+### 3. Retroalimentacion con IA (Ollama + Phi-4-mini) - Opcional
 
 El backend usa un modelo local via [Ollama](https://ollama.com) para generar
 la retroalimentacion de IA que se muestra al finalizar un tueste.
@@ -109,7 +109,7 @@ la retroalimentacion de IA que se muestra al finalizar un tueste.
 1. Instala Ollama desde [https://ollama.com](https://ollama.com).
 2. Descarga el modelo:
    ```bash
-   ollama pull phi3
+   ollama pull phi4-mini
    ```
 3. Confirma que quedo instalado:
    ```bash

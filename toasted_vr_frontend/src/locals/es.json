@@ -332,7 +332,7 @@
         "PREHEAT": "Sube la Potencia % Llama desde el panel de control manual hasta que el horno alcance tu temperatura de carga. Increm °T te muestra qué tan rápido está subiendo.",
         "READY": "Haz clic en Cargar granos. Al entrar, los granos absorberán calor y la temperatura de café bajará antes de iniciar la tostión real.",
         "CHARGE_DIP": "Observa la caída de temperatura. Esta absorción de calor simula la carga de granos y prepara el sistema para controlar la curva.",
-        "ROASTING": "Ajusta la Potencia % Llama con cuidado según Increm °T y la distancia a tu Temp Ctrl: alrededor del 30% suele ser un valor eficiente y estable; mantener el 100% sostenido es un riesgo extremo. El crack ocurre entre 189°C y 198°C. Descarga después del first crack cuando el desarrollo sea equilibrado (idealmente entre 15% y 25% del tiempo total), y nunca dejes el café más de 15 s sobre 200°C.",
+        "ROASTING": "Ajusta la Potencia % Llama con cuidado según Increm °T y la distancia a tu Temp Ctrl: alrededor del 30% suele ser un valor eficiente y estable; mantener el 100% sostenido es un riesgo extremo. El crack ocurre entre 196°C y 205°C. Descarga después del first crack cuando el desarrollo sea equilibrado (idealmente entre 15% y 25% del tiempo total), y nunca dejes el café más de 15 s sobre 200°C.",
         "FINISHED": "Revisa la curva, la temperatura final y el tiempo de desarrollo. Usa esa retroalimentación para ajustar tu siguiente intento."
       },
       "focused": {

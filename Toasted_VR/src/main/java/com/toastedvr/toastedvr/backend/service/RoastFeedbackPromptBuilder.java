@@ -13,10 +13,14 @@ import com.toastedvr.toastedvr.backend.domain.RoastingSession;
 // ================================================================
 final class RoastFeedbackPromptBuilder {
 
-    // Todo en un solo bloque "prompt" (sin campo "system" separado): en
-    // pruebas directas contra Ollama, dividir instrucciones/datos entre
-    // "system" y "prompt" hizo que phi3 alucinara secciones tipo tutorial
-    // (Q&A, encabezados) en vez de responder directo. La frase final
+    // Todo en un solo bloque "prompt" (sin campo "system" separado): hallazgo
+    // histórico con phi3 — dividir instrucciones/datos entre "system" y
+    // "prompt" lo hacía alucinar secciones tipo tutorial (Q&A, encabezados)
+    // en vez de responder directo. Reverificado directamente contra Ollama
+    // con phi4-mini (2026-08-26): con esa misma separación no reprodujo el
+    // problema, respondió en prosa plana sin encabezados ni Q&A. La
+    // estructura de un solo bloque se mantiene de todas formas porque no
+    // tiene costo y sigue siendo la más simple. La frase final
     // "Retroalimentación:" es la pista para que el modelo continúe
     // directo con la respuesta en vez de reformular las instrucciones.
     private static final String PROMPT_TEMPLATE = """
@@ -144,7 +148,10 @@ final class RoastFeedbackPromptBuilder {
     // Recordatorio con ejemplos concretos de palabras, repetido justo antes
     // de "Retroalimentación:" (donde el modelo empieza a generar) porque una
     // sola mención de nivel entre los datos numéricos no bastaba para que
-    // phi3 cambiara el registro del texto entre niveles.
+    // phi4-mini cambiara el registro del texto entre niveles (comportamiento
+    // heredado de phi3, reverificado directamente contra Ollama el
+    // 2026-08-26: sin este recordatorio repetido, principiante y avanzado
+    // generaron texto casi idéntico en vocabulario).
     private static String vocabularyReminderFor(KnowledgeLevel level) {
         return switch (level) {
             case BEGINNER -> "Recuerda: nivel principiante. Usa palabras simples como \"tueste\", "

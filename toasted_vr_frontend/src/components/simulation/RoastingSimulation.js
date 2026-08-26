@@ -601,7 +601,7 @@ export default function RoastingSimulation({
   // ── Valores derivados para el render ────────────────────────────
 
   const s = simState;
-  const grainStateLabel = texts.grainStates[GrainAppearanceModel.getGrainStateName(s.temperature)];
+  const grainStateLabel = texts.grainStates[GrainAppearanceModel.getGrainStateName(s.temperature, s.firstCrackReached)];
   const showBeans =
     s.phase === PHASES.CHARGE_DIP || s.phase === PHASES.ROASTING || s.phase === PHASES.FINISHED;
   const guidanceText = getGuidanceText(texts, s.phase, currentUser.knowledgeLevel);

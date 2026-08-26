@@ -1,6 +1,7 @@
 import {
   MAILLARD_TEMP_START_C,
   MAILLARD_TEMP_END_C,
+  FIRST_CRACK_TEMP_MIN_C,
   FIRST_CRACK_TEMP_MAX_C,
   SECOND_CRACK_TEMP_MAX_C,
   BURN_ABSOLUTE_CEILING_TEMP_C,
@@ -10,13 +11,19 @@ import {
 // Pigmento del grano en cada punto de temperatura — esto es física
 // simulada (cómo se ve el café), no un color de diseño, por eso vive
 // aquí como dato de dominio y no en los tokens CSS.
+//
+// Con el rango de first crack actualizado (196-205°C), FIRST_CRACK_TEMP_MIN_C
+// (196) queda por debajo de MAILLARD_TEMP_END_C y de BURN_THRESHOLD_TEMP_C
+// (ambos en 200) — el stop de "fin de Maillard" que existía antes (179°C)
+// coincidiría con BURN_THRESHOLD_TEMP_C y rompería el orden ascendente que
+// necesita interpolateColor(). Se elimina ese stop intermedio: el gradiente
+// pasa de 5 a 4 puntos (verde → tostado claro → marrón → marrón oscuro),
+// sin el matiz "fin de Maillard" que quedaba entre 179-189°C.
 const GRAIN_COLOR_STOPS = [
   [20, [112, 130, 56]],
-  [130, [230, 214, 144]],
-  [179, [179, 139, 109]],
-  [189, [123, 63, 0]],
-  [198, [59, 34, 25]],
-  [BURN_THRESHOLD_TEMP_C, [26, 17, 16]],
+  [MAILLARD_TEMP_START_C, [230, 214, 144]],
+  [FIRST_CRACK_TEMP_MIN_C, [123, 63, 0]],
+  [FIRST_CRACK_TEMP_MAX_C, [59, 34, 25]],
 ];
 
 const GRAIN_STATES = Object.freeze({

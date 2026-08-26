@@ -56,12 +56,16 @@ function runReferenceRoast(totalSeconds, { density = BEAN_DENSITY_REFERENCE, moi
   return { airTemp, beanTemp, moisturePct, firstCrackTimeSeconds, firstCrackThresholdTemp };
 }
 
-test('el lote de referencia a potencia eficiente (30%) llega al first crack entre 8 y 12 minutos', () => {
+// Ventana actualizada junto con FIRST_CRACK_TEMP_MIN_C/MAX_C (196-205°C,
+// antes 189-198°C, ver RoastConstants.js): el rango real medido para el
+// lote de referencia con el umbral nuevo es 11:37-12:53 (verificado con
+// simulación numérica antes de aplicar el cambio).
+test('el lote de referencia a potencia eficiente (30%) llega al first crack entre 11 y 13 minutos', () => {
   const { firstCrackTimeSeconds } = runReferenceRoast(25 * 60);
 
   expect(firstCrackTimeSeconds).not.toBeNull();
-  expect(firstCrackTimeSeconds).toBeGreaterThanOrEqual(8 * 60);
-  expect(firstCrackTimeSeconds).toBeLessThanOrEqual(12 * 60);
+  expect(firstCrackTimeSeconds).toBeGreaterThanOrEqual(11 * 60);
+  expect(firstCrackTimeSeconds).toBeLessThanOrEqual(13 * 60);
 });
 
 test('a los 12-15 minutos (ventana de tueste típica) el grano está en tueste, no crudo ni quemado', () => {

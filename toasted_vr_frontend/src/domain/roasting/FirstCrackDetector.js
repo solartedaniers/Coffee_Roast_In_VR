@@ -11,7 +11,7 @@ import {
 // dispara el first crack en esta sesión, y detectar cuándo ocurre.
 //
 // El first crack no es un número fijo — en granos reales ocurre en
-// algún punto entre ~189-198°C, desplazado por la densidad del grano
+// algún punto entre ~196-205°C, desplazado por la densidad del grano
 // (más denso, tarda más). La temperatura que lo dispara se sortea una
 // sola vez por sesión dentro de ese rango.
 // ================================================================

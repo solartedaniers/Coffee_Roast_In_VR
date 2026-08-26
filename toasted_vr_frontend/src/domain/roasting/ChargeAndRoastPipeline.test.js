@@ -68,12 +68,15 @@ function runChargeAndRoast(airTempAtCharge, flamePowerPercent, maxSeconds, { ent
   return { beanTemp, firstCrackTimeSeconds, beanAt13Min };
 }
 
+// Ventanas actualizadas junto con FIRST_CRACK_TEMP_MIN_C/MAX_C (196-205°C,
+// antes 189-198°C, ver RoastConstants.js) — recalculadas con simulación
+// numérica para cada temperatura de carga antes de aplicar el cambio.
 test.each([
-  [100, 8, 11],
-  [150, 7, 10],
-  [200, 6, 9],
-  [264, 4, 7],
-  [300, 3, 6],
+  [100, 10, 12],
+  [150, 9, 11],
+  [200, 8, 10],
+  [264, 6, 8],
+  [300, 5, 7],
 ])(
   'carga a %i°C: first crack cae entre %i y %i minutos (alarma si esto se mueve)',
   (airTempAtCharge, minMinutes, maxMinutes) => {

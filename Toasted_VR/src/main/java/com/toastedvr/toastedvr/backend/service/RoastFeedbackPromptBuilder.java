@@ -50,8 +50,8 @@ final class RoastFeedbackPromptBuilder {
     // Umbrales de fase del tueste — mismos valores que MAILLARD_TEMP_START_C,
     // MAILLARD_TEMP_END_C y SECOND_CRACK_TEMP_MIN_C en RoastConstants.js del
     // frontend (no hay constantes compartidas entre backend y frontend hoy).
-    private static final double DRYING_PHASE_END_C = 131.0;
-    private static final double MAILLARD_PHASE_END_C = 179.0;
+    private static final double DRYING_PHASE_END_C = 160.0;
+    private static final double MAILLARD_PHASE_END_C = 200.0;
     private static final double SECOND_CRACK_PHASE_START_C = 224.0;
 
     private static final String DRYING_PHASE_LABEL = "Secado";

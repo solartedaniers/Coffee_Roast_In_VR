@@ -227,8 +227,10 @@ export const RATE_OF_RISE_WINDOW_SEC = 30;
 
 // ---- First crack ---------------------------------------------------
 
-export const FIRST_CRACK_TEMP_MIN_C = 189;
-export const FIRST_CRACK_TEMP_MAX_C = 198;
+// Rango actualizado según Debona et al. 2022 / Bustos-Vanegas et al. 2025
+// (antes 189-198°C).
+export const FIRST_CRACK_TEMP_MIN_C = 196;
+export const FIRST_CRACK_TEMP_MAX_C = 205;
 
 // ---- Second crack ---------------------------------------------------
 
@@ -247,7 +249,10 @@ export const BURN_CONSECUTIVE_LIMIT_SEC = 15;
 // ahí. Queda por encima de BURN_THRESHOLD_TEMP_C a propósito, para
 // permitir tuestes medios y medios-altos que pasan por los 200°C
 // brevemente sin penalizarlos injustamente.
-export const BURN_ABSOLUTE_CEILING_TEMP_C = 213;
+// Subido de 213 a 217 junto con el rango de first crack (arriba), para
+// preservar el mismo margen de ~15°C entre el tope de first crack y el
+// techo de quemado que existía antes del cambio.
+export const BURN_ABSOLUTE_CEILING_TEMP_C = 217;
 
 // Condición combinada (sección 5 del modelo): un incremento de temperatura
 // demasiado agresivo mientras casi no queda humedad para amortiguarlo
@@ -257,8 +262,14 @@ export const MOISTURE_SCORCH_THRESHOLD_PCT = 2;
 
 // ---- Estancamiento en Maillard (defecto "horneado") --------------------
 
-export const MAILLARD_TEMP_START_C = 131;
-export const MAILLARD_TEMP_END_C = 179;
+// Rango actualizado según Debona et al. 2022 / Bustos-Vanegas et al. 2025
+// (antes 131-179°C). NOTA: 200°C queda por encima de FIRST_CRACK_TEMP_MIN_C
+// (196°C) — un tueste puede cruar el first crack antes de que el modelo
+// considere terminada la fase Maillard. Aceptado a propósito: afecta solo
+// la etiqueta de fase mostrada (GrainAppearanceModel/RoastFeedbackPromptBuilder)
+// en una franja de 4°C, no el puntaje ni la física.
+export const MAILLARD_TEMP_START_C = 160;
+export const MAILLARD_TEMP_END_C = 200;
 export const MAILLARD_STAGNATION_LIMIT_SEC = 30;
 
 // ---- Controlador del modo automático -----------------------------------

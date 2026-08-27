@@ -148,10 +148,15 @@ final class RoastFeedbackPromptBuilder {
     // Recordatorio con ejemplos concretos de palabras, repetido justo antes
     // de "Retroalimentación:" (donde el modelo empieza a generar) porque una
     // sola mención de nivel entre los datos numéricos no bastaba para que
-    // phi4-mini cambiara el registro del texto entre niveles (comportamiento
-    // heredado de phi3, reverificado directamente contra Ollama el
-    // 2026-08-26: sin este recordatorio repetido, principiante y avanzado
-    // generaron texto casi idéntico en vocabulario).
+    // phi3 cambiara el registro del texto entre niveles. Verificado contra
+    // Ollama con phi4-mini el 2026-08-26 con dos pruebas: (1) el mismo
+    // prompt pero SIN este recordatorio repetido → principiante y avanzado
+    // dieron texto casi idéntico (mismo problema heredado de phi3);
+    // (2) el prompt REAL completo tal como lo arma build() hoy, CON este
+    // recordatorio → el registro sí se diferenció bien (avanzado usó "DTR",
+    // "reacción de Maillard" y "ratio de desarrollo"; principiante no usó
+    // jerga). Conclusión: el sistema en producción funciona correctamente;
+    // el recordatorio sigue siendo necesario para que funcione.
     private static String vocabularyReminderFor(KnowledgeLevel level) {
         return switch (level) {
             case BEGINNER -> "Recuerda: nivel principiante. Usa palabras simples como \"tueste\", "

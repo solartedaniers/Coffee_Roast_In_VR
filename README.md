@@ -82,7 +82,7 @@ JPA_SHOW_SQL=true
 ### 2. Frontend (`toasted_vr_frontend`)
 
 **Requisitos previos**
-- Node.js 18 o superior.
+- Node.js 18 o superior (probado con Node 24.19.0; `package-lock.json` fue regenerado con esa version, pero no exige una version exacta).
 - NPM instalado.
 
 **Ejecutar el frontend**

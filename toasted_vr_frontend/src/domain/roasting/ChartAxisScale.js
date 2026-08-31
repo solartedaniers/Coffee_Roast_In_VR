@@ -9,26 +9,27 @@ import { CHART_VERTICAL_STEP_C, CHART_VERTICAL_TICK_COUNT } from './RoastConstan
 // sube la temperatura del tueste.
 // ================================================================
 export default class ChartAxisScale {
-  static computeVerticalTicks(maxObservedTemp, stepC = CHART_VERTICAL_STEP_C) {
+  // minObservedTemp asegura que el piso del eje nunca quede por encima
+  // del dato más bajo que hay que dibujar (ej. la temperatura ambiente al
+  // encender, o la caída al cargar el café) — sin esto, un dato bajo cae
+  // fuera del área dibujada porque el piso solo se calculaba a partir del
+  // techo. Sigue dando CHART_VERTICAL_TICK_COUNT marcas como mínimo; solo
+  // agrega más hacia abajo cuando el dato realmente lo necesita.
+  static computeVerticalTicks(minObservedTemp, maxObservedTemp, stepC = CHART_VERTICAL_STEP_C) {
     const headRoom = stepC;
     const topTick = Math.max(
       stepC * CHART_VERTICAL_TICK_COUNT,
       Math.ceil((maxObservedTemp + headRoom) / stepC) * stepC
     );
+    const defaultBottomTick = topTick - (CHART_VERTICAL_TICK_COUNT - 1) * stepC;
+    const bottomTick = Math.min(
+      defaultBottomTick,
+      Math.max(0, Math.floor((minObservedTemp - headRoom) / stepC) * stepC)
+    );
 
     const ticks = [];
-    for (let i = CHART_VERTICAL_TICK_COUNT - 1; i >= 0; i--) {
-      ticks.push(topTick - i * stepC);
-    }
-    return ticks;
-  }
-
-  static computeHorizontalTicks(maxObservedMinutes, tickCount) {
-    const span = Math.max(maxObservedMinutes, tickCount);
-    const step = Math.max(1, Math.ceil(span / tickCount));
-    const ticks = [];
-    for (let i = 0; i <= tickCount; i++) {
-      ticks.push(Math.min(span, i * step));
+    for (let tick = bottomTick; tick <= topTick; tick += stepC) {
+      ticks.push(tick);
     }
     return ticks;
   }

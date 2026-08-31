@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 
 public record SaveSessionRequest(
+    @NotNull Double chargeTemperature,
     @NotNull Double targetTemperature,
     @NotNull @Positive Integer totalDurationSeconds,
     @NotNull Double finalTemperature,

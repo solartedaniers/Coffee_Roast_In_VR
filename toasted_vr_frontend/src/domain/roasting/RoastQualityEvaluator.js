@@ -1,9 +1,16 @@
-import { RESULTS, DEFECT_SCORE_MIN, DEFECT_SCORE_MAX } from './RoastConstants';
+import {
+  RESULTS,
+  DEFECT_SCORE_MIN,
+  DEFECT_SCORE_MAX,
+  PERFECT_SCORE_MIN,
+  PERFECT_SCORE_MAX,
+} from './RoastConstants';
 import KnowledgeLevelRules from './KnowledgeLevelRules';
 import RawRoastEvaluator from './RawRoastEvaluator';
 import BurnedRoastEvaluator from './BurnedRoastEvaluator';
 import MaillardStagnationEvaluator from './MaillardStagnationEvaluator';
 import PerfectRoastEvaluator from './PerfectRoastEvaluator';
+import ChargeTemperaturePenaltyCalculator from './ChargeTemperaturePenaltyCalculator';
 
 function clampDefectScore(baseScore, adjustment) {
   return Math.max(DEFECT_SCORE_MIN, Math.min(DEFECT_SCORE_MAX, Math.round(baseScore + adjustment)));
@@ -28,30 +35,48 @@ export default class RoastQualityEvaluator {
       roastingElapsedSeconds,
       maillardStagnationSeconds,
       maillardStagnationFlag,
+      chargeTemperature,
     } = finishedSim;
+
+    // Penalización por temperatura de carga fuera del rango recomendado
+    // (180-200°C): se aplica sobre cualquier resultado, no solo el
+    // Perfecto — cargar demasiado frío o caliente afecta el tueste
+    // completo, no solo su desenlace final.
+    const chargeTempPenalty = ChargeTemperaturePenaltyCalculator.computePenalty(chargeTemperature);
 
     if (RawRoastEvaluator.isRaw(firstCrackReached, finalTemperature)) {
       const baseScore = RawRoastEvaluator.computeBaseScore(finalTemperature);
-      return { score: clampDefectScore(baseScore, rules.defectScoreAdjustment), result: RESULTS.RAW };
+      const score = clampDefectScore(baseScore, rules.defectScoreAdjustment - chargeTempPenalty);
+      return { score, result: RESULTS.RAW };
     }
 
     if (BurnedRoastEvaluator.isBurned(burnedFlag, finalTemperature)) {
       const baseScore = BurnedRoastEvaluator.computeBaseScore(maxConsecutiveBurnSeconds);
-      return { score: clampDefectScore(baseScore, rules.defectScoreAdjustment), result: RESULTS.BURNED };
+      const score = clampDefectScore(baseScore, rules.defectScoreAdjustment - chargeTempPenalty);
+      return { score, result: RESULTS.BURNED };
     }
 
     if (maillardStagnationFlag) {
       const baseScore = MaillardStagnationEvaluator.computeBaseScore(maillardStagnationSeconds);
-      return { score: clampDefectScore(baseScore, rules.defectScoreAdjustment), result: RESULTS.BAKED };
+      const score = clampDefectScore(baseScore, rules.defectScoreAdjustment - chargeTempPenalty);
+      return { score, result: RESULTS.BAKED };
     }
 
     const developmentSeconds = roastingElapsedSeconds - (firstCrackTimeSeconds || 0);
-    const score = PerfectRoastEvaluator.computeScore(
+    const { score: baseScore, tempPenalty, timePenalty, dtrPenalty } = PerfectRoastEvaluator.computeBreakdown(
       finalTemperature,
       roastingElapsedSeconds,
       developmentSeconds,
       rules.penaltyMultiplier
     );
-    return { score, result: RESULTS.PERFECT };
+    const score = Math.max(
+      PERFECT_SCORE_MIN,
+      Math.min(PERFECT_SCORE_MAX, Math.round(baseScore - chargeTempPenalty))
+    );
+    return {
+      score,
+      result: RESULTS.PERFECT,
+      breakdown: { tempPenalty, timePenalty, dtrPenalty, chargeTempPenalty: Math.round(chargeTempPenalty) },
+    };
   }
 }

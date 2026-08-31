@@ -1,5 +1,6 @@
 import React from 'react';
 import GrainAppearanceModel from '../../domain/roasting/GrainAppearanceModel';
+import RoastFlavorProfileDescriber from '../../domain/roasting/RoastFlavorProfileDescriber';
 import RoastMetrics from '../../domain/roasting/RoastMetrics';
 import TemperatureUnitConverter from '../../domain/roasting/TemperatureUnitConverter';
 
@@ -13,6 +14,8 @@ export default function RoastResultsPanel({
   roastResult,
   savingState,
   saveErrorDetail,
+  feedbackState,
+  feedbackText,
   temperatureUnit,
   texts,
   onNewSimulation,
@@ -21,6 +24,13 @@ export default function RoastResultsPanel({
   const smokeLevel = GrainAppearanceModel.getSmokeLevel(sim.finalTemperature ?? sim.temperature);
   const isBurntSmoke = GrainAppearanceModel.isBurntSmoke(sim.finalTemperature ?? sim.temperature);
   const showSmoke = smokeLevel !== 'none';
+  const descriptionKey =
+    roastResult.score === 100 ? 'PERFECT_100' : RoastFlavorProfileDescriber.describe({ ...sim, result: roastResult.result });
+  const breakdownLines = roastResult.breakdown
+    ? Object.entries(roastResult.breakdown)
+        .filter(([, points]) => points > 0)
+        .map(([key, points]) => texts.breakdown[key].replace('{points}', points))
+    : [];
 
   return (
     <div className="sim-results-section">
@@ -50,13 +60,18 @@ export default function RoastResultsPanel({
             {texts[roastResult.result]}
           </div>
 
-          <p className="result-description">
-            {roastResult.score === 100
-              ? texts.descriptions.PERFECT_100
-              : roastResult.result === 'PERFECT'
-                ? texts.descriptions.PERFECT_GOOD
-                : texts.descriptions[roastResult.result]}
-          </p>
+          <p className="result-description">{texts.descriptions[descriptionKey]}</p>
+
+          {breakdownLines.length > 0 && (
+            <div className="result-breakdown">
+              <span className="result-breakdown-title">{texts.breakdown.title}</span>
+              <ul className="result-breakdown-list">
+                {breakdownLines.map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <div className="results-stats">
             <div className="stat-row">
@@ -93,6 +108,17 @@ export default function RoastResultsPanel({
               {texts.saveError}
               {saveErrorDetail ? ` (${saveErrorDetail})` : ''}
             </p>
+          )}
+
+          {(feedbackState === 'loading' || feedbackState === 'ready' || feedbackState === 'unavailable') && (
+            <div className="sim-ai-feedback">
+              <h4 className="sim-ai-feedback-title">{texts.feedback.title}</h4>
+              {feedbackState === 'loading' && <p className="sim-feedback-loading-text">{texts.feedback.loading}</p>}
+              {feedbackState === 'ready' && <p className="sim-feedback-text">{feedbackText}</p>}
+              {feedbackState === 'unavailable' && (
+                <p className="sim-feedback-unavailable-text">{texts.feedback.unavailable}</p>
+              )}
+            </div>
           )}
 
           <button

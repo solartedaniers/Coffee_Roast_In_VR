@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   OPERATION_MODES,
   TEMPERATURE_UNITS,
@@ -13,9 +13,9 @@ import {
 // GeneralSettingsPanel
 // Responsabilidad única: la pantalla "Configuración general" que se
 // abre desde el menú del HMI — calibración de sensores, alarmas de
-// seguridad, modo de operación, enlace de red/PLC y preferencias de
-// visualización/unidades. Solo renderiza ajustes del equipo y avisa
-// los cambios hacia arriba; no toca el estado de la simulación.
+// seguridad, modo de operación y preferencias de visualización/unidades.
+// Solo renderiza ajustes del equipo y avisa los cambios hacia arriba;
+// no toca el estado de la simulación.
 // ================================================================
 export default function GeneralSettingsPanel({
   texts,
@@ -32,16 +32,7 @@ export default function GeneralSettingsPanel({
   chartStepC,
   onChangeChartStepC,
 }) {
-  const [plcHost, setPlcHost] = useState('192.168.1.50');
-  const [plcPort, setPlcPort] = useState('502');
-  const [connectionStatus, setConnectionStatus] = useState('idle');
-
   if (!isOpen) return null;
-
-  const handleTestConnection = () => {
-    setConnectionStatus('testing');
-    setTimeout(() => setConnectionStatus('ok'), 700);
-  };
 
   return (
     <div className="profile-modal-backdrop" role="dialog" aria-modal="true" aria-label={texts.title}>
@@ -106,44 +97,6 @@ export default function GeneralSettingsPanel({
             >
               {texts.mode.auto}
             </button>
-          </div>
-        </section>
-
-        <section className="settings-section">
-          <h3 className="profile-section-title">{texts.network.title}</h3>
-          <p className="sim-hint-text">{texts.network.description}</p>
-          <div className="settings-field-row">
-            <label className="settings-field">
-              <span>{texts.network.hostLabel}</span>
-              <input
-                type="text"
-                className="field-input"
-                value={plcHost}
-                onChange={(event) => {
-                  setPlcHost(event.target.value);
-                  setConnectionStatus('idle');
-                }}
-              />
-            </label>
-            <label className="settings-field settings-field-narrow">
-              <span>{texts.network.portLabel}</span>
-              <input
-                type="text"
-                className="field-input"
-                value={plcPort}
-                onChange={(event) => {
-                  setPlcPort(event.target.value);
-                  setConnectionStatus('idle');
-                }}
-              />
-            </label>
-          </div>
-          <div className="settings-connection-row">
-            <button type="button" className="secondary-button" onClick={handleTestConnection}>
-              {texts.network.testButton}
-            </button>
-            {connectionStatus === 'testing' && <span className="sim-hint-text">{texts.network.testing}</span>}
-            {connectionStatus === 'ok' && <span className="sim-saved-text">{texts.network.connected}</span>}
           </div>
         </section>
 

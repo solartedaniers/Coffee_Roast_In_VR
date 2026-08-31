@@ -26,6 +26,13 @@ public class RoastingSession {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    // Sin nullable = false: Hibernate agrega esta columna con ddl-auto
+    // update, y un ALTER TABLE ADD COLUMN NOT NULL falla si la tabla ya
+    // tiene filas (no hay valor para las existentes). La obligatoriedad
+    // real para sesiones nuevas ya la exige @NotNull en SaveSessionRequest.
+    @Column
+    private Double chargeTemperature;
+
     @Column(nullable = false)
     private Double targetTemperature;
 
@@ -58,6 +65,7 @@ public class RoastingSession {
 
     public RoastingSession(
         User user,
+        Double chargeTemperature,
         Double targetTemperature,
         Integer totalDurationSeconds,
         Double finalTemperature,
@@ -68,6 +76,7 @@ public class RoastingSession {
         Integer developmentTimeSeconds
     ) {
         this.user = user;
+        this.chargeTemperature = chargeTemperature;
         this.targetTemperature = targetTemperature;
         this.totalDurationSeconds = totalDurationSeconds;
         this.finalTemperature = finalTemperature;
@@ -87,6 +96,7 @@ public class RoastingSession {
 
     public Long getId() { return id; }
     public User getUser() { return user; }
+    public Double getChargeTemperature() { return chargeTemperature; }
     public Double getTargetTemperature() { return targetTemperature; }
     public Integer getTotalDurationSeconds() { return totalDurationSeconds; }
     public Double getFinalTemperature() { return finalTemperature; }

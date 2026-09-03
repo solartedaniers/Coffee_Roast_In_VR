@@ -18,3 +18,6 @@ app:
     expiration-seconds: 3600
   mail:
     enabled: false
+  unity-code:
+    hmac-pepper: unity-access-code-test-pepper
+    encryption-key: MDEyMzQ1Njc4OUFCQ0RFRjAxMjM0NTY3ODlBQkNERUY=

@@ -39,6 +39,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final TokenBlacklistService tokenBlacklistService;
     private final AuditService auditService;
+    private final UnityAccessCodeService unityAccessCodeService;
     private final int codeExpirationMinutes;
 
     public AuthService(
@@ -49,6 +50,7 @@ public class AuthService {
         JwtService jwtService,
         TokenBlacklistService tokenBlacklistService,
         AuditService auditService,
+        UnityAccessCodeService unityAccessCodeService,
         @Value("${app.verification.code-expiration-minutes:15}") int codeExpirationMinutes
     ) {
         this.userRepository = userRepository;
@@ -58,6 +60,7 @@ public class AuthService {
         this.jwtService = jwtService;
         this.tokenBlacklistService = tokenBlacklistService;
         this.auditService = auditService;
+        this.unityAccessCodeService = unityAccessCodeService;
         this.codeExpirationMinutes = codeExpirationMinutes;
     }
 
@@ -151,6 +154,22 @@ public class AuthService {
             throw new AccountBlockedException("La cuenta se encuentra bloqueada.");
         }
 
+        return createLoginResponse(user);
+    }
+
+    @Transactional
+    public LoginResponse loginWithUnityAccessCode(String code) {
+        User user = unityAccessCodeService.findUserByCode(code)
+            .orElseThrow(() -> new AuthenticationFailedException("Invalid Unity access code."));
+
+        if (!user.isEmailVerified() || !user.isEnabled()) {
+            throw new AuthenticationFailedException("Invalid Unity access code.");
+        }
+
+        return createLoginResponse(user);
+    }
+
+    private LoginResponse createLoginResponse(User user) {
         String refreshToken = jwtService.generateRefreshToken();
         user.updateRefreshToken(refreshToken, LocalDateTime.now().plusDays(30));
         user.updateLastLoginAt(LocalDateTime.now());

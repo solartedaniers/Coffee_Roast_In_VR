@@ -9,6 +9,7 @@ import com.toastedvr.toastedvr.backend.dto.RegisterUserRequest;
 import com.toastedvr.toastedvr.backend.dto.RegisterUserResponse;
 import com.toastedvr.toastedvr.backend.dto.UserResponse;
 import com.toastedvr.toastedvr.backend.dto.VerifyEmailRequest;
+import com.toastedvr.toastedvr.backend.dto.UnityLoginRequest;
 import com.toastedvr.toastedvr.backend.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
@@ -44,6 +45,11 @@ public class AuthController {
     @PostMapping("/login")
     public LoginResponse login(@Valid @RequestBody LoginRequest request) {
         return authService.login(request);
+    }
+
+    @PostMapping("/unity-login")
+    public LoginResponse unityLogin(@Valid @RequestBody UnityLoginRequest request) {
+        return authService.loginWithUnityAccessCode(request.code());
     }
 
     @PostMapping("/refresh")

@@ -59,6 +59,7 @@ public class SecurityConfig {
                     "/api/v1/auth/register",
                     "/api/v1/auth/verify-email",
                     "/api/v1/auth/login",
+                    "/api/v1/auth/unity-login",
                     "/api/v1/auth/refresh",
                     "/v3/api-docs/**",
                     "/swagger-ui/**",
@@ -69,6 +70,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/roasting/sessions/*/feedback").authenticated()
                 .requestMatchers(HttpMethod.PATCH, "/api/v1/users/me/knowledge-level").authenticated()
                 .requestMatchers(HttpMethod.PATCH, "/api/v1/users/me/profile").authenticated()
+                .requestMatchers("/api/v1/users/me/unity-access-code/**").authenticated()
                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                 .anyRequest().denyAll()
             )

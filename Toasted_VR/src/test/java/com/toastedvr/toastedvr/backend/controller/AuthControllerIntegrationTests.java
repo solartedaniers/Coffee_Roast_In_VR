@@ -154,3 +154,4 @@ class AuthControllerIntegrationTests {
         return Objects.requireNonNull(asJson(value), "Serialized JSON must not be null.");
     }
 }
+

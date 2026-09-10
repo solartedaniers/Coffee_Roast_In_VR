@@ -1,9 +1,21 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import ProfileSettings from './ProfileSettings';
 import esTexts from '../locals/es.json';
+import {
+  createUnityAccessCode,
+  emailUnityAccessCode,
+  fetchUnityAccessCodeStatus,
+  regenerateUnityAccessCode,
+  revealUnityAccessCode,
+} from '../services/profileService';
 
 jest.mock('../services/profileService', () => ({
   updateProfile: jest.fn(),
+  fetchUnityAccessCodeStatus: jest.fn(),
+  createUnityAccessCode: jest.fn(),
+  revealUnityAccessCode: jest.fn(),
+  emailUnityAccessCode: jest.fn(),
+  regenerateUnityAccessCode: jest.fn(),
 }));
 
 const currentUser = {
@@ -15,7 +27,7 @@ const currentUser = {
   profileImageUrl: '',
 };
 
-const renderProfileSettings = () => render(
+const renderProfileSettings = (overrides = {}) => render(
   <ProfileSettings
     texts={esTexts.profile}
     knowledgeTexts={esTexts.knowledgeLevel}
@@ -23,21 +35,33 @@ const renderProfileSettings = () => render(
     isOpen
     onClose={jest.fn()}
     onUserUpdate={jest.fn()}
+    {...overrides}
   />
 );
 
-test('shows read-only profile information before edit mode', () => {
+beforeEach(() => {
+  jest.clearAllMocks();
+  fetchUnityAccessCodeStatus.mockResolvedValue({ exists: false });
+  Object.defineProperty(navigator, 'clipboard', {
+    configurable: true,
+    value: { writeText: jest.fn().mockResolvedValue(undefined) },
+  });
+});
+
+test('shows read-only profile information before edit mode', async () => {
   renderProfileSettings();
 
+  await screen.findByRole('button', { name: 'Crear código' });
   expect(screen.getByRole('button', { name: 'Editar perfil' })).toBeInTheDocument();
   expect(screen.getByDisplayValue(currentUser.username)).toHaveAttribute('readonly');
   expect(screen.queryByLabelText('contraseña actual')).not.toBeInTheDocument();
   expect(screen.queryByRole('button', { name: 'Guardar cambios' })).not.toBeInTheDocument();
 });
 
-test('restores original values when edit mode is cancelled', () => {
+test('restores original values when edit mode is cancelled', async () => {
   renderProfileSettings();
 
+  await screen.findByRole('button', { name: 'Crear código' });
   fireEvent.click(screen.getByRole('button', { name: 'Editar perfil' }));
   const usernameInput = screen.getByDisplayValue(currentUser.username);
   fireEvent.change(usernameInput, { target: { value: 'ana.actualizada' } });
@@ -65,4 +89,87 @@ test('restores original values when edit mode is cancelled', () => {
   expect(screen.getByDisplayValue(currentUser.username)).toHaveAttribute('readonly');
   expect(screen.getByDisplayValue(currentUser.username)).toHaveValue(currentUser.username);
   expect(screen.queryByLabelText('contraseña actual')).not.toBeInTheDocument();
+});
+
+test('loads the Unity access status without requesting or displaying a raw code', async () => {
+  fetchUnityAccessCodeStatus.mockResolvedValue({ exists: true, createdAt: '2026-09-03T10:00:00' });
+
+  renderProfileSettings();
+
+  expect(await screen.findByText('Configurado')).toBeInTheDocument();
+  expect(fetchUnityAccessCodeStatus).toHaveBeenCalledTimes(1);
+  expect(screen.queryByText('K7MP-4XQ2')).not.toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Ver código' })).toBeInTheDocument();
+});
+
+test('creates and copies a Unity access code after password confirmation', async () => {
+  createUnityAccessCode.mockResolvedValue({ code: 'K7MP-4XQ2' });
+
+  renderProfileSettings();
+
+  const createButton = await screen.findByRole('button', { name: 'Crear código' });
+  fireEvent.click(createButton);
+
+  const confirmation = screen.getByRole('dialog', { name: 'Crear código de acceso' });
+  fireEvent.change(within(confirmation).getByLabelText('Contraseña actual'), {
+    target: { value: 'Password123!' },
+  });
+  fireEvent.click(within(confirmation).getByRole('button', { name: 'Crear código' }));
+
+  expect(await screen.findByText('K7MP-4XQ2')).toBeInTheDocument();
+  expect(createUnityAccessCode).toHaveBeenCalledWith('Password123!');
+
+  fireEvent.click(within(confirmation).getByRole('button', { name: 'Copiar código' }));
+  await waitFor(() => expect(navigator.clipboard.writeText).toHaveBeenCalledWith('K7MP-4XQ2'));
+  expect(await within(confirmation).findByText('Código copiado correctamente.')).toBeInTheDocument();
+});
+
+test('reveals a configured code and clears sensitive state when the confirmation closes', async () => {
+  fetchUnityAccessCodeStatus.mockResolvedValue({ exists: true });
+  revealUnityAccessCode.mockResolvedValue({ code: 'ABCD-2345' });
+
+  renderProfileSettings();
+
+  fireEvent.click(await screen.findByRole('button', { name: 'Ver código' }));
+  let confirmation = screen.getByRole('dialog', { name: 'Ver código de acceso' });
+  const passwordInput = within(confirmation).getByLabelText('Contraseña actual');
+  fireEvent.change(passwordInput, { target: { value: 'Password123!' } });
+  fireEvent.click(within(confirmation).getByRole('button', { name: 'Ver código' }));
+
+  expect(await screen.findByText('ABCD-2345')).toBeInTheDocument();
+  fireEvent.click(within(confirmation).getByRole('button', { name: 'Cerrar' }));
+  expect(screen.queryByText('ABCD-2345')).not.toBeInTheDocument();
+
+  fireEvent.click(screen.getByRole('button', { name: 'Ver código' }));
+  confirmation = screen.getByRole('dialog', { name: 'Ver código de acceso' });
+  expect(within(confirmation).getByLabelText('Contraseña actual')).toHaveValue('');
+});
+
+test('emails and regenerates a configured Unity access code', async () => {
+  fetchUnityAccessCodeStatus.mockResolvedValue({ exists: true });
+  emailUnityAccessCode.mockResolvedValue(undefined);
+  regenerateUnityAccessCode.mockResolvedValue({ code: 'WXYZ-6789' });
+
+  renderProfileSettings();
+
+  fireEvent.click(await screen.findByRole('button', { name: 'Enviar por correo' }));
+  let confirmation = screen.getByRole('dialog', { name: 'Enviar código por correo' });
+  fireEvent.change(within(confirmation).getByLabelText('Contraseña actual'), {
+    target: { value: 'Password123!' },
+  });
+  fireEvent.click(within(confirmation).getByRole('button', { name: 'Enviar código' }));
+
+  expect(await screen.findByText('El código se envió correctamente a tu correo registrado.')).toBeInTheDocument();
+  expect(emailUnityAccessCode).toHaveBeenCalledWith('Password123!');
+
+  fireEvent.click(screen.getByRole('button', { name: 'Regenerar código' }));
+  confirmation = screen.getByRole('dialog', { name: 'Regenerar código de acceso' });
+  expect(within(confirmation).getByText(/El código anterior dejará de funcionar/)).toBeInTheDocument();
+  fireEvent.change(within(confirmation).getByLabelText('Contraseña actual'), {
+    target: { value: 'NewPassword123!' },
+  });
+  fireEvent.click(within(confirmation).getByRole('button', { name: 'Regenerar código' }));
+
+  expect(await screen.findByText('WXYZ-6789')).toBeInTheDocument();
+  expect(regenerateUnityAccessCode).toHaveBeenCalledWith('NewPassword123!');
 });

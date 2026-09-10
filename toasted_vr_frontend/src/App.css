@@ -1278,6 +1278,116 @@ select.field-input:focus {
   gap: 12px;
 }
 
+.unity-access-section {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.56);
+}
+
+.unity-access-heading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.unity-access-heading h3,
+.unity-confirmation-modal h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  color: var(--color-ink-strong);
+}
+
+.unity-access-heading p,
+.unity-confirmation-modal > p,
+.unity-access-description {
+  margin: 5px 0 0;
+  color: var(--color-ink-muted);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.unity-access-badge {
+  flex-shrink: 0;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--color-success-soft);
+  color: var(--color-success);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.unity-access-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.unity-access-actions .secondary-button,
+.unity-create-button {
+  padding: 9px 14px;
+  font-size: 0.83rem;
+}
+
+.unity-regenerate-button,
+.unity-retry-button {
+  font-weight: 600;
+}
+
+.unity-confirmation-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 270;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(59, 42, 37, 0.3);
+  backdrop-filter: blur(5px);
+}
+
+.unity-confirmation-modal {
+  width: min(100%, 430px);
+  display: grid;
+  gap: 16px;
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  border-radius: 20px;
+  background: linear-gradient(180deg, #fffdfb, #f9f3ec);
+  box-shadow: var(--shadow-panel);
+}
+
+.unity-confirmation-form {
+  display: grid;
+  gap: 16px;
+}
+
+.unity-code-result {
+  display: grid;
+  gap: 14px;
+  justify-items: center;
+  padding: 18px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 16px;
+  background: var(--color-bg-card);
+}
+
+.unity-code-result strong {
+  color: var(--color-accent-deep);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: clamp(1.55rem, 7vw, 2rem);
+  letter-spacing: 0.12em;
+}
+
+.unity-result-close {
+  justify-self: end;
+}
+
 /* ----------------------------------------------------------------
    Main content area
    ---------------------------------------------------------------- */
@@ -1682,6 +1792,18 @@ select.field-input:focus {
 
   .profile-actions .secondary-button,
   .profile-save-button {
+    width: 100%;
+  }
+
+  .unity-access-heading,
+  .unity-access-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .unity-access-actions .secondary-button,
+  .unity-create-button,
+  .unity-result-close {
     width: 100%;
   }
 }

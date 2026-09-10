@@ -150,6 +150,58 @@
       "invalidImage": "Selecciona una imagen valida.",
       "imageTooLarge": "La imagen debe pesar menos de 900 KB."
     },
+    "unityAccess": {
+      "title": "Acceso a Unity",
+      "subtitle": "Administra tu código permanente para ingresar a la experiencia de Unity.",
+      "loading": "Consultando el estado del código...",
+      "configured": "Configurado",
+      "configuredDescription": "Tu código está protegido. Puedes consultarlo, enviarlo a tu correo o reemplazarlo cuando lo necesites.",
+      "notConfiguredDescription": "Crea un código permanente y reutilizable para iniciar sesión en Unity.",
+      "passwordLabel": "Contraseña actual",
+      "passwordPlaceholder": "Ingresa tu contraseña actual",
+      "buttons": {
+        "create": "Crear código",
+        "reveal": "Ver código",
+        "email": "Enviar por correo",
+        "regenerate": "Regenerar código",
+        "copy": "Copiar código",
+        "retry": "Intentar de nuevo",
+        "cancel": "Cancelar",
+        "close": "Cerrar",
+        "processing": "Procesando..."
+      },
+      "confirmation": {
+        "create": {
+          "title": "Crear código de acceso",
+          "description": "Confirma tu contraseña actual para crear tu código permanente.",
+          "confirm": "Crear código"
+        },
+        "reveal": {
+          "title": "Ver código de acceso",
+          "description": "Confirma tu contraseña actual para consultar el código.",
+          "confirm": "Ver código"
+        },
+        "email": {
+          "title": "Enviar código por correo",
+          "description": "Confirma tu contraseña actual para enviar el código a tu correo registrado.",
+          "confirm": "Enviar código"
+        },
+        "regenerate": {
+          "title": "Regenerar código de acceso",
+          "description": "El código anterior dejará de funcionar. Confirma tu contraseña para crear uno nuevo.",
+          "confirm": "Regenerar código"
+        }
+      },
+      "messages": {
+        "passwordRequired": "Ingresa tu contraseña actual para continuar.",
+        "statusError": "No fue posible consultar el estado del código de Unity.",
+        "actionError": "No fue posible completar la acción. Verifica tu contraseña e inténtalo de nuevo.",
+        "emailSent": "El código se envió correctamente a tu correo registrado.",
+        "codeReady": "Este es tu código de acceso. Guárdalo en un lugar seguro.",
+        "copied": "Código copiado correctamente.",
+        "copyError": "No fue posible copiar el código. Selecciónalo y cópialo manualmente."
+      }
+    },
     "ariaLabel": "Perfil"
   },
   "simulation": {

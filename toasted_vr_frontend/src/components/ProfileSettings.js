@@ -1,9 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import PasswordField from './PasswordField';
-import { updateProfile } from '../services/profileService';
+import {
+  createUnityAccessCode,
+  emailUnityAccessCode,
+  fetchUnityAccessCodeStatus,
+  regenerateUnityAccessCode,
+  revealUnityAccessCode,
+  updateProfile,
+} from '../services/profileService';
 
 const PLAYER_LEVELS = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'];
 const MAX_PROFILE_IMAGE_BYTES = 900 * 1024;
+const UNITY_ACTIONS = {
+  create: 'create',
+  reveal: 'reveal',
+  email: 'email',
+  regenerate: 'regenerate',
+};
 
 const initialPasswordFields = {
   currentPassword: '',
@@ -34,6 +47,34 @@ export default function ProfileSettings({
   const [isSaving, setIsSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isPasswordChangeVisible, setIsPasswordChangeVisible] = useState(false);
+  const [unityCodeStatus, setUnityCodeStatus] = useState(null);
+  const [isUnityStatusLoading, setIsUnityStatusLoading] = useState(false);
+  const [unityStatusMessage, setUnityStatusMessage] = useState({ text: '', isError: false });
+  const [unityAction, setUnityAction] = useState(null);
+  const [unityCurrentPassword, setUnityCurrentPassword] = useState('');
+  const [unityCode, setUnityCode] = useState('');
+  const [isUnityActionLoading, setIsUnityActionLoading] = useState(false);
+
+  const clearUnitySensitiveState = () => {
+    setUnityAction(null);
+    setUnityCurrentPassword('');
+    setUnityCode('');
+    setIsUnityActionLoading(false);
+  };
+
+  const loadUnityCodeStatus = async () => {
+    setIsUnityStatusLoading(true);
+    setUnityStatusMessage({ text: '', isError: false });
+
+    try {
+      const nextStatus = await fetchUnityAccessCodeStatus();
+      setUnityCodeStatus(nextStatus);
+    } catch {
+      setUnityStatusMessage({ text: texts.unityAccess.messages.statusError, isError: true });
+    } finally {
+      setIsUnityStatusLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -41,7 +82,14 @@ export default function ProfileSettings({
       setStatus({ text: '', isError: false });
       setIsEditing(false);
       setIsPasswordChangeVisible(false);
+      setUnityCodeStatus(null);
+      clearUnitySensitiveState();
+      loadUnityCodeStatus();
+    } else {
+      clearUnitySensitiveState();
     }
+    // The modal lifecycle intentionally resets all sensitive Unity state.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser, isOpen]);
 
   if (!isOpen) {
@@ -75,6 +123,75 @@ export default function ProfileSettings({
     setFormData((current) => ({ ...current, ...initialPasswordFields }));
     setStatus({ text: '', isError: false });
     setIsPasswordChangeVisible(false);
+  };
+
+  const handleClose = () => {
+    setFormData((current) => ({ ...current, ...initialPasswordFields }));
+    clearUnitySensitiveState();
+    onClose();
+  };
+
+  const handleOpenUnityAction = (action) => {
+    setUnityStatusMessage({ text: '', isError: false });
+    setUnityCurrentPassword('');
+    setUnityCode('');
+    setUnityAction(action);
+  };
+
+  const handleCloseUnityAction = () => {
+    clearUnitySensitiveState();
+  };
+
+  const handleUnityAction = async (event) => {
+    event.preventDefault();
+
+    if (!unityCurrentPassword.trim()) {
+      setUnityStatusMessage({ text: texts.unityAccess.messages.passwordRequired, isError: true });
+      return;
+    }
+
+    setIsUnityActionLoading(true);
+    setUnityStatusMessage({ text: '', isError: false });
+
+    try {
+      let response;
+      if (unityAction === UNITY_ACTIONS.create) {
+        response = await createUnityAccessCode(unityCurrentPassword);
+      } else if (unityAction === UNITY_ACTIONS.reveal) {
+        response = await revealUnityAccessCode(unityCurrentPassword);
+      } else if (unityAction === UNITY_ACTIONS.email) {
+        await emailUnityAccessCode(unityCurrentPassword);
+      } else if (unityAction === UNITY_ACTIONS.regenerate) {
+        response = await regenerateUnityAccessCode(unityCurrentPassword);
+      }
+
+      setUnityCurrentPassword('');
+
+      if (unityAction === UNITY_ACTIONS.email) {
+        setUnityAction(null);
+        setUnityCode('');
+        await loadUnityCodeStatus();
+        setUnityStatusMessage({ text: texts.unityAccess.messages.emailSent, isError: false });
+      } else {
+        setUnityCode(response.code);
+        await loadUnityCodeStatus();
+      }
+    } catch {
+      setUnityCurrentPassword('');
+      setUnityCode('');
+      setUnityStatusMessage({ text: texts.unityAccess.messages.actionError, isError: true });
+    } finally {
+      setIsUnityActionLoading(false);
+    }
+  };
+
+  const handleCopyUnityCode = async () => {
+    try {
+      await navigator.clipboard.writeText(unityCode);
+      setUnityStatusMessage({ text: texts.unityAccess.messages.copied, isError: false });
+    } catch {
+      setUnityStatusMessage({ text: texts.unityAccess.messages.copyError, isError: true });
+    }
   };
 
   const handleImageChange = (event) => {
@@ -129,6 +246,7 @@ export default function ProfileSettings({
       onUserUpdate(updatedUser);
       setIsEditing(false);
       setIsPasswordChangeVisible(false);
+      clearUnitySensitiveState();
       onClose();
     } catch (error) {
       setStatus({ text: error.message, isError: true });
@@ -143,7 +261,7 @@ export default function ProfileSettings({
     <div className="profile-modal-backdrop" role="presentation">
       <section className="profile-modal" role="dialog" aria-modal="true" aria-label={texts.ariaLabel}>
         <header className="profile-modal-header">
-          <button type="button" className="secondary-button profile-close-button" onClick={onClose}>
+          <button type="button" className="secondary-button profile-close-button" onClick={handleClose}>
             {texts.buttons.close}
           </button>
         </header>
@@ -274,6 +392,103 @@ export default function ProfileSettings({
             </button>
           )}
         </form>
+
+        <section className="unity-access-section" aria-labelledby="unity-access-title">
+          <div className="unity-access-heading">
+            <div>
+              <h3 id="unity-access-title">{texts.unityAccess.title}</h3>
+              <p>{texts.unityAccess.subtitle}</p>
+            </div>
+            {unityCodeStatus?.exists && (
+              <span className="unity-access-badge">{texts.unityAccess.configured}</span>
+            )}
+          </div>
+
+          {isUnityStatusLoading ? (
+            <p className="unity-access-description" aria-live="polite">{texts.unityAccess.loading}</p>
+          ) : unityCodeStatus?.exists ? (
+            <>
+              <p className="unity-access-description">{texts.unityAccess.configuredDescription}</p>
+              <div className="unity-access-actions">
+                <button type="button" className="secondary-button" onClick={() => handleOpenUnityAction(UNITY_ACTIONS.reveal)}>
+                  {texts.unityAccess.buttons.reveal}
+                </button>
+                <button type="button" className="secondary-button" onClick={() => handleOpenUnityAction(UNITY_ACTIONS.email)}>
+                  {texts.unityAccess.buttons.email}
+                </button>
+                <button type="button" className="text-link unity-regenerate-button" onClick={() => handleOpenUnityAction(UNITY_ACTIONS.regenerate)}>
+                  {texts.unityAccess.buttons.regenerate}
+                </button>
+              </div>
+            </>
+          ) : !unityStatusMessage.isError ? (
+            <>
+              <p className="unity-access-description">{texts.unityAccess.notConfiguredDescription}</p>
+              <button type="button" className="secondary-button unity-create-button" onClick={() => handleOpenUnityAction(UNITY_ACTIONS.create)}>
+                {texts.unityAccess.buttons.create}
+              </button>
+            </>
+          ) : (
+            <button type="button" className="text-link unity-retry-button" onClick={loadUnityCodeStatus}>
+              {texts.unityAccess.buttons.retry}
+            </button>
+          )}
+
+          {unityStatusMessage.text && !unityAction && (
+            <p className={`status-message ${unityStatusMessage.isError ? 'error' : 'success'}`} aria-live="polite">
+              {unityStatusMessage.text}
+            </p>
+          )}
+        </section>
+
+        {unityAction && (
+          <div className="unity-confirmation-backdrop" role="presentation">
+            <section className="unity-confirmation-modal" role="dialog" aria-modal="true" aria-labelledby="unity-confirmation-title">
+              <h3 id="unity-confirmation-title">{texts.unityAccess.confirmation[unityAction].title}</h3>
+              <p>{unityCode ? texts.unityAccess.messages.codeReady : texts.unityAccess.confirmation[unityAction].description}</p>
+
+              {unityCode ? (
+                <div className="unity-code-result" aria-live="polite">
+                  <strong>{unityCode}</strong>
+                  <button type="button" className="primary-button" onClick={handleCopyUnityCode}>
+                    {texts.unityAccess.buttons.copy}
+                  </button>
+                </div>
+              ) : (
+                <form className="unity-confirmation-form" onSubmit={handleUnityAction}>
+                  <PasswordField
+                    name="unityCurrentPassword"
+                    value={unityCurrentPassword}
+                    onChange={(event) => setUnityCurrentPassword(event.target.value)}
+                    placeholder={texts.unityAccess.passwordPlaceholder}
+                    label={texts.unityAccess.passwordLabel}
+                    required
+                  />
+                  <div className="profile-actions">
+                    <button type="button" className="secondary-button" onClick={handleCloseUnityAction} disabled={isUnityActionLoading}>
+                      {texts.unityAccess.buttons.cancel}
+                    </button>
+                    <button type="submit" className="primary-button" disabled={isUnityActionLoading}>
+                      {isUnityActionLoading ? texts.unityAccess.buttons.processing : texts.unityAccess.confirmation[unityAction].confirm}
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {unityStatusMessage.text && (
+                <p className={`status-message ${unityStatusMessage.isError ? 'error' : 'success'}`} aria-live="polite">
+                  {unityStatusMessage.text}
+                </p>
+              )}
+
+              {unityCode && (
+                <button type="button" className="secondary-button unity-result-close" onClick={handleCloseUnityAction}>
+                  {texts.unityAccess.buttons.close}
+                </button>
+              )}
+            </section>
+          </div>
+        )}
       </section>
     </div>
   );

@@ -3,6 +3,7 @@ package com.toastedvr.toastedvr.backend.service;
 import com.toastedvr.toastedvr.backend.domain.KnowledgeLevel;
 import com.toastedvr.toastedvr.backend.domain.RoastingResult;
 import com.toastedvr.toastedvr.backend.domain.RoastingSession;
+import java.util.List;
 
 // ================================================================
 // RoastFeedbackPromptBuilder
@@ -38,6 +39,7 @@ final class RoastFeedbackPromptBuilder {
         tueste. No inventes objetos, herramientas ni escenas que no estén en \
         los datos. No repitas estas instrucciones. No uses markdown ni encabezados.
         %s
+        %s
 
         Retroalimentación:""";
 
@@ -66,7 +68,7 @@ final class RoastFeedbackPromptBuilder {
     private RoastFeedbackPromptBuilder() {
     }
 
-    static String build(RoastingSession session, KnowledgeLevel knowledgeLevel) {
+    static String build(RoastingSession session, KnowledgeLevel knowledgeLevel, List<String> retrievedContext) {
         KnowledgeLevel level = knowledgeLevel != null ? knowledgeLevel : KnowledgeLevel.INTERMEDIATE;
         return PROMPT_TEMPLATE.formatted(
             session.getResult(),
@@ -82,8 +84,26 @@ final class RoastFeedbackPromptBuilder {
             session.getDevelopmentTimeSeconds() != null ? session.getDevelopmentTimeSeconds().toString() : NOT_AVAILABLE,
             shortLabelFor(level),
             secondCrackZoneNote(session),
-            vocabularyReminderFor(level)
+            vocabularyReminderFor(level),
+            retrievedContextBlock(retrievedContext)
         );
+    }
+
+    // Bloque opcional con los fragmentos recuperados de rag-docs/ (RAG) más
+    // relevantes para esta sesión. Vacío cuando no hay resultados —el prompt
+    // queda igual a como era antes de agregar RAG— para que el feedback siga
+    // funcionando aunque el índice de pgvector todavía no tenga PDFs cargados.
+    private static String retrievedContextBlock(List<String> retrievedContext) {
+        if (retrievedContext == null || retrievedContext.isEmpty()) {
+            return "";
+        }
+        StringBuilder block = new StringBuilder(
+            "Contexto de referencia de material académico (úsalo solo si es relevante, no lo cites textualmente):"
+        );
+        for (String chunk : retrievedContext) {
+            block.append("\n- ").append(chunk);
+        }
+        return block.toString();
     }
 
     // Traduce la temperatura final a la fase oficial del tueste alcanzada
@@ -91,7 +111,10 @@ final class RoastFeedbackPromptBuilder {
     // que GrainAppearanceModel.getGrainStateName() del frontend, colapsando
     // sus estados intermedios (DARK) dentro de "Primer Crack", que sigue
     // siendo la fase vigente hasta el segundo crack.
-    private static String resolveRoastPhaseLabel(double finalTemperature) {
+    // Visibilidad de paquete (no private): RagContextRetrievalService también
+    // la usa para construir la query de búsqueda en pgvector, así ambos
+    // puntos comparten la misma fuente de verdad para los umbrales de fase.
+    static String resolveRoastPhaseLabel(double finalTemperature) {
         if (finalTemperature <= DRYING_PHASE_END_C) {
             return DRYING_PHASE_LABEL;
         }

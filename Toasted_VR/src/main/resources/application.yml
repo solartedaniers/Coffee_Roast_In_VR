@@ -1,59 +1,78 @@
-server:
-  port: ${SERVER_PORT:8081}
+  server:
+    port: ${SERVER_PORT:8081}
 
-spring:
-  application:
-    name: Toasted_VR
-  config:
-    import: optional:file:./.env[.properties],optional:file:./Toasted_VR/.env[.properties]
+  spring:
+    application:
+      name: Toasted_VR
+    config:
+      import: optional:file:./.env[.properties],optional:file:./Toasted_VR/.env[.properties]
 
-  datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/toasted_vr_db}
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:}
-    driver-class-name: ${DB_DRIVER_CLASS_NAME:org.postgresql.Driver}
+    datasource:
+      url: ${DB_URL:jdbc:postgresql://localhost:5432/toasted_vr_db}
+      username: ${DB_USERNAME:postgres}
+      password: ${DB_PASSWORD:}
+      driver-class-name: ${DB_DRIVER_CLASS_NAME:org.postgresql.Driver}
 
-  jpa:
-    database-platform: ${JPA_DATABASE_PLATFORM:org.hibernate.dialect.PostgreSQLDialect}
-    hibernate:
-      ddl-auto: ${JPA_DDL_AUTO:update}
-    show-sql: ${JPA_SHOW_SQL:true}
-    open-in-view: false
-    properties:
+    jpa:
+      database-platform: ${JPA_DATABASE_PLATFORM:org.hibernate.dialect.PostgreSQLDialect}
       hibernate:
-        jdbc:
-          time_zone: UTC
+        ddl-auto: ${JPA_DDL_AUTO:update}
+      show-sql: ${JPA_SHOW_SQL:true}
+      open-in-view: false
+      properties:
+        hibernate:
+          jdbc:
+            time_zone: UTC
 
-  mail:
-    host: ${MAIL_HOST:}
-    port: ${MAIL_PORT:587}
-    username: ${MAIL_USERNAME:}
-    password: ${MAIL_PASSWORD:}
-    properties:
-      mail:
-        smtp:
-          auth: ${MAIL_SMTP_AUTH:true}
-          starttls:
-            enable: ${MAIL_SMTP_STARTTLS_ENABLE:true}
+    mail:
+      host: ${MAIL_HOST:}
+      port: ${MAIL_PORT:587}
+      username: ${MAIL_USERNAME:}
+      password: ${MAIL_PASSWORD:}
+      properties:
+        mail:
+          smtp:
+            auth: ${MAIL_SMTP_AUTH:true}
+            starttls:
+              enable: ${MAIL_SMTP_STARTTLS_ENABLE:true}
 
-ollama:
-  base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+    ai:
+      ollama:
+        # Same Ollama instance/URL as ollama.base-url below (OllamaFeedbackService's
+        # own RestClient) — one env var for both instead of two to keep in sync.
+        base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+        embedding:
+          options:
+            model: ${RAG_EMBEDDING_MODEL:nomic-embed-text}
+      vectorstore:
+        pgvector:
+          initialize-schema: true
+          table-name: rag_document_chunks
+          # Must match the embedding model's output size: nomic-embed-text
+          # produces 768-dimension vectors. Changing RAG_EMBEDDING_MODEL to a
+          # model with a different output size means updating this too.
+          dimensions: 768
+          index-type: HNSW
+          distance-type: COSINE_DISTANCE
 
-app:
-  cors:
-    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:3000}
-  jwt:
-    secret: ${APP_JWT_SECRET:VG9hc3RlZFZSU3VwZXJTZWNyZXRLZXlGb3JEZXZlbG9wbWVudDIwMjYhVG9hc3RlZFZS}
-    expiration-seconds: ${APP_JWT_EXPIRATION_SECONDS:3600}
-  bootstrap-admin:
-    enabled: ${APP_BOOTSTRAP_ADMIN_ENABLED:false}
-    name: ${APP_BOOTSTRAP_ADMIN_NAME:}
-    email: ${APP_BOOTSTRAP_ADMIN_EMAIL:}
-    username: ${APP_BOOTSTRAP_ADMIN_USERNAME:}
-    password: ${APP_BOOTSTRAP_ADMIN_PASSWORD:}
-  mail:
-    enabled: ${MAIL_ENABLED:true}
-    from: ${MAIL_FROM:${MAIL_USERNAME:no-reply@toastedvr.local}}
-  verification:
-    code-length: ${VERIFICATION_CODE_LENGTH:6}
-    code-expiration-minutes: ${VERIFICATION_CODE_EXPIRATION_MINUTES:2}
+  ollama:
+    base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+
+  app:
+    cors:
+      allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:3000}
+    jwt:
+      secret: ${APP_JWT_SECRET:VG9hc3RlZFZSU3VwZXJTZWNyZXRLZXlGb3JEZXZlbG9wbWVudDIwMjYhVG9hc3RlZFZS}
+      expiration-seconds: ${APP_JWT_EXPIRATION_SECONDS:3600}
+    bootstrap-admin:
+      enabled: ${APP_BOOTSTRAP_ADMIN_ENABLED:false}
+      name: ${APP_BOOTSTRAP_ADMIN_NAME:}
+      email: ${APP_BOOTSTRAP_ADMIN_EMAIL:}
+      username: ${APP_BOOTSTRAP_ADMIN_USERNAME:}
+      password: ${APP_BOOTSTRAP_ADMIN_PASSWORD:}
+    mail:
+      enabled: ${MAIL_ENABLED:true}
+      from: ${MAIL_FROM:${MAIL_USERNAME:no-reply@toastedvr.local}}
+    verification:
+      code-length: ${VERIFICATION_CODE_LENGTH:6}
+      code-expiration-minutes: ${VERIFICATION_CODE_EXPIRATION_MINUTES:2}

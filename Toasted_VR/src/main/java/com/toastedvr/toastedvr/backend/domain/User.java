@@ -11,6 +11,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.ColumnDefault;
 
 @Entity
 @Table(name = "users")
@@ -39,7 +40,8 @@ public class User {
     private boolean emailVerified;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, columnDefinition = "varchar(20) default 'PLAYER'")
+    @Column(nullable = false, length = 20)
+    @ColumnDefault("'PLAYER'")
     private Role role;
 
     @Column(nullable = false, columnDefinition = "boolean default true")

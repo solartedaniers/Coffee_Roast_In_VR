@@ -2,6 +2,7 @@ package com.toastedvr.toastedvr.backend.service;
 
 import com.toastedvr.toastedvr.backend.domain.KnowledgeLevel;
 import com.toastedvr.toastedvr.backend.domain.RoastingSession;
+import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,8 +35,12 @@ public class OllamaFeedbackService {
     private static final String KEEP_ALIVE_DURATION = "10m";
 
     private final RestClient restClient;
+    private final RagContextRetrievalService ragContextRetrievalService;
 
-    public OllamaFeedbackService(@Value("${ollama.base-url:http://localhost:11434}") String baseUrl) {
+    public OllamaFeedbackService(
+        @Value("${ollama.base-url:http://localhost:11434}") String baseUrl,
+        RagContextRetrievalService ragContextRetrievalService
+    ) {
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
         requestFactory.setConnectTimeout(CONNECT_TIMEOUT_MS);
         requestFactory.setReadTimeout(READ_TIMEOUT_MS);
@@ -44,15 +49,17 @@ public class OllamaFeedbackService {
             .baseUrl(baseUrl)
             .requestFactory(requestFactory)
             .build();
+        this.ragContextRetrievalService = ragContextRetrievalService;
     }
 
     // Devuelve null si Ollama no está disponible o falla — es un extra
     // sobre el resultado ya calculado, nunca debe tumbar el flujo principal.
     public String generateFeedback(RoastingSession session, KnowledgeLevel knowledgeLevel) {
         try {
+            List<String> retrievedContext = ragContextRetrievalService.findRelevantChunks(session, knowledgeLevel);
             Map<String, Object> requestBody = Map.of(
                 "model", MODEL_NAME,
-                "prompt", RoastFeedbackPromptBuilder.build(session, knowledgeLevel),
+                "prompt", RoastFeedbackPromptBuilder.build(session, knowledgeLevel, retrievedContext),
                 "stream", false,
                 "keep_alive", KEEP_ALIVE_DURATION,
                 // phi4-mini a veces sigue generando texto tras un salto de línea

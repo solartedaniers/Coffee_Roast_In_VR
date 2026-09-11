@@ -81,6 +81,7 @@ class AdminUserControllerIntegrationTests {
     }
 
     @Test
+    @SuppressWarnings("null")
     void shouldBlockAndActivateUserWithPersistedStatus() throws Exception {
         updateStatus(requirePlayerId(), false)
             .andExpect(jsonPath("$.enabled").value(false));
@@ -98,6 +99,7 @@ class AdminUserControllerIntegrationTests {
     }
 
     @Test
+    @SuppressWarnings("null")
     void shouldPreventAdministratorFromBlockingOwnAccount() throws Exception {
         mockMvc.perform(
                 patch("/api/v1/admin/users/{id}/status", requireAdminId())

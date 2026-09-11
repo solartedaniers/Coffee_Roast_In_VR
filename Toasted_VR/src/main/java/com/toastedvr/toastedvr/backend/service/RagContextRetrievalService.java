@@ -40,6 +40,7 @@ public class RagContextRetrievalService {
     // defensive contract as OllamaFeedbackService.generateFeedback: retrieval
     // is an enhancement on top of the existing feedback, never a reason to
     // break it.
+    @SuppressWarnings("null")
     public List<String> findRelevantChunks(RoastingSession session, KnowledgeLevel knowledgeLevel) {
         try {
             SearchRequest request = SearchRequest.builder()

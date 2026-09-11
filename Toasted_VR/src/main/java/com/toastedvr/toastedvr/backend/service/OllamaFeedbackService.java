@@ -37,6 +37,7 @@ public class OllamaFeedbackService {
     private final RestClient restClient;
     private final RagContextRetrievalService ragContextRetrievalService;
 
+    @SuppressWarnings("null")
     public OllamaFeedbackService(
         @Value("${ollama.base-url:http://localhost:11434}") String baseUrl,
         RagContextRetrievalService ragContextRetrievalService
@@ -54,6 +55,7 @@ public class OllamaFeedbackService {
 
     // Devuelve null si Ollama no está disponible o falla — es un extra
     // sobre el resultado ya calculado, nunca debe tumbar el flujo principal.
+    @SuppressWarnings("null")
     public String generateFeedback(RoastingSession session, KnowledgeLevel knowledgeLevel) {
         try {
             List<String> retrievedContext = ragContextRetrievalService.findRelevantChunks(session, knowledgeLevel);

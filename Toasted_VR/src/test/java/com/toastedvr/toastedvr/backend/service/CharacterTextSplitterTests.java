@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.document.Document;
 
@@ -13,6 +14,7 @@ class CharacterTextSplitterTests {
 
     @Test
     void keepsShortTextAsOneChunk() {
+        @SuppressWarnings("null")
         Document shortDoc = new Document("A short paragraph well under the chunk size.", Map.of());
 
         List<Document> chunks = splitter.apply(List.of(shortDoc));
@@ -26,6 +28,7 @@ class CharacterTextSplitterTests {
         // Positional, non-repeating content (unlike "xxxx...") so the
         // overlap check below actually proves chunk[i+1] starts with text
         // taken from chunk[i], not just a coincidence of repeated characters.
+        @SuppressWarnings("null")
         Document longDoc = new Document(sequentialWords(400), Map.of());
 
         List<Document> chunks = splitter.apply(List.of(longDoc));
@@ -38,7 +41,7 @@ class CharacterTextSplitterTests {
         // same offset.
         for (int i = 1; i < chunks.size(); i++) {
             String previous = chunks.get(i - 1).getText();
-            String current = chunks.get(i).getText();
+            String current = Objects.requireNonNull(chunks.get(i).getText());
             String anchor = current.substring(0, Math.min(20, current.length()));
             assertThat(previous).contains(anchor);
         }
@@ -46,6 +49,7 @@ class CharacterTextSplitterTests {
 
     @Test
     void propagatesSourceMetadataToEveryChunk() {
+        @SuppressWarnings("null")
         Document longDoc = new Document(sequentialWords(400), Map.of("file_name", "example.pdf"));
 
         List<Document> chunks = splitter.apply(List.of(longDoc));

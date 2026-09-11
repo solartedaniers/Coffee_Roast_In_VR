@@ -11,6 +11,7 @@ public record RagIngestionSummaryResponse(
     List<FileResult> files
 ) {
 
+    @SuppressWarnings("null")
     public static RagIngestionSummaryResponse from(List<FileResult> files) {
         int ingested = countByStatus(files, Status.INGESTED);
         int reingested = countByStatus(files, Status.REINGESTED);

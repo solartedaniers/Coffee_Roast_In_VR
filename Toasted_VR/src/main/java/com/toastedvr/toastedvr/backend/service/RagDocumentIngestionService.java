@@ -85,8 +85,10 @@ public class RagDocumentIngestionService {
             // for this file before adding the new ones, otherwise both
             // versions would stay searchable side by side.
             vectorStore.delete(FILE_NAME_METADATA_KEY + " == '" + fileName + "'");
-            existing.get().markReingested(contentHash, chunks.size());
-            ragIngestedDocumentRepository.save(existing.get());
+            @SuppressWarnings("null")
+            RagIngestedDocument existingDocument = existing.get();
+            existingDocument.markReingested(contentHash, chunks.size());
+            ragIngestedDocumentRepository.save(existingDocument);
         } else {
             ragIngestedDocumentRepository.save(new RagIngestedDocument(fileName, contentHash, chunks.size()));
         }

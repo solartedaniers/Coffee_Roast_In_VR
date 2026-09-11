@@ -58,6 +58,16 @@
   ollama:
     base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
 
+  rag:
+    query:
+      # Development Time Ratio (developmentTimeSeconds / totalDurationSeconds)
+      # considerado rango de control operativo óptimo para cafés de altura de
+      # Nariño (20% como punto de referencia ideal). Usado solo para describir
+      # la desviación en la query de búsqueda de RagContextRetrievalService,
+      # no afecta el puntaje ni la fase del tueste.
+      dtr-optimal-min: 0.18
+      dtr-optimal-max: 0.22
+
   app:
     cors:
       allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:3000}

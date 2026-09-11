@@ -50,8 +50,11 @@ final class RoastFeedbackPromptBuilder {
     // Rango recomendado para cargar el grano — mismo valor que
     // CHARGE_TEMP_IDEAL_MIN_C/MAX_C en RoastConstants.js del frontend
     // (no hay constantes compartidas entre backend y frontend hoy).
-    private static final double CHARGE_IDEAL_MIN_C = 180.0;
-    private static final double CHARGE_IDEAL_MAX_C = 200.0;
+    // Visibilidad de paquete (no private): RagContextRetrievalService también
+    // las usa para la query de búsqueda en pgvector, mismo criterio que
+    // resolveRoastPhaseLabel más abajo.
+    static final double CHARGE_IDEAL_MIN_C = 180.0;
+    static final double CHARGE_IDEAL_MAX_C = 200.0;
 
     // Umbrales de fase del tueste — mismos valores que MAILLARD_TEMP_START_C,
     // MAILLARD_TEMP_END_C y SECOND_CRACK_TEMP_MIN_C en RoastConstants.js del

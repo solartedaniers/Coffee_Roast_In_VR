@@ -28,10 +28,11 @@ final class RoastFeedbackPromptBuilder {
         Datos de una sesión de tueste de café en un simulador por computadora \
         (no hay objetos físicos: solo estos números).
         Resultado: %s. Puntaje: %d/100.
-        Temperatura de carga: %s. Temperatura objetivo: %.1f°C. Temperatura final: %.1f°C.
+        Temperatura de carga: %s.
+        Temperatura objetivo: %.1f°C. Temperatura final: %.1f°C. %s
         Fase del tueste alcanzada al finalizar: %s.
-        Duración: %d segundos. First crack alcanzado: %s. Tiempo de desarrollo \
-        tras el first crack: %s segundos.
+        Duración total: %d segundos. First crack alcanzado: %s.
+        %s
         Nivel del usuario: %s.
         %s
         Escribe 2 o 3 frases en español, en texto plano, explicando qué salió \
@@ -40,6 +41,8 @@ final class RoastFeedbackPromptBuilder {
         los datos. No repitas estas instrucciones. No uses markdown ni encabezados.
         %s
         %s
+        Recuerda el resultado real de esta sesión: %s (puntaje %d/100). Tu \
+        sugerencia debe ser consistente con ese resultado, no contradecirlo.
 
         Retroalimentación:""";
 
@@ -68,6 +71,20 @@ final class RoastFeedbackPromptBuilder {
     private static final String FIRST_CRACK_PHASE_LABEL = "Primer Crack";
     private static final String SECOND_CRACK_PHASE_LABEL = "Segundo Crack";
 
+    // Mismo rango que rag.query.dtr-optimal-min/max (application.yml), usado
+    // por RagContextRetrievalService para la query de búsqueda — duplicado
+    // aquí como texto explícito para el modelo, mismo criterio de "no hay
+    // constantes compartidas hoy" que ya aplica a CHARGE_IDEAL_MIN_C/MAX_C.
+    private static final double DTR_IDEAL_MIN_RATIO = 0.18;
+    private static final double DTR_IDEAL_MAX_RATIO = 0.22;
+
+    private static final String BELOW_TARGET_LABEL = "POR DEBAJO";
+    private static final String ABOVE_TARGET_LABEL = "POR ENCIMA";
+
+    private static final String DEVELOPMENT_TIME_SHORT_LABEL = "CORTO";
+    private static final String DEVELOPMENT_TIME_LONG_LABEL = "PROLONGADO";
+    private static final String DEVELOPMENT_TIME_OPTIMAL_LABEL = "dentro del rango óptimo";
+
     private RoastFeedbackPromptBuilder() {
     }
 
@@ -81,15 +98,58 @@ final class RoastFeedbackPromptBuilder {
                 : NOT_AVAILABLE,
             session.getTargetTemperature(),
             session.getFinalTemperature(),
+            targetVsFinalDeltaText(session),
             resolveRoastPhaseLabel(session.getFinalTemperature()),
             session.getTotalDurationSeconds(),
             Boolean.TRUE.equals(session.isFirstCrackReached()) ? YES : NO,
-            session.getDevelopmentTimeSeconds() != null ? session.getDevelopmentTimeSeconds().toString() : NOT_AVAILABLE,
+            developmentTimeText(session),
             shortLabelFor(level),
             secondCrackZoneNote(session),
             vocabularyReminderFor(level),
-            retrievedContextBlock(retrievedContext)
+            retrievedContextBlock(retrievedContext),
+            session.getResult(),
+            session.getQualityScore()
         );
+    }
+
+    // Deja ya calculada la dirección y magnitud de la diferencia entre
+    // objetivo y final, en vez de dejar que el modelo la infiera restando
+    // dos números mencionados en oraciones separadas — hallazgo: el modelo
+    // llegó a inventar un objetivo que no estaba en los datos reales.
+    private static String targetVsFinalDeltaText(RoastingSession session) {
+        double delta = session.getFinalTemperature() - session.getTargetTemperature();
+        if (delta == 0) {
+            return "La temperatura final coincidió exactamente con el objetivo.";
+        }
+        String direction = delta < 0 ? BELOW_TARGET_LABEL : ABOVE_TARGET_LABEL;
+        return "Quedó %.1f°C %s del objetivo.".formatted(Math.abs(delta), direction);
+    }
+
+    // Clasifica explícitamente el tiempo de desarrollo (corto/óptimo/
+    // prolongado) en vez de dar solo los segundos crudos — hallazgo: el
+    // modelo confundió un DTR alto (prolongado) con uno corto. Mismo rango
+    // y mismo vocabulario ("corto"/"prolongado") que ya usa la query de
+    // RagContextRetrievalService, para no introducir un tercer criterio.
+    private static String developmentTimeText(RoastingSession session) {
+        Integer developmentTime = session.getDevelopmentTimeSeconds();
+        Integer totalDuration = session.getTotalDurationSeconds();
+        if (developmentTime == null) {
+            return "Tiempo de desarrollo tras el first crack: %s.".formatted(NOT_AVAILABLE);
+        }
+
+        double ratio = developmentTime / (double) totalDuration;
+        String classification;
+        if (ratio < DTR_IDEAL_MIN_RATIO) {
+            classification = "esto es %s, no prolongado, respecto al rango óptimo de %.0f%%-%.0f%%"
+                .formatted(DEVELOPMENT_TIME_SHORT_LABEL, DTR_IDEAL_MIN_RATIO * 100, DTR_IDEAL_MAX_RATIO * 100);
+        } else if (ratio > DTR_IDEAL_MAX_RATIO) {
+            classification = "esto es %s, no corto, respecto al rango óptimo de %.0f%%-%.0f%%"
+                .formatted(DEVELOPMENT_TIME_LONG_LABEL, DTR_IDEAL_MIN_RATIO * 100, DTR_IDEAL_MAX_RATIO * 100);
+        } else {
+            classification = DEVELOPMENT_TIME_OPTIMAL_LABEL;
+        }
+        return "Tiempo de desarrollo tras el first crack: %d segundos de %d segundos totales (%.0f%% del tueste) — %s."
+            .formatted(developmentTime, totalDuration, ratio * 100, classification);
     }
 
     // Bloque opcional con los fragmentos recuperados de rag-docs/ (RAG) más

@@ -1,0 +1,56 @@
+services:
+  postgres:
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-toasted_vr_db}
+      POSTGRES_USER: ${POSTGRES_USER:-toasted_vr_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in Toasted_VR/.env}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
+
+  backend:
+    image: toasted-vr-backend:local
+    container_name: toasted_vr_backend
+    build:
+      context: ./Toasted_VR
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SERVER_ADDRESS: 0.0.0.0
+      SERVER_PORT: 8081
+      DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-toasted_vr_db}
+      DB_USERNAME: ${POSTGRES_USER:-toasted_vr_user}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in Toasted_VR/.env}
+      DB_DRIVER_CLASS_NAME: org.postgresql.Driver
+      JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
+      JPA_DDL_AUTO: ${JPA_DDL_AUTO:-update}
+      JPA_SHOW_SQL: ${JPA_SHOW_SQL:-false}
+      APP_CORS_ALLOWED_ORIGINS: ${APP_CORS_ALLOWED_ORIGINS:-http://localhost:3000}
+      APP_JWT_SECRET: ${APP_JWT_SECRET:?Set APP_JWT_SECRET in Toasted_VR/.env}
+      APP_JWT_EXPIRATION_SECONDS: ${APP_JWT_EXPIRATION_SECONDS:-3600}
+      UNITY_CODE_HMAC_PEPPER: ${UNITY_CODE_HMAC_PEPPER:?Set UNITY_CODE_HMAC_PEPPER in Toasted_VR/.env}
+      UNITY_CODE_ENCRYPTION_KEY: ${UNITY_CODE_ENCRYPTION_KEY:?Set UNITY_CODE_ENCRYPTION_KEY in Toasted_VR/.env}
+      MAIL_ENABLED: ${MAIL_ENABLED:-false}
+      MAIL_HOST: ${MAIL_HOST:-}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-no-reply@toastedvr.local}
+      MAIL_SMTP_AUTH: ${MAIL_SMTP_AUTH:-true}
+      MAIL_SMTP_STARTTLS_ENABLE: ${MAIL_SMTP_STARTTLS_ENABLE:-true}
+      VERIFICATION_CODE_LENGTH: ${VERIFICATION_CODE_LENGTH:-6}
+      VERIFICATION_CODE_EXPIRATION_MINUTES: ${VERIFICATION_CODE_EXPIRATION_MINUTES:-2}
+      OLLAMA_BASE_URL: ${DOCKER_OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      APP_BOOTSTRAP_ADMIN_ENABLED: ${APP_BOOTSTRAP_ADMIN_ENABLED:-false}
+      APP_BOOTSTRAP_ADMIN_NAME: ${APP_BOOTSTRAP_ADMIN_NAME:-}
+      APP_BOOTSTRAP_ADMIN_EMAIL: ${APP_BOOTSTRAP_ADMIN_EMAIL:-}
+      APP_BOOTSTRAP_ADMIN_USERNAME: ${APP_BOOTSTRAP_ADMIN_USERNAME:-}
+      APP_BOOTSTRAP_ADMIN_PASSWORD: ${APP_BOOTSTRAP_ADMIN_PASSWORD:-}
+    ports:
+      - "0.0.0.0:8081:8081"

@@ -78,6 +78,26 @@ public class RagDocumentIngestionService {
             return new FileResult(fileName, Status.SKIPPED_UNCHANGED, existing.get().getChunkCount());
         }
 
+        try {
+            return splitAndStore(pdfResource, fileName, contentHash, existing);
+        } catch (Exception | AssertionError e) {
+            // Un PDF con texto mal formado (p. ej. no-UTF-8 extraído por
+            // PDFBox) falla en este paso con un AssertionError, no una
+            // RuntimeException normal — de ahí el catch explícito de
+            // AssertionError además de Exception. No debe tumbar el lote
+            // completo: se registra como FAILED y la ingesta sigue con
+            // los demás archivos.
+            log.warn("Could not embed {}: {}", fileName, e.getMessage());
+            return new FileResult(fileName, Status.FAILED, 0, e.getMessage());
+        }
+    }
+
+    private FileResult splitAndStore(
+        Resource pdfResource,
+        String fileName,
+        String contentHash,
+        Optional<RagIngestedDocument> existing
+    ) {
         List<Document> chunks = readAndSplit(pdfResource, fileName, contentHash);
 
         if (existing.isPresent()) {
@@ -85,6 +105,17 @@ public class RagDocumentIngestionService {
             // for this file before adding the new ones, otherwise both
             // versions would stay searchable side by side.
             vectorStore.delete(FILE_NAME_METADATA_KEY + " == '" + fileName + "'");
+        }
+
+        // El insert al vector store va antes de guardar el registro de
+        // RagIngestedDocument: si falla (p. ej. AssertionError por texto
+        // no-UTF-8), no debe quedar un registro diciendo que el archivo ya
+        // fue ingestado cuando en realidad no llegó a insertarse ningún
+        // chunk — eso lo dejaría atascado como SKIPPED_UNCHANGED para
+        // siempre, sin volver a intentarlo nunca.
+        vectorStore.add(chunks);
+
+        if (existing.isPresent()) {
             @SuppressWarnings("null")
             RagIngestedDocument existingDocument = existing.get();
             existingDocument.markReingested(contentHash, chunks.size());
@@ -92,8 +123,6 @@ public class RagDocumentIngestionService {
         } else {
             ragIngestedDocumentRepository.save(new RagIngestedDocument(fileName, contentHash, chunks.size()));
         }
-
-        vectorStore.add(chunks);
 
         Status status = existing.isPresent() ? Status.REINGESTED : Status.INGESTED;
         return new FileResult(fileName, status, chunks.size());

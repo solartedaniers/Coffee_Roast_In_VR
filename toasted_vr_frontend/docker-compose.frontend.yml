@@ -1,0 +1,12 @@
+services:
+  frontend:
+    image: toasted-vr-frontend:local
+    container_name: toasted_vr_frontend
+    build:
+      context: ./toasted_vr_frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      REACT_APP_API_BASE_URL: ${REACT_APP_API_BASE_URL:-http://localhost:8081/api/v1}
+    ports:
+      - "0.0.0.0:3000:80"

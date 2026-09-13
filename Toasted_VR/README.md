@@ -58,3 +58,26 @@ If Windows Firewall blocks LAN traffic, run this once from an elevated PowerShel
 ```powershell
 New-NetFirewallRule -DisplayName 'Toasted VR backend 8081' -Direction Inbound -Protocol TCP -LocalPort 8081 -Action Allow
 ```
+
+## Full stack (database + backend + frontend) with one command
+
+The frontend has its own Compose override (`toasted_vr_frontend/docker-compose.frontend.yml`) that builds and serves it with nginx. Ollama/RAG intentionally stay outside all containers and keep running on the host; the backend reaches them through `host.docker.internal`, unaffected by the frontend addition.
+
+Run this from the repository root (not from `Toasted_VR`):
+
+```powershell
+docker compose --env-file .\Toasted_VR\.env -f .\docker-compose.yml -f .\Toasted_VR\docker-compose.backend.yml -f .\toasted_vr_frontend\docker-compose.frontend.yml up --build -d
+```
+
+Stop the full stack without deleting database data:
+
+```powershell
+docker compose --env-file .\Toasted_VR\.env -f .\docker-compose.yml -f .\Toasted_VR\docker-compose.backend.yml -f .\toasted_vr_frontend\docker-compose.frontend.yml down
+```
+
+The frontend is served on `http://localhost:3000`. Its `REACT_APP_API_BASE_URL` is resolved at container startup, not baked in at build time: the image is built once with a placeholder, and `toasted_vr_frontend/entrypoint.sh` substitutes it for the real value on every container start. To point the frontend at a different backend URL (e.g. the PC's LAN IPv4 address for a Meta Quest build), set `REACT_APP_API_BASE_URL` before bringing the stack up and recreate only the frontend container — no rebuild needed:
+
+```powershell
+$env:REACT_APP_API_BASE_URL = 'http://<PC_IPV4_ADDRESS>:8081/api/v1'
+docker compose --env-file .\Toasted_VR\.env -f .\docker-compose.yml -f .\Toasted_VR\docker-compose.backend.yml -f .\toasted_vr_frontend\docker-compose.frontend.yml up -d --force-recreate frontend
+```

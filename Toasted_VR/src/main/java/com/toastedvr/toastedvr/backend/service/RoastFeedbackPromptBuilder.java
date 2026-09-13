@@ -1,7 +1,6 @@
 package com.toastedvr.toastedvr.backend.service;
 
 import com.toastedvr.toastedvr.backend.domain.KnowledgeLevel;
-import com.toastedvr.toastedvr.backend.domain.RoastingResult;
 import com.toastedvr.toastedvr.backend.domain.RoastingSession;
 import java.util.List;
 
@@ -34,7 +33,6 @@ final class RoastFeedbackPromptBuilder {
         Duración total: %d segundos. First crack alcanzado: %s.
         %s
         Nivel del usuario: %s.
-        %s
         Escribe 2 o 3 frases en español, en texto plano, explicando qué salió \
         bien o mal según esos datos y una sugerencia concreta para el próximo \
         tueste. No inventes objetos, herramientas ni escenas que no estén en \
@@ -104,7 +102,6 @@ final class RoastFeedbackPromptBuilder {
             Boolean.TRUE.equals(session.isFirstCrackReached()) ? YES : NO,
             developmentTimeText(session),
             shortLabelFor(level),
-            secondCrackZoneNote(session),
             vocabularyReminderFor(level),
             retrievedContextBlock(retrievedContext),
             session.getResult(),
@@ -177,6 +174,14 @@ final class RoastFeedbackPromptBuilder {
     // Visibilidad de paquete (no private): RagContextRetrievalService también
     // la usa para construir la query de búsqueda en pgvector, así ambos
     // puntos comparten la misma fuente de verdad para los umbrales de fase.
+    // Nota: cuando la fase es "Segundo Crack" con resultado BURNED, la
+    // explicación de que esa temperatura sería válida para un tueste oscuro
+    // (pero se penaliza porque el sistema en esta fase del proyecto solo
+    // evalúa hasta primer crack) ya la muestra el frontend como texto fijo
+    // (RoastFlavorProfileDescriber.js → clave BURNED_SECOND_CRACK_ZONE en
+    // es.json), no generado por el LLM. Este prompt solo reporta la fase;
+    // no le pide al modelo que la explique — un intento anterior de hacerlo
+    // desde aquí no logró que el modelo la sostuviera de forma consistente.
     static String resolveRoastPhaseLabel(double finalTemperature) {
         if (finalTemperature <= DRYING_PHASE_END_C) {
             return DRYING_PHASE_LABEL;
@@ -188,23 +193,6 @@ final class RoastFeedbackPromptBuilder {
             return FIRST_CRACK_PHASE_LABEL;
         }
         return SECOND_CRACK_PHASE_LABEL;
-    }
-
-    // Cuando el tueste terminó en zona de segundo crack pero el resultado es
-    // BURNED (el techo de quemado queda debajo de esa zona a propósito, ver
-    // RoastFlavorProfileDescriber.js del frontend), le pide al modelo que
-    // explique la causa real en vez de solo decir "se quemó".
-    private static String secondCrackZoneNote(RoastingSession session) {
-        boolean reachedSecondCrackZone = session.getResult() == RoastingResult.BURNED
-            && session.getFinalTemperature() >= SECOND_CRACK_PHASE_START_C;
-        if (!reachedSecondCrackZone) {
-            return "";
-        }
-        return "Importante: esta sesión llegó a temperatura de SEGUNDO CRACK. Debes decir, con esta idea "
-            + "exacta y sin suavizarla: la temperatura alcanzada habría sido ideal para un tueste OSCURO, "
-            + "pero este simulador valida un perfil de tueste MEDIO, por eso el resultado es quemado. "
-            + "No uses frases vagas como \"se tostó correctamente hasta cierto punto\" ni evites nombrar "
-            + "el segundo crack o la palabra OSCURO.";
     }
 
     // Le señala al modelo cuando la carga quedó fuera del rango

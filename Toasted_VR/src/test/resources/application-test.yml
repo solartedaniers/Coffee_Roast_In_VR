@@ -11,6 +11,13 @@ spring:
   mail:
     host: localhost
     port: 2525
+  ai:
+    vectorstore:
+      pgvector:
+        # H2 (used for the datasource above) has no pgvector extension, so
+        # the real app's initialize-schema: true would fail every test run
+        # with "bad SQL grammar [CREATE EXTENSION IF NOT EXISTS vector]".
+        initialize-schema: false
 
 app:
   jwt:

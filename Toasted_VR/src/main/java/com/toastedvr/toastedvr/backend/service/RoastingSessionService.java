@@ -49,7 +49,7 @@ public class RoastingSessionService {
 
     @Transactional
     public RoastingSession getOwnedSession(Long userId, Long sessionId) {
-        RoastingSession session = roastingSessionRepository.findById(sessionId)
+        RoastingSession session = roastingSessionRepository.findById(Objects.requireNonNull(sessionId))
             .orElseThrow(() -> new ResourceNotFoundException("Sesión de tueste no encontrada."));
 
         if (!session.getUser().getId().equals(userId)) {

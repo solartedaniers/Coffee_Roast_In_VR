@@ -195,14 +195,21 @@ final class RoastFeedbackPromptBuilder {
         return SECOND_CRACK_PHASE_LABEL;
     }
 
-    // Le señala al modelo cuando la carga quedó fuera del rango
-    // recomendado, para que lo mencione en la retroalimentación — mismo
-    // criterio que ya penaliza el puntaje en ChargeTemperaturePenaltyCalculator.js.
+    // Declara siempre si la carga está dentro o fuera del rango
+    // recomendado (mismo criterio que ya penaliza el puntaje en
+    // ChargeTemperaturePenaltyCalculator.js) — nunca en silencio cuando
+    // está bien, mismo estilo que developmentTimeText(), que también
+    // declara explícitamente el caso "dentro del rango óptimo". Hallazgo:
+    // el silencio en el caso bueno dejaba a la carga como un dato sin
+    // interpretar, y el modelo llenaba ese vacío inventando una relación
+    // entre carga y objetivo que no existe en el dominio (son puntos
+    // distintos del proceso, no valores comparables entre sí), llegando a
+    // recomendar "ajustar" la carga a un valor que ya tenía.
     private static String chargeTemperatureText(double chargeTemperature) {
         boolean outOfRange = chargeTemperature < CHARGE_IDEAL_MIN_C || chargeTemperature > CHARGE_IDEAL_MAX_C;
         String note = outOfRange
             ? " (fuera del rango recomendado de %.0f-%.0f°C)".formatted(CHARGE_IDEAL_MIN_C, CHARGE_IDEAL_MAX_C)
-            : "";
+            : " (dentro del rango recomendado de %.0f-%.0f°C)".formatted(CHARGE_IDEAL_MIN_C, CHARGE_IDEAL_MAX_C);
         return "%.1f°C%s".formatted(chargeTemperature, note);
     }
 

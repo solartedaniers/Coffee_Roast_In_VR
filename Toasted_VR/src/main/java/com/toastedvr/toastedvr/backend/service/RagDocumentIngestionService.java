@@ -12,6 +12,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +21,7 @@ import org.springframework.ai.reader.pdf.PagePdfDocumentReader;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 // Reads every PDF under src/main/resources/rag-docs/, chunks it and stores
@@ -128,13 +130,13 @@ public class RagDocumentIngestionService {
         return new FileResult(fileName, status, chunks.size());
     }
 
-    private List<Document> readAndSplit(Resource pdfResource, String fileName, String contentHash) {
+    private @NonNull List<Document> readAndSplit(Resource pdfResource, String fileName, String contentHash) {
         List<Document> pages = new PagePdfDocumentReader(pdfResource).read();
         for (Document page : pages) {
             page.getMetadata().put(FILE_NAME_METADATA_KEY, fileName);
             page.getMetadata().put(CONTENT_HASH_METADATA_KEY, contentHash);
         }
-        return new CharacterTextSplitter().apply(pages);
+        return Objects.requireNonNull(new CharacterTextSplitter().apply(pages), "Split chunks must not be null.");
     }
 
     private static String sha256Of(Resource resource) throws IOException {

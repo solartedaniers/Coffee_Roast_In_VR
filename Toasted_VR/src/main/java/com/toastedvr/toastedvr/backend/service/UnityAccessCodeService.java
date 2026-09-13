@@ -13,6 +13,7 @@ import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
+import org.springframework.lang.NonNull;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -118,7 +119,7 @@ public class UnityAccessCodeService {
         }
 
         return unityAccessCodeRepository.findByLookupHash(cryptoService.lookupHash(normalizedCode))
-            .map(UnityAccessCode::getUser);
+            .map((@NonNull UnityAccessCode code) -> code.getUser());
     }
 
     private User findUser(Long userId) {

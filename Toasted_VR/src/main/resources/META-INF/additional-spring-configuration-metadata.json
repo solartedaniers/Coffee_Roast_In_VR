@@ -61,6 +61,31 @@
       "name": "app.bootstrap-admin.password",
       "type": "java.lang.String",
       "description": "Contrasena inicial del administrador creado al iniciar la aplicacion."
+    },
+    {
+      "name": "app.unity-code.hmac-pepper",
+      "type": "java.lang.String",
+      "description": "Pepper usado para el hash de busqueda del codigo de acceso de Unity."
+    },
+    {
+      "name": "app.unity-code.encryption-key",
+      "type": "java.lang.String",
+      "description": "Clave usada para cifrar el codigo de acceso de Unity."
+    },
+    {
+      "name": "ollama.base-url",
+      "type": "java.lang.String",
+      "description": "URL de la instancia de Ollama usada por OllamaFeedbackService."
+    },
+    {
+      "name": "rag.query.dtr-optimal-min",
+      "type": "java.lang.Double",
+      "description": "Limite inferior del rango de Development Time Ratio optimo usado en la query de RAG."
+    },
+    {
+      "name": "rag.query.dtr-optimal-max",
+      "type": "java.lang.Double",
+      "description": "Limite superior del rango de Development Time Ratio optimo usado en la query de RAG."
     }
   ]
 }

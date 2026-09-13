@@ -2,7 +2,6 @@ package com.toastedvr.toastedvr.backend.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.toastedvr.toastedvr.backend.domain.Role;
 import com.toastedvr.toastedvr.backend.domain.UnityAccessCode;
 import com.toastedvr.toastedvr.backend.domain.User;
 import com.toastedvr.toastedvr.backend.repository.UnityAccessCodeRepository;
@@ -10,16 +9,20 @@ import com.toastedvr.toastedvr.backend.repository.UserRepository;
 import com.toastedvr.toastedvr.backend.security.JwtService;
 import com.toastedvr.toastedvr.backend.security.UserPrincipal;
 import java.util.Map;
+import java.util.Objects;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.lang.NonNull;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -141,7 +144,7 @@ class UnityAccessCodeControllerIntegrationTests {
 
         mockMvc.perform(authenticatedPost("/api/v1/users/me/unity-access-code/email", CORRECT_PASSWORD))
             .andExpect(status().isNoContent());
-        verify(mailSender).send(any(org.springframework.mail.SimpleMailMessage.class));
+        verify(mailSender).send(anySimpleMailMessage());
         assertThat(unityAccessCodeRepository.findByUserId(user.getId()).orElseThrow().getLastEmailedAt()).isNotNull();
 
         String regeneratedCode = responseField(
@@ -188,8 +191,8 @@ class UnityAccessCodeControllerIntegrationTests {
         String response = mockMvc.perform(
                 post("/api/v1/users/me/unity-access-code")
                     .header("Authorization", "Bearer " + targetToken)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(asJson(Map.of("currentPassword", currentPassword)))
+                    .contentType(jsonMediaType())
+                    .content(requireJson(Map.of("currentPassword", currentPassword)))
             )
             .andExpect(status().isOk())
             .andReturn()
@@ -198,21 +201,21 @@ class UnityAccessCodeControllerIntegrationTests {
         return responseField(response, "code");
     }
 
-    private org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder authenticatedPost(
-        String path,
-        String currentPassword
+    private @NonNull MockHttpServletRequestBuilder authenticatedPost(
+        @NonNull String path,
+        @NonNull String currentPassword
     ) throws Exception {
         return post(path)
             .header("Authorization", "Bearer " + accessToken)
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(asJson(Map.of("currentPassword", currentPassword)));
+            .contentType(jsonMediaType())
+            .content(requireJson(Map.of("currentPassword", currentPassword)));
     }
 
     private void assertUnityLoginAccepted(String code) throws Exception {
         mockMvc.perform(
                 post("/api/v1/auth/unity-login")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(asJson(Map.of("code", code)))
+                    .contentType(jsonMediaType())
+                    .content(requireJson(Map.of("code", code)))
             )
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.accessToken").isNotEmpty())
@@ -223,8 +226,8 @@ class UnityAccessCodeControllerIntegrationTests {
     private void assertUnityLoginRejected(String code) throws Exception {
         mockMvc.perform(
                 post("/api/v1/auth/unity-login")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(asJson(Map.of("code", code)))
+                    .contentType(jsonMediaType())
+                    .content(requireJson(Map.of("code", code)))
             )
             .andExpect(status().isUnauthorized())
             .andExpect(jsonPath("$.message").value("Invalid Unity access code."));
@@ -243,6 +246,19 @@ class UnityAccessCodeControllerIntegrationTests {
 
     private String asJson(Object value) throws Exception {
         return objectMapper.writeValueAsString(value);
+    }
+
+    private @NonNull MediaType jsonMediaType() {
+        return Objects.requireNonNull(MediaType.APPLICATION_JSON, "Media type must not be null.");
+    }
+
+    private @NonNull String requireJson(Object value) throws Exception {
+        return Objects.requireNonNull(asJson(value), "Serialized JSON must not be null.");
+    }
+
+    @SuppressWarnings("null")
+    private static @NonNull SimpleMailMessage anySimpleMailMessage() {
+        return any(SimpleMailMessage.class);
     }
 
     private String responseField(String response, String fieldName) throws Exception {

@@ -332,6 +332,7 @@
       "title": "Evaluación del tueste",
       "PERFECT": "Tueste Perfecto",
       "RAW": "Café Crudo",
+      "RAW_REGRESSED": "Desarrollo interrumpido",
       "BURNED": "Café Quemado",
       "BAKED": "Café Horneado",
       "descriptions": {
@@ -341,6 +342,7 @@
         "PERFECT_DEEP": "Desarrollo más largo tras el first crack: notas más profundas de chocolate y frutos secos, con menor acidez.",
         "RAW_SEVERE": "El grano quedó muy crudo, lejos del punto de first crack: predominarán sabores ácidos, vegetales y astringentes muy marcados.",
         "RAW_CLOSE": "El grano casi alcanza el desarrollo, pero se retiró antes de tiempo: quedará una acidez punzante con fondo vegetal.",
+        "RAW_REGRESSED": "Se alcanzó el first crack, pero la temperatura bajó demasiado antes de completar el desarrollo: el tueste no llegó a asentarse, lo que dejará sabores subdesarrollados.",
         "BURNED_MILD": "El calor se mantuvo unos segundos de más sobre el límite: aparecerán notas amargas y ahumadas que taparán el resto del perfil.",
         "BURNED_SEVERE": "El grano estuvo mucho tiempo por encima del límite de quemado: quedará prácticamente carbonizado, con sabor a ceniza y sin aromas rescatables.",
         "BURNED_SECOND_CRACK_ZONE": "Esta temperatura habría sido ideal para un tueste oscuro (segundo crack), pero este simulador evalúa un perfil de tueste medio, así que se clasifica como quemado.",

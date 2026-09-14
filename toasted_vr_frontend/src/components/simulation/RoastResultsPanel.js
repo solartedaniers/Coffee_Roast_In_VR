@@ -26,6 +26,10 @@ export default function RoastResultsPanel({
   const showSmoke = smokeLevel !== 'none';
   const descriptionKey =
     roastResult.score === 100 ? 'PERFECT_100' : RoastFlavorProfileDescriber.describe({ ...sim, result: roastResult.result });
+  // Mismo resultado RAW, pero cruzó first crack antes de desplomarse: la
+  // etiqueta debe distinguirlo de un crudo que nunca se acercó.
+  const badgeTextKey =
+    roastResult.result === 'RAW' && sim.firstCrackReached ? 'RAW_REGRESSED' : roastResult.result;
   const breakdownLines = roastResult.breakdown
     ? Object.entries(roastResult.breakdown)
         .filter(([, points]) => points > 0)
@@ -57,7 +61,7 @@ export default function RoastResultsPanel({
           </div>
 
           <div className={`result-badge result-badge-${roastResult.result}`}>
-            {texts[roastResult.result]}
+            {texts[badgeTextKey]}
           </div>
 
           <p className="result-description">{texts.descriptions[descriptionKey]}</p>

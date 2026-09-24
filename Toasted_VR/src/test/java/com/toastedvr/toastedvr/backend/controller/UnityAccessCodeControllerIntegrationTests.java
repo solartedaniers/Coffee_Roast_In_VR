@@ -173,8 +173,10 @@ class UnityAccessCodeControllerIntegrationTests {
     void shouldRejectInvalidBlockedAndUnverifiedUnityLoginsWithGenericMessage() throws Exception {
         assertUnityLoginRejected("INVALID");
 
-        User blockedUser = createUser("Blocked User", "blocked@toastedvr.test", "blockedUnity", true, false);
+        User blockedUser = createUser("Blocked User", "blocked@toastedvr.test", "blockedUnity", true, true);
         String blockedCode = createCodeForUser(blockedUser, CORRECT_PASSWORD);
+        blockedUser.block();
+        userRepository.save(blockedUser);
         assertUnityLoginRejected(blockedCode);
 
         User unverifiedUser = createUser("Pending User", "pending@toastedvr.test", "pendingUnity", false, true);

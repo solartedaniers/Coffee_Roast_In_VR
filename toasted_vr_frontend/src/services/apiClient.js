@@ -18,6 +18,15 @@ export const toApiError = (error) => {
 
 const AUTH_PATH_PREFIX = '/auth/';
 const SESSION_EXPIRED_EVENT = 'toastedvr:session-expired';
+export const ACCOUNT_BLOCKED_EVENT = 'toastedvr:account-blocked';
+const ACCOUNT_BLOCKED_CODE = 'ACCOUNT_BLOCKED';
+
+const isAccountBlocked = (error) => error?.response?.data?.code === ACCOUNT_BLOCKED_CODE;
+
+const endLocalSession = (eventName) => {
+  clearSession();
+  window.dispatchEvent(new Event(eventName));
+};
 
 const apiClient = axios.create({
   baseURL: apiBaseUrl,
@@ -65,6 +74,12 @@ apiClient.interceptors.response.use(
     const { config, response } = error;
     const isAuthEndpoint = config?.url?.startsWith(AUTH_PATH_PREFIX);
 
+    // Una cuenta bloqueada no se renueva: se cierra la sesión local de inmediato.
+    if (isAccountBlocked(error) && !isAuthEndpoint) {
+      endLocalSession(ACCOUNT_BLOCKED_EVENT);
+      return Promise.reject(error);
+    }
+
     if (!config || response?.status !== 401 || isAuthEndpoint || config._retry) {
       return Promise.reject(error);
     }
@@ -80,8 +95,7 @@ apiClient.interceptors.response.use(
       return apiClient(config);
     } catch (refreshError) {
       refreshPromise = null;
-      clearSession();
-      window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT));
+      endLocalSession(isAccountBlocked(refreshError) ? ACCOUNT_BLOCKED_EVENT : SESSION_EXPIRED_EVENT);
       return Promise.reject(error);
     }
   }

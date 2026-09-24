@@ -8,6 +8,7 @@ import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
 import VerificationForm from './components/VerificationForm';
 import { logoutUser } from './services/authService';
+import { ACCOUNT_BLOCKED_EVENT } from './services/apiClient';
 import { clearSession, readSession, saveSession } from './services/sessionService';
 
 const authViews = {
@@ -26,6 +27,7 @@ function App() {
   const [pendingRegistration, setPendingRegistration] = useState(null);
   const [verifiedUser, setVerifiedUser] = useState(null);
   const [session, setSession] = useState(() => readSession());
+  const [loginNotice, setLoginNotice] = useState('');
 
   const simulationTexts = esTexts.simulation;
   const knowledgeLevelTexts = esTexts.knowledgeLevel;
@@ -49,6 +51,7 @@ function App() {
 
   const handleSwitchAuthView = (nextView) => {
     setAuthView(nextView);
+    setLoginNotice('');
 
     if (nextView !== authViews.register) {
       setPendingRegistration(null);
@@ -66,6 +69,7 @@ function App() {
 
     saveSession(nextSession);
     setSession(nextSession);
+    setLoginNotice('');
   };
 
   const handleKnowledgeLevelSet = (updatedUser) => {
@@ -103,6 +107,19 @@ function App() {
   useEffect(() => {
     window.addEventListener('toastedvr:session-expired', resetToLoggedOutState);
     return () => window.removeEventListener('toastedvr:session-expired', resetToLoggedOutState);
+  }, []);
+
+  // El backend rechazó la sesión porque un administrador bloqueó la cuenta:
+  // se lleva al usuario al login con el aviso correspondiente.
+  useEffect(() => {
+    const handleAccountBlocked = () => {
+      resetToLoggedOutState();
+      setAuthView(authViews.login);
+      setLoginNotice(esTexts.auth.errors.ACCOUNT_BLOCKED);
+    };
+
+    window.addEventListener(ACCOUNT_BLOCKED_EVENT, handleAccountBlocked);
+    return () => window.removeEventListener(ACCOUNT_BLOCKED_EVENT, handleAccountBlocked);
   }, []);
 
   if (currentUser && isAdmin) {
@@ -263,6 +280,8 @@ function App() {
               {authView === authViews.login && (
                 <LoginForm
                   texts={loginTexts}
+                  errorTexts={esTexts.auth.errors}
+                  notice={loginNotice}
                   onLoginSuccess={handleLoginSuccess}
                   onSwitchToRegister={() => handleSwitchAuthView(authViews.register)}
                 />

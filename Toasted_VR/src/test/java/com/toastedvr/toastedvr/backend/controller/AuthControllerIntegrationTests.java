@@ -88,7 +88,8 @@ class AuthControllerIntegrationTests {
                     .content(requireJson(Map.of("email", "blocked@toastedvr.test", "password", "Password123!")))
             )
             .andExpect(status().isForbidden())
-            .andExpect(jsonPath("$.message").value("La cuenta se encuentra bloqueada."));
+            .andExpect(jsonPath("$.message").value("Fuiste bloqueado por el administrador."))
+            .andExpect(jsonPath("$.code").value("ACCOUNT_BLOCKED"));
     }
 
     @Test

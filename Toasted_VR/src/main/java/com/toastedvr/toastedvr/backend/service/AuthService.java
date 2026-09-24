@@ -158,7 +158,7 @@ public class AuthService {
         }
 
         if (!user.isEnabled()) {
-            throw new AccountBlockedException(messages.get("auth.login.accountBlocked"));
+            throw new AccountBlockedException(messages.get("auth.account.blocked"));
         }
 
         return createLoginResponse(user);
@@ -207,7 +207,7 @@ public class AuthService {
         }
 
         if (!user.isEnabled()) {
-            throw new AccountBlockedException(messages.get("auth.login.accountBlocked"));
+            throw new AccountBlockedException(messages.get("auth.account.blocked"));
         }
 
         String newRefreshToken = refreshTokenService.issue(user);

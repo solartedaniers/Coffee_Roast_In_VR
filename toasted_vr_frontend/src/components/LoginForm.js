@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import PasswordField from './PasswordField';
 import { loginUser } from '../services/authService';
+import { resolveErrorMessage } from '../utils/errorMessages';
 
 const initialCredentials = {
   email: '',
   password: ''
 };
 
-function LoginForm({ texts, onLoginSuccess, onSwitchToRegister }) {
+function LoginForm({ texts, errorTexts, notice, onLoginSuccess, onSwitchToRegister }) {
   const [credentials, setCredentials] = useState(initialCredentials);
-  const [status, setStatus] = useState({ text: '', isError: false });
+  const [status, setStatus] = useState({ text: notice || '', isError: Boolean(notice) });
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (event) => {
@@ -31,7 +32,7 @@ function LoginForm({ texts, onLoginSuccess, onSwitchToRegister }) {
       setCredentials(initialCredentials);
       onLoginSuccess(response);
     } catch (error) {
-      setStatus({ text: error.message, isError: true });
+      setStatus({ text: resolveErrorMessage(error, errorTexts), isError: true });
     } finally {
       setIsLoading(false);
     }

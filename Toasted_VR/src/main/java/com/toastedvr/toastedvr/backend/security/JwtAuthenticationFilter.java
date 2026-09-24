@@ -1,6 +1,8 @@
 package com.toastedvr.toastedvr.backend.security;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
+import com.toastedvr.toastedvr.backend.exception.ErrorCode;
 import com.toastedvr.toastedvr.backend.service.TokenBlacklistService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -10,6 +12,7 @@ import java.io.IOException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.lang.NonNull;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
@@ -19,6 +22,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     public static final String AUTH_FAILURE_REASON = "authFailureReason";
+    public static final String AUTH_FAILURE_CODE = "authFailureCode";
 
     private final JwtService jwtService;
     private final CustomUserDetailsService userDetailsService;
@@ -61,18 +65,43 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserPrincipal principal = (UserPrincipal) userDetailsService.loadUserById(userId);
 
-                if (jwtService.isTokenValid(token, principal)) {
+                if (!principal.isEnabled()) {
+                    markAccountBlocked(request);
+                } else if (jwtService.isTokenValid(token, principal)) {
                     UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
                     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
             }
+        } catch (ExpiredJwtException exception) {
+            // Un token vencido de una cuenta bloqueada se informa como bloqueo,
+            // para que el cliente no intente renovar la sesión.
+            if (isBlockedUser(exception.getClaims().getSubject())) {
+                markAccountBlocked(request);
+            } else {
+                request.setAttribute(AUTH_FAILURE_REASON, "Expired token");
+            }
+            SecurityContextHolder.clearContext();
         } catch (JwtException | IllegalArgumentException ignored) {
             request.setAttribute(AUTH_FAILURE_REASON, "Invalid token");
             SecurityContextHolder.clearContext();
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private void markAccountBlocked(HttpServletRequest request) {
+        request.setAttribute(AUTH_FAILURE_REASON, "Blocked account");
+        request.setAttribute(AUTH_FAILURE_CODE, ErrorCode.ACCOUNT_BLOCKED);
+        SecurityContextHolder.clearContext();
+    }
+
+    private boolean isBlockedUser(String subject) {
+        try {
+            return !userDetailsService.loadUserById(Long.valueOf(subject)).isEnabled();
+        } catch (UsernameNotFoundException | IllegalArgumentException exception) {
+            return false;
+        }
     }
 }

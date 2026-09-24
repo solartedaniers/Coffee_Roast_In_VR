@@ -40,6 +40,9 @@
         "forgotPasswordUnavailable": "La recuperación de contraseña aún no está disponible en esta versión."
       }
     },
+    "errors": {
+      "ACCOUNT_BLOCKED": "Fuiste bloqueado por el administrador."
+    },
     "register": {
       "switchLabel": "Registrarse",
       "title": "Crear cuenta",

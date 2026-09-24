@@ -66,6 +66,8 @@ public class AdminUserService {
             user.activate();
         } else {
             user.block();
+            // Sin refresh token no puede renovar la sesión; el filtro JWT rechaza el access token vigente.
+            user.clearRefreshToken();
         }
 
         auditService.logStatusChange(requesterId, user.getId(), user.isEnabled());

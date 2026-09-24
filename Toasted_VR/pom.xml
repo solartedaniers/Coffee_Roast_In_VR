@@ -184,6 +184,8 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
+					<!-- Los tests corren en UTC, igual que la aplicación (ToastedVrApplication.main). -->
+					<argLine>-Duser.timezone=UTC</argLine>
 					<systemPropertyVariables>
 						<!-- Activates application-test.yml as a profile overlay on top of
 							src/main/resources/application.yml, instead of a same-named

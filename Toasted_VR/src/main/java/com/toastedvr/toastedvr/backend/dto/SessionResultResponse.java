@@ -1,6 +1,6 @@
 package com.toastedvr.toastedvr.backend.dto;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record SessionResultResponse(
     Long id,
@@ -12,6 +12,6 @@ public record SessionResultResponse(
     Double peakTemperature,
     Boolean firstCrackReached,
     Integer developmentTimeSeconds,
-    LocalDateTime createdAt
+    Instant createdAt
 ) {
 }

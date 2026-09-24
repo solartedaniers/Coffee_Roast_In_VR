@@ -1,6 +1,6 @@
 package com.toastedvr.toastedvr.backend.dto;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record AdminRoastingSessionResponse(
     Long id,
@@ -13,6 +13,6 @@ public record AdminRoastingSessionResponse(
     String result,
     Integer qualityScore,
     Boolean firstCrackReached,
-    LocalDateTime createdAt
+    Instant createdAt
 ) {
 }

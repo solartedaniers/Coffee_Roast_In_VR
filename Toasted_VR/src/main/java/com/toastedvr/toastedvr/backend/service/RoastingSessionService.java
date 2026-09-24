@@ -3,6 +3,7 @@ package com.toastedvr.toastedvr.backend.service;
 import com.toastedvr.toastedvr.backend.config.MessageResolver;
 import com.toastedvr.toastedvr.backend.domain.RoastingSession;
 import com.toastedvr.toastedvr.backend.domain.User;
+import com.toastedvr.toastedvr.backend.dto.ApiInstants;
 import com.toastedvr.toastedvr.backend.dto.SaveSessionRequest;
 import com.toastedvr.toastedvr.backend.dto.SessionResultResponse;
 import com.toastedvr.toastedvr.backend.exception.ResourceNotFoundException;
@@ -82,7 +83,7 @@ public class RoastingSessionService {
             session.getPeakTemperature(),
             session.isFirstCrackReached(),
             session.getDevelopmentTimeSeconds(),
-            session.getCreatedAt()
+            ApiInstants.from(session.getCreatedAt())
         );
     }
 }

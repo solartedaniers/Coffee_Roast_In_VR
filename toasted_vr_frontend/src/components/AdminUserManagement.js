@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import ProfileSettings from './ProfileSettings';
+import { formatLocalDate } from '../utils/dateFormat';
 import {
   fetchUsers,
   fetchUserDetail,
@@ -42,10 +43,6 @@ function formatDuration(totalSeconds) {
   const mins = Math.floor(totalSeconds / 60);
   const secs = totalSeconds % 60;
   return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-}
-
-function formatDate(value) {
-  return value ? new Date(value).toLocaleDateString() : '—';
 }
 
 // ── Component ──────────────────────────────────────────────────────
@@ -280,7 +277,7 @@ function AdminUserManagement({ texts, profileTexts, currentUser, onLogout, onUse
                 </span>
               </td>
               <td>{user.emailVerified ? texts.yes : texts.no}</td>
-              <td>{formatDate(user.createdAt)}</td>
+              <td>{formatLocalDate(user.createdAt)}</td>
               {showActions && (
                 <td>
                   <button
@@ -537,7 +534,7 @@ function AdminUserManagement({ texts, profileTexts, currentUser, onLogout, onUse
                     <td>{formatDuration(session.totalDurationSeconds)}</td>
                     <td>{session.finalTemperature?.toFixed(1)}°C</td>
                     <td className="admin-muted-cell">
-                      {new Date(session.createdAt).toLocaleDateString()}
+                      {formatLocalDate(session.createdAt)}
                     </td>
                   </tr>
                 ))}
@@ -578,7 +575,7 @@ function AdminUserManagement({ texts, profileTexts, currentUser, onLogout, onUse
                 [texts.detail.username, user.username],
                 [texts.detail.verified, user.emailVerified ? texts.yes : texts.no],
                 [texts.detail.status, user.enabled ? texts.options.active : texts.options.blocked],
-                [texts.detail.createdAt, formatDate(user.createdAt)],
+                [texts.detail.createdAt, formatLocalDate(user.createdAt)],
               ].map(([label, value]) => (
                 <div className="detail-row" key={label}>
                   <span>{label}</span>

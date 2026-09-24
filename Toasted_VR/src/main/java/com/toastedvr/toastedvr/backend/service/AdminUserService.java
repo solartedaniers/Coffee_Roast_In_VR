@@ -3,6 +3,7 @@ package com.toastedvr.toastedvr.backend.service;
 import com.toastedvr.toastedvr.backend.config.MessageResolver;
 import com.toastedvr.toastedvr.backend.domain.Role;
 import com.toastedvr.toastedvr.backend.domain.User;
+import com.toastedvr.toastedvr.backend.dto.ApiInstants;
 import com.toastedvr.toastedvr.backend.dto.UpdateUserRoleRequest;
 import com.toastedvr.toastedvr.backend.dto.UpdateUserStatusRequest;
 import com.toastedvr.toastedvr.backend.dto.UserAdminResponse;
@@ -149,7 +150,7 @@ public class AdminUserService {
             user.isEmailVerified(),
             user.isEnabled(),
             user.getRole(),
-            user.getCreatedAt(),
+            ApiInstants.from(user.getCreatedAt()),
             user.getKnowledgeLevel()
         );
     }
@@ -163,7 +164,7 @@ public class AdminUserService {
             user.isEmailVerified(),
             user.isEnabled(),
             user.getRole(),
-            user.getCreatedAt(),
+            ApiInstants.from(user.getCreatedAt()),
             message
         );
     }

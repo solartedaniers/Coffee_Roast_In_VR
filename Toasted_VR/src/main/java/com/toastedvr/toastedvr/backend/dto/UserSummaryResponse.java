@@ -2,7 +2,7 @@ package com.toastedvr.toastedvr.backend.dto;
 
 import com.toastedvr.toastedvr.backend.domain.KnowledgeLevel;
 import com.toastedvr.toastedvr.backend.domain.Role;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record UserSummaryResponse(
     Long id,
@@ -12,7 +12,7 @@ public record UserSummaryResponse(
     boolean emailVerified,
     boolean enabled,
     Role role,
-    LocalDateTime createdAt,
+    Instant createdAt,
     KnowledgeLevel knowledgeLevel
 ) {
 }

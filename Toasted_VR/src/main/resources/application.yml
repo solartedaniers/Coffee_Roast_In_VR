@@ -75,6 +75,11 @@
       secret: ${APP_JWT_SECRET:VG9hc3RlZFZSU3VwZXJTZWNyZXRLZXlGb3JEZXZlbG9wbWVudDIwMjYhVG9hc3RlZFZS}
       expiration-seconds: ${APP_JWT_EXPIRATION_SECONDS:600}
       refresh-expiration-hours: ${APP_JWT_REFRESH_EXPIRATION_HOURS:24}
+    password-policy:
+      min-length: ${PASSWORD_MIN_LENGTH:8}
+    username-policy:
+      min-length: ${USERNAME_MIN_LENGTH:4}
+      max-length: ${USERNAME_MAX_LENGTH:20}
     unity-code:
       hmac-pepper: ${UNITY_CODE_HMAC_PEPPER:}
       encryption-key: ${UNITY_CODE_ENCRYPTION_KEY:}

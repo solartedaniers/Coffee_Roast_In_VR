@@ -57,7 +57,11 @@ public class GlobalExceptionHandler {
         );
     }
 
-    @ExceptionHandler({InvalidVerificationCodeException.class, EmailDeliveryException.class})
+    @ExceptionHandler({
+        InvalidVerificationCodeException.class,
+        EmailDeliveryException.class,
+        InvalidRequestException.class
+    })
     public ResponseEntity<ApiErrorResponse> handleBadRequest(ApiException exception, HttpServletRequest request) {
         return buildResponse(HttpStatus.BAD_REQUEST, exception, request);
     }

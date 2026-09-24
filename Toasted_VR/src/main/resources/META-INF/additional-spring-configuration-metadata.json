@@ -79,6 +79,24 @@
       "description": "Clave usada para cifrar el codigo de acceso de Unity."
     },
     {
+      "name": "app.password-policy.min-length",
+      "type": "java.lang.Integer",
+      "description": "Longitud minima de la contraseña (registro, perfil y recuperacion).",
+      "defaultValue": 8
+    },
+    {
+      "name": "app.username-policy.min-length",
+      "type": "java.lang.Integer",
+      "description": "Longitud minima del nombre de usuario.",
+      "defaultValue": 4
+    },
+    {
+      "name": "app.username-policy.max-length",
+      "type": "java.lang.Integer",
+      "description": "Longitud maxima del nombre de usuario.",
+      "defaultValue": 20
+    },
+    {
       "name": "ollama.base-url",
       "type": "java.lang.String",
       "description": "URL de la instancia de Ollama usada por OllamaFeedbackService."

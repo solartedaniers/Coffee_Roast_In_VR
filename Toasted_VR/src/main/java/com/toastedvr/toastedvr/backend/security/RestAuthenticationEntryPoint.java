@@ -40,14 +40,18 @@ public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
         auditService.logUnauthorizedAccess("anonymous", request.getRequestURI(), failureDetail);
 
-        boolean accountBlocked = request.getAttribute(JwtAuthenticationFilter.AUTH_FAILURE_CODE) == ErrorCode.ACCOUNT_BLOCKED;
-        writeResponse(
-            response,
-            request.getRequestURI(),
-            HttpStatus.UNAUTHORIZED,
-            accountBlocked ? ErrorCode.ACCOUNT_BLOCKED : ErrorCode.UNAUTHORIZED,
-            messages.get(accountBlocked ? "auth.account.blocked" : "error.security.unauthorized")
-        );
+        ErrorCode code = request.getAttribute(JwtAuthenticationFilter.AUTH_FAILURE_CODE) instanceof ErrorCode failureCode
+            ? failureCode
+            : ErrorCode.UNAUTHORIZED;
+        writeResponse(response, request.getRequestURI(), HttpStatus.UNAUTHORIZED, code, messages.get(messageKeyFor(code)));
+    }
+
+    private String messageKeyFor(ErrorCode code) {
+        return switch (code) {
+            case ACCOUNT_BLOCKED -> "auth.account.blocked";
+            case SESSION_REVOKED -> "auth.session.revoked";
+            default -> "error.security.unauthorized";
+        };
     }
 
     private void writeResponse(

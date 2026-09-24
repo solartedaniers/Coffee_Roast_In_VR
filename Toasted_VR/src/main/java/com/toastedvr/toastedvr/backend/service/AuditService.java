@@ -51,6 +51,14 @@ public class AuditService {
         );
     }
 
+    public void logPasswordReset(Long userId) {
+        AUDIT_LOGGER.info(
+            "event=PASSWORD_RESET timestamp={} userId={}",
+            Instant.now(),
+            userId
+        );
+    }
+
     public void logLogout(Long userId, String username) {
         AUDIT_LOGGER.info(
             "event=LOGOUT timestamp={} userId={} username={}",

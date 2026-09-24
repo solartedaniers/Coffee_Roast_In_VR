@@ -108,6 +108,15 @@ describe('LoginForm', () => {
     expect(screen.queryByRole('button', { name: esTexts.auth.login.links.verifyAccount })).not.toBeInTheDocument();
   });
 
+  test('opens password recovery from the forgot password link', () => {
+    const onForgotPassword = jest.fn();
+    renderLoginForm({ onForgotPassword });
+
+    fireEvent.click(screen.getByRole('button', { name: esTexts.auth.login.links.forgotPassword }));
+
+    expect(onForgotPassword).toHaveBeenCalled();
+  });
+
   test('shows the notice received when the user was expelled', () => {
     renderLoginForm({ notice: esTexts.auth.errors.ACCOUNT_BLOCKED });
 

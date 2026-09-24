@@ -43,6 +43,10 @@ public class JwtService {
         return extractClaims(token).getExpiration().toInstant();
     }
 
+    public Instant getIssuedAt(String token) {
+        return extractClaims(token).getIssuedAt().toInstant();
+    }
+
     public String extractUsername(String token) {
         return extractClaims(token).get("username", String.class);
     }

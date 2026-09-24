@@ -11,7 +11,15 @@ const initialCredentials = {
   password: ''
 };
 
-function LoginForm({ texts, errorTexts, notice, onLoginSuccess, onSwitchToRegister, onVerifyAccount }) {
+function LoginForm({
+  texts,
+  errorTexts,
+  notice,
+  onLoginSuccess,
+  onSwitchToRegister,
+  onVerifyAccount,
+  onForgotPassword
+}) {
   const [credentials, setCredentials] = useState(initialCredentials);
   const [status, setStatus] = useState({ text: notice || '', isError: Boolean(notice) });
   const [isLoading, setIsLoading] = useState(false);
@@ -23,10 +31,6 @@ function LoginForm({ texts, errorTexts, notice, onLoginSuccess, onSwitchToRegist
     const { name, value } = event.target;
     setCredentials((currentValue) => ({ ...currentValue, [name]: value }));
     clearFieldError(name);
-  };
-
-  const handleForgotPassword = () => {
-    setStatus({ text: texts.messages.forgotPasswordUnavailable, isError: true });
   };
 
   const handleSubmit = async (event) => {
@@ -107,7 +111,7 @@ function LoginForm({ texts, errorTexts, notice, onLoginSuccess, onSwitchToRegist
       </button>
 
       <div className="form-links">
-        <button type="button" className="text-link" onClick={handleForgotPassword}>
+        <button type="button" className="text-link" onClick={onForgotPassword}>
           {texts.links.forgotPassword}
         </button>
         <button type="button" className="text-link text-link-strong" onClick={onSwitchToRegister}>

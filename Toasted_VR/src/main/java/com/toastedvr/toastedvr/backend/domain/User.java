@@ -1,6 +1,9 @@
 package com.toastedvr.toastedvr.backend.domain;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -66,6 +69,11 @@ public class User {
     private String refreshTokenHash;
 
     private LocalDateTime refreshTokenExpiresAt;
+
+    // Los access tokens emitidos antes de este momento (en segundos, como el iat
+    // del JWT) dejan de ser válidos; se fija al cambiar la contraseña. Se guarda
+    // como LocalDateTime, igual que las demás fechas de la entidad.
+    private LocalDateTime sessionsInvalidatedAt;
 
     protected User() {
     }
@@ -198,6 +206,15 @@ public class User {
     public void updateRefreshTokenHash(String refreshTokenHash, LocalDateTime expiresAt) {
         this.refreshTokenHash = refreshTokenHash;
         this.refreshTokenExpiresAt = expiresAt;
+    }
+
+    public Instant getSessionsInvalidatedAt() {
+        return sessionsInvalidatedAt == null ? null : sessionsInvalidatedAt.atZone(ZoneId.systemDefault()).toInstant();
+    }
+
+    public void invalidateSessions(Instant moment) {
+        this.sessionsInvalidatedAt = LocalDateTime.ofInstant(moment.truncatedTo(ChronoUnit.SECONDS), ZoneId.systemDefault());
+        clearRefreshToken();
     }
 
     public void clearRefreshToken() {

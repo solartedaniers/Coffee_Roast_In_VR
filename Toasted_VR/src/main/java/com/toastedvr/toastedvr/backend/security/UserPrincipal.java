@@ -2,6 +2,7 @@ package com.toastedvr.toastedvr.backend.security;
 
 import com.toastedvr.toastedvr.backend.domain.Role;
 import com.toastedvr.toastedvr.backend.domain.User;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import org.springframework.security.core.GrantedAuthority;
@@ -16,6 +17,7 @@ public class UserPrincipal implements UserDetails {
     private final boolean enabled;
     private final boolean emailVerified;
     private final Role role;
+    private final Instant sessionsInvalidatedAt;
     private final Collection<? extends GrantedAuthority> authorities;
 
     public UserPrincipal(User user) {
@@ -25,6 +27,7 @@ public class UserPrincipal implements UserDetails {
         this.enabled = user.isEnabled();
         this.emailVerified = user.isEmailVerified();
         this.role = user.getRole();
+        this.sessionsInvalidatedAt = user.getSessionsInvalidatedAt();
         this.authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
@@ -34,6 +37,11 @@ public class UserPrincipal implements UserDetails {
 
     public Role getRole() {
         return role;
+    }
+
+    /** Un token emitido en el mismo segundo de la invalidación, o después, sigue siendo válido. */
+    public boolean wasIssuedBeforeSessionInvalidation(Instant issuedAt) {
+        return sessionsInvalidatedAt != null && issuedAt.isBefore(sessionsInvalidatedAt);
     }
 
     public boolean isEmailVerified() {

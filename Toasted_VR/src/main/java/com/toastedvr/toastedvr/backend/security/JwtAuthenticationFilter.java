@@ -67,6 +67,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 if (!principal.isEnabled()) {
                     markAccountBlocked(request);
+                } else if (principal.wasIssuedBeforeSessionInvalidation(jwtService.getIssuedAt(token))) {
+                    markFailure(request, "Revoked session", ErrorCode.SESSION_REVOKED);
                 } else if (jwtService.isTokenValid(token, principal)) {
                     UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
@@ -92,8 +94,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private void markAccountBlocked(HttpServletRequest request) {
-        request.setAttribute(AUTH_FAILURE_REASON, "Blocked account");
-        request.setAttribute(AUTH_FAILURE_CODE, ErrorCode.ACCOUNT_BLOCKED);
+        markFailure(request, "Blocked account", ErrorCode.ACCOUNT_BLOCKED);
+    }
+
+    private void markFailure(HttpServletRequest request, String reason, ErrorCode code) {
+        request.setAttribute(AUTH_FAILURE_REASON, reason);
+        request.setAttribute(AUTH_FAILURE_CODE, code);
         SecurityContextHolder.clearContext();
     }
 

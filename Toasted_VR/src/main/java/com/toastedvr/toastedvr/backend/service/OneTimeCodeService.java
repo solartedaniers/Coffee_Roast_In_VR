@@ -51,6 +51,16 @@ public class OneTimeCodeService {
         return replaceCode(oneTimeCode);
     }
 
+    /**
+     * Primer código si el flujo no tiene uno; si ya existe, aplica las reglas de
+     * reenvío. Evita que pedir el código otra vez reinicie el límite de reenvíos.
+     */
+    public String issueOrResend(User user, OneTimeCodePurpose purpose) {
+        return oneTimeCodeRepository.findByUserAndPurpose(user, purpose).isPresent()
+            ? resend(user, purpose)
+            : issue(user, purpose);
+    }
+
     /** Emite un código nuevo solo si el anterior ya no sirve y no se superó el límite de reenvíos. */
     public String resend(User user, OneTimeCodePurpose purpose) {
         OneTimeCode oneTimeCode = findOrCreate(user, purpose);

@@ -3,8 +3,10 @@ package com.toastedvr.toastedvr.backend.controller;
 import com.toastedvr.toastedvr.backend.dto.CodeSentResponse;
 import com.toastedvr.toastedvr.backend.dto.EmailRequest;
 import com.toastedvr.toastedvr.backend.dto.LoginRequest;
+import com.toastedvr.toastedvr.backend.dto.PasswordResetConfirmRequest;
 import com.toastedvr.toastedvr.backend.dto.LoginResponse;
 import com.toastedvr.toastedvr.backend.dto.LogoutResponse;
+import com.toastedvr.toastedvr.backend.dto.MessageResponse;
 import com.toastedvr.toastedvr.backend.dto.RefreshTokenRequest;
 import com.toastedvr.toastedvr.backend.dto.RefreshTokenResponse;
 import com.toastedvr.toastedvr.backend.dto.RegisterUserRequest;
@@ -13,6 +15,7 @@ import com.toastedvr.toastedvr.backend.dto.UserResponse;
 import com.toastedvr.toastedvr.backend.dto.VerifyEmailRequest;
 import com.toastedvr.toastedvr.backend.dto.UnityLoginRequest;
 import com.toastedvr.toastedvr.backend.service.AuthService;
+import com.toastedvr.toastedvr.backend.service.PasswordResetService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -28,9 +31,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+    private final PasswordResetService passwordResetService;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, PasswordResetService passwordResetService) {
         this.authService = authService;
+        this.passwordResetService = passwordResetService;
     }
 
     @PostMapping("/register")
@@ -47,6 +52,17 @@ public class AuthController {
     @PostMapping("/verify-email")
     public UserResponse verifyEmail(@Valid @RequestBody VerifyEmailRequest request) {
         return authService.verifyEmail(request);
+    }
+
+    // Pedir y reenviar usan el mismo endpoint: la respuesta es siempre la misma.
+    @PostMapping("/password-reset/request")
+    public CodeSentResponse requestPasswordReset(@Valid @RequestBody EmailRequest request) {
+        return passwordResetService.requestCode(request);
+    }
+
+    @PostMapping("/password-reset/confirm")
+    public MessageResponse confirmPasswordReset(@Valid @RequestBody PasswordResetConfirmRequest request) {
+        return passwordResetService.resetPassword(request);
     }
 
     @PostMapping("/login")

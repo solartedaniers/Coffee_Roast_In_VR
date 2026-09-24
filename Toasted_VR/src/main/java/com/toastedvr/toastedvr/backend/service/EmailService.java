@@ -49,6 +49,24 @@ public class EmailService {
         }
     }
 
+    public void sendPasswordResetCode(String recipientEmail, String recipientName, String resetCode) {
+        if (!mailEnabled) {
+            throw new EmailDeliveryException(messages.get("email.delivery.disabled"), null);
+        }
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(senderEmail);
+        message.setTo(recipientEmail);
+        message.setSubject(messages.get("email.passwordReset.subject"));
+        message.setText(buildPasswordResetMessage(recipientName, resetCode));
+
+        try {
+            mailSender.send(message);
+        } catch (Exception exception) {
+            throw new EmailDeliveryException(messages.get("email.delivery.passwordResetFailed"), exception);
+        }
+    }
+
     public void sendUnityAccessCode(String recipientEmail, String recipientName, String unityAccessCode) {
         if (!mailEnabled) {
             throw new EmailDeliveryException("Email delivery is disabled.", null);
@@ -72,6 +90,15 @@ public class EmailService {
             "email.verification.body",
             recipientName,
             verificationCode,
+            oneTimeCodeProperties.getExpirationMinutes()
+        );
+    }
+
+    String buildPasswordResetMessage(String recipientName, String resetCode) {
+        return messages.get(
+            "email.passwordReset.body",
+            recipientName,
+            resetCode,
             oneTimeCodeProperties.getExpirationMinutes()
         );
     }

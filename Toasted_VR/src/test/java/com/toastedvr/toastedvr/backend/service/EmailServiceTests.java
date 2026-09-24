@@ -28,6 +28,18 @@ class EmailServiceTests {
         assertThat(body).contains("Este código vence en 3 minutos.");
     }
 
+    @Test
+    void shouldWriteThePasswordResetEmailInSpanishWithTheConfiguredExpiration() {
+        String body = emailServiceWithExpiration(1).buildPasswordResetMessage("Ana", "654321");
+
+        assertThat(body)
+            .contains("Hola Ana")
+            .contains("restablecer la contraseña")
+            .contains("654321")
+            .contains("Este código vence en 1 minuto.")
+            .contains("tu contraseña no cambiará");
+    }
+
     private EmailService emailServiceWithExpiration(int minutes) {
         ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
         messageSource.setBasename("messages");

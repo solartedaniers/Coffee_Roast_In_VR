@@ -36,9 +36,47 @@
         "forgotPassword": "¿Olvidaste tu contraseña?",
         "createAccount": "Crear cuenta",
         "verifyAccount": "Verificar mi cuenta"
+      }
+    },
+    "passwordReset": {
+      "title": "Recuperar contraseña",
+      "subtitle": "Te enviaremos un código a tu correo para crear una nueva contraseña.",
+      "resetTitle": "Crea una nueva contraseña",
+      "resetSubtitle": "Escribe el código que te enviamos y tu nueva contraseña.",
+      "badge": "Recuperación por correo",
+      "instructions": "Si el correo está registrado, enviamos un código de 6 dígitos a",
+      "timerLabel": "El código vence en",
+      "resendLockLabel": "Podrás pedir un nuevo código en",
+      "labels": {
+        "email": "Correo electrónico",
+        "newPassword": "Nueva contraseña",
+        "confirmPassword": "Confirmar nueva contraseña"
+      },
+      "placeholders": {
+        "email": "Ingresa el correo de tu cuenta",
+        "newPassword": "Crea una contraseña segura",
+        "confirmPassword": "Repite la nueva contraseña"
+      },
+      "buttons": {
+        "sendCode": "Enviar código",
+        "sending": "Enviando código...",
+        "reset": "Cambiar contraseña",
+        "resetting": "Cambiando contraseña...",
+        "resend": "Reenviar código",
+        "resending": "Enviando código...",
+        "goToLogin": "Ir a iniciar sesión"
       },
       "messages": {
-        "forgotPasswordUnavailable": "La recuperación de contraseña aún no está disponible en esta versión."
+        "codeResent": "Si el correo está registrado, recibirás un nuevo código.",
+        "invalidCodeLength": "Debes ingresar los 6 dígitos del código.",
+        "invalidCode": "El código no es válido o venció. Solicita uno nuevo.",
+        "passwordMismatch": "Las contraseñas no coinciden."
+      },
+      "success": {
+        "badge": "Contraseña actualizada",
+        "title": "Todo listo",
+        "subtitle": "Ya puedes iniciar sesión con tu nueva contraseña.",
+        "text": "Tu contraseña fue actualizada y todas tus sesiones anteriores se cerraron."
       }
     },
     "validation": {

@@ -7,6 +7,8 @@ import RoastingSimulation from './components/simulation/RoastingSimulation';
 import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
 import VerificationForm from './components/VerificationForm';
+import ForgotPasswordForm from './components/ForgotPasswordForm';
+import PasswordResetForm from './components/PasswordResetForm';
 import { logoutUser } from './services/authService';
 import { ACCOUNT_BLOCKED_EVENT } from './services/apiClient';
 import { clearSession, readSession, saveSession } from './services/sessionService';
@@ -14,7 +16,8 @@ import { clearSession, readSession, saveSession } from './services/sessionServic
 const authViews = {
   entry: 'entry',
   register: 'register',
-  login: 'login'
+  login: 'login',
+  forgotPassword: 'forgotPassword'
 };
 
 function App() {
@@ -28,6 +31,9 @@ function App() {
   const [verifiedUser, setVerifiedUser] = useState(null);
   const [session, setSession] = useState(() => readSession());
   const [loginNotice, setLoginNotice] = useState('');
+  const [passwordReset, setPasswordReset] = useState(null);
+  const [isPasswordResetDone, setIsPasswordResetDone] = useState(false);
+  const passwordResetTexts = esTexts.auth.passwordReset;
 
   const simulationTexts = esTexts.simulation;
   const knowledgeLevelTexts = esTexts.knowledgeLevel;
@@ -52,6 +58,8 @@ function App() {
   const handleSwitchAuthView = (nextView) => {
     setAuthView(nextView);
     setLoginNotice('');
+    setPasswordReset(null);
+    setIsPasswordResetDone(false);
 
     if (nextView !== authViews.register) {
       setPendingRegistration(null);
@@ -181,7 +189,21 @@ function App() {
     );
   }
 
-  const currentTitle = authView === authViews.login
+  const isPasswordResetView = authView === authViews.forgotPassword;
+  const passwordResetTitle = isPasswordResetDone
+    ? passwordResetTexts.success.title
+    : passwordReset
+      ? passwordResetTexts.resetTitle
+      : passwordResetTexts.title;
+  const passwordResetSubtitle = isPasswordResetDone
+    ? passwordResetTexts.success.subtitle
+    : passwordReset
+      ? passwordResetTexts.resetSubtitle
+      : passwordResetTexts.subtitle;
+
+  const currentTitle = isPasswordResetView
+    ? passwordResetTitle
+    : authView === authViews.login
     ? loginTexts.title
     : verifiedUser
       ? registerTexts.success.title
@@ -189,7 +211,9 @@ function App() {
         ? registerTexts.verification.title
         : registerTexts.title;
 
-  const currentSubtitle = authView === authViews.login
+  const currentSubtitle = isPasswordResetView
+    ? passwordResetSubtitle
+    : authView === authViews.login
     ? loginTexts.subtitle
     : verifiedUser
       ? registerTexts.success.subtitle
@@ -198,7 +222,7 @@ function App() {
         : registerTexts.subtitle;
 
   const isEntryView = authView === authViews.entry;
-  const showBackButton = !isEntryView && !verifiedUser;
+  const showBackButton = !isEntryView && !verifiedUser && !isPasswordResetDone;
   const isAuthPanelActive = !isEntryView;
 
   return (
@@ -294,8 +318,34 @@ function App() {
                   notice={loginNotice}
                   onLoginSuccess={handleLoginSuccess}
                   onVerifyAccount={handleVerifyAccount}
+                  onForgotPassword={() => handleSwitchAuthView(authViews.forgotPassword)}
                   onSwitchToRegister={() => handleSwitchAuthView(authViews.register)}
                 />
+              )}
+
+              {isPasswordResetView && !passwordReset && (
+                <ForgotPasswordForm texts={passwordResetTexts} onCodeRequested={setPasswordReset} />
+              )}
+
+              {isPasswordResetView && passwordReset && !isPasswordResetDone && (
+                <PasswordResetForm
+                  email={passwordReset.email}
+                  codePolicy={passwordReset.codePolicy}
+                  texts={passwordResetTexts}
+                  errorTexts={esTexts.auth.errors}
+                  onResetSuccess={() => setIsPasswordResetDone(true)}
+                />
+              )}
+
+              {isPasswordResetView && isPasswordResetDone && (
+                <section className="success-panel" aria-live="polite">
+                  <div className="success-badge">{passwordResetTexts.success.badge}</div>
+                  <h2>{passwordResetTexts.success.title}</h2>
+                  <p>{passwordResetTexts.success.text}</p>
+                  <button type="button" onClick={() => handleSwitchAuthView(authViews.login)}>
+                    {passwordResetTexts.buttons.goToLogin}
+                  </button>
+                </section>
               )}
             </>
           )}

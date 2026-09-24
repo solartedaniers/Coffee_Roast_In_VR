@@ -1,5 +1,6 @@
 package com.toastedvr.toastedvr.backend.controller;
 
+import com.toastedvr.toastedvr.backend.domain.KnowledgeLevel;
 import com.toastedvr.toastedvr.backend.domain.RoastingSession;
 import com.toastedvr.toastedvr.backend.dto.SaveSessionRequest;
 import com.toastedvr.toastedvr.backend.dto.SessionResultResponse;
@@ -49,10 +50,13 @@ public class RoastingSessionController {
         @PathVariable Long id
     ) {
         RoastingSession session = roastingSessionService.getOwnedSession(principal.getId(), id);
-        String feedback = Objects.requireNonNullElse(
-            ollamaFeedbackService.generateFeedback(session, session.getUser().getKnowledgeLevel()),
-            ""
+        // Nivel con el que se jugó la sesión; las sesiones viejas (sin nivel)
+        // usan el nivel actual del usuario.
+        KnowledgeLevel level = Objects.requireNonNullElse(
+            session.getKnowledgeLevel(),
+            session.getUser().getKnowledgeLevel()
         );
+        String feedback = Objects.requireNonNullElse(ollamaFeedbackService.generateFeedback(session, level), "");
         return Map.of("feedback", feedback);
     }
 }

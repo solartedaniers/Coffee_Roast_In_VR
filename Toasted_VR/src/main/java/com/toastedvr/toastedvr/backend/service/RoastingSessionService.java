@@ -45,7 +45,8 @@ public class RoastingSessionService {
             request.result(),
             request.qualityScore(),
             request.firstCrackReached(),
-            request.developmentTimeSeconds()
+            request.developmentTimeSeconds(),
+            user.getKnowledgeLevel()
         );
 
         RoastingSession saved = roastingSessionRepository.save(session);
@@ -83,6 +84,7 @@ public class RoastingSessionService {
             session.getPeakTemperature(),
             session.isFirstCrackReached(),
             session.getDevelopmentTimeSeconds(),
+            session.getKnowledgeLevel(),
             ApiInstants.from(session.getCreatedAt())
         );
     }

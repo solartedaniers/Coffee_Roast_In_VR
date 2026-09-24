@@ -57,6 +57,12 @@ public class RoastingSession {
 
     private Integer developmentTimeSeconds;
 
+    // Nivel del jugador al momento de guardar (RF009). Lo asigna el servidor;
+    // las sesiones anteriores a esta columna quedan en null.
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private KnowledgeLevel knowledgeLevel;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -73,7 +79,8 @@ public class RoastingSession {
         RoastingResult result,
         Integer qualityScore,
         Boolean firstCrackReached,
-        Integer developmentTimeSeconds
+        Integer developmentTimeSeconds,
+        KnowledgeLevel knowledgeLevel
     ) {
         this.user = user;
         this.chargeTemperature = chargeTemperature;
@@ -85,6 +92,7 @@ public class RoastingSession {
         this.qualityScore = qualityScore;
         this.firstCrackReached = firstCrackReached;
         this.developmentTimeSeconds = developmentTimeSeconds;
+        this.knowledgeLevel = knowledgeLevel;
     }
 
     @PrePersist
@@ -105,5 +113,6 @@ public class RoastingSession {
     public Integer getQualityScore() { return qualityScore; }
     public Boolean isFirstCrackReached() { return firstCrackReached; }
     public Integer getDevelopmentTimeSeconds() { return developmentTimeSeconds; }
+    public KnowledgeLevel getKnowledgeLevel() { return knowledgeLevel; }
     public LocalDateTime getCreatedAt() { return createdAt; }
 }

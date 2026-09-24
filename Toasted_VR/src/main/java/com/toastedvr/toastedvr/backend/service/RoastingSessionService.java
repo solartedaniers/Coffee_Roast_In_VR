@@ -1,5 +1,6 @@
 package com.toastedvr.toastedvr.backend.service;
 
+import com.toastedvr.toastedvr.backend.config.MessageResolver;
 import com.toastedvr.toastedvr.backend.domain.RoastingSession;
 import com.toastedvr.toastedvr.backend.domain.User;
 import com.toastedvr.toastedvr.backend.dto.SaveSessionRequest;
@@ -16,19 +17,22 @@ public class RoastingSessionService {
 
     private final RoastingSessionRepository roastingSessionRepository;
     private final UserRepository userRepository;
+    private final MessageResolver messages;
 
     public RoastingSessionService(
         RoastingSessionRepository roastingSessionRepository,
-        UserRepository userRepository
+        UserRepository userRepository,
+        MessageResolver messages
     ) {
         this.roastingSessionRepository = roastingSessionRepository;
         this.userRepository = userRepository;
+        this.messages = messages;
     }
 
     @Transactional
     public SessionResultResponse saveSession(Long userId, SaveSessionRequest request) {
         User user = userRepository.findById(Objects.requireNonNull(userId))
-            .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado."));
+            .orElseThrow(() -> new ResourceNotFoundException(messages.get("user.notFound")));
 
         RoastingSession session = new RoastingSession(
             user,
@@ -50,10 +54,10 @@ public class RoastingSessionService {
     @Transactional
     public RoastingSession getOwnedSession(Long userId, Long sessionId) {
         RoastingSession session = roastingSessionRepository.findById(Objects.requireNonNull(sessionId))
-            .orElseThrow(() -> new ResourceNotFoundException("Sesión de tueste no encontrada."));
+            .orElseThrow(() -> new ResourceNotFoundException(messages.get("roasting.session.notFound")));
 
         if (!session.getUser().getId().equals(userId)) {
-            throw new ResourceNotFoundException("Sesión de tueste no encontrada.");
+            throw new ResourceNotFoundException(messages.get("roasting.session.notFound"));
         }
 
         // Fuerza la carga del User (perezoso) mientras la transacción sigue

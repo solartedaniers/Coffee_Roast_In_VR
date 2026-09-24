@@ -1,16 +1,16 @@
 package com.toastedvr.toastedvr.backend.dto;
 
-import jakarta.validation.constraints.Email;
+import com.toastedvr.toastedvr.backend.validation.ValidEmail;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
 public record VerifyEmailRequest(
-    @NotBlank(message = "El correo electronico es obligatorio")
-    @Email(message = "Debes ingresar un correo electronico valido")
+    @NotBlank(message = "{validation.email.required}")
+    @ValidEmail
     String email,
 
-    @NotBlank(message = "El codigo es obligatorio")
-    @Pattern(regexp = "^\\d{6}$", message = "El codigo debe tener 6 digitos")
+    @NotBlank(message = "{validation.code.required}")
+    @Pattern(regexp = "^\\d{6}$", message = "{validation.code.format}")
     String code
 ) {
 }

@@ -6,15 +6,15 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public record UpdateProfileRequest(
-    @NotBlank(message = "El nombre es obligatorio.")
-    @Size(max = 120, message = "El nombre no puede superar 120 caracteres.")
+    @NotBlank(message = "{validation.name.required}")
+    @Size(max = 120, message = "{user.profile.nameTooLong}")
     String name,
 
     // La longitud se valida en UserService y solo cuando el username cambia.
-    @NotBlank(message = "El nombre de usuario es obligatorio.")
+    @NotBlank(message = "{validation.username.required}")
     String username,
 
-    @Size(max = 2000000, message = "La imagen de perfil es demasiado grande.")
+    @Size(max = 2000000, message = "{user.profile.imageTooLarge}")
     String profileImageUrl,
 
     KnowledgeLevel knowledgeLevel,

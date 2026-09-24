@@ -17,7 +17,7 @@
       database-platform: ${JPA_DATABASE_PLATFORM:org.hibernate.dialect.PostgreSQLDialect}
       hibernate:
         ddl-auto: ${JPA_DDL_AUTO:update}
-      show-sql: ${JPA_SHOW_SQL:true}
+      show-sql: ${JPA_SHOW_SQL:false}
       open-in-view: false
       properties:
         hibernate:
@@ -72,7 +72,8 @@
     cors:
       allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:3000}
     jwt:
-      secret: ${APP_JWT_SECRET:VG9hc3RlZFZSU3VwZXJTZWNyZXRLZXlGb3JEZXZlbG9wbWVudDIwMjYhVG9hc3RlZFZS}
+      # Sin valor por defecto: la aplicación no arranca si falta APP_JWT_SECRET.
+      secret: ${APP_JWT_SECRET}
       expiration-seconds: ${APP_JWT_EXPIRATION_SECONDS:600}
       refresh-expiration-hours: ${APP_JWT_REFRESH_EXPIRATION_HOURS:24}
     password-policy:

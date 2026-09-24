@@ -100,11 +100,51 @@ class FieldErrorsIntegrationTests {
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.details.fieldErrors.username").value("El usuario debe tener entre 4 y 20 caracteres."));
         updateProfile(user, "player1", "WrongPassword1", "NewPassword9")
-            .andExpect(status().isUnauthorized())
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
             .andExpect(jsonPath("$.details.fieldErrors.currentPassword").value("La contraseña actual no es correcta."));
         updateProfile(user, "player1", PASSWORD, "weak")
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.details.fieldErrors.newPassword").isNotEmpty());
+    }
+
+    @Test
+    void shouldReportMissingCurrentPasswordAsBadRequestOnItsField() throws Exception {
+        User user = saveUser("player1", "player1@toastedvr.test");
+
+        updateProfile(user, "player1", null, "NewPassword9")
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.details.fieldErrors.currentPassword").value("Debes ingresar tu contraseña actual."));
+    }
+
+    @Test
+    void shouldValidateVerifyEmailRequestWithSharedRules() throws Exception {
+        mockMvc.perform(
+                post("/api/v1/auth/verify-email")
+                    .contentType(jsonMediaType())
+                    .content(requireJson(Map.of("email", "a@gmailcom", "code", "12ab")))
+            )
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.details.fieldErrors.email")
+                .value("Debes ingresar un correo electrónico válido (por ejemplo, usuario@dominio.com)."))
+            .andExpect(jsonPath("$.details.fieldErrors.code").value("El código debe tener 6 dígitos."));
+    }
+
+    @Test
+    void shouldKeepProfileNameLimitMessageFromMessagesFile() throws Exception {
+        User user = saveUser("player1", "player1@toastedvr.test");
+        Map<String, Object> body = new HashMap<>();
+        body.put("name", "a".repeat(121));
+        body.put("username", "player1");
+
+        mockMvc.perform(
+                patch("/api/v1/users/me/profile")
+                    .header("Authorization", "Bearer " + jwtService.generateToken(new UserPrincipal(user)))
+                    .contentType(jsonMediaType())
+                    .content(requireJson(body))
+            )
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.details.fieldErrors.name").value("El nombre no puede superar 120 caracteres."));
     }
 
     @Test

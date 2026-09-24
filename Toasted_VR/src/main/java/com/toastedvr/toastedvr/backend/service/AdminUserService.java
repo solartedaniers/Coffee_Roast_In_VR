@@ -61,6 +61,7 @@ public class AdminUserService {
         }
 
         User user = findOrThrow(targetId);
+        boolean previousEnabled = user.isEnabled();
 
         if (Boolean.TRUE.equals(request.enabled())) {
             user.activate();
@@ -70,7 +71,7 @@ public class AdminUserService {
             user.clearRefreshToken();
         }
 
-        auditService.logStatusChange(requesterId, user.getId(), user.isEnabled());
+        auditService.logStatusChange(requesterId, user.getId(), previousEnabled, user.isEnabled());
 
         String messageKey = user.isEnabled() ? "admin.user.activated" : "admin.user.blocked";
         return toAdminResponse(user, messages.get(messageKey));

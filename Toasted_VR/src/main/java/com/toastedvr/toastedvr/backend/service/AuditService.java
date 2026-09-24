@@ -32,13 +32,14 @@ public class AuditService {
         );
     }
 
-    public void logStatusChange(Long authorId, Long targetUserId, boolean enabled) {
+    public void logStatusChange(Long authorId, Long targetUserId, boolean previousEnabled, boolean newEnabled) {
         AUDIT_LOGGER.info(
-            "event=USER_STATUS_CHANGE timestamp={} authorId={} targetUserId={} enabled={}",
+            "event=USER_STATUS_CHANGE timestamp={} authorId={} targetUserId={} previousEnabled={} newEnabled={}",
             Instant.now(),
             authorId,
             targetUserId,
-            enabled
+            previousEnabled,
+            newEnabled
         );
     }
 

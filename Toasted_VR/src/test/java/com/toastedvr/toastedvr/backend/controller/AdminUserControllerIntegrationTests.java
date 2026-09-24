@@ -5,6 +5,7 @@ import com.toastedvr.toastedvr.backend.domain.User;
 import com.toastedvr.toastedvr.backend.repository.UserRepository;
 import com.toastedvr.toastedvr.backend.security.JwtService;
 import com.toastedvr.toastedvr.backend.security.UserPrincipal;
+import com.toastedvr.toastedvr.backend.service.AuditService;
 import java.util.Objects;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,6 +15,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.lang.NonNull;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -22,6 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -38,6 +41,9 @@ class AdminUserControllerIntegrationTests {
 
     @Autowired
     private JwtService jwtService;
+
+    @MockitoSpyBean
+    private AuditService auditService;
 
     private String adminToken;
     private Long adminId;
@@ -116,6 +122,15 @@ class AdminUserControllerIntegrationTests {
             .get()
             .extracting(User::isEnabled)
             .isEqualTo(true);
+    }
+
+    @Test
+    void shouldAuditPreviousAndNewStatus() throws Exception {
+        updateStatus(requirePlayerId(), false);
+        verify(auditService).logStatusChange(requireAdminId(), requirePlayerId(), true, false);
+
+        updateStatus(requirePlayerId(), true);
+        verify(auditService).logStatusChange(requireAdminId(), requirePlayerId(), false, true);
     }
 
     @Test

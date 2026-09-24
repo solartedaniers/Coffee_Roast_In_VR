@@ -5,7 +5,6 @@ import com.toastedvr.toastedvr.backend.domain.KnowledgeLevel;
 import com.toastedvr.toastedvr.backend.domain.User;
 import com.toastedvr.toastedvr.backend.dto.AuthenticatedUserResponse;
 import com.toastedvr.toastedvr.backend.dto.UpdateProfileRequest;
-import com.toastedvr.toastedvr.backend.exception.AuthenticationFailedException;
 import com.toastedvr.toastedvr.backend.exception.ConflictException;
 import com.toastedvr.toastedvr.backend.exception.InvalidRequestException;
 import com.toastedvr.toastedvr.backend.exception.ResourceNotFoundException;
@@ -91,11 +90,11 @@ public class UserService {
         }
 
         if (currentPassword == null || currentPassword.isBlank()) {
-            throw new AuthenticationFailedException(messages.get("user.profile.currentPasswordRequired"), "currentPassword");
+            throw new InvalidRequestException(messages.get("user.profile.currentPasswordRequired"), "currentPassword");
         }
 
         if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
-            throw new AuthenticationFailedException(messages.get("user.profile.currentPasswordIncorrect"), "currentPassword");
+            throw new InvalidRequestException(messages.get("user.profile.currentPasswordIncorrect"), "currentPassword");
         }
 
         user.setPassword(passwordEncoder.encode(newPassword));

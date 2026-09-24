@@ -1,8 +1,8 @@
 package com.toastedvr.toastedvr.backend.exception;
 
-public class ConflictException extends RuntimeException {
+public class ConflictException extends ApiException {
 
     public ConflictException(String message) {
-        super(message);
+        super(ErrorCode.CONFLICT, message);
     }
 }

@@ -1,9 +1,20 @@
 import axios from 'axios';
 import { apiBaseUrl } from '../config/env';
 import { readSession, saveSession, clearSession } from './sessionService';
+import esTexts from '../locals/es.json';
 
 export const getErrorMessage = (error) =>
-  error.response?.data?.message || 'No fue posible conectar con el servidor.';
+  error.response?.data?.message || esTexts.app.errors.connection;
+
+// Convierte un error de axios en un Error con el código y los detalles que
+// envía el backend, para que la interfaz pueda decidir qué texto mostrar.
+export const toApiError = (error) => {
+  const apiError = new Error(getErrorMessage(error));
+  apiError.code = error.response?.data?.code ?? null;
+  apiError.details = error.response?.data?.details ?? null;
+  apiError.status = error.response?.status ?? null;
+  return apiError;
+};
 
 const AUTH_PATH_PREFIX = '/auth/';
 const SESSION_EXPIRED_EVENT = 'toastedvr:session-expired';

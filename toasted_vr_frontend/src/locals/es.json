@@ -1,6 +1,9 @@
 {
   "app": {
-    "brand": "Toasted VR"
+    "brand": "Toasted VR",
+    "errors": {
+      "connection": "No fue posible conectar con el servidor."
+    }
   },
   "auth": {
     "entry": {

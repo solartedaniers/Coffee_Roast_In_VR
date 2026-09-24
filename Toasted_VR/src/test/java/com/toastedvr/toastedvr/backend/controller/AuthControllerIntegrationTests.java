@@ -74,7 +74,8 @@ class AuthControllerIntegrationTests {
                     .content(requireJson(Map.of("email", "pending@toastedvr.test", "password", "Password123!")))
             )
             .andExpect(status().isForbidden())
-            .andExpect(jsonPath("$.message").value("Debes verificar tu correo antes de iniciar sesion."));
+            .andExpect(jsonPath("$.message").value("Debes verificar tu correo antes de iniciar sesion."))
+            .andExpect(jsonPath("$.code").value("EMAIL_NOT_VERIFIED"));
     }
 
     @Test

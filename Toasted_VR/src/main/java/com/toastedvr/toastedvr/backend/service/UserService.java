@@ -1,5 +1,6 @@
 package com.toastedvr.toastedvr.backend.service;
 
+import com.toastedvr.toastedvr.backend.config.MessageResolver;
 import com.toastedvr.toastedvr.backend.domain.KnowledgeLevel;
 import com.toastedvr.toastedvr.backend.domain.User;
 import com.toastedvr.toastedvr.backend.dto.AuthenticatedUserResponse;
@@ -18,10 +19,12 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final MessageResolver messages;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, MessageResolver messages) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.messages = messages;
     }
 
     @Transactional
@@ -40,7 +43,7 @@ public class UserService {
         String normalizedUsername = request.username().trim();
 
         if (userRepository.existsByUsernameIgnoreCaseAndIdNot(normalizedUsername, user.getId())) {
-            throw new ConflictException("El nombre de usuario ya esta en uso.");
+            throw new ConflictException(messages.get("user.profile.usernameTaken"));
         }
 
         updatePasswordIfRequested(user, request.currentPassword(), request.newPassword());
@@ -60,7 +63,7 @@ public class UserService {
 
     private User findUser(Long userId) {
         return userRepository.findById(Objects.requireNonNull(userId))
-            .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado."));
+            .orElseThrow(() -> new ResourceNotFoundException(messages.get("user.notFound")));
     }
 
     private void updatePasswordIfRequested(User user, String currentPassword, String newPassword) {
@@ -69,11 +72,11 @@ public class UserService {
         }
 
         if (currentPassword == null || currentPassword.isBlank()) {
-            throw new AuthenticationFailedException("Debes ingresar tu contraseña actual.");
+            throw new AuthenticationFailedException(messages.get("user.profile.currentPasswordRequired"));
         }
 
         if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
-            throw new AuthenticationFailedException("La contraseña actual no es correcta.");
+            throw new AuthenticationFailedException(messages.get("user.profile.currentPasswordIncorrect"));
         }
 
         user.setPassword(passwordEncoder.encode(newPassword));

@@ -1,11 +1,11 @@
-import apiClient, { getErrorMessage } from './apiClient';
+import apiClient, { toApiError } from './apiClient';
 
 export const registerUser = async (payload) => {
   try {
     const response = await apiClient.post('/auth/register', payload);
     return response.data;
   } catch (error) {
-    throw new Error(getErrorMessage(error));
+    throw toApiError(error);
   }
 };
 
@@ -14,7 +14,7 @@ export const verifyEmailCode = async (payload) => {
     const response = await apiClient.post('/auth/verify-email', payload);
     return response.data;
   } catch (error) {
-    throw new Error(getErrorMessage(error));
+    throw toApiError(error);
   }
 };
 
@@ -23,7 +23,7 @@ export const loginUser = async (payload) => {
     const response = await apiClient.post('/auth/login', payload);
     return response.data;
   } catch (error) {
-    throw new Error(getErrorMessage(error));
+    throw toApiError(error);
   }
 };
 
@@ -32,6 +32,6 @@ export const logoutUser = async () => {
     const response = await apiClient.post('/auth/logout');
     return response.data;
   } catch (error) {
-    throw new Error(getErrorMessage(error));
+    throw toApiError(error);
   }
 };

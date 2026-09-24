@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.Locale;
 import java.util.Objects;
 
+import com.toastedvr.toastedvr.backend.config.MessageResolver;
 import com.toastedvr.toastedvr.backend.domain.User;
 import com.toastedvr.toastedvr.backend.dto.AuthenticatedUserResponse;
 import com.toastedvr.toastedvr.backend.dto.LoginRequest;
@@ -40,6 +41,7 @@ public class AuthService {
     private final TokenBlacklistService tokenBlacklistService;
     private final AuditService auditService;
     private final UnityAccessCodeService unityAccessCodeService;
+    private final MessageResolver messages;
     private final int codeExpirationMinutes;
 
     public AuthService(
@@ -51,6 +53,7 @@ public class AuthService {
         TokenBlacklistService tokenBlacklistService,
         AuditService auditService,
         UnityAccessCodeService unityAccessCodeService,
+        MessageResolver messages,
         @Value("${app.verification.code-expiration-minutes:15}") int codeExpirationMinutes
     ) {
         this.userRepository = userRepository;
@@ -61,6 +64,7 @@ public class AuthService {
         this.tokenBlacklistService = tokenBlacklistService;
         this.auditService = auditService;
         this.unityAccessCodeService = unityAccessCodeService;
+        this.messages = messages;
         this.codeExpirationMinutes = codeExpirationMinutes;
     }
 
@@ -88,7 +92,7 @@ public class AuthService {
         emailService.sendVerificationCode(user.getEmail(), user.getName(), verificationCode);
 
         return new RegisterUserResponse(
-            "Te enviamos un codigo de verificacion a tu correo.",
+            messages.get("auth.register.codeSent"),
             user.getEmail(),
             codeExpirationMinutes
         );
@@ -98,10 +102,10 @@ public class AuthService {
     public UserResponse verifyEmail(VerifyEmailRequest request) {
         String normalizedEmail = normalizeEmail(request.email());
         User user = userRepository.findByEmailIgnoreCase(normalizedEmail)
-            .orElseThrow(() -> new ResourceNotFoundException("No existe una cuenta pendiente para ese correo."));
+            .orElseThrow(() -> new ResourceNotFoundException(messages.get("auth.verification.pendingAccountNotFound")));
 
         if (user.isEmailVerified()) {
-            throw new ConflictException("Esta cuenta ya fue verificada.");
+            throw new ConflictException(messages.get("auth.verification.alreadyVerified"));
         }
 
         if (user.getVerificationCodeExpiresAt() == null
@@ -114,12 +118,12 @@ public class AuthService {
             userRepository.save(user);
             emailService.sendVerificationCode(user.getEmail(), user.getName(), newCode);
             throw new InvalidVerificationCodeException(
-                "El codigo vencio. Te enviamos uno nuevo al correo registrado."
+                messages.get("auth.verification.codeExpiredNewSent")
             );
         }
 
         if (!request.code().equals(user.getVerificationCode())) {
-            throw new InvalidVerificationCodeException("El codigo ingresado no es correcto.");
+            throw new InvalidVerificationCodeException(messages.get("auth.verification.invalidCode"));
         }
 
         user.markEmailAsVerified();
@@ -131,7 +135,7 @@ public class AuthService {
             user.getEmail(),
             user.getUsername(),
             user.isEmailVerified(),
-            "La cuenta fue verificada y creada correctamente."
+            messages.get("auth.verification.success")
         );
     }
 
@@ -140,18 +144,18 @@ public class AuthService {
         String normalizedEmail = normalizeEmail(request.email());
 
         User user = userRepository.findByEmailIgnoreCase(normalizedEmail)
-            .orElseThrow(() -> new AuthenticationFailedException("Las credenciales ingresadas no son validas."));
+            .orElseThrow(() -> new AuthenticationFailedException(messages.get("auth.login.invalidCredentials")));
 
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
-            throw new AuthenticationFailedException("Las credenciales ingresadas no son validas.");
+            throw new AuthenticationFailedException(messages.get("auth.login.invalidCredentials"));
         }
 
         if (!user.isEmailVerified()) {
-            throw new EmailNotVerifiedException("Debes verificar tu correo antes de iniciar sesion.");
+            throw new EmailNotVerifiedException(messages.get("auth.login.emailNotVerified"));
         }
 
         if (!user.isEnabled()) {
-            throw new AccountBlockedException("La cuenta se encuentra bloqueada.");
+            throw new AccountBlockedException(messages.get("auth.login.accountBlocked"));
         }
 
         return createLoginResponse(user);
@@ -191,17 +195,17 @@ public class AuthService {
     @Transactional
     public RefreshTokenResponse refresh(RefreshTokenRequest request) {
         User user = userRepository.findByRefreshToken(request.refreshToken())
-            .orElseThrow(() -> new AuthenticationFailedException("El refresh token no es valido."));
+            .orElseThrow(() -> new AuthenticationFailedException(messages.get("auth.refresh.invalidToken")));
 
         if (user.getRefreshTokenExpiresAt() == null
             || user.getRefreshTokenExpiresAt().isBefore(LocalDateTime.now())) {
             user.clearRefreshToken();
             userRepository.save(user);
-            throw new AuthenticationFailedException("El refresh token expiro. Por favor inicia sesion nuevamente.");
+            throw new AuthenticationFailedException(messages.get("auth.refresh.expiredToken"));
         }
 
         if (!user.isEnabled()) {
-            throw new AccountBlockedException("La cuenta se encuentra bloqueada.");
+            throw new AccountBlockedException(messages.get("auth.login.accountBlocked"));
         }
 
         String newRefreshToken = jwtService.generateRefreshToken();
@@ -229,16 +233,16 @@ public class AuthService {
             userRepository.save(user);
         });
         auditService.logLogout(userId, username);
-        return new LogoutResponse("La sesion fue cerrada correctamente.");
+        return new LogoutResponse(messages.get("auth.logout.success"));
     }
 
     private void validateUniqueness(String email, String username) {
         if (userRepository.existsByUsernameIgnoreCase(username)) {
-            throw new ConflictException("El nombre de usuario ya esta en uso.");
+            throw new ConflictException(messages.get("auth.register.usernameTaken"));
         }
 
         if (userRepository.existsByEmailIgnoreCase(email)) {
-            throw new ConflictException("El correo electronico ya esta registrado.");
+            throw new ConflictException(messages.get("auth.register.emailTaken"));
         }
     }
 

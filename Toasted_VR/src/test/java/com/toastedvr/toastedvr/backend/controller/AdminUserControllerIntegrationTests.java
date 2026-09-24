@@ -84,14 +84,16 @@ class AdminUserControllerIntegrationTests {
     @SuppressWarnings("null")
     void shouldBlockAndActivateUserWithPersistedStatus() throws Exception {
         updateStatus(requirePlayerId(), false)
-            .andExpect(jsonPath("$.enabled").value(false));
+            .andExpect(jsonPath("$.enabled").value(false))
+            .andExpect(jsonPath("$.message").value("La cuenta fue bloqueada correctamente."));
         assertThat(userRepository.findById(requirePlayerId())).isPresent()
             .get()
             .extracting(User::isEnabled)
             .isEqualTo(false);
 
         updateStatus(requirePlayerId(), true)
-            .andExpect(jsonPath("$.enabled").value(true));
+            .andExpect(jsonPath("$.enabled").value(true))
+            .andExpect(jsonPath("$.message").value("La cuenta fue activada correctamente."));
         assertThat(userRepository.findById(requirePlayerId())).isPresent()
             .get()
             .extracting(User::isEnabled)
@@ -108,11 +110,36 @@ class AdminUserControllerIntegrationTests {
                     .content("{\"enabled\":false}")
             )
             .andExpect(status().isConflict())
-            .andExpect(jsonPath("$.message").value("You cannot block your own account."));
+            .andExpect(jsonPath("$.message").value("No puedes bloquear tu propia cuenta."))
+            .andExpect(jsonPath("$.code").value("CONFLICT"));
         assertThat(userRepository.findById(requireAdminId())).isPresent()
             .get()
             .extracting(User::isEnabled)
             .isEqualTo(true);
+    }
+
+    @Test
+    void shouldReturnSpanishNotFoundMessageWithErrorCode() throws Exception {
+        mockMvc.perform(
+                get("/api/v1/admin/users/{id}", Long.MAX_VALUE)
+                    .header("Authorization", "Bearer " + adminToken)
+            )
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.message").value("Usuario no encontrado."))
+            .andExpect(jsonPath("$.code").value("NOT_FOUND"));
+    }
+
+    @Test
+    void shouldReturnSpanishValidationMessageWhenStatusIsMissing() throws Exception {
+        mockMvc.perform(
+                patch("/api/v1/admin/users/{id}/status", requirePlayerId())
+                    .header("Authorization", "Bearer " + adminToken)
+                    .contentType(jsonMediaType())
+                    .content("{}")
+            )
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value("El campo enabled es obligatorio."))
+            .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
     }
 
     private org.springframework.test.web.servlet.ResultActions updateStatus(

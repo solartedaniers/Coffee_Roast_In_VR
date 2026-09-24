@@ -19,6 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -56,7 +57,9 @@ class AdminUserControllerSecurityTests {
     @Test
     void shouldRejectAdminEndpointWithoutToken() throws Exception {
         mockMvc.perform(get("/api/v1/admin/users"))
-            .andExpect(status().isUnauthorized());
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.message").value("No autorizado."))
+            .andExpect(jsonPath("$.code").value("UNAUTHORIZED"));
     }
 
     @Test
@@ -65,7 +68,9 @@ class AdminUserControllerSecurityTests {
                 get("/api/v1/admin/users")
                     .header("Authorization", "Bearer " + playerToken)
             )
-            .andExpect(status().isForbidden());
+            .andExpect(status().isForbidden())
+            .andExpect(jsonPath("$.message").value("Acceso denegado."))
+            .andExpect(jsonPath("$.code").value("FORBIDDEN"));
     }
 
     @Test

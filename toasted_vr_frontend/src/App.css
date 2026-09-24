@@ -597,6 +597,13 @@ select.field-input:focus {
   border: 1px solid transparent;
 }
 
+.field-error {
+  margin-top: 2px;
+  color: var(--color-danger);
+  font-size: 0.86rem;
+  line-height: 1.4;
+}
+
 .status-message.error {
   color: var(--color-danger);
   border-color: rgba(157, 79, 79, 0.14);

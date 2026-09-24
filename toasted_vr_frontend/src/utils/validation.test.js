@@ -20,12 +20,21 @@ describe('validateRegistrationForm', () => {
   test('rejects an email without a dot in the domain', () => {
     const formData = { email: 'a@gmailcom', password: 'Password1', confirmPassword: 'Password1' };
 
-    expect(validateRegistrationForm(formData, texts)).toBe(esTexts.auth.validation.invalidEmail);
+    expect(validateRegistrationForm(formData, texts)).toEqual({ email: esTexts.auth.validation.invalidEmail });
+  });
+
+  test('returns every local error by field', () => {
+    const formData = { email: 'a@gmailcom', password: 'Password1', confirmPassword: 'Password2' };
+
+    expect(validateRegistrationForm(formData, texts)).toEqual({
+      email: esTexts.auth.validation.invalidEmail,
+      confirmPassword: texts.messages.passwordMismatch,
+    });
   });
 
   test('accepts a valid email with matching passwords', () => {
     const formData = { email: 'a@gmail.com', password: 'Password1', confirmPassword: 'Password1' };
 
-    expect(validateRegistrationForm(formData, texts)).toBe('');
+    expect(validateRegistrationForm(formData, texts)).toEqual({});
   });
 });

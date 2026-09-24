@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import FieldError from './FieldError';
 import PasswordField from './PasswordField';
 import {
   createUnityAccessCode,
@@ -8,6 +9,8 @@ import {
   revealUnityAccessCode,
   updateProfile,
 } from '../services/profileService';
+import { useFieldErrors } from '../hooks/useFieldErrors';
+import { getFieldErrors, hasFieldErrors } from '../utils/errorMessages';
 
 const PLAYER_LEVELS = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'];
 const MAX_PROFILE_IMAGE_BYTES = 900 * 1024;
@@ -54,6 +57,7 @@ export default function ProfileSettings({
   const [unityCurrentPassword, setUnityCurrentPassword] = useState('');
   const [unityCode, setUnityCode] = useState('');
   const [isUnityActionLoading, setIsUnityActionLoading] = useState(false);
+  const { fieldErrors, setFieldErrors, clearFieldError, clearAllFieldErrors } = useFieldErrors();
 
   const clearUnitySensitiveState = () => {
     setUnityAction(null);
@@ -99,6 +103,7 @@ export default function ProfileSettings({
   const handleChange = (event) => {
     const { name, value } = event.target;
     setFormData((current) => ({ ...current, [name]: value }));
+    clearFieldError(name);
   };
 
   const handleStartEditing = () => {
@@ -110,6 +115,7 @@ export default function ProfileSettings({
   const handleCancelEditing = () => {
     setFormData({ ...buildInitialForm(currentUser), ...initialPasswordFields });
     setStatus({ text: '', isError: false });
+    clearAllFieldErrors();
     setIsEditing(false);
     setIsPasswordChangeVisible(false);
   };
@@ -122,6 +128,7 @@ export default function ProfileSettings({
   const handleCancelPasswordChange = () => {
     setFormData((current) => ({ ...current, ...initialPasswordFields }));
     setStatus({ text: '', isError: false });
+    clearAllFieldErrors();
     setIsPasswordChangeVisible(false);
   };
 
@@ -220,18 +227,24 @@ export default function ProfileSettings({
   const handleSubmit = async (event) => {
     event.preventDefault();
 
+    const validationErrors = {};
     if (formData.newPassword && formData.newPassword !== formData.confirmPassword) {
-      setStatus({ text: texts.messages.passwordMismatch, isError: true });
-      return;
+      validationErrors.confirmPassword = texts.messages.passwordMismatch;
     }
 
     if (formData.newPassword && !formData.currentPassword) {
-      setStatus({ text: texts.messages.currentPasswordRequired, isError: true });
+      validationErrors.currentPassword = texts.messages.currentPasswordRequired;
+    }
+
+    if (hasFieldErrors(validationErrors)) {
+      setFieldErrors(validationErrors);
+      setStatus({ text: '', isError: false });
       return;
     }
 
     setIsSaving(true);
     setStatus({ text: '', isError: false });
+    clearAllFieldErrors();
 
     try {
       const updatedUser = await updateProfile({
@@ -249,7 +262,12 @@ export default function ProfileSettings({
       clearUnitySensitiveState();
       onClose();
     } catch (error) {
-      setStatus({ text: error.message, isError: true });
+      const apiFieldErrors = getFieldErrors(error);
+      if (hasFieldErrors(apiFieldErrors)) {
+        setFieldErrors(apiFieldErrors);
+      } else {
+        setStatus({ text: error.message, isError: true });
+      }
     } finally {
       setIsSaving(false);
     }
@@ -305,8 +323,10 @@ export default function ProfileSettings({
                 value={formData.username}
                 onChange={handleChange}
                 readOnly={!isEditing}
+                aria-invalid={Boolean(fieldErrors.username)}
                 required
               />
+              <FieldError message={fieldErrors.username} />
             </label>
 
             {currentUser.role === 'PLAYER' && (
@@ -346,6 +366,7 @@ export default function ProfileSettings({
                 placeholder={texts.placeholders.currentPassword}
                 label={texts.labels.currentPassword}
                 required={isPasswordChangeVisible}
+                error={fieldErrors.currentPassword}
               />
               <div className="profile-grid">
                 <PasswordField
@@ -355,6 +376,7 @@ export default function ProfileSettings({
                   placeholder={texts.placeholders.newPassword}
                   label={texts.labels.newPassword}
                   required={isPasswordChangeVisible}
+                  error={fieldErrors.newPassword}
                 />
                 <PasswordField
                   name="confirmPassword"
@@ -363,6 +385,7 @@ export default function ProfileSettings({
                   placeholder={texts.placeholders.confirmPassword}
                   label={texts.labels.confirmPassword}
                   required={isPasswordChangeVisible}
+                  error={fieldErrors.confirmPassword}
                 />
               </div>
               <button type="button" className="text-link profile-password-toggle" onClick={handleCancelPasswordChange}>

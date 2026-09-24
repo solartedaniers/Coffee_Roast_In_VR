@@ -52,19 +52,60 @@ describe('LoginForm', () => {
     expect(await screen.findByText('Las credenciales ingresadas no son válidas.')).toBeInTheDocument();
   });
 
-  test('rejects an email without a dot in the domain before calling the API', () => {
+  test('shows an invalid email under the email field and clears it when the user corrects it', () => {
     renderLoginForm();
+    const emailInput = screen.getByPlaceholderText(esTexts.auth.login.placeholders.email);
 
-    fireEvent.change(screen.getByPlaceholderText(esTexts.auth.login.placeholders.email), {
-      target: { value: 'a@gmailcom' },
-    });
+    fireEvent.change(emailInput, { target: { value: 'a@gmailcom' } });
     fireEvent.change(screen.getByPlaceholderText(esTexts.auth.login.placeholders.password), {
       target: { value: 'Password123!' },
     });
-    fireEvent.submit(screen.getByRole('button', { name: esTexts.auth.login.buttons.submit }).closest('form'));
+    fireEvent.click(screen.getByRole('button', { name: esTexts.auth.login.buttons.submit }));
 
-    expect(screen.getByText(esTexts.auth.validation.invalidEmail)).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent(esTexts.auth.validation.invalidEmail);
+    expect(emailInput).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.queryByText(esTexts.auth.validation.invalidEmail, { selector: '.status-message' })).not.toBeInTheDocument();
     expect(loginUser).not.toHaveBeenCalled();
+
+    fireEvent.change(emailInput, { target: { value: 'a@gmail.com' } });
+
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  test('shows backend field errors under their fields instead of the general box', async () => {
+    loginUser.mockRejectedValue(Object.assign(new Error('La contraseña es obligatoria.'), {
+      code: 'VALIDATION_ERROR',
+      details: { fieldErrors: { password: 'La contraseña es obligatoria.' } },
+    }));
+    renderLoginForm();
+
+    submitCredentials();
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('La contraseña es obligatoria.');
+    expect(screen.queryByText('La contraseña es obligatoria.', { selector: '.status-message' })).not.toBeInTheDocument();
+  });
+
+  test('offers "Verificar mi cuenta" when the email is not verified', async () => {
+    const onVerifyAccount = jest.fn();
+    loginUser.mockRejectedValue(Object.assign(new Error('Debes verificar tu correo antes de iniciar sesión.'), {
+      code: 'EMAIL_NOT_VERIFIED',
+    }));
+    renderLoginForm({ onVerifyAccount });
+
+    submitCredentials();
+    fireEvent.click(await screen.findByRole('button', { name: esTexts.auth.login.links.verifyAccount }));
+
+    expect(onVerifyAccount).toHaveBeenCalledWith('player@toastedvr.test');
+  });
+
+  test('does not offer account verification for other errors', async () => {
+    loginUser.mockRejectedValue(Object.assign(new Error('Credenciales'), { code: 'AUTHENTICATION_FAILED' }));
+    renderLoginForm({ onVerifyAccount: jest.fn() });
+
+    submitCredentials();
+
+    await screen.findByText('Credenciales');
+    expect(screen.queryByRole('button', { name: esTexts.auth.login.links.verifyAccount })).not.toBeInTheDocument();
   });
 
   test('shows the notice received when the user was expelled', () => {

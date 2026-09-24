@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import VerificationForm from './VerificationForm';
 import esTexts from '../locals/es.json';
 import { resendVerificationCode, verifyEmailCode } from '../services/authService';
@@ -11,10 +11,10 @@ jest.mock('../services/authService', () => ({
 const texts = esTexts.auth.register;
 const codePolicy = { expiresInSeconds: 60, maxAttempts: 5, maxResends: 3, resendLockMinutes: 5 };
 
-const renderForm = () => render(
+const renderForm = (policy = codePolicy) => render(
   <VerificationForm
     email="ana@toastedvr.test"
-    codePolicy={codePolicy}
+    codePolicy={policy}
     texts={texts}
     errorTexts={esTexts.auth.errors}
     onVerificationSuccess={jest.fn()}
@@ -44,7 +44,11 @@ describe('VerificationForm', () => {
     jest.useFakeTimers();
   });
 
+  // Desmonta antes de volver a los timers reales para que ninguna cuenta
+  // regresiva quede viva y el worker de Jest termine limpio.
   afterEach(() => {
+    cleanup();
+    jest.clearAllTimers();
     jest.useRealTimers();
     jest.clearAllMocks();
   });
@@ -69,10 +73,38 @@ describe('VerificationForm', () => {
     typeCode('123456');
     fireEvent.click(screen.getByRole('button', { name: texts.buttons.verify }));
 
-    expect(await screen.findByText(esTexts.auth.errors.INVALID_CODE)).toBeInTheDocument();
+    expect(await screen.findByRole('alert')).toHaveTextContent(esTexts.auth.errors.INVALID_CODE);
+    expect(screen.queryByText(esTexts.auth.errors.INVALID_CODE, { selector: '.status-message' })).not.toBeInTheDocument();
     const attemptsText = screen.getByTestId('remaining-attempts').textContent;
     expect(attemptsText).toBe('Intentos restantes: 4');
     expect(attemptsText.match(/\d+/g)).toEqual(['4']);
+  });
+
+  test('shows an incomplete code under the code field and clears it when typing', () => {
+    renderForm();
+
+    fireEvent.click(screen.getByRole('button', { name: texts.buttons.verify }));
+
+    expect(screen.getByRole('alert')).toHaveTextContent(texts.messages.invalidCodeLength);
+    expect(verifyEmailCode).not.toHaveBeenCalled();
+
+    typeCode('1');
+
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  test('starts at zero with the resend button when opened without a code policy', async () => {
+    resendVerificationCode.mockResolvedValue({ codePolicy });
+    renderForm(null);
+
+    expect(screen.getByText('00:00')).toBeInTheDocument();
+    expect(screen.queryByTestId('remaining-attempts')).not.toBeInTheDocument();
+
+    fireEvent.click(resendButton());
+
+    expect(await screen.findByText(texts.verification.codeResent)).toBeInTheDocument();
+    expect(screen.getByText('01:00')).toBeInTheDocument();
+    expect(screen.getByTestId('remaining-attempts')).toHaveTextContent(/^Intentos restantes: 5$/);
   });
 
   test('enables the resend button right away when the attempts are exhausted', async () => {

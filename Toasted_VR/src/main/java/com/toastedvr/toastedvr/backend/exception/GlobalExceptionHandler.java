@@ -1,6 +1,7 @@
 package com.toastedvr.toastedvr.backend.exception;
 
 import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import com.toastedvr.toastedvr.backend.config.MessageResolver;
@@ -28,14 +29,24 @@ public class GlobalExceptionHandler {
         MethodArgumentNotValidException exception,
         HttpServletRequest request
     ) {
-        String message = exception.getBindingResult()
+        // Todos los errores, uno por campo; el message general conserva el primero.
+        Map<String, String> errorsByField = new LinkedHashMap<>();
+        exception.getBindingResult()
             .getFieldErrors()
+            .forEach(fieldError -> errorsByField.putIfAbsent(fieldError.getField(), fieldError.getDefaultMessage()));
+
+        String message = errorsByField.values()
             .stream()
-            .map(fieldError -> fieldError.getDefaultMessage())
             .findFirst()
             .orElse(messages.get("error.validation.invalidRequest"));
 
-        return buildResponse(HttpStatus.BAD_REQUEST, ErrorCode.VALIDATION_ERROR, message, null, request);
+        return buildResponse(
+            HttpStatus.BAD_REQUEST,
+            ErrorCode.VALIDATION_ERROR,
+            message,
+            errorsByField.isEmpty() ? null : FieldErrors.of(errorsByField),
+            request
+        );
     }
 
     @ExceptionHandler(ConflictException.class)

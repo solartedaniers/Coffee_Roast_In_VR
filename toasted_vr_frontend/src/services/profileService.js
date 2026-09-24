@@ -1,4 +1,4 @@
-import apiClient, { getErrorMessage } from './apiClient';
+import apiClient, { getErrorMessage, toApiError } from './apiClient';
 
 const PROFILE_PATH = '/users/me/profile';
 const UNITY_ACCESS_CODE_PATH = '/users/me/unity-access-code';
@@ -12,8 +12,14 @@ async function handleRequest(request) {
   }
 }
 
+// Conserva code y details (errores por campo) para mostrarlos debajo de cada input.
 export async function updateProfile(payload) {
-  return handleRequest(() => apiClient.patch(PROFILE_PATH, payload));
+  try {
+    const response = await apiClient.patch(PROFILE_PATH, payload);
+    return response.data;
+  } catch (error) {
+    throw toApiError(error);
+  }
 }
 
 export async function fetchUnityAccessCodeStatus() {

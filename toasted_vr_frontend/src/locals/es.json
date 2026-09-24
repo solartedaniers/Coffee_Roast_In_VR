@@ -34,7 +34,8 @@
       },
       "links": {
         "forgotPassword": "¿Olvidaste tu contraseña?",
-        "createAccount": "Crear cuenta"
+        "createAccount": "Crear cuenta",
+        "verifyAccount": "Verificar mi cuenta"
       },
       "messages": {
         "forgotPasswordUnavailable": "La recuperación de contraseña aún no está disponible en esta versión."

@@ -242,11 +242,11 @@ public class AuthService {
 
     private void validateUniqueness(String email, String username) {
         if (userRepository.existsByUsernameIgnoreCase(username)) {
-            throw new ConflictException(messages.get("auth.register.usernameTaken"));
+            throw new ConflictException(messages.get("auth.register.usernameTaken"), "username");
         }
 
         if (userRepository.existsByEmailIgnoreCase(email)) {
-            throw new ConflictException(messages.get("auth.register.emailTaken"));
+            throw new ConflictException(messages.get("auth.register.emailTaken"), "email");
         }
     }
 

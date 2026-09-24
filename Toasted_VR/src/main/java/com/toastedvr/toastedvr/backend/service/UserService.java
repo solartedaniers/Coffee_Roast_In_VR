@@ -55,15 +55,14 @@ public class UserService {
         // usuarios creados antes de que existiera el límite.
         boolean usernameChanged = !normalizedUsername.equals(user.getUsername());
         if (usernameChanged && !usernamePolicy.isSatisfiedBy(normalizedUsername)) {
-            throw new InvalidRequestException(messages.get(
-                "validation.username.length",
-                usernamePolicy.getMinLength(),
-                usernamePolicy.getMaxLength()
-            ));
+            throw new InvalidRequestException(
+                messages.get("validation.username.length", usernamePolicy.getMinLength(), usernamePolicy.getMaxLength()),
+                "username"
+            );
         }
 
         if (userRepository.existsByUsernameIgnoreCaseAndIdNot(normalizedUsername, user.getId())) {
-            throw new ConflictException(messages.get("user.profile.usernameTaken"));
+            throw new ConflictException(messages.get("user.profile.usernameTaken"), "username");
         }
 
         updatePasswordIfRequested(user, request.currentPassword(), request.newPassword());
@@ -92,11 +91,11 @@ public class UserService {
         }
 
         if (currentPassword == null || currentPassword.isBlank()) {
-            throw new AuthenticationFailedException(messages.get("user.profile.currentPasswordRequired"));
+            throw new AuthenticationFailedException(messages.get("user.profile.currentPasswordRequired"), "currentPassword");
         }
 
         if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
-            throw new AuthenticationFailedException(messages.get("user.profile.currentPasswordIncorrect"));
+            throw new AuthenticationFailedException(messages.get("user.profile.currentPasswordIncorrect"), "currentPassword");
         }
 
         user.setPassword(passwordEncoder.encode(newPassword));

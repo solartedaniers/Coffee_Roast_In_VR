@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import FieldError from './FieldError';
 import VerificationCodeInput from './VerificationCodeInput';
 import { resendVerificationCode, verifyEmailCode } from '../services/authService';
 import { formatCountdown, useCountdown } from '../hooks/useCountdown';
@@ -6,32 +7,39 @@ import { resolveErrorMessage } from '../utils/errorMessages';
 
 const emptyCode = ['', '', '', '', '', ''];
 
-function VerificationForm({ email, codePolicy, texts, errorTexts, onVerificationSuccess }) {
+// Sin codePolicy (el usuario llega desde "Verificar mi cuenta" en el login) la
+// cuenta regresiva arranca en 0 para que pueda pedir un código de inmediato;
+// los límites llegan con la respuesta del reenvío.
+function VerificationForm({ email, codePolicy = null, texts, errorTexts, onVerificationSuccess }) {
+  const initialSeconds = codePolicy?.expiresInSeconds ?? 0;
   const [codeDigits, setCodeDigits] = useState(emptyCode);
   const [status, setStatus] = useState({ text: '', isError: false });
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
-  const [remainingAttempts, setRemainingAttempts] = useState(codePolicy.maxAttempts);
-  const [secondsLeft, restartCountdown] = useCountdown(codePolicy.expiresInSeconds);
+  const [codeError, setCodeError] = useState('');
+  const [remainingAttempts, setRemainingAttempts] = useState(codePolicy?.maxAttempts ?? null);
+  const [secondsLeft, restartCountdown] = useCountdown(initialSeconds);
   const [resendLockSecondsLeft, startResendLock] = useCountdown(0);
 
   const verificationCode = useMemo(() => codeDigits.join(''), [codeDigits]);
 
   useEffect(() => {
-    restartCountdown(codePolicy.expiresInSeconds);
-  }, [codePolicy.expiresInSeconds, email, restartCountdown]);
+    restartCountdown(initialSeconds);
+  }, [initialSeconds, email, restartCountdown]);
 
   const handleDigitChange = (index, value) => {
     setCodeDigits((currentValue) =>
       currentValue.map((digit, digitIndex) => (digitIndex === index ? value : digit))
     );
+    setCodeError('');
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
 
     if (verificationCode.length !== 6) {
-      setStatus({ text: texts.messages.invalidCodeLength, isError: true });
+      setCodeError(texts.messages.invalidCodeLength);
+      setStatus({ text: '', isError: false });
       return;
     }
 
@@ -43,8 +51,13 @@ function VerificationForm({ email, codePolicy, texts, errorTexts, onVerification
       setStatus({ text: response.message, isError: false });
       onVerificationSuccess(response);
     } catch (error) {
-      if (error.code === 'INVALID_CODE' && error.details?.remainingAttempts != null) {
-        setRemainingAttempts(error.details.remainingAttempts);
+      // Un código incorrecto pertenece al campo del código; el resto de errores va al cuadro general.
+      if (error.code === 'INVALID_CODE') {
+        if (error.details?.remainingAttempts != null) {
+          setRemainingAttempts(error.details.remainingAttempts);
+        }
+        setCodeError(resolveErrorMessage(error, errorTexts));
+        return;
       }
 
       if (error.code === 'CODE_ATTEMPTS_EXHAUSTED') {
@@ -69,6 +82,7 @@ function VerificationForm({ email, codePolicy, texts, errorTexts, onVerification
     try {
       const response = await resendVerificationCode({ email });
       setCodeDigits(emptyCode);
+      setCodeError('');
       setRemainingAttempts(response.codePolicy.maxAttempts);
       restartCountdown(response.codePolicy.expiresInSeconds);
       setStatus({ text: texts.verification.codeResent, isError: false });
@@ -97,9 +111,11 @@ function VerificationForm({ email, codePolicy, texts, errorTexts, onVerification
       <p className={`countdown ${secondsLeft === 0 ? 'expired' : ''}`}>
         {texts.verification.timerLabel} <span>{formatCountdown(secondsLeft)}</span>
       </p>
-      <p className="verification-copy" data-testid="remaining-attempts">
-        {texts.verification.attemptsLeft.replace('{count}', remainingAttempts)}
-      </p>
+      {remainingAttempts != null && (
+        <p className="verification-copy" data-testid="remaining-attempts">
+          {texts.verification.attemptsLeft.replace('{count}', remainingAttempts)}
+        </p>
+      )}
       {resendLockSecondsLeft > 0 && (
         <p className="countdown expired">
           {texts.verification.resendLockLabel} <span>{formatCountdown(resendLockSecondsLeft)}</span>
@@ -107,7 +123,10 @@ function VerificationForm({ email, codePolicy, texts, errorTexts, onVerification
       )}
 
       <form className="form-grid" onSubmit={handleSubmit}>
-        <VerificationCodeInput codeDigits={codeDigits} onChange={handleDigitChange} />
+        <div className="field-group">
+          <VerificationCodeInput codeDigits={codeDigits} onChange={handleDigitChange} />
+          <FieldError message={codeError} />
+        </div>
 
         {status.text && (
           <p className={`status-message ${status.isError ? 'error' : 'success'}`} aria-live="polite">

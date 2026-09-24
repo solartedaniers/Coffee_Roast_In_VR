@@ -7,6 +7,7 @@ import {
   fetchUnityAccessCodeStatus,
   regenerateUnityAccessCode,
   revealUnityAccessCode,
+  updateProfile,
 } from '../services/profileService';
 
 jest.mock('../services/profileService', () => ({
@@ -172,4 +173,43 @@ test('emails and regenerates a configured Unity access code', async () => {
 
   expect(await screen.findByText('WXYZ-6789')).toBeInTheDocument();
   expect(regenerateUnityAccessCode).toHaveBeenCalledWith('NewPassword123!');
+});
+
+test('shows local password errors under their fields without saving', async () => {
+  renderProfileSettings();
+
+  await screen.findByRole('button', { name: 'Crear código' });
+  fireEvent.click(screen.getByRole('button', { name: 'Editar perfil' }));
+  fireEvent.click(screen.getByRole('button', { name: '¿Quieres cambiar tu contraseña?' }));
+  fireEvent.change(screen.getByLabelText('Nueva contraseña'), { target: { value: 'Password123' } });
+  fireEvent.change(screen.getByLabelText('Confirmar nueva contraseña'), { target: { value: 'Different123' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }));
+
+  const alerts = screen.getAllByRole('alert').map((alert) => alert.textContent);
+  expect(alerts).toEqual([
+    esTexts.profile.messages.currentPasswordRequired,
+    esTexts.profile.messages.passwordMismatch,
+  ]);
+  expect(updateProfile).not.toHaveBeenCalled();
+});
+
+test('shows a taken username under the username field and clears it on change', async () => {
+  updateProfile.mockRejectedValue(Object.assign(new Error('El nombre de usuario ya está en uso.'), {
+    code: 'CONFLICT',
+    details: { fieldErrors: { username: 'El nombre de usuario ya está en uso.' } },
+  }));
+  renderProfileSettings();
+
+  await screen.findByRole('button', { name: 'Crear código' });
+  fireEvent.click(screen.getByRole('button', { name: 'Editar perfil' }));
+  const usernameInput = screen.getByDisplayValue(currentUser.username);
+  fireEvent.change(usernameInput, { target: { value: 'takenName' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }));
+
+  expect(await screen.findByRole('alert')).toHaveTextContent('El nombre de usuario ya está en uso.');
+  expect(usernameInput).toHaveAttribute('aria-invalid', 'true');
+
+  fireEvent.change(usernameInput, { target: { value: 'otherName' } });
+
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 });

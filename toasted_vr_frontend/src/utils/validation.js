@@ -9,15 +9,18 @@ export const isValidEmail = (email) => EMAIL_PATTERN.test((email || '').trim());
 
 export const validateEmail = (email) => (isValidEmail(email) ? '' : esTexts.auth.validation.invalidEmail);
 
+/** Devuelve los errores locales del registro como { campo: mensaje }. */
 export const validateRegistrationForm = (formData, texts) => {
+  const errors = {};
+
   const emailMessage = validateEmail(formData.email);
   if (emailMessage) {
-    return emailMessage;
+    errors.email = emailMessage;
   }
 
   if (formData.password !== formData.confirmPassword) {
-    return texts.messages.passwordMismatch;
+    errors.confirmPassword = texts.messages.passwordMismatch;
   }
 
-  return '';
+  return errors;
 };

@@ -59,6 +59,15 @@ function App() {
     }
   };
 
+  // Cuenta registrada pero sin verificar: se abre la verificación con la
+  // cuenta regresiva en 0 para que el usuario pida un código nuevo.
+  const handleVerifyAccount = (email) => {
+    setPendingRegistration({ email, codePolicy: null });
+    setVerifiedUser(null);
+    setLoginNotice('');
+    setAuthView(authViews.register);
+  };
+
   const handleLoginSuccess = (loginResponse) => {
     const nextSession = {
       accessToken: loginResponse.accessToken,
@@ -284,6 +293,7 @@ function App() {
                   errorTexts={esTexts.auth.errors}
                   notice={loginNotice}
                   onLoginSuccess={handleLoginSuccess}
+                  onVerifyAccount={handleVerifyAccount}
                   onSwitchToRegister={() => handleSwitchAuthView(authViews.register)}
                 />
               )}

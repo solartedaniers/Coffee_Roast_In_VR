@@ -84,6 +84,7 @@
     },
     "errors": {
       "ACCOUNT_BLOCKED": "Fuiste bloqueado por el administrador.",
+      "SESSION_REVOKED": "Tu contraseña cambió. Inicia sesión de nuevo.",
       "INVALID_CODE": "El código ingresado no es correcto.",
       "CODE_EXPIRED": "El código venció. Solicita uno nuevo.",
       "CODE_ATTEMPTS_EXHAUSTED": "Agotaste los intentos para este código. Solicita uno nuevo.",

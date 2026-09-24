@@ -19,9 +19,16 @@ export const toApiError = (error) => {
 const AUTH_PATH_PREFIX = '/auth/';
 const SESSION_EXPIRED_EVENT = 'toastedvr:session-expired';
 export const ACCOUNT_BLOCKED_EVENT = 'toastedvr:account-blocked';
-const ACCOUNT_BLOCKED_CODE = 'ACCOUNT_BLOCKED';
+export const SESSION_REVOKED_EVENT = 'toastedvr:session-revoked';
 
-const isAccountBlocked = (error) => error?.response?.data?.code === ACCOUNT_BLOCKED_CODE;
+// Rechazos en los que renovar la sesión no sirve: se cierra la sesión local
+// y se avisa a la interfaz con el evento correspondiente.
+const FORCED_LOGOUT_EVENTS = {
+  ACCOUNT_BLOCKED: ACCOUNT_BLOCKED_EVENT,
+  SESSION_REVOKED: SESSION_REVOKED_EVENT
+};
+
+const forcedLogoutEvent = (error) => FORCED_LOGOUT_EVENTS[error?.response?.data?.code];
 
 const endLocalSession = (eventName) => {
   clearSession();
@@ -74,9 +81,9 @@ apiClient.interceptors.response.use(
     const { config, response } = error;
     const isAuthEndpoint = config?.url?.startsWith(AUTH_PATH_PREFIX);
 
-    // Una cuenta bloqueada no se renueva: se cierra la sesión local de inmediato.
-    if (isAccountBlocked(error) && !isAuthEndpoint) {
-      endLocalSession(ACCOUNT_BLOCKED_EVENT);
+    const forcedEvent = forcedLogoutEvent(error);
+    if (forcedEvent && !isAuthEndpoint) {
+      endLocalSession(forcedEvent);
       return Promise.reject(error);
     }
 
@@ -95,7 +102,7 @@ apiClient.interceptors.response.use(
       return apiClient(config);
     } catch (refreshError) {
       refreshPromise = null;
-      endLocalSession(isAccountBlocked(refreshError) ? ACCOUNT_BLOCKED_EVENT : SESSION_EXPIRED_EVENT);
+      endLocalSession(forcedLogoutEvent(refreshError) ?? SESSION_EXPIRED_EVENT);
       return Promise.reject(error);
     }
   }

@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import App from './App';
 import esTexts from './locals/es.json';
-import { ACCOUNT_BLOCKED_EVENT } from './services/apiClient';
+import { ACCOUNT_BLOCKED_EVENT, SESSION_REVOKED_EVENT } from './services/apiClient';
 import { readSession, saveSession } from './services/sessionService';
 import { confirmPasswordReset, loginUser, requestPasswordReset } from './services/authService';
 
@@ -34,6 +34,23 @@ test('sends a blocked user back to the login with the blocked notice', () => {
   });
 
   expect(screen.getByText(esTexts.auth.errors.ACCOUNT_BLOCKED)).toBeInTheDocument();
+  expect(screen.getByPlaceholderText(esTexts.auth.login.placeholders.password)).toBeInTheDocument();
+  expect(readSession()).toBeNull();
+});
+
+test('sends a user whose password changed elsewhere back to the login with the notice', () => {
+  saveSession({
+    accessToken: 'access',
+    refreshToken: 'refresh',
+    user: { id: 1, name: 'Ana', username: 'ana', role: 'PLAYER', knowledgeLevel: null }
+  });
+  render(<App />);
+
+  act(() => {
+    window.dispatchEvent(new Event(SESSION_REVOKED_EVENT));
+  });
+
+  expect(screen.getByText('Tu contraseña cambió. Inicia sesión de nuevo.')).toBeInTheDocument();
   expect(screen.getByPlaceholderText(esTexts.auth.login.placeholders.password)).toBeInTheDocument();
   expect(readSession()).toBeNull();
 });

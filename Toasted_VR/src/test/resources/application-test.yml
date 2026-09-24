@@ -32,6 +32,12 @@ app:
     max-attempts: 5
     max-resends: 3
     resend-lock-minutes: 5
+  password-policy:
+    min-length: 8
+    max-length: 72
+  username-policy:
+    min-length: 4
+    max-length: 20
   unity-code:
     hmac-pepper: unity-access-code-test-pepper
     encryption-key: MDEyMzQ1Njc4OUFCQ0RFRjAxMjM0NTY3ODlBQkNERUY=

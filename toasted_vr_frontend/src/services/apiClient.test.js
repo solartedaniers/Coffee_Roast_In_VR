@@ -1,5 +1,5 @@
 import axios from 'axios';
-import apiClient, { ACCOUNT_BLOCKED_EVENT, toApiError } from './apiClient';
+import apiClient, { ACCOUNT_BLOCKED_EVENT, SESSION_REVOKED_EVENT, toApiError } from './apiClient';
 import { readSession, saveSession } from './sessionService';
 import esTexts from '../locals/es.json';
 
@@ -60,6 +60,21 @@ describe('apiClient response interceptor', () => {
     expect(refreshSpy).not.toHaveBeenCalled();
     expect(readSession()).toBeNull();
     expect(blockedListener).toHaveBeenCalledTimes(1);
+  });
+
+  test('closes the local session without refreshing when the session was revoked', async () => {
+    const refreshSpy = jest.spyOn(axios, 'post');
+    const revokedListener = jest.fn();
+    window.addEventListener(SESSION_REVOKED_EVENT, revokedListener);
+    apiClient.defaults.adapter = rejectWith(401, { code: 'SESSION_REVOKED' });
+
+    await expect(apiClient.get('/users/me/profile')).rejects.toBeDefined();
+
+    expect(refreshSpy).not.toHaveBeenCalled();
+    expect(readSession()).toBeNull();
+    expect(revokedListener).toHaveBeenCalledTimes(1);
+    expect(blockedListener).not.toHaveBeenCalled();
+    window.removeEventListener(SESSION_REVOKED_EVENT, revokedListener);
   });
 
   test('announces the block when the refresh itself is rejected for a blocked account', async () => {

@@ -10,7 +10,7 @@ import VerificationForm from './components/VerificationForm';
 import ForgotPasswordForm from './components/ForgotPasswordForm';
 import PasswordResetForm from './components/PasswordResetForm';
 import { logoutUser } from './services/authService';
-import { ACCOUNT_BLOCKED_EVENT } from './services/apiClient';
+import { ACCOUNT_BLOCKED_EVENT, SESSION_REVOKED_EVENT } from './services/apiClient';
 import { clearSession, readSession, saveSession } from './services/sessionService';
 
 const authViews = {
@@ -126,17 +126,25 @@ function App() {
     return () => window.removeEventListener('toastedvr:session-expired', resetToLoggedOutState);
   }, []);
 
-  // El backend rechazó la sesión porque un administrador bloqueó la cuenta:
-  // se lleva al usuario al login con el aviso correspondiente.
+  // El backend rechazó la sesión sin posibilidad de renovarla (cuenta
+  // bloqueada o contraseña cambiada en otro dispositivo): se lleva al usuario
+  // al login con el aviso correspondiente.
   useEffect(() => {
-    const handleAccountBlocked = () => {
-      resetToLoggedOutState();
-      setAuthView(authViews.login);
-      setLoginNotice(esTexts.auth.errors.ACCOUNT_BLOCKED);
+    const noticesByEvent = {
+      [ACCOUNT_BLOCKED_EVENT]: esTexts.auth.errors.ACCOUNT_BLOCKED,
+      [SESSION_REVOKED_EVENT]: esTexts.auth.errors.SESSION_REVOKED
     };
+    const handlers = Object.entries(noticesByEvent).map(([eventName, notice]) => {
+      const handler = () => {
+        resetToLoggedOutState();
+        setAuthView(authViews.login);
+        setLoginNotice(notice);
+      };
+      window.addEventListener(eventName, handler);
+      return [eventName, handler];
+    });
 
-    window.addEventListener(ACCOUNT_BLOCKED_EVENT, handleAccountBlocked);
-    return () => window.removeEventListener(ACCOUNT_BLOCKED_EVENT, handleAccountBlocked);
+    return () => handlers.forEach(([eventName, handler]) => window.removeEventListener(eventName, handler));
   }, []);
 
   if (currentUser && isAdmin) {

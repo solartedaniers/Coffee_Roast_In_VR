@@ -74,7 +74,7 @@ class AuthControllerIntegrationTests {
                     .content(requireJson(Map.of("email", "pending@toastedvr.test", "password", "Password123!")))
             )
             .andExpect(status().isForbidden())
-            .andExpect(jsonPath("$.message").value("Debes verificar tu correo antes de iniciar sesion."))
+            .andExpect(jsonPath("$.message").value("Debes verificar tu correo antes de iniciar sesión."))
             .andExpect(jsonPath("$.code").value("EMAIL_NOT_VERIFIED"));
     }
 
@@ -112,7 +112,7 @@ class AuthControllerIntegrationTests {
                     .header("Authorization", "Bearer " + accessToken)
             )
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.message").value("La sesion fue cerrada correctamente."));
+            .andExpect(jsonPath("$.message").value("La sesión fue cerrada correctamente."));
 
         mockMvc.perform(
                 get("/api/v1/admin/users")

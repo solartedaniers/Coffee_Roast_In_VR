@@ -34,7 +34,13 @@
       "name": "app.jwt.expiration-seconds",
       "type": "java.lang.Long",
       "description": "Segundos de vigencia de un token JWT antes de expirar.",
-      "defaultValue": 3600
+      "defaultValue": 600
+    },
+    {
+      "name": "app.jwt.refresh-expiration-hours",
+      "type": "java.lang.Long",
+      "description": "Horas de vigencia del refresh token, contadas desde su último uso.",
+      "defaultValue": 24
     },
     {
       "name": "app.bootstrap-admin.enabled",

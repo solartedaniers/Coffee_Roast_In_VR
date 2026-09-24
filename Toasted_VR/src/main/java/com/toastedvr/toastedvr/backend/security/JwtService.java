@@ -1,7 +1,6 @@
 package com.toastedvr.toastedvr.backend.security;
 
 import com.toastedvr.toastedvr.backend.domain.Role;
-import java.util.UUID;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -20,7 +19,7 @@ public class JwtService {
 
     public JwtService(
         @Value("${app.jwt.secret}") String secret,
-        @Value("${app.jwt.expiration-seconds:3600}") long expirationSeconds
+        @Value("${app.jwt.expiration-seconds:600}") long expirationSeconds
     ) {
         this.signingKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
         this.expirationSeconds = expirationSeconds;
@@ -63,10 +62,6 @@ public class JwtService {
 
         return userId.equals(principal.getId())
             && expiration.after(new Date());
-    }
-
-    public String generateRefreshToken() {
-        return UUID.randomUUID().toString();
     }
 
     private Claims extractClaims(String token) {

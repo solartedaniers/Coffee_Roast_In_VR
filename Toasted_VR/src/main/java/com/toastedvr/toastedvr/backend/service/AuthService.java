@@ -39,6 +39,7 @@ public class AuthService {
     private final EmailService emailService;
     private final JwtService jwtService;
     private final TokenBlacklistService tokenBlacklistService;
+    private final RefreshTokenService refreshTokenService;
     private final AuditService auditService;
     private final UnityAccessCodeService unityAccessCodeService;
     private final MessageResolver messages;
@@ -51,6 +52,7 @@ public class AuthService {
         EmailService emailService,
         JwtService jwtService,
         TokenBlacklistService tokenBlacklistService,
+        RefreshTokenService refreshTokenService,
         AuditService auditService,
         UnityAccessCodeService unityAccessCodeService,
         MessageResolver messages,
@@ -62,6 +64,7 @@ public class AuthService {
         this.emailService = emailService;
         this.jwtService = jwtService;
         this.tokenBlacklistService = tokenBlacklistService;
+        this.refreshTokenService = refreshTokenService;
         this.auditService = auditService;
         this.unityAccessCodeService = unityAccessCodeService;
         this.messages = messages;
@@ -174,8 +177,7 @@ public class AuthService {
     }
 
     private LoginResponse createLoginResponse(User user) {
-        String refreshToken = jwtService.generateRefreshToken();
-        user.updateRefreshToken(refreshToken, LocalDateTime.now().plusDays(30));
+        String refreshToken = refreshTokenService.issue(user);
         user.updateLastLoginAt(LocalDateTime.now());
         userRepository.save(user);
 
@@ -192,13 +194,13 @@ public class AuthService {
         );
     }
 
-    @Transactional
+    // Sin rollback al rechazar: el refresh token vencido debe quedar borrado.
+    @Transactional(dontRollbackOn = AuthenticationFailedException.class)
     public RefreshTokenResponse refresh(RefreshTokenRequest request) {
-        User user = userRepository.findByRefreshToken(request.refreshToken())
+        User user = refreshTokenService.findOwner(request.refreshToken())
             .orElseThrow(() -> new AuthenticationFailedException(messages.get("auth.refresh.invalidToken")));
 
-        if (user.getRefreshTokenExpiresAt() == null
-            || user.getRefreshTokenExpiresAt().isBefore(LocalDateTime.now())) {
+        if (refreshTokenService.isExpired(user)) {
             user.clearRefreshToken();
             userRepository.save(user);
             throw new AuthenticationFailedException(messages.get("auth.refresh.expiredToken"));
@@ -208,8 +210,7 @@ public class AuthService {
             throw new AccountBlockedException(messages.get("auth.login.accountBlocked"));
         }
 
-        String newRefreshToken = jwtService.generateRefreshToken();
-        user.updateRefreshToken(newRefreshToken, LocalDateTime.now().plusDays(30));
+        String newRefreshToken = refreshTokenService.issue(user);
         userRepository.save(user);
 
         UserPrincipal principal = new UserPrincipal(user);

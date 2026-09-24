@@ -61,8 +61,9 @@ public class User {
     @Column(length = 20)
     private KnowledgeLevel knowledgeLevel;
 
-    @Column(length = 512)
-    private String refreshToken;
+    // Solo se guarda el hash SHA-256 del refresh token; la columna conserva su nombre.
+    @Column(name = "refresh_token", length = 512)
+    private String refreshTokenHash;
 
     private LocalDateTime refreshTokenExpiresAt;
 
@@ -192,21 +193,21 @@ public class User {
         this.knowledgeLevel = knowledgeLevel;
     }
 
-    public String getRefreshToken() {
-        return refreshToken;
+    public String getRefreshTokenHash() {
+        return refreshTokenHash;
     }
 
     public LocalDateTime getRefreshTokenExpiresAt() {
         return refreshTokenExpiresAt;
     }
 
-    public void updateRefreshToken(String refreshToken, LocalDateTime expiresAt) {
-        this.refreshToken = refreshToken;
+    public void updateRefreshTokenHash(String refreshTokenHash, LocalDateTime expiresAt) {
+        this.refreshTokenHash = refreshTokenHash;
         this.refreshTokenExpiresAt = expiresAt;
     }
 
     public void clearRefreshToken() {
-        this.refreshToken = null;
+        this.refreshTokenHash = null;
         this.refreshTokenExpiresAt = null;
     }
 }

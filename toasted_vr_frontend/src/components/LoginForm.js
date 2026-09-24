@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import PasswordField from './PasswordField';
 import { loginUser } from '../services/authService';
 import { resolveErrorMessage } from '../utils/errorMessages';
+import { validateEmail } from '../utils/validation';
 
 const initialCredentials = {
   email: '',
@@ -24,6 +25,13 @@ function LoginForm({ texts, errorTexts, notice, onLoginSuccess, onSwitchToRegist
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+
+    const emailMessage = validateEmail(credentials.email);
+    if (emailMessage) {
+      setStatus({ text: emailMessage, isError: true });
+      return;
+    }
+
     setIsLoading(true);
     setStatus({ text: '', isError: false });
 

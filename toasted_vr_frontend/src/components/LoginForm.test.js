@@ -28,6 +28,10 @@ const submitCredentials = () => {
 };
 
 describe('LoginForm', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   test('shows the blocked-account text from es.json when the backend reports ACCOUNT_BLOCKED', async () => {
     loginUser.mockRejectedValue(Object.assign(new Error('mensaje del backend'), { code: 'ACCOUNT_BLOCKED' }));
     renderLoginForm();
@@ -46,6 +50,21 @@ describe('LoginForm', () => {
     submitCredentials();
 
     expect(await screen.findByText('Las credenciales ingresadas no son válidas.')).toBeInTheDocument();
+  });
+
+  test('rejects an email without a dot in the domain before calling the API', () => {
+    renderLoginForm();
+
+    fireEvent.change(screen.getByPlaceholderText(esTexts.auth.login.placeholders.email), {
+      target: { value: 'a@gmailcom' },
+    });
+    fireEvent.change(screen.getByPlaceholderText(esTexts.auth.login.placeholders.password), {
+      target: { value: 'Password123!' },
+    });
+    fireEvent.submit(screen.getByRole('button', { name: esTexts.auth.login.buttons.submit }).closest('form'));
+
+    expect(screen.getByText(esTexts.auth.validation.invalidEmail)).toBeInTheDocument();
+    expect(loginUser).not.toHaveBeenCalled();
   });
 
   test('shows the notice received when the user was expelled', () => {

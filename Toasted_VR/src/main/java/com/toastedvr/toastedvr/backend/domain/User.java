@@ -157,12 +157,6 @@ public class User {
         this.profileImageUrl = profileImageUrl;
     }
 
-    public void updateVerificationCode(String verificationCode, LocalDateTime expiresAt) {
-        this.verificationCode = verificationCode;
-        this.verificationCodeExpiresAt = expiresAt;
-        this.emailVerified = false;
-    }
-
     public void markEmailAsVerified() {
         this.emailVerified = true;
         this.verificationCode = null;

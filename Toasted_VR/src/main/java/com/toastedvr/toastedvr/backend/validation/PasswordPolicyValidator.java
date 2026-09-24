@@ -22,7 +22,7 @@ public class PasswordPolicyValidator implements ConstraintValidator<ValidPasswor
 
         context.disableDefaultConstraintViolation();
         context.buildConstraintViolationWithTemplate(
-                messages.get("validation.password.policy", passwordPolicy.getMinLength())
+                messages.get("validation.password.policy", passwordPolicy.getMinLength(), passwordPolicy.getMaxLength())
             )
             .addConstraintViolation();
         return false;

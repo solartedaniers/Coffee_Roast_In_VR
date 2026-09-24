@@ -26,6 +26,12 @@ app:
     refresh-expiration-hours: 24
   mail:
     enabled: false
+  # Valores fijos para que los tests no dependan del .env local.
+  one-time-code:
+    expiration-minutes: 1
+    max-attempts: 5
+    max-resends: 3
+    resend-lock-minutes: 5
   unity-code:
     hmac-pepper: unity-access-code-test-pepper
     encryption-key: MDEyMzQ1Njc4OUFCQ0RFRjAxMjM0NTY3ODlBQkNERUY=

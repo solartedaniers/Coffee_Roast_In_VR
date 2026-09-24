@@ -1,35 +1,25 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import VerificationCodeInput from './VerificationCodeInput';
-import { verifyEmailCode } from '../services/authService';
+import { resendVerificationCode, verifyEmailCode } from '../services/authService';
+import { formatCountdown, useCountdown } from '../hooks/useCountdown';
+import { resolveErrorMessage } from '../utils/errorMessages';
 
-function VerificationForm({ email, expiresInMinutes, texts, onVerificationSuccess }) {
-  const [codeDigits, setCodeDigits] = useState(['', '', '', '', '', '']);
+const emptyCode = ['', '', '', '', '', ''];
+
+function VerificationForm({ email, codePolicy, texts, errorTexts, onVerificationSuccess }) {
+  const [codeDigits, setCodeDigits] = useState(emptyCode);
   const [status, setStatus] = useState({ text: '', isError: false });
   const [isLoading, setIsLoading] = useState(false);
-  const [secondsLeft, setSecondsLeft] = useState(expiresInMinutes * 60);
+  const [isResending, setIsResending] = useState(false);
+  const [remainingAttempts, setRemainingAttempts] = useState(codePolicy.maxAttempts);
+  const [secondsLeft, restartCountdown] = useCountdown(codePolicy.expiresInSeconds);
+  const [resendLockSecondsLeft, startResendLock] = useCountdown(0);
 
   const verificationCode = useMemo(() => codeDigits.join(''), [codeDigits]);
-  const formattedTime = useMemo(() => {
-    const minutes = Math.floor(secondsLeft / 60);
-    const seconds = secondsLeft % 60;
-    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-  }, [secondsLeft]);
 
   useEffect(() => {
-    setSecondsLeft(expiresInMinutes * 60);
-  }, [expiresInMinutes, email]);
-
-  useEffect(() => {
-    if (secondsLeft <= 0) {
-      return undefined;
-    }
-
-    const timerId = window.setInterval(() => {
-      setSecondsLeft((currentValue) => (currentValue > 0 ? currentValue - 1 : 0));
-    }, 1000);
-
-    return () => window.clearInterval(timerId);
-  }, [secondsLeft]);
+    restartCountdown(codePolicy.expiresInSeconds);
+  }, [codePolicy.expiresInSeconds, email, restartCountdown]);
 
   const handleDigitChange = (index, value) => {
     setCodeDigits((currentValue) =>
@@ -53,9 +43,47 @@ function VerificationForm({ email, expiresInMinutes, texts, onVerificationSucces
       setStatus({ text: response.message, isError: false });
       onVerificationSuccess(response);
     } catch (error) {
-      setStatus({ text: error.message, isError: true });
+      if (error.code === 'INVALID_CODE' && error.details?.remainingAttempts != null) {
+        setRemainingAttempts(error.details.remainingAttempts);
+      }
+
+      if (error.code === 'CODE_ATTEMPTS_EXHAUSTED') {
+        setRemainingAttempts(0);
+      }
+
+      // Un código agotado o vencido ya no sirve: se habilita el reenvío.
+      if (error.code === 'CODE_ATTEMPTS_EXHAUSTED' || error.code === 'CODE_EXPIRED') {
+        restartCountdown(0);
+      }
+
+      setStatus({ text: resolveErrorMessage(error, errorTexts), isError: true });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    setIsResending(true);
+    setStatus({ text: '', isError: false });
+
+    try {
+      const response = await resendVerificationCode({ email });
+      setCodeDigits(emptyCode);
+      setRemainingAttempts(response.codePolicy.maxAttempts);
+      restartCountdown(response.codePolicy.expiresInSeconds);
+      setStatus({ text: texts.verification.codeResent, isError: false });
+    } catch (error) {
+      if (error.code === 'TOO_MANY_RESENDS') {
+        startResendLock(error.details?.secondsRemaining ?? 0);
+      }
+
+      if (error.code === 'CODE_STILL_ACTIVE') {
+        restartCountdown(error.details?.secondsRemaining ?? 0);
+      }
+
+      setStatus({ text: resolveErrorMessage(error, errorTexts), isError: true });
+    } finally {
+      setIsResending(false);
     }
   };
 
@@ -67,8 +95,16 @@ function VerificationForm({ email, expiresInMinutes, texts, onVerificationSucces
         <span className="verification-email">{email}</span>
       </p>
       <p className={`countdown ${secondsLeft === 0 ? 'expired' : ''}`}>
-        {texts.verification.timerLabel} <span>{formattedTime}</span>
+        {texts.verification.timerLabel} <span>{formatCountdown(secondsLeft)}</span>
       </p>
+      <p className="verification-copy" data-testid="remaining-attempts">
+        {texts.verification.attemptsLeft.replace('{count}', remainingAttempts)}
+      </p>
+      {resendLockSecondsLeft > 0 && (
+        <p className="countdown expired">
+          {texts.verification.resendLockLabel} <span>{formatCountdown(resendLockSecondsLeft)}</span>
+        </p>
+      )}
 
       <form className="form-grid" onSubmit={handleSubmit}>
         <VerificationCodeInput codeDigits={codeDigits} onChange={handleDigitChange} />
@@ -80,9 +116,19 @@ function VerificationForm({ email, expiresInMinutes, texts, onVerificationSucces
         )}
 
         <div className="action-row">
-          <button className="primary-button" type="submit" disabled={isLoading}>
+          <button className="primary-button" type="submit" disabled={isLoading || remainingAttempts === 0}>
             {isLoading ? texts.buttons.verifying : texts.buttons.verify}
           </button>
+          {secondsLeft === 0 && (
+            <button
+              className="secondary-button"
+              type="button"
+              onClick={handleResend}
+              disabled={isResending || resendLockSecondsLeft > 0}
+            >
+              {isResending ? texts.buttons.resending : texts.buttons.resend}
+            </button>
+          )}
         </div>
       </form>
     </section>

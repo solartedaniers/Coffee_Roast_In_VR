@@ -1,9 +1,8 @@
 package com.toastedvr.toastedvr.backend.dto;
 
-public record RegisterUserResponse(
+public record CodeSentResponse(
     String message,
     String email,
-    int expiresInMinutes,
     OneTimeCodePolicyResponse codePolicy
 ) {
 }

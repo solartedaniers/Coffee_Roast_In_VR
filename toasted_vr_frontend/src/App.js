@@ -256,8 +256,9 @@ function App() {
               {authView === authViews.register && pendingRegistration && !verifiedUser && (
                 <VerificationForm
                   email={pendingRegistration.email}
-                  expiresInMinutes={pendingRegistration.expiresInMinutes}
+                  codePolicy={pendingRegistration.codePolicy}
                   texts={registerTexts}
+                  errorTexts={esTexts.auth.errors}
                   onVerificationSuccess={handleVerificationSuccess}
                 />
               )}

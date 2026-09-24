@@ -56,7 +56,6 @@ public class AppProperties {
 
     public static class Verification {
         private int codeLength = 6;
-        private int codeExpirationMinutes = 15;
 
         public int getCodeLength() {
             return codeLength;
@@ -64,14 +63,6 @@ public class AppProperties {
 
         public void setCodeLength(int codeLength) {
             this.codeLength = codeLength;
-        }
-
-        public int getCodeExpirationMinutes() {
-            return codeExpirationMinutes;
-        }
-
-        public void setCodeExpirationMinutes(int codeExpirationMinutes) {
-            this.codeExpirationMinutes = codeExpirationMinutes;
         }
     }
 }

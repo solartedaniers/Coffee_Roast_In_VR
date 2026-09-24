@@ -32,7 +32,7 @@ class PasswordAndUsernamePolicyIntegrationTests {
 
     private static final String PASSWORD = "Password123!";
     private static final String PASSWORD_POLICY_MESSAGE =
-        "La contraseña debe tener mínimo 8 caracteres, una mayúscula, una minúscula y un número.";
+        "La contraseña debe tener entre 8 y 72 caracteres, una mayúscula, una minúscula y un número.";
     private static final String USERNAME_LENGTH_MESSAGE = "El usuario debe tener entre 4 y 20 caracteres.";
 
     @Autowired
@@ -65,6 +65,24 @@ class PasswordAndUsernamePolicyIntegrationTests {
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
             .andExpect(jsonPath("$.message").value(PASSWORD_POLICY_MESSAGE));
+    }
+
+    @Test
+    void shouldRejectRegistrationWithPasswordLongerThanBcryptLimit() throws Exception {
+        register("newPlayer", "Aa1" + "b".repeat(70))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value(PASSWORD_POLICY_MESSAGE));
+    }
+
+    @Test
+    void shouldReturnSpanishRequiredFieldMessagesOnRegistration() throws Exception {
+        mockMvc.perform(
+                post("/api/v1/auth/register")
+                    .contentType(jsonMediaType())
+                    .content(requireJson(Map.of("name", "New Player", "email", "correo-invalido", "username", "newPlayer", "password", PASSWORD)))
+            )
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value("Debes ingresar un correo electrónico válido (por ejemplo, usuario@dominio.com)."));
     }
 
     @Test

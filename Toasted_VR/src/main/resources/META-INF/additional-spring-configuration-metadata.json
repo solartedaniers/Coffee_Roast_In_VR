@@ -21,9 +21,28 @@
       "description": "Cantidad de digitos del codigo de verificacion."
     },
     {
-      "name": "app.verification.code-expiration-minutes",
+      "name": "app.one-time-code.expiration-minutes",
       "type": "java.lang.Integer",
-      "description": "Minutos de vigencia del codigo de verificacion."
+      "description": "Minutos de vigencia de los codigos de verificacion y de recuperacion.",
+      "defaultValue": 1
+    },
+    {
+      "name": "app.one-time-code.max-attempts",
+      "type": "java.lang.Integer",
+      "description": "Intentos permitidos por codigo antes de invalidarlo.",
+      "defaultValue": 5
+    },
+    {
+      "name": "app.one-time-code.max-resends",
+      "type": "java.lang.Integer",
+      "description": "Reenvios permitidos antes de bloquear nuevos reenvios.",
+      "defaultValue": 3
+    },
+    {
+      "name": "app.one-time-code.resend-lock-minutes",
+      "type": "java.lang.Integer",
+      "description": "Minutos de bloqueo de reenvios al superar el limite.",
+      "defaultValue": 5
     },
     {
       "name": "app.jwt.secret",
@@ -83,6 +102,12 @@
       "type": "java.lang.Integer",
       "description": "Longitud minima de la contraseña (registro, perfil y recuperacion).",
       "defaultValue": 8
+    },
+    {
+      "name": "app.password-policy.max-length",
+      "type": "java.lang.Integer",
+      "description": "Longitud maxima de la contraseña en bytes UTF-8 (limite de BCrypt).",
+      "defaultValue": 72
     },
     {
       "name": "app.username-policy.min-length",

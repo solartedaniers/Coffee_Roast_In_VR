@@ -5,11 +5,16 @@ import java.util.Locale;
 import java.util.Objects;
 
 import com.toastedvr.toastedvr.backend.config.MessageResolver;
+import com.toastedvr.toastedvr.backend.config.OneTimeCodeProperties;
+import com.toastedvr.toastedvr.backend.domain.OneTimeCodePurpose;
 import com.toastedvr.toastedvr.backend.domain.User;
+import com.toastedvr.toastedvr.backend.dto.CodeSentResponse;
+import com.toastedvr.toastedvr.backend.dto.EmailRequest;
 import com.toastedvr.toastedvr.backend.dto.AuthenticatedUserResponse;
 import com.toastedvr.toastedvr.backend.dto.LoginRequest;
 import com.toastedvr.toastedvr.backend.dto.LoginResponse;
 import com.toastedvr.toastedvr.backend.dto.LogoutResponse;
+import com.toastedvr.toastedvr.backend.dto.OneTimeCodePolicyResponse;
 import com.toastedvr.toastedvr.backend.dto.RefreshTokenRequest;
 import com.toastedvr.toastedvr.backend.dto.RefreshTokenResponse;
 import com.toastedvr.toastedvr.backend.dto.RegisterUserRequest;
@@ -26,7 +31,6 @@ import com.toastedvr.toastedvr.backend.repository.UserRepository;
 import com.toastedvr.toastedvr.backend.security.JwtService;
 import com.toastedvr.toastedvr.backend.security.UserPrincipal;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -35,7 +39,8 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final VerificationCodeGenerator verificationCodeGenerator;
+    private final OneTimeCodeService oneTimeCodeService;
+    private final OneTimeCodeProperties oneTimeCodeProperties;
     private final EmailService emailService;
     private final JwtService jwtService;
     private final TokenBlacklistService tokenBlacklistService;
@@ -43,24 +48,24 @@ public class AuthService {
     private final AuditService auditService;
     private final UnityAccessCodeService unityAccessCodeService;
     private final MessageResolver messages;
-    private final int codeExpirationMinutes;
 
     public AuthService(
         UserRepository userRepository,
         PasswordEncoder passwordEncoder,
-        VerificationCodeGenerator verificationCodeGenerator,
+        OneTimeCodeService oneTimeCodeService,
+        OneTimeCodeProperties oneTimeCodeProperties,
         EmailService emailService,
         JwtService jwtService,
         TokenBlacklistService tokenBlacklistService,
         RefreshTokenService refreshTokenService,
         AuditService auditService,
         UnityAccessCodeService unityAccessCodeService,
-        MessageResolver messages,
-        @Value("${app.verification.code-expiration-minutes:15}") int codeExpirationMinutes
+        MessageResolver messages
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-        this.verificationCodeGenerator = verificationCodeGenerator;
+        this.oneTimeCodeService = oneTimeCodeService;
+        this.oneTimeCodeProperties = oneTimeCodeProperties;
         this.emailService = emailService;
         this.jwtService = jwtService;
         this.tokenBlacklistService = tokenBlacklistService;
@@ -68,7 +73,6 @@ public class AuthService {
         this.auditService = auditService;
         this.unityAccessCodeService = unityAccessCodeService;
         this.messages = messages;
-        this.codeExpirationMinutes = codeExpirationMinutes;
     }
 
     @Transactional
@@ -85,49 +89,37 @@ public class AuthService {
             passwordEncoder.encode(request.password())
         );
 
-        String verificationCode = verificationCodeGenerator.generate();
-        user.updateVerificationCode(
-            verificationCode,
-            LocalDateTime.now().plusMinutes(codeExpirationMinutes)
-        );
-
         userRepository.save(user);
+        String verificationCode = oneTimeCodeService.issue(user, OneTimeCodePurpose.EMAIL_VERIFICATION);
         emailService.sendVerificationCode(user.getEmail(), user.getName(), verificationCode);
 
         return new RegisterUserResponse(
             messages.get("auth.register.codeSent"),
             user.getEmail(),
-            codeExpirationMinutes
+            oneTimeCodeProperties.getExpirationMinutes(),
+            OneTimeCodePolicyResponse.from(oneTimeCodeProperties)
         );
     }
 
-    @Transactional
+    // Sin rollback ante un código rechazado: el bloqueo de reenvíos debe quedar guardado.
+    @Transactional(dontRollbackOn = InvalidVerificationCodeException.class)
+    public CodeSentResponse resendVerificationCode(EmailRequest request) {
+        User user = findPendingUser(request.email());
+        String verificationCode = oneTimeCodeService.resend(user, OneTimeCodePurpose.EMAIL_VERIFICATION);
+        emailService.sendVerificationCode(user.getEmail(), user.getName(), verificationCode);
+
+        return new CodeSentResponse(
+            messages.get("auth.register.codeSent"),
+            user.getEmail(),
+            OneTimeCodePolicyResponse.from(oneTimeCodeProperties)
+        );
+    }
+
+    // Sin rollback ante un código rechazado: los intentos fallidos deben quedar guardados.
+    @Transactional(dontRollbackOn = InvalidVerificationCodeException.class)
     public UserResponse verifyEmail(VerifyEmailRequest request) {
-        String normalizedEmail = normalizeEmail(request.email());
-        User user = userRepository.findByEmailIgnoreCase(normalizedEmail)
-            .orElseThrow(() -> new ResourceNotFoundException(messages.get("auth.verification.pendingAccountNotFound")));
-
-        if (user.isEmailVerified()) {
-            throw new ConflictException(messages.get("auth.verification.alreadyVerified"));
-        }
-
-        if (user.getVerificationCodeExpiresAt() == null
-            || user.getVerificationCodeExpiresAt().isBefore(LocalDateTime.now())) {
-            String newCode = verificationCodeGenerator.generate();
-            user.updateVerificationCode(
-                newCode,
-                LocalDateTime.now().plusMinutes(codeExpirationMinutes)
-            );
-            userRepository.save(user);
-            emailService.sendVerificationCode(user.getEmail(), user.getName(), newCode);
-            throw new InvalidVerificationCodeException(
-                messages.get("auth.verification.codeExpiredNewSent")
-            );
-        }
-
-        if (!request.code().equals(user.getVerificationCode())) {
-            throw new InvalidVerificationCodeException(messages.get("auth.verification.invalidCode"));
-        }
+        User user = findPendingUser(request.email());
+        oneTimeCodeService.verify(user, OneTimeCodePurpose.EMAIL_VERIFICATION, request.code());
 
         user.markEmailAsVerified();
         userRepository.save(user);
@@ -235,6 +227,17 @@ public class AuthService {
         });
         auditService.logLogout(userId, username);
         return new LogoutResponse(messages.get("auth.logout.success"));
+    }
+
+    private User findPendingUser(String email) {
+        User user = userRepository.findByEmailIgnoreCase(normalizeEmail(email))
+            .orElseThrow(() -> new ResourceNotFoundException(messages.get("auth.verification.pendingAccountNotFound")));
+
+        if (user.isEmailVerified()) {
+            throw new ConflictException(messages.get("auth.verification.alreadyVerified"));
+        }
+
+        return user;
     }
 
     private void validateUniqueness(String email, String username) {

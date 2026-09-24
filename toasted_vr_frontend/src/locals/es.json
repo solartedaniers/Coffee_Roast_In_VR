@@ -40,8 +40,16 @@
         "forgotPasswordUnavailable": "La recuperación de contraseña aún no está disponible en esta versión."
       }
     },
+    "validation": {
+      "invalidEmail": "Debes ingresar un correo electrónico válido (por ejemplo, usuario@dominio.com)."
+    },
     "errors": {
-      "ACCOUNT_BLOCKED": "Fuiste bloqueado por el administrador."
+      "ACCOUNT_BLOCKED": "Fuiste bloqueado por el administrador.",
+      "INVALID_CODE": "El código ingresado no es correcto.",
+      "CODE_EXPIRED": "El código venció. Solicita uno nuevo.",
+      "CODE_ATTEMPTS_EXHAUSTED": "Agotaste los intentos para este código. Solicita uno nuevo.",
+      "CODE_STILL_ACTIVE": "Tu código actual sigue vigente. Podrás pedir otro cuando venza.",
+      "TOO_MANY_RESENDS": "Intenta más tarde."
     },
     "register": {
       "switchLabel": "Registrarse",
@@ -67,7 +75,9 @@
         "verify": "Verificar código",
         "verifying": "Validando código...",
         "createAnother": "Registrar otra cuenta",
-        "goToLogin": "Ir a iniciar sesión"
+        "goToLogin": "Ir a iniciar sesión",
+        "resend": "Reenviar código",
+        "resending": "Enviando código..."
       },
       "links": {
         "login": "¿Ya tienes cuenta? Inicia sesión"
@@ -81,7 +91,10 @@
         "title": "Verificación de correo",
         "subtitle": "Confirma el código enviado para habilitar tu cuenta.",
         "instructions": "Escribe el código de 6 dígitos que enviamos a",
-        "timerLabel": "El código vence en"
+        "timerLabel": "El código vence en",
+        "attemptsLeft": "Intentos restantes: {count}",
+        "resendLockLabel": "Podrás pedir un nuevo código en",
+        "codeResent": "Te enviamos un nuevo código a tu correo."
       },
       "success": {
         "badge": "Cuenta verificada",

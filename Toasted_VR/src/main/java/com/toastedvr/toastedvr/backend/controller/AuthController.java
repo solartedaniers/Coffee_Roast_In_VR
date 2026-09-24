@@ -1,5 +1,7 @@
 package com.toastedvr.toastedvr.backend.controller;
 
+import com.toastedvr.toastedvr.backend.dto.CodeSentResponse;
+import com.toastedvr.toastedvr.backend.dto.EmailRequest;
 import com.toastedvr.toastedvr.backend.dto.LoginRequest;
 import com.toastedvr.toastedvr.backend.dto.LoginResponse;
 import com.toastedvr.toastedvr.backend.dto.LogoutResponse;
@@ -35,6 +37,11 @@ public class AuthController {
     @ResponseStatus(HttpStatus.CREATED)
     public RegisterUserResponse registerUser(@Valid @RequestBody RegisterUserRequest request) {
         return authService.registerUser(request);
+    }
+
+    @PostMapping("/resend-verification-code")
+    public CodeSentResponse resendVerificationCode(@Valid @RequestBody EmailRequest request) {
+        return authService.resendVerificationCode(request);
     }
 
     @PostMapping("/verify-email")

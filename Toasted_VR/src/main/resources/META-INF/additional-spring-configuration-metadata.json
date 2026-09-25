@@ -137,6 +137,12 @@
       "description": "Limite superior del rango de Development Time Ratio optimo usado en la query de RAG."
     },
     {
+      "name": "app.roasting.history-page-size",
+      "type": "java.lang.Integer",
+      "description": "Sesiones por pagina en el historial del jugador.",
+      "defaultValue": 10
+    },
+    {
       "name": "app.roast-validation.charge-temperature-min",
       "type": "java.lang.Double",
       "description": "Temperatura de carga minima aceptada (C); es la del aire al cargar.",

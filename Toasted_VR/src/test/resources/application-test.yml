@@ -39,6 +39,8 @@ app:
     dns-check-enabled: false
   password-reset:
     token-expiration-minutes: 10
+  roasting:
+    history-page-size: 10
   roast-validation:
     charge-temperature-min: 0
     charge-temperature-max: 750

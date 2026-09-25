@@ -1,12 +1,24 @@
-import React from 'react';
+import React, { useState } from 'react';
+import SessionHistoryTab from '../progress/SessionHistoryTab';
+import SessionDetailView from '../progress/SessionDetailView';
 
 // ================================================================
 // RoastDataHistoryPanel
-// Responsabilidad única: la pantalla "Guardar Datos" del menú. Solo
-// presentación por ahora — no hay endpoint en el backend para listar
-// sesiones guardadas todavía, así que muestra un aviso en vez de
-// datos reales (ver Parte 3 del plan).
+// Responsabilidad única: la pantalla "Guardar Datos" del menú. Muestra el
+// historial real del jugador (RF016) y el detalle de una sesión. El
+// contenido se monta al abrir, así cada apertura trae los tuestes recién
+// guardados.
 // ================================================================
+function HistoryContent({ texts }) {
+  const [selectedSessionId, setSelectedSessionId] = useState(null);
+
+  return selectedSessionId == null ? (
+    <SessionHistoryTab texts={texts} onSelectSession={setSelectedSessionId} />
+  ) : (
+    <SessionDetailView texts={texts} sessionId={selectedSessionId} onBack={() => setSelectedSessionId(null)} />
+  );
+}
+
 export default function RoastDataHistoryPanel({ texts, isOpen, onClose }) {
   if (!isOpen) return null;
 
@@ -19,7 +31,7 @@ export default function RoastDataHistoryPanel({ texts, isOpen, onClose }) {
           </button>
         </div>
         <h2>{texts.title}</h2>
-        <p className="sim-hint-text">{texts.unavailable}</p>
+        <HistoryContent texts={texts} />
       </div>
     </div>
   );

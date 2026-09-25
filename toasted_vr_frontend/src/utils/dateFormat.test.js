@@ -1,4 +1,4 @@
-import { formatLocalDate } from './dateFormat';
+import { formatLocalDate, formatLocalDateTime } from './dateFormat';
 
 describe('formatLocalDate', () => {
   test('shows a UTC instant with the local calendar date of the browser', () => {
@@ -23,5 +23,20 @@ describe('formatLocalDate', () => {
     expect(formatLocalDate(null)).toBe('—');
     expect(formatLocalDate('')).toBe('—');
     expect(formatLocalDate('not-a-date')).toBe('—');
+  });
+});
+
+describe('formatLocalDateTime', () => {
+  test('shows a UTC instant with the local date and time of the browser', () => {
+    const utcValue = '2026-09-25T02:30:00Z';
+
+    expect(formatLocalDateTime(utcValue)).toBe(
+      new Date(utcValue).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })
+    );
+  });
+
+  test('shows a dash when there is no valid date', () => {
+    expect(formatLocalDateTime(undefined)).toBe('—');
+    expect(formatLocalDateTime('not-a-date')).toBe('—');
   });
 });

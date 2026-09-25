@@ -377,9 +377,67 @@
       "finalColumn": "Final (°C)"
     },
     "dataHistory": {
-      "title": "Guardar Datos",
+      "title": "Historial de tuestes",
       "close": "Cerrar",
-      "unavailable": "El historial de tuestes guardados todavía no está disponible en esta versión."
+      "loading": "Cargando historial...",
+      "loadError": "No se pudo cargar el historial.",
+      "empty": "Todavía no tienes tuestes guardados.",
+      "emptyFiltered": "No tienes tuestes con ese resultado.",
+      "noValue": "—",
+      "minutesUnit": "min",
+      "pageLabel": "Página {page} de {totalPages}",
+      "summary": {
+        "best": "Mejor puntaje",
+        "average": "Promedio",
+        "total": "Tuestes guardados"
+      },
+      "filter": {
+        "label": "Resultado",
+        "all": "Todos"
+      },
+      "columns": {
+        "date": "Fecha",
+        "level": "Nivel",
+        "result": "Resultado",
+        "score": "Puntaje",
+        "finalTemp": "Temp. final",
+        "duration": "Duración",
+        "dtr": "DTR"
+      },
+      "levels": {
+        "BEGINNER": "Principiante",
+        "INTERMEDIATE": "Intermedio",
+        "ADVANCED": "Avanzado"
+      },
+      "results": {
+        "PERFECT": "Perfecto",
+        "RAW": "Crudo",
+        "BURNED": "Quemado",
+        "BAKED": "Horneado"
+      },
+      "buttons": {
+        "previous": "Anterior",
+        "next": "Siguiente",
+        "view": "Ver detalle",
+        "back": "Volver al historial",
+        "feedback": "Pedir retroalimentación de IA"
+      },
+      "detail": {
+        "title": "Detalle del tueste",
+        "loading": "Cargando detalle...",
+        "chargeTemp": "Temperatura de carga",
+        "targetTemp": "Temperatura objetivo",
+        "peakTemp": "Temperatura máxima",
+        "firstCrack": "First crack alcanzado",
+        "devTime": "Tiempo de desarrollo",
+        "yes": "Sí",
+        "no": "No"
+      },
+      "feedback": {
+        "title": "Retroalimentación de IA",
+        "loading": "Generando retroalimentación...",
+        "unavailable": "La retroalimentación de IA no está disponible en este momento."
+      }
     },
     "help": {
       "title": "Ayuda",

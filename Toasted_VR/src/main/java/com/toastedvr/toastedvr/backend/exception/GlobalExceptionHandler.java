@@ -17,6 +17,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -69,6 +70,23 @@ public class GlobalExceptionHandler {
             request.getRequestURI(),
             exception.getMostSpecificCause().getClass().getSimpleName()
         );
+        return buildResponse(
+            HttpStatus.BAD_REQUEST,
+            ErrorCode.VALIDATION_ERROR,
+            messages.get("error.validation.invalidRequest"),
+            null,
+            request
+        );
+    }
+
+    // Parámetro de la URL con un valor que no corresponde a su tipo (por
+    // ejemplo, ?result=EXCELENTE o /sessions/abc).
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiErrorResponse> handleTypeMismatch(
+        MethodArgumentTypeMismatchException exception,
+        HttpServletRequest request
+    ) {
+        LOGGER.warn("Invalid request parameter path={} parameter={}", request.getRequestURI(), exception.getName());
         return buildResponse(
             HttpStatus.BAD_REQUEST,
             ErrorCode.VALIDATION_ERROR,

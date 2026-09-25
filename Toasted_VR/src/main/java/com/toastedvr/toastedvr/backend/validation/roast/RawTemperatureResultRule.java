@@ -32,7 +32,7 @@ public class RawTemperatureResultRule implements RoastSessionRule {
         }
         return Optional.of(new RoastSessionViolation(RULE, messages.get(
             "roasting.session.rejected.belowRawCeiling",
-            request.result(),
+            RoastResultLabel.of(request.result(), messages),
             request.finalTemperature(),
             properties.getRawTemperatureCeiling()
         )));

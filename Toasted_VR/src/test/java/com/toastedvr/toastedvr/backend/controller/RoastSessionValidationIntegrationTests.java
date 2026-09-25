@@ -147,7 +147,7 @@ class RoastSessionValidationIntegrationTests {
         postSession(payload)
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.message").value(
-                "No se guardó la sesión: el puntaje 90 no es posible para el resultado BURNED (debe estar entre 5 y 50)."
+                "No se guardó la sesión: el puntaje 90 no es posible para el resultado Quemado (debe estar entre 5 y 50)."
             ));
     }
 

@@ -51,6 +51,8 @@ class RoastSessionValidatorTests {
         assertThat(exception.getCode()).isEqualTo(ErrorCode.ROAST_SESSION_REJECTED);
         assertThat(exception.getDetails()).containsEntry("rule", expectedRule);
         assertThat(exception.getMessage()).startsWith("No se guardó la sesión:");
+        // El jugador nunca ve los nombres internos del resultado.
+        assertThat(exception.getMessage()).doesNotContain("RAW", "PERFECT", "BURNED", "BAKED");
         verify(auditService).logRoastSessionRejected(eq(USER_ID), eq(expectedRule), eq(exception.getMessage()));
     }
 
@@ -76,6 +78,42 @@ class RoastSessionValidatorTests {
 
         assertThat(exception.getMessage())
             .isEqualTo("No se guardó la sesión: la temperatura de carga (900 °C) debe estar entre 0 y 750 °C.");
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("coherenceMessages")
+    void shouldNameTheResultInSpanish(String description, Consumer<Session> change, String expectedMessage) {
+        Session session = Session.valid();
+        change.accept(session);
+
+        RoastSessionRejectedException exception = catchThrowableOfType(
+            RoastSessionRejectedException.class,
+            () -> validator.validate(USER_ID, session.toRequest())
+        );
+
+        assertThat(exception.getMessage()).isEqualTo(expectedMessage);
+    }
+
+    static Stream<Arguments> coherenceMessages() {
+        return Stream.of(
+            Arguments.of("sin primer crack", (Consumer<Session>) s -> {
+                s.firstCrackReached = false;
+                s.result = RoastingResult.BAKED;
+                s.qualityScore = 40;
+            }, "No se guardó la sesión: sin primer crack el resultado debe ser Crudo, no Horneado."),
+            Arguments.of("bajo el techo de crudo", (Consumer<Session>) s -> s.finalTemperature = 170.0,
+                "No se guardó la sesión: el resultado Perfecto no es posible con una temperatura final de 170 °C (menor que 186 °C)."),
+            Arguments.of("sobre el techo de quemado", (Consumer<Session>) s -> {
+                s.finalTemperature = 219.0;
+                s.peakTemperature = 220.0;
+                s.result = RoastingResult.BAKED;
+                s.qualityScore = 30;
+            }, "No se guardó la sesión: el resultado Horneado no es posible con una temperatura final de 219 °C (mayor que 217 °C)."),
+            Arguments.of("puntaje fuera de rango", (Consumer<Session>) s -> {
+                s.result = RoastingResult.BURNED;
+                s.qualityScore = 90;
+            }, "No se guardó la sesión: el puntaje 90 no es posible para el resultado Quemado (debe estar entre 5 y 50).")
+        );
     }
 
     @Test

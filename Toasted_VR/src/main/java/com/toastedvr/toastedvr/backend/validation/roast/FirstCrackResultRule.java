@@ -28,7 +28,8 @@ public class FirstCrackResultRule implements RoastSessionRule {
         }
         return Optional.of(new RoastSessionViolation(RULE, messages.get(
             "roasting.session.rejected.withoutFirstCrack",
-            request.result()
+            RoastResultLabel.of(RoastingResult.RAW, messages),
+            RoastResultLabel.of(request.result(), messages)
         )));
     }
 }

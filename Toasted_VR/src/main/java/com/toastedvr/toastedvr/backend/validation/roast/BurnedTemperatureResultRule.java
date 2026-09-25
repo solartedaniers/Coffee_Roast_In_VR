@@ -35,7 +35,7 @@ public class BurnedTemperatureResultRule implements RoastSessionRule {
         }
         return Optional.of(new RoastSessionViolation(RULE, messages.get(
             "roasting.session.rejected.aboveBurnedCeiling",
-            result,
+            RoastResultLabel.of(result, messages),
             request.finalTemperature(),
             properties.getBurnedTemperatureCeiling()
         )));

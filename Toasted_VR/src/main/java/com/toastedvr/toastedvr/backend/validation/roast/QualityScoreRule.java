@@ -36,7 +36,7 @@ public class QualityScoreRule implements RoastSessionRule {
         return Optional.of(new RoastSessionViolation(RULE, messages.get(
             "roasting.session.rejected.qualityScore",
             score,
-            request.result(),
+            RoastResultLabel.of(request.result(), messages),
             min,
             max
         )));

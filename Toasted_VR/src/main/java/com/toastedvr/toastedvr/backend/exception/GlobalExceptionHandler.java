@@ -7,9 +7,12 @@ import java.util.Map;
 import com.toastedvr.toastedvr.backend.config.MessageResolver;
 import com.toastedvr.toastedvr.backend.dto.ApiErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -17,6 +20,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     private final MessageResolver messages;
 
@@ -34,6 +39,8 @@ public class GlobalExceptionHandler {
         exception.getBindingResult()
             .getFieldErrors()
             .forEach(fieldError -> errorsByField.putIfAbsent(fieldError.getField(), fieldError.getDefaultMessage()));
+        // Solo los nombres de campo: los valores pueden traer contraseñas.
+        LOGGER.warn("Invalid request path={} fields={}", request.getRequestURI(), errorsByField.keySet());
 
         String message = errorsByField.values()
             .stream()
@@ -45,6 +52,28 @@ public class GlobalExceptionHandler {
             ErrorCode.VALIDATION_ERROR,
             message,
             errorsByField.isEmpty() ? null : FieldErrors.of(errorsByField),
+            request
+        );
+    }
+
+    // JSON mal formado o con un valor que no corresponde al tipo (por ejemplo,
+    // un resultado que no existe en el enum). No se audita: es un error del
+    // cliente, no un intento de saltarse una regla de negocio.
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiErrorResponse> handleUnreadableMessage(
+        HttpMessageNotReadableException exception,
+        HttpServletRequest request
+    ) {
+        LOGGER.warn(
+            "Unreadable request body path={} cause={}",
+            request.getRequestURI(),
+            exception.getMostSpecificCause().getClass().getSimpleName()
+        );
+        return buildResponse(
+            HttpStatus.BAD_REQUEST,
+            ErrorCode.VALIDATION_ERROR,
+            messages.get("error.validation.invalidRequest"),
+            null,
             request
         );
     }
@@ -71,7 +100,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({
         InvalidVerificationCodeException.class,
         EmailDeliveryException.class,
-        InvalidRequestException.class
+        InvalidRequestException.class,
+        RoastSessionRejectedException.class
     })
     public ResponseEntity<ApiErrorResponse> handleBadRequest(ApiException exception, HttpServletRequest request) {
         return buildResponse(HttpStatus.BAD_REQUEST, exception, request);

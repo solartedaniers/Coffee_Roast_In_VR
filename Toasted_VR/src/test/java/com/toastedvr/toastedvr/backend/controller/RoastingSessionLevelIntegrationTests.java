@@ -79,7 +79,7 @@ class RoastingSessionLevelIntegrationTests {
         player.markEmailAsVerified();
         player.assignRole(Role.PLAYER);
         player.updateKnowledgeLevel(KnowledgeLevel.INTERMEDIATE);
-        player = userRepository.save(player);
+        player = userRepository.save(Objects.requireNonNull(player));
         when(ollamaFeedbackService.generateFeedback(any(), any())).thenReturn("ok");
     }
 

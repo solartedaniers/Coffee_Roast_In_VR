@@ -1,6 +1,7 @@
 package com.toastedvr.toastedvr.backend.config;
 
 import java.util.Locale;
+import java.util.Objects;
 
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
@@ -19,6 +20,6 @@ public class MessageResolver {
     }
 
     public String get(String key, Object... args) {
-        return messageSource.getMessage(key, args, LOCALE);
+        return messageSource.getMessage(Objects.requireNonNull(key), args, LOCALE);
     }
 }

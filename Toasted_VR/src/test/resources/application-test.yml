@@ -32,6 +32,25 @@ app:
     max-attempts: 5
     max-resends: 3
     resend-lock-minutes: 5
+  # Los tests usan dominios .test, que no existen en el DNS.
+  email-domain:
+    known-providers: gmail.com,hotmail.com,outlook.com,yahoo.com,icloud.com,hotmail.es,outlook.es,yahoo.es
+    max-typo-distance: 1
+    dns-check-enabled: false
+  password-reset:
+    token-expiration-minutes: 10
+  roast-validation:
+    charge-temperature-min: 0
+    charge-temperature-max: 750
+    target-temperature-min: 150
+    target-temperature-max: 230
+    final-temperature-max: 250
+    raw-temperature-ceiling: 186
+    burned-temperature-ceiling: 217
+    defect-score-min: 5
+    defect-score-max: 50
+    perfect-score-min: 0
+    perfect-score-max: 100
   password-policy:
     min-length: 8
     max-length: 72

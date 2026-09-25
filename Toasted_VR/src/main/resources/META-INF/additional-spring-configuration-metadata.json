@@ -135,6 +135,102 @@
       "name": "rag.query.dtr-optimal-max",
       "type": "java.lang.Double",
       "description": "Limite superior del rango de Development Time Ratio optimo usado en la query de RAG."
+    },
+    {
+      "name": "app.roast-validation.charge-temperature-min",
+      "type": "java.lang.Double",
+      "description": "Temperatura de carga minima aceptada (C); es la del aire al cargar.",
+      "defaultValue": 0
+    },
+    {
+      "name": "app.roast-validation.charge-temperature-max",
+      "type": "java.lang.Double",
+      "description": "Temperatura de carga maxima aceptada (C); igual a MAX_AIR_TEMP_C del simulador.",
+      "defaultValue": 750
+    },
+    {
+      "name": "app.roast-validation.target-temperature-min",
+      "type": "java.lang.Double",
+      "description": "Temperatura objetivo minima aceptada (C).",
+      "defaultValue": 150
+    },
+    {
+      "name": "app.roast-validation.target-temperature-max",
+      "type": "java.lang.Double",
+      "description": "Temperatura objetivo maxima aceptada (C).",
+      "defaultValue": 230
+    },
+    {
+      "name": "app.roast-validation.final-temperature-max",
+      "type": "java.lang.Double",
+      "description": "Temperatura final maxima aceptada (C); igual a MAX_SAFE_TEMP_C del simulador.",
+      "defaultValue": 250
+    },
+    {
+      "name": "app.roast-validation.raw-temperature-ceiling",
+      "type": "java.lang.Double",
+      "description": "Bajo esta temperatura final el resultado solo puede ser RAW.",
+      "defaultValue": 186
+    },
+    {
+      "name": "app.roast-validation.burned-temperature-ceiling",
+      "type": "java.lang.Double",
+      "description": "Sobre esta temperatura final el resultado solo puede ser RAW o BURNED.",
+      "defaultValue": 217
+    },
+    {
+      "name": "app.roast-validation.defect-score-min",
+      "type": "java.lang.Integer",
+      "description": "Puntaje minimo de un resultado con defecto (RAW, BURNED, BAKED).",
+      "defaultValue": 5
+    },
+    {
+      "name": "app.roast-validation.defect-score-max",
+      "type": "java.lang.Integer",
+      "description": "Puntaje maximo de un resultado con defecto (RAW, BURNED, BAKED).",
+      "defaultValue": 50
+    },
+    {
+      "name": "app.roast-validation.perfect-score-min",
+      "type": "java.lang.Integer",
+      "description": "Puntaje minimo de un resultado PERFECT.",
+      "defaultValue": 0
+    },
+    {
+      "name": "app.roast-validation.perfect-score-max",
+      "type": "java.lang.Integer",
+      "description": "Puntaje maximo de un resultado PERFECT.",
+      "defaultValue": 100
+    },
+    {
+      "name": "app.email-domain.known-providers",
+      "type": "java.util.List<java.lang.String>",
+      "description": "Proveedores de correo conocidos; un dominio a un error de escritura de uno de ellos se rechaza en el registro.",
+      "defaultValue": "gmail.com,hotmail.com,outlook.com,yahoo.com,icloud.com,hotmail.es,outlook.es,yahoo.es"
+    },
+    {
+      "name": "app.email-domain.max-typo-distance",
+      "type": "java.lang.Integer",
+      "description": "Errores de escritura (Damerau-Levenshtein) para considerar un dominio como typo de un proveedor conocido.",
+      "defaultValue": 1
+    },
+    {
+      "name": "app.email-domain.dns-check-enabled",
+      "type": "java.lang.Boolean",
+      "description": "Consulta el DNS (MX/A/AAAA) para rechazar dominios que no existen en el registro.",
+      "defaultValue": true
+    },
+    {
+      "name": "app.email-domain.dns-timeout-millis",
+      "type": "java.lang.Integer",
+      "description": "Tiempo maximo de la consulta DNS; si vence, el correo se acepta.",
+      "defaultValue": 2000
+    },
+    {
+      "name": "app.password-reset.token-expiration-minutes",
+      "type": "java.lang.Integer",
+      "description": "Minutos que dura el permiso para cambiar la contrasena despues de verificar el codigo.",
+      "defaultValue": 10
     }
   ]
 }

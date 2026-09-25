@@ -3,13 +3,14 @@ import App from './App';
 import esTexts from './locals/es.json';
 import { ACCOUNT_BLOCKED_EVENT, SESSION_REVOKED_EVENT } from './services/apiClient';
 import { readSession, saveSession } from './services/sessionService';
-import { confirmPasswordReset, loginUser, requestPasswordReset } from './services/authService';
+import { confirmPasswordReset, loginUser, requestPasswordReset, verifyPasswordResetCode } from './services/authService';
 
 jest.mock('./services/authService', () => ({
   ...jest.requireActual('./services/authService'),
   loginUser: jest.fn(),
   requestPasswordReset: jest.fn(),
   confirmPasswordReset: jest.fn(),
+  verifyPasswordResetCode: jest.fn(),
 }));
 
 afterEach(() => {
@@ -76,12 +77,14 @@ test('takes an unverified user from the login to the verification screen ready t
   expect(screen.getByRole('button', { name: esTexts.auth.register.buttons.resend })).toBeEnabled();
 });
 
+// Correo -> código (el servidor lo valida) -> nueva contraseña -> login.
 test('recovers the password from the login and returns to the login', async () => {
   const resetTexts = esTexts.auth.passwordReset;
   requestPasswordReset.mockResolvedValue({
     email: 'ana@gmail.com',
     codePolicy: { expiresInSeconds: 60, maxAttempts: 5, maxResends: 3, resendLockMinutes: 5 },
   });
+  verifyPasswordResetCode.mockResolvedValue({ resetToken: 'reset-token', expiresInSeconds: 600 });
   confirmPasswordReset.mockResolvedValue({ message: 'ok' });
   render(<App />);
   fireEvent.click(screen.getAllByRole('button', { name: esTexts.auth.entry.buttons.login })[0]);
@@ -92,12 +95,17 @@ test('recovers the password from the login and returns to the login', async () =
   fireEvent.change(screen.getByPlaceholderText(resetTexts.placeholders.email), { target: { value: 'ana@gmail.com' } });
   fireEvent.click(screen.getByRole('button', { name: resetTexts.buttons.sendCode }));
 
-  expect(await screen.findByRole('heading', { name: resetTexts.resetTitle })).toBeInTheDocument();
+  expect(await screen.findByRole('heading', { name: resetTexts.codeTitle })).toBeInTheDocument();
   expect(screen.getByText('ana@gmail.com')).toBeInTheDocument();
+  expect(screen.queryByPlaceholderText(resetTexts.placeholders.newPassword)).not.toBeInTheDocument();
 
   '123456'.split('').forEach((digit, index) => {
     fireEvent.change(screen.getByLabelText(`Dígito ${index + 1} del código`), { target: { value: digit } });
   });
+  fireEvent.click(screen.getByRole('button', { name: resetTexts.buttons.verifyCode }));
+
+  expect(await screen.findByRole('heading', { name: resetTexts.resetTitle })).toBeInTheDocument();
+  expect(verifyPasswordResetCode).toHaveBeenCalledWith({ email: 'ana@gmail.com', code: '123456' });
   fireEvent.change(screen.getByPlaceholderText(resetTexts.placeholders.newPassword), { target: { value: 'NewPassword9' } });
   fireEvent.change(screen.getByPlaceholderText(resetTexts.placeholders.confirmPassword), {
     target: { value: 'NewPassword9' },

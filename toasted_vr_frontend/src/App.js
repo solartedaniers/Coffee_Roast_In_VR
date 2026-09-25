@@ -33,6 +33,7 @@ function App() {
   const [loginNotice, setLoginNotice] = useState('');
   const [passwordReset, setPasswordReset] = useState(null);
   const [isPasswordResetDone, setIsPasswordResetDone] = useState(false);
+  const [isResetCodeVerified, setIsResetCodeVerified] = useState(false);
   const passwordResetTexts = esTexts.auth.passwordReset;
 
   const simulationTexts = esTexts.simulation;
@@ -60,6 +61,7 @@ function App() {
     setLoginNotice('');
     setPasswordReset(null);
     setIsPasswordResetDone(false);
+    setIsResetCodeVerified(false);
 
     if (nextView !== authViews.register) {
       setPendingRegistration(null);
@@ -200,14 +202,23 @@ function App() {
   const isPasswordResetView = authView === authViews.forgotPassword;
   const passwordResetTitle = isPasswordResetDone
     ? passwordResetTexts.success.title
-    : passwordReset
+    : isResetCodeVerified
       ? passwordResetTexts.resetTitle
-      : passwordResetTexts.title;
+      : passwordReset
+        ? passwordResetTexts.codeTitle
+        : passwordResetTexts.title;
   const passwordResetSubtitle = isPasswordResetDone
     ? passwordResetTexts.success.subtitle
-    : passwordReset
+    : isResetCodeVerified
       ? passwordResetTexts.resetSubtitle
-      : passwordResetTexts.subtitle;
+      : passwordReset
+        ? passwordResetTexts.codeSubtitle
+        : passwordResetTexts.subtitle;
+
+  const handleRestartPasswordReset = () => {
+    setPasswordReset(null);
+    setIsResetCodeVerified(false);
+  };
 
   const currentTitle = isPasswordResetView
     ? passwordResetTitle
@@ -341,6 +352,8 @@ function App() {
                   codePolicy={passwordReset.codePolicy}
                   texts={passwordResetTexts}
                   errorTexts={esTexts.auth.errors}
+                  onCodeVerified={() => setIsResetCodeVerified(true)}
+                  onRestart={handleRestartPasswordReset}
                   onResetSuccess={() => setIsPasswordResetDone(true)}
                 />
               )}

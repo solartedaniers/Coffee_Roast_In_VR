@@ -137,7 +137,7 @@ class DateSerializationIntegrationTests {
     }
 
     private ResultActions adminGet(String path) throws Exception {
-        return mockMvc.perform(get(path).header("Authorization", "Bearer " + tokenFor(admin)));
+        return mockMvc.perform(get(Objects.requireNonNull(path)).header("Authorization", "Bearer " + tokenFor(admin)));
     }
 
     private String tokenFor(User user) {

@@ -36,6 +36,15 @@ export const requestPasswordReset = async (payload) => {
   }
 };
 
+export const verifyPasswordResetCode = async (payload) => {
+  try {
+    const response = await apiClient.post('/auth/password-reset/verify-code', payload);
+    return response.data;
+  } catch (error) {
+    throw toApiError(error);
+  }
+};
+
 export const confirmPasswordReset = async (payload) => {
   try {
     const response = await apiClient.post('/auth/password-reset/confirm', payload);

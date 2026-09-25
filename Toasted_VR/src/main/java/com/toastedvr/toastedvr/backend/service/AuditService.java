@@ -68,4 +68,14 @@ public class AuditService {
             username
         );
     }
+
+    public void logRoastSessionRejected(Long userId, String rule, String detail) {
+        AUDIT_LOGGER.warn(
+            "event=ROAST_SESSION_REJECTED timestamp={} userId={} rule={} detail={}",
+            Instant.now(),
+            userId,
+            rule,
+            detail
+        );
+    }
 }

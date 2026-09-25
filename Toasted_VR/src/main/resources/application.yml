@@ -102,3 +102,27 @@
       max-attempts: ${ONE_TIME_CODE_MAX_ATTEMPTS:5}
       max-resends: ${ONE_TIME_CODE_MAX_RESENDS:3}
       resend-lock-minutes: ${ONE_TIME_CODE_RESEND_LOCK_MINUTES:5}
+    # Dominio del correo al registrarse. known-providers debe coincidir con
+    # validation.js del frontend.
+    email-domain:
+      known-providers: ${EMAIL_KNOWN_PROVIDERS:gmail.com,hotmail.com,outlook.com,yahoo.com,icloud.com,hotmail.es,outlook.es,yahoo.es}
+      max-typo-distance: ${EMAIL_MAX_TYPO_DISTANCE:1}
+      dns-check-enabled: ${EMAIL_DNS_CHECK_ENABLED:true}
+      dns-timeout-millis: ${EMAIL_DNS_TIMEOUT_MILLIS:2000}
+    # Permiso para cambiar la contraseña después de verificar el código.
+    password-reset:
+      token-expiration-minutes: ${PASSWORD_RESET_TOKEN_EXPIRATION_MINUTES:10}
+    # Validación de sesiones de tueste en el servidor (RF015). Deben coincidir
+    # con RoastConstants.js del frontend.
+    roast-validation:
+      charge-temperature-min: ${ROAST_CHARGE_TEMPERATURE_MIN:0}
+      charge-temperature-max: ${ROAST_CHARGE_TEMPERATURE_MAX:750}
+      target-temperature-min: ${ROAST_TARGET_TEMPERATURE_MIN:150}
+      target-temperature-max: ${ROAST_TARGET_TEMPERATURE_MAX:230}
+      final-temperature-max: ${ROAST_FINAL_TEMPERATURE_MAX:250}
+      raw-temperature-ceiling: ${ROAST_RAW_TEMPERATURE_CEILING:186}
+      burned-temperature-ceiling: ${ROAST_BURNED_TEMPERATURE_CEILING:217}
+      defect-score-min: ${ROAST_DEFECT_SCORE_MIN:5}
+      defect-score-max: ${ROAST_DEFECT_SCORE_MAX:50}
+      perfect-score-min: ${ROAST_PERFECT_SCORE_MIN:0}
+      perfect-score-max: ${ROAST_PERFECT_SCORE_MAX:100}

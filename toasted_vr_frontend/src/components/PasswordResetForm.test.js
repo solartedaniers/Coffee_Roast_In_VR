@@ -1,25 +1,35 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import PasswordResetForm from './PasswordResetForm';
 import esTexts from '../locals/es.json';
-import { confirmPasswordReset, requestPasswordReset } from '../services/authService';
+import { confirmPasswordReset, requestPasswordReset, verifyPasswordResetCode } from '../services/authService';
 
 jest.mock('../services/authService', () => ({
   confirmPasswordReset: jest.fn(),
   requestPasswordReset: jest.fn(),
+  verifyPasswordResetCode: jest.fn(),
 }));
 
 const texts = esTexts.auth.passwordReset;
 const codePolicy = { expiresInSeconds: 60, maxAttempts: 5, maxResends: 3, resendLockMinutes: 5 };
 
-const renderForm = (onResetSuccess = jest.fn()) => render(
-  <PasswordResetForm
-    email="ana@gmail.com"
-    codePolicy={codePolicy}
-    texts={texts}
-    errorTexts={esTexts.auth.errors}
-    onResetSuccess={onResetSuccess}
-  />
-);
+const renderForm = (handlers = {}) => {
+  const props = {
+    onCodeVerified: jest.fn(),
+    onRestart: jest.fn(),
+    onResetSuccess: jest.fn(),
+    ...handlers,
+  };
+  render(
+    <PasswordResetForm
+      email="ana@gmail.com"
+      codePolicy={codePolicy}
+      texts={texts}
+      errorTexts={esTexts.auth.errors}
+      {...props}
+    />
+  );
+  return props;
+};
 
 const advanceSeconds = (seconds) => {
   for (let second = 0; second < seconds; second++) {
@@ -42,9 +52,20 @@ const typePasswords = (newPassword, confirmPassword) => {
   });
 };
 
-const submit = () => fireEvent.click(screen.getByRole('button', { name: texts.buttons.reset }));
+const verifyButton = () => screen.getByRole('button', { name: texts.buttons.verifyCode });
+const submitPasswords = () => fireEvent.click(screen.getByRole('button', { name: texts.buttons.reset }));
 const resendButton = () => screen.queryByRole('button', { name: texts.buttons.resend });
-const apiError = (code, details = null) => Object.assign(new Error('mensaje del backend'), { code, details });
+const newPasswordField = () => screen.queryByPlaceholderText(texts.placeholders.newPassword);
+const apiError = (code, details = null, message = 'mensaje del backend') =>
+  Object.assign(new Error(message), { code, details });
+
+// Deja el formulario en el paso de la nueva contraseña.
+const passCodeStep = async () => {
+  verifyPasswordResetCode.mockResolvedValue({ resetToken: 'reset-token', expiresInSeconds: 600 });
+  typeCode('123456');
+  fireEvent.click(verifyButton());
+  await screen.findByPlaceholderText(texts.placeholders.newPassword);
+};
 
 describe('PasswordResetForm', () => {
   beforeEach(() => {
@@ -69,57 +90,98 @@ describe('PasswordResetForm', () => {
     expect(resendButton()).toBeEnabled();
   });
 
-  test('shows local errors under the code and the confirmation without calling the API', () => {
+  test('asks only for the code first, without password fields', () => {
     renderForm();
 
-    typePasswords('NewPassword9', 'Different9');
-    submit();
-
-    const alerts = screen.getAllByRole('alert').map((alert) => alert.textContent);
-    expect(alerts).toEqual([texts.messages.invalidCodeLength, texts.messages.passwordMismatch]);
-    expect(confirmPasswordReset).not.toHaveBeenCalled();
+    expect(verifyButton()).toBeInTheDocument();
+    expect(newPasswordField()).not.toBeInTheDocument();
+    expect(screen.queryByPlaceholderText(texts.placeholders.confirmPassword)).not.toBeInTheDocument();
   });
 
-  test('sends the code and passwords and reports success', async () => {
-    const onResetSuccess = jest.fn();
-    confirmPasswordReset.mockResolvedValue({ message: 'ok' });
-    renderForm(onResetSuccess);
+  test('shows an incomplete code under the code field without calling the API', () => {
+    renderForm();
+
+    typeCode('123');
+    fireEvent.click(verifyButton());
+
+    expect(screen.getByRole('alert')).toHaveTextContent(texts.messages.invalidCodeLength);
+    expect(verifyPasswordResetCode).not.toHaveBeenCalled();
+  });
+
+  test('keeps the user on the code step when the server rejects the code', async () => {
+    verifyPasswordResetCode.mockRejectedValue(apiError('INVALID_CODE'));
+    const { onCodeVerified } = renderForm();
 
     typeCode('123456');
+    fireEvent.click(verifyButton());
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(texts.messages.invalidCode);
+    expect(newPasswordField()).not.toBeInTheDocument();
+    expect(onCodeVerified).not.toHaveBeenCalled();
+  });
+
+  test('shows the new password step only after the server validates the code', async () => {
+    const { onCodeVerified } = renderForm();
+
+    await passCodeStep();
+
+    expect(verifyPasswordResetCode).toHaveBeenCalledWith({ email: 'ana@gmail.com', code: '123456' });
+    expect(onCodeVerified).toHaveBeenCalled();
+    expect(screen.getByText(texts.codeVerifiedBadge)).toBeInTheDocument();
+    expect(screen.queryByLabelText('Dígito 1 del código')).not.toBeInTheDocument();
+  });
+
+  test('sends the reset permission with the new password and reports success', async () => {
+    confirmPasswordReset.mockResolvedValue({ message: 'ok' });
+    const { onResetSuccess } = renderForm();
+    await passCodeStep();
+
     typePasswords('NewPassword9', 'NewPassword9');
-    submit();
+    submitPasswords();
 
     await waitFor(() => expect(onResetSuccess).toHaveBeenCalled());
     expect(confirmPasswordReset).toHaveBeenCalledWith({
-      email: 'ana@gmail.com',
-      code: '123456',
+      resetToken: 'reset-token',
       newPassword: 'NewPassword9',
       confirmPassword: 'NewPassword9',
     });
   });
 
-  test('shows a rejected code under the code field', async () => {
-    confirmPasswordReset.mockRejectedValue(apiError('INVALID_CODE'));
+  test('shows a password mismatch under the confirmation without calling the API', async () => {
     renderForm();
+    await passCodeStep();
 
-    typeCode('123456');
-    typePasswords('NewPassword9', 'NewPassword9');
-    submit();
+    typePasswords('NewPassword9', 'Different9');
+    submitPasswords();
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(texts.messages.invalidCode);
+    expect(screen.getByRole('alert')).toHaveTextContent(texts.messages.passwordMismatch);
+    expect(confirmPasswordReset).not.toHaveBeenCalled();
   });
 
-  test('shows backend password errors under the new password field', async () => {
-    confirmPasswordReset.mockRejectedValue(apiError('VALIDATION_ERROR', {
-      fieldErrors: { newPassword: 'La contraseña debe tener entre 8 y 72 caracteres.' },
-    }));
+  test('shows backend password errors, such as reusing the current one, under the new password field', async () => {
+    const sameAsCurrent = 'La nueva contraseña no puede ser igual a la actual.';
+    confirmPasswordReset.mockRejectedValue(apiError('VALIDATION_ERROR', { fieldErrors: { newPassword: sameAsCurrent } }));
     renderForm();
+    await passCodeStep();
 
-    typeCode('123456');
-    typePasswords('weakpass', 'weakpass');
-    submit();
+    typePasswords('Password123', 'Password123');
+    submitPasswords();
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('La contraseña debe tener entre 8 y 72 caracteres.');
+    expect(await screen.findByRole('alert')).toHaveTextContent(sameAsCurrent);
+  });
+
+  test('offers a new code when the reset permission expired', async () => {
+    const expired = 'El tiempo para cambiar la contraseña venció. Solicita un código nuevo.';
+    confirmPasswordReset.mockRejectedValue(apiError('CODE_EXPIRED', null, expired));
+    const { onRestart } = renderForm();
+    await passCodeStep();
+
+    typePasswords('NewPassword9', 'NewPassword9');
+    submitPasswords();
+
+    expect(await screen.findByText(expired)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: texts.buttons.requestNewCode }));
+    expect(onRestart).toHaveBeenCalled();
   });
 
   test('restarts the countdown after a resend', async () => {

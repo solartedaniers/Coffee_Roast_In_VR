@@ -25,11 +25,13 @@ import com.toastedvr.toastedvr.backend.exception.AccountBlockedException;
 import com.toastedvr.toastedvr.backend.exception.AuthenticationFailedException;
 import com.toastedvr.toastedvr.backend.exception.ConflictException;
 import com.toastedvr.toastedvr.backend.exception.EmailNotVerifiedException;
+import com.toastedvr.toastedvr.backend.exception.InvalidRequestException;
 import com.toastedvr.toastedvr.backend.exception.InvalidVerificationCodeException;
 import com.toastedvr.toastedvr.backend.exception.ResourceNotFoundException;
 import com.toastedvr.toastedvr.backend.repository.UserRepository;
 import com.toastedvr.toastedvr.backend.security.JwtService;
 import com.toastedvr.toastedvr.backend.security.UserPrincipal;
+import com.toastedvr.toastedvr.backend.validation.EmailDomainPolicy;
 import jakarta.transaction.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -47,6 +49,7 @@ public class AuthService {
     private final RefreshTokenService refreshTokenService;
     private final AuditService auditService;
     private final UnityAccessCodeService unityAccessCodeService;
+    private final EmailDomainPolicy emailDomainPolicy;
     private final MessageResolver messages;
 
     public AuthService(
@@ -60,6 +63,7 @@ public class AuthService {
         RefreshTokenService refreshTokenService,
         AuditService auditService,
         UnityAccessCodeService unityAccessCodeService,
+        EmailDomainPolicy emailDomainPolicy,
         MessageResolver messages
     ) {
         this.userRepository = userRepository;
@@ -72,6 +76,7 @@ public class AuthService {
         this.refreshTokenService = refreshTokenService;
         this.auditService = auditService;
         this.unityAccessCodeService = unityAccessCodeService;
+        this.emailDomainPolicy = emailDomainPolicy;
         this.messages = messages;
     }
 
@@ -80,6 +85,9 @@ public class AuthService {
         String normalizedEmail = normalizeEmail(request.email());
         String normalizedUsername = request.username().trim();
 
+        emailDomainPolicy.findProblem(normalizedEmail).ifPresent(message -> {
+            throw new InvalidRequestException(message, "email");
+        });
         validateUniqueness(normalizedEmail, normalizedUsername);
 
         User user = new User(

@@ -41,8 +41,10 @@
     "passwordReset": {
       "title": "Recuperar contraseña",
       "subtitle": "Te enviaremos un código a tu correo para crear una nueva contraseña.",
+      "codeTitle": "Verifica tu código",
+      "codeSubtitle": "Escribe el código de 6 dígitos que te enviamos al correo.",
       "resetTitle": "Crea una nueva contraseña",
-      "resetSubtitle": "Escribe el código que te enviamos y tu nueva contraseña.",
+      "resetSubtitle": "Tu código fue verificado. Escribe y confirma tu nueva contraseña segura.",
       "badge": "Recuperación por correo",
       "instructions": "Si el correo está registrado, enviamos un código de 6 dígitos a",
       "timerLabel": "El código vence en",
@@ -60,6 +62,9 @@
       "buttons": {
         "sendCode": "Enviar código",
         "sending": "Enviando código...",
+        "verifyCode": "Verificar código",
+        "verifying": "Verificando código...",
+        "requestNewCode": "Solicitar un código nuevo",
         "reset": "Cambiar contraseña",
         "resetting": "Cambiando contraseña...",
         "resend": "Reenviar código",
@@ -72,6 +77,7 @@
         "invalidCode": "El código no es válido o venció. Solicita uno nuevo.",
         "passwordMismatch": "Las contraseñas no coinciden."
       },
+      "codeVerifiedBadge": "Código verificado",
       "success": {
         "badge": "Contraseña actualizada",
         "title": "Todo listo",
@@ -80,7 +86,8 @@
       }
     },
     "validation": {
-      "invalidEmail": "Debes ingresar un correo electrónico válido (por ejemplo, usuario@dominio.com)."
+      "invalidEmail": "Debes ingresar un correo electrónico válido (por ejemplo, usuario@dominio.com).",
+      "emailDomainTypo": "Correo inexistente: el dominio «{domain}» no existe. ¿Quisiste decir {suggestion}?"
     },
     "errors": {
       "ACCOUNT_BLOCKED": "Fuiste bloqueado por el administrador.",
@@ -124,7 +131,8 @@
       },
       "messages": {
         "passwordMismatch": "Las contraseñas no coinciden.",
-        "invalidCodeLength": "Debes ingresar los 6 dígitos del código."
+        "invalidCodeLength": "Debes ingresar los 6 dígitos del código.",
+        "nameLettersOnly": "Este campo solo acepta letras."
       },
       "verification": {
         "badge": "Verificación por correo",

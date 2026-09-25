@@ -9,6 +9,7 @@ import com.toastedvr.toastedvr.backend.dto.SessionResultResponse;
 import com.toastedvr.toastedvr.backend.exception.ResourceNotFoundException;
 import com.toastedvr.toastedvr.backend.repository.RoastingSessionRepository;
 import com.toastedvr.toastedvr.backend.repository.UserRepository;
+import com.toastedvr.toastedvr.backend.validation.roast.RoastSessionValidator;
 import jakarta.transaction.Transactional;
 import java.util.Objects;
 import org.springframework.stereotype.Service;
@@ -19,21 +20,27 @@ public class RoastingSessionService {
     private final RoastingSessionRepository roastingSessionRepository;
     private final UserRepository userRepository;
     private final MessageResolver messages;
+    private final RoastSessionValidator roastSessionValidator;
 
     public RoastingSessionService(
         RoastingSessionRepository roastingSessionRepository,
         UserRepository userRepository,
-        MessageResolver messages
+        MessageResolver messages,
+        RoastSessionValidator roastSessionValidator
     ) {
         this.roastingSessionRepository = roastingSessionRepository;
         this.userRepository = userRepository;
         this.messages = messages;
+        this.roastSessionValidator = roastSessionValidator;
     }
 
     @Transactional
     public SessionResultResponse saveSession(Long userId, SaveSessionRequest request) {
         User user = userRepository.findById(Objects.requireNonNull(userId))
             .orElseThrow(() -> new ResourceNotFoundException(messages.get("user.notFound")));
+
+        // RF015: el puntaje lo calcula el cliente; si no es coherente no se guarda.
+        roastSessionValidator.validate(userId, request);
 
         RoastingSession session = new RoastingSession(
             user,

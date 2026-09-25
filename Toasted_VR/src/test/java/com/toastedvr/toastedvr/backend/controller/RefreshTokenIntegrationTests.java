@@ -76,8 +76,10 @@ class RefreshTokenIntegrationTests {
 
         assertThat(user.getRefreshTokenHash()).isNotEqualTo(refreshToken);
         assertThat(user.getRefreshTokenHash()).isEqualTo(tokenHasher.hash(refreshToken));
+        // Un segundo de margen arriba: la base redondea a microsegundos y en
+        // Windows el reloj puede dar el mismo instante al servicio y al test.
         assertThat(user.getRefreshTokenExpiresAt())
-            .isBetween(LocalDateTime.now().plusHours(23).plusMinutes(59), LocalDateTime.now().plusHours(24));
+            .isBetween(LocalDateTime.now().plusHours(23).plusMinutes(59), LocalDateTime.now().plusHours(24).plusSeconds(1));
     }
 
     @Test

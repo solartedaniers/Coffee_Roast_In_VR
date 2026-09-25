@@ -79,6 +79,74 @@ describe('RegisterForm', () => {
     ).not.toBeInTheDocument();
   });
 
+  test('warns immediately in red when the name gets a number or symbol, and clears it when fixed', () => {
+    renderRegisterForm();
+
+    fillForm({ name: 'Ana 2' });
+    expect(screen.getByRole('alert')).toHaveTextContent(texts.messages.nameLettersOnly);
+    expect(screen.getByRole('alert')).toHaveClass('field-error');
+    expect(screen.getByPlaceholderText(texts.placeholders.fullName)).toHaveAttribute('aria-invalid', 'true');
+
+    fillForm({ name: 'Ana Torres' });
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  test('warns immediately about a misspelled email domain while typing', () => {
+    renderRegisterForm();
+
+    fillForm({ email: 'ana@gail.com' });
+
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Correo inexistente: el dominio «gail.com» no existe. ¿Quisiste decir ana@gmail.com?'
+    );
+  });
+
+  test('does not flag an unfinished email until the user leaves the field', () => {
+    renderRegisterForm();
+
+    fillForm({ email: 'ana@gma' });
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+
+    fireEvent.blur(screen.getByPlaceholderText(texts.placeholders.email));
+    expect(screen.getByRole('alert')).toHaveTextContent(esTexts.auth.validation.invalidEmail);
+  });
+
+  test('does not register with a bad name or a misspelled domain', () => {
+    renderRegisterForm();
+    fillForm({ ...validValues, name: 'Ana_Torres', email: 'ana@hotmial.com' });
+
+    fireEvent.click(screen.getByRole('button', { name: texts.buttons.submit }));
+
+    expect(screen.getAllByRole('alert')).toHaveLength(2);
+    expect(registerUser).not.toHaveBeenCalled();
+  });
+
+  test('lets the username use letters, numbers and symbols', async () => {
+    registerUser.mockResolvedValue({ message: 'ok' });
+    renderRegisterForm();
+    fillForm({ ...validValues, username: 'Ana_2024#!' });
+
+    fireEvent.click(screen.getByRole('button', { name: texts.buttons.submit }));
+
+    expect(await screen.findByText('ok')).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(registerUser).toHaveBeenCalledWith(expect.objectContaining({ username: 'Ana_2024#!' }));
+  });
+
+  test('shows the server message when the email domain does not exist', async () => {
+    const notFound = 'Correo inexistente: el dominio «noexiste.com» no existe. Revisa tu correo.';
+    registerUser.mockRejectedValue(Object.assign(new Error(notFound), {
+      code: 'VALIDATION_ERROR',
+      details: { fieldErrors: { email: notFound } },
+    }));
+    renderRegisterForm();
+    fillForm({ ...validValues, email: 'ana@noexiste.com' });
+
+    fireEvent.click(screen.getByRole('button', { name: texts.buttons.submit }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(notFound);
+  });
+
   test('keeps errors without a field in the general box', async () => {
     registerUser.mockRejectedValue(Object.assign(new Error('No fue posible conectar con el servidor.'), { code: null }));
     renderRegisterForm();

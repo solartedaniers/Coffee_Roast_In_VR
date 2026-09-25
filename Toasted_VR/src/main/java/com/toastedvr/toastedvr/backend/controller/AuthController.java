@@ -3,7 +3,9 @@ package com.toastedvr.toastedvr.backend.controller;
 import com.toastedvr.toastedvr.backend.dto.CodeSentResponse;
 import com.toastedvr.toastedvr.backend.dto.EmailRequest;
 import com.toastedvr.toastedvr.backend.dto.LoginRequest;
+import com.toastedvr.toastedvr.backend.dto.PasswordResetCodeRequest;
 import com.toastedvr.toastedvr.backend.dto.PasswordResetConfirmRequest;
+import com.toastedvr.toastedvr.backend.dto.PasswordResetTokenResponse;
 import com.toastedvr.toastedvr.backend.dto.LoginResponse;
 import com.toastedvr.toastedvr.backend.dto.LogoutResponse;
 import com.toastedvr.toastedvr.backend.dto.MessageResponse;
@@ -58,6 +60,11 @@ public class AuthController {
     @PostMapping("/password-reset/request")
     public CodeSentResponse requestPasswordReset(@Valid @RequestBody EmailRequest request) {
         return passwordResetService.requestCode(request);
+    }
+
+    @PostMapping("/password-reset/verify-code")
+    public PasswordResetTokenResponse verifyPasswordResetCode(@Valid @RequestBody PasswordResetCodeRequest request) {
+        return passwordResetService.verifyCode(request);
     }
 
     @PostMapping("/password-reset/confirm")

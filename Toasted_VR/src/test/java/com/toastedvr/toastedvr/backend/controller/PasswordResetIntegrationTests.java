@@ -50,6 +50,7 @@ class PasswordResetIntegrationTests {
     private static final String NEW_PASSWORD = "NewPassword9";
     private static final String GENERIC_REQUEST_MESSAGE = "Si el correo está registrado, recibirás un código.";
     private static final String GENERIC_CODE_ERROR = "El código no es válido o venció. Solicita uno nuevo.";
+    private static final String RESET_EXPIRED = "El tiempo para cambiar la contraseña venció. Solicita un código nuevo.";
 
     @Autowired
     private MockMvc mockMvc;
@@ -125,7 +126,7 @@ class PasswordResetIntegrationTests {
         waitForNextSecond();
 
         requestCode(EMAIL);
-        confirm(lastSentCode(), NEW_PASSWORD, NEW_PASSWORD)
+        confirm(verifiedResetToken(), NEW_PASSWORD, NEW_PASSWORD)
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.message").value("Tu contraseña fue actualizada. Inicia sesión con la nueva contraseña."));
 
@@ -165,16 +166,17 @@ class PasswordResetIntegrationTests {
         String wrongCode = code.equals("111111") ? "222222" : "111111";
 
         for (int attempt = 0; attempt < 5; attempt++) {
-            confirm(wrongCode, NEW_PASSWORD, NEW_PASSWORD)
+            verifyCode(EMAIL, wrongCode)
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("INVALID_CODE"))
                 .andExpect(jsonPath("$.message").value(GENERIC_CODE_ERROR))
                 .andExpect(jsonPath("$.details").doesNotExist());
         }
 
-        confirm(code, NEW_PASSWORD, NEW_PASSWORD)
+        verifyCode(EMAIL, code)
             .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.message").value(GENERIC_CODE_ERROR));
+            .andExpect(jsonPath("$.message").value(GENERIC_CODE_ERROR))
+            .andExpect(jsonPath("$.resetToken").doesNotExist());
         login(OLD_PASSWORD).andExpect(status().isOk());
     }
 
@@ -184,8 +186,8 @@ class PasswordResetIntegrationTests {
         String code = lastSentCode();
         jdbcTemplate.update("UPDATE one_time_codes SET expires_at = ?", LocalDateTime.now().minusSeconds(1));
 
-        confirm(code, NEW_PASSWORD, NEW_PASSWORD).andExpect(jsonPath("$.message").value(GENERIC_CODE_ERROR));
-        confirmFor("nobody@toastedvr.test", "123456", NEW_PASSWORD, NEW_PASSWORD)
+        verifyCode(EMAIL, code).andExpect(jsonPath("$.message").value(GENERIC_CODE_ERROR));
+        verifyCode("nobody@toastedvr.test", "123456")
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.message").value(GENERIC_CODE_ERROR));
     }
@@ -193,19 +195,87 @@ class PasswordResetIntegrationTests {
     @Test
     void shouldReportPasswordProblemsUnderTheirFields() throws Exception {
         requestCode(EMAIL);
-        String code = lastSentCode();
+        verifyCode("a@gmailcom", lastSentCode())
+            .andExpect(jsonPath("$.details.fieldErrors.email").isNotEmpty());
+        String resetToken = verifiedResetToken();
 
-        confirm(code, "weakpass", "weakpass")
+        confirm(resetToken, "weakpass", "weakpass")
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.details.fieldErrors.newPassword")
                 .value("La contraseña debe tener entre 8 y 72 caracteres, una mayúscula, una minúscula y un número."));
-        confirm(code, NEW_PASSWORD, "OtherPassword9")
+        confirm(resetToken, NEW_PASSWORD, "OtherPassword9")
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.details.fieldErrors.confirmPassword").value("Las contraseñas no coinciden."));
-        confirmFor("a@gmailcom", code, NEW_PASSWORD, NEW_PASSWORD)
-            .andExpect(jsonPath("$.details.fieldErrors.email").isNotEmpty());
 
-        confirm(code, NEW_PASSWORD, NEW_PASSWORD).andExpect(status().isOk());
+        confirm(resetToken, NEW_PASSWORD, NEW_PASSWORD).andExpect(status().isOk());
+    }
+
+    @Test
+    void shouldAskOnlyForTheCodeFirstAndThenReturnAResetPermission() throws Exception {
+        requestCode(EMAIL);
+
+        verifyCode(EMAIL, lastSentCode())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.message").value("Código verificado. Crea tu nueva contraseña."))
+            .andExpect(jsonPath("$.resetToken").isNotEmpty())
+            .andExpect(jsonPath("$.expiresInSeconds").value(600));
+
+        // El código se consume al verificarlo y la contraseña aún no cambia.
+        assertThat(oneTimeCodeRepository.findAll()).isEmpty();
+        login(OLD_PASSWORD).andExpect(status().isOk());
+        verify(auditService, never()).logPasswordReset(anyLong());
+    }
+
+    @Test
+    void shouldRejectTheCurrentPasswordAsTheNewOne() throws Exception {
+        requestCode(EMAIL);
+        String resetToken = verifiedResetToken();
+
+        confirm(resetToken, OLD_PASSWORD, OLD_PASSWORD)
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.details.fieldErrors.newPassword")
+                .value("La nueva contraseña no puede ser igual a la actual."));
+
+        // El permiso sigue sirviendo para elegir otra contraseña.
+        confirm(resetToken, NEW_PASSWORD, NEW_PASSWORD).andExpect(status().isOk());
+    }
+
+    @Test
+    void shouldAcceptTheResetPermissionOnlyOnce() throws Exception {
+        requestCode(EMAIL);
+        String resetToken = verifiedResetToken();
+        confirm(resetToken, NEW_PASSWORD, NEW_PASSWORD).andExpect(status().isOk());
+
+        confirm(resetToken, "AnotherPassword7", "AnotherPassword7")
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("CODE_EXPIRED"))
+            .andExpect(jsonPath("$.message").value(RESET_EXPIRED));
+        login(NEW_PASSWORD).andExpect(status().isOk());
+    }
+
+    @Test
+    void shouldRejectForgedOrMissingResetPermissions() throws Exception {
+        confirm("not-a-token", NEW_PASSWORD, NEW_PASSWORD)
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("CODE_EXPIRED"));
+
+        // Un token de sesión válido no sirve como permiso de cambio.
+        String accessToken = jwtService.generateToken(new com.toastedvr.toastedvr.backend.security.UserPrincipal(findUser()));
+        confirm(accessToken, NEW_PASSWORD, NEW_PASSWORD)
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("CODE_EXPIRED"));
+
+        confirm("", NEW_PASSWORD, NEW_PASSWORD)
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.details.fieldErrors.resetToken").value(RESET_EXPIRED));
+        login(OLD_PASSWORD).andExpect(status().isOk());
+    }
+
+    @Test
+    void shouldNotAcceptTheResetPermissionAsASessionToken() throws Exception {
+        requestCode(EMAIL);
+
+        updateKnowledgeLevel(verifiedResetToken()).andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -236,18 +306,28 @@ class PasswordResetIntegrationTests {
         );
     }
 
-    private ResultActions confirm(String code, String newPassword, String confirmPassword) throws Exception {
-        return confirmFor(EMAIL, code, newPassword, confirmPassword);
+    private ResultActions verifyCode(String email, String code) throws Exception {
+        return mockMvc.perform(
+            post("/api/v1/auth/password-reset/verify-code")
+                .contentType(jsonMediaType())
+                .content(requireJson(Map.of("email", email, "code", code)))
+        );
     }
 
-    private ResultActions confirmFor(String email, String code, String newPassword, String confirmPassword)
-        throws Exception {
+    private String verifiedResetToken() throws Exception {
+        return verifyCode(EMAIL, lastSentCode())
+            .andExpect(status().isOk())
+            .andReturn().getResponse().getContentAsString()
+            .transform(this::readJson)
+            .get("resetToken").asText();
+    }
+
+    private ResultActions confirm(String resetToken, String newPassword, String confirmPassword) throws Exception {
         return mockMvc.perform(
             post("/api/v1/auth/password-reset/confirm")
                 .contentType(jsonMediaType())
                 .content(requireJson(Map.of(
-                    "email", email,
-                    "code", code,
+                    "resetToken", resetToken,
                     "newPassword", newPassword,
                     "confirmPassword", confirmPassword
                 )))

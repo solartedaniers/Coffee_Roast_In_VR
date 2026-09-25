@@ -63,3 +63,33 @@ test('RAW normal (nunca alcanza first crack) conserva el badge y texto previos',
   expect(screen.getByText('Café Crudo')).toBeInTheDocument();
   expect(screen.queryByText('Desarrollo interrumpido')).not.toBeInTheDocument();
 });
+
+// RF015: si el servidor rechaza la sesión, el jugador ve el motivo que envía.
+test('muestra el motivo cuando el servidor rechaza la sesión', () => {
+  const finishedSim = {
+    finalTemperature: 150,
+    maxConsecutiveBurnSeconds: 0,
+    burnedFlag: false,
+    firstCrackReached: false,
+    firstCrackTimeSeconds: null,
+    roastingElapsedSeconds: 300,
+    chargeTemperature: 195,
+    maillardStagnationSeconds: 0,
+    maillardStagnationFlag: false,
+  };
+  const roastResult = RoastQualityEvaluator.evaluate(finishedSim, 'INTERMEDIATE');
+  const serverMessage = 'No se guardó la sesión: la temperatura de carga (900 °C) debe estar entre 0 y 750 °C.';
+
+  render(
+    <RoastResultsPanel
+      {...baseProps}
+      savingState="error"
+      saveErrorDetail={serverMessage}
+      sim={finishedSim}
+      roastResult={roastResult}
+    />
+  );
+
+  expect(screen.getByText(`${esTexts.simulation.results.saveError} (${serverMessage})`)).toBeInTheDocument();
+  expect(screen.queryByText(esTexts.simulation.results.saved)).not.toBeInTheDocument();
+});

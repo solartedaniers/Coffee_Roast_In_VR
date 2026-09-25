@@ -2,20 +2,24 @@ import React, { useMemo, useState } from 'react';
 import FieldError from './FieldError';
 import PasswordField from './PasswordField';
 import VerificationCodeInput from './VerificationCodeInput';
-import { confirmPasswordReset, requestPasswordReset } from '../services/authService';
+import { confirmPasswordReset, requestPasswordReset, verifyPasswordResetCode } from '../services/authService';
 import { formatCountdown, useCountdown } from '../hooks/useCountdown';
 import { useFieldErrors } from '../hooks/useFieldErrors';
 import { getFieldErrors, hasFieldErrors, resolveErrorMessage } from '../utils/errorMessages';
 
 const emptyCode = ['', '', '', '', '', ''];
 
-// Segundo paso de la recuperación: código + nueva contraseña. El backend
-// aplica los límites de reenvío en silencio (para no delatar la cuenta), así
-// que aquí se reflejan con los valores de codePolicy para avisar al usuario.
-function PasswordResetForm({ email, codePolicy, texts, errorTexts, onResetSuccess }) {
+// Pasos 2 y 3 de la recuperación: primero solo el código; cuando el servidor
+// lo acepta entrega un permiso (resetToken) y recién ahí se piden la nueva
+// contraseña y su confirmación. El backend aplica los límites de reenvío en
+// silencio (para no delatar la cuenta), así que aquí se reflejan con los
+// valores de codePolicy para avisar al usuario.
+function PasswordResetForm({ email, codePolicy, texts, errorTexts, onCodeVerified, onRestart, onResetSuccess }) {
   const [codeDigits, setCodeDigits] = useState(emptyCode);
+  const [resetToken, setResetToken] = useState('');
   const [passwords, setPasswords] = useState({ newPassword: '', confirmPassword: '' });
   const [status, setStatus] = useState({ text: '', isError: false });
+  const [isResetExpired, setIsResetExpired] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [resendsUsed, setResendsUsed] = useState(0);
@@ -38,18 +42,11 @@ function PasswordResetForm({ email, codePolicy, texts, errorTexts, onResetSucces
     clearFieldError(name);
   };
 
-  const handleSubmit = async (event) => {
+  const handleVerifyCode = async (event) => {
     event.preventDefault();
 
-    const validationErrors = {};
     if (code.length !== 6) {
-      validationErrors.code = texts.messages.invalidCodeLength;
-    }
-    if (passwords.newPassword !== passwords.confirmPassword) {
-      validationErrors.confirmPassword = texts.messages.passwordMismatch;
-    }
-    if (hasFieldErrors(validationErrors)) {
-      setFieldErrors(validationErrors);
+      setFieldErrors({ code: texts.messages.invalidCodeLength });
       setStatus({ text: '', isError: false });
       return;
     }
@@ -59,14 +56,47 @@ function PasswordResetForm({ email, codePolicy, texts, errorTexts, onResetSucces
     clearAllFieldErrors();
 
     try {
-      await confirmPasswordReset({ email, code, ...passwords });
-      onResetSuccess();
+      const response = await verifyPasswordResetCode({ email, code });
+      setResetToken(response.resetToken);
+      onCodeVerified();
     } catch (error) {
       const apiFieldErrors = getFieldErrors(error);
       if (hasFieldErrors(apiFieldErrors)) {
         setFieldErrors(apiFieldErrors);
       } else if (error.code === 'INVALID_CODE') {
         setFieldErrors({ code: texts.messages.invalidCode });
+      } else {
+        setStatus({ text: resolveErrorMessage(error, errorTexts), isError: true });
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (event) => {
+    event.preventDefault();
+
+    if (passwords.newPassword !== passwords.confirmPassword) {
+      setFieldErrors({ confirmPassword: texts.messages.passwordMismatch });
+      setStatus({ text: '', isError: false });
+      return;
+    }
+
+    setIsLoading(true);
+    setStatus({ text: '', isError: false });
+    clearAllFieldErrors();
+
+    try {
+      await confirmPasswordReset({ resetToken, ...passwords });
+      onResetSuccess();
+    } catch (error) {
+      const apiFieldErrors = getFieldErrors(error);
+      if (hasFieldErrors(apiFieldErrors)) {
+        setFieldErrors(apiFieldErrors);
+      } else if (error.code === 'CODE_EXPIRED') {
+        // El permiso venció o ya se usó: hay que volver a pedir un código.
+        setIsResetExpired(true);
+        setStatus({ text: error.message, isError: true });
       } else {
         setStatus({ text: resolveErrorMessage(error, errorTexts), isError: true });
       }
@@ -100,6 +130,54 @@ function PasswordResetForm({ email, codePolicy, texts, errorTexts, onResetSucces
     }
   };
 
+  const statusMessage = status.text && (
+    <p className={`status-message ${status.isError ? 'error' : 'success'}`} aria-live="polite">
+      {status.text}
+    </p>
+  );
+
+  if (resetToken) {
+    return (
+      <section className="verification-panel">
+        <div className="verification-badge">{texts.codeVerifiedBadge}</div>
+
+        <form className="form-grid" onSubmit={handleResetPassword}>
+          <PasswordField
+            name="newPassword"
+            value={passwords.newPassword}
+            onChange={handlePasswordChange}
+            placeholder={texts.placeholders.newPassword}
+            label={texts.labels.newPassword}
+            error={fieldErrors.newPassword}
+          />
+
+          <PasswordField
+            name="confirmPassword"
+            value={passwords.confirmPassword}
+            onChange={handlePasswordChange}
+            placeholder={texts.placeholders.confirmPassword}
+            label={texts.labels.confirmPassword}
+            error={fieldErrors.confirmPassword}
+          />
+
+          {statusMessage}
+
+          <div className="action-row">
+            {isResetExpired ? (
+              <button className="primary-button" type="button" onClick={onRestart}>
+                {texts.buttons.requestNewCode}
+              </button>
+            ) : (
+              <button className="primary-button" type="submit" disabled={isLoading}>
+                {isLoading ? texts.buttons.resetting : texts.buttons.reset}
+              </button>
+            )}
+          </div>
+        </form>
+      </section>
+    );
+  }
+
   return (
     <section className="verification-panel">
       <div className="verification-badge">{texts.badge}</div>
@@ -116,39 +194,17 @@ function PasswordResetForm({ email, codePolicy, texts, errorTexts, onResetSucces
         </p>
       )}
 
-      <form className="form-grid" onSubmit={handleSubmit}>
+      <form className="form-grid" onSubmit={handleVerifyCode}>
         <div className="field-group">
           <VerificationCodeInput codeDigits={codeDigits} onChange={handleDigitChange} />
           <FieldError message={fieldErrors.code} />
         </div>
 
-        <PasswordField
-          name="newPassword"
-          value={passwords.newPassword}
-          onChange={handlePasswordChange}
-          placeholder={texts.placeholders.newPassword}
-          label={texts.labels.newPassword}
-          error={fieldErrors.newPassword}
-        />
-
-        <PasswordField
-          name="confirmPassword"
-          value={passwords.confirmPassword}
-          onChange={handlePasswordChange}
-          placeholder={texts.placeholders.confirmPassword}
-          label={texts.labels.confirmPassword}
-          error={fieldErrors.confirmPassword}
-        />
-
-        {status.text && (
-          <p className={`status-message ${status.isError ? 'error' : 'success'}`} aria-live="polite">
-            {status.text}
-          </p>
-        )}
+        {statusMessage}
 
         <div className="action-row">
           <button className="primary-button" type="submit" disabled={isLoading}>
-            {isLoading ? texts.buttons.resetting : texts.buttons.reset}
+            {isLoading ? texts.buttons.verifying : texts.buttons.verifyCode}
           </button>
           {secondsLeft === 0 && (
             <button

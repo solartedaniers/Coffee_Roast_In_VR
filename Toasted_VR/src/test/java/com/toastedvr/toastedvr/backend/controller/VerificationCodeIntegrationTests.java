@@ -199,7 +199,7 @@ class VerificationCodeIntegrationTests {
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.code").value("TOO_MANY_RESENDS"))
             .andExpect(jsonPath("$.message").value("Intenta más tarde."))
-            .andExpect(jsonPath("$.details.secondsRemaining").value(greaterThan(290)));
+            .andExpect(jsonPath("$.details.secondsRemaining").value(Objects.requireNonNull(greaterThan(290))));
         resend().andExpect(jsonPath("$.code").value("TOO_MANY_RESENDS"));
 
         jdbcTemplate.update("UPDATE one_time_codes SET resend_locked_until = ?", LocalDateTime.now().minusSeconds(1));

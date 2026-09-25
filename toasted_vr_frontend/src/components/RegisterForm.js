@@ -4,7 +4,12 @@ import PasswordField from './PasswordField';
 import { registerUser } from '../services/authService';
 import { useFieldErrors } from '../hooks/useFieldErrors';
 import { getFieldErrors, hasFieldErrors } from '../utils/errorMessages';
-import { validateRegistrationForm } from '../utils/validation';
+import {
+  isValidEmail,
+  validateName,
+  validateRegistrationEmail,
+  validateRegistrationForm
+} from '../utils/validation';
 
 const initialFormData = {
   name: '',
@@ -20,10 +25,40 @@ function RegisterForm({ texts, onRegistrationSuccess, onSwitchToLogin }) {
   const [isLoading, setIsLoading] = useState(false);
   const { fieldErrors, setFieldErrors, clearFieldError, clearAllFieldErrors } = useFieldErrors();
 
+  // Validación inmediata: el nombre se revisa en cada tecla; del correo solo
+  // se avisa el dominio mal escrito mientras se escribe (el formato incompleto
+  // se reporta al salir del campo, para no marcar error a mitad de escritura).
+  const liveErrorFor = (name, value) => {
+    if (name === 'name') {
+      return validateName(value, texts);
+    }
+    if (name === 'email' && isValidEmail(value)) {
+      return validateRegistrationEmail(value);
+    }
+    return '';
+  };
+
+  const showFieldError = (name, message) => {
+    setFieldErrors((currentValue) => ({ ...currentValue, [name]: message }));
+  };
+
   const handleChange = (event) => {
     const { name, value } = event.target;
     setFormData((currentValue) => ({ ...currentValue, [name]: value }));
-    clearFieldError(name);
+
+    const liveError = liveErrorFor(name, value);
+    if (liveError) {
+      showFieldError(name, liveError);
+    } else {
+      clearFieldError(name);
+    }
+  };
+
+  const handleEmailBlur = () => {
+    const message = formData.email ? validateRegistrationEmail(formData.email) : '';
+    if (message) {
+      showFieldError('email', message);
+    }
   };
 
   const handleSubmit = async (event) => {
@@ -89,6 +124,7 @@ function RegisterForm({ texts, onRegistrationSuccess, onSwitchToLogin }) {
           placeholder={texts.placeholders.email}
           value={formData.email}
           onChange={handleChange}
+          onBlur={handleEmailBlur}
           aria-invalid={Boolean(fieldErrors.email)}
           required
         />

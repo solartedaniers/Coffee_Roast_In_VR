@@ -2,6 +2,7 @@ package com.toastedvr.toastedvr.backend.service;
 
 import java.time.Instant;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 
 import com.toastedvr.toastedvr.backend.config.MessageResolver;
@@ -12,19 +13,25 @@ import com.toastedvr.toastedvr.backend.dto.CodeSentResponse;
 import com.toastedvr.toastedvr.backend.dto.EmailRequest;
 import com.toastedvr.toastedvr.backend.dto.MessageResponse;
 import com.toastedvr.toastedvr.backend.dto.OneTimeCodePolicyResponse;
+import com.toastedvr.toastedvr.backend.dto.PasswordResetCodeRequest;
 import com.toastedvr.toastedvr.backend.dto.PasswordResetConfirmRequest;
+import com.toastedvr.toastedvr.backend.dto.PasswordResetTokenResponse;
+import com.toastedvr.toastedvr.backend.exception.ErrorCode;
 import com.toastedvr.toastedvr.backend.exception.EmailDeliveryException;
 import com.toastedvr.toastedvr.backend.exception.InvalidRequestException;
 import com.toastedvr.toastedvr.backend.exception.InvalidVerificationCodeException;
 import com.toastedvr.toastedvr.backend.repository.UserRepository;
+import com.toastedvr.toastedvr.backend.security.PasswordResetTokenService;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-// Recuperación de contraseña. Nunca revela si un correo existe: pedir el código
-// responde siempre lo mismo y un código rechazado da siempre el mismo error.
+// Recuperación de contraseña en tres pasos: pedir el código, verificarlo y
+// cambiar la contraseña con el permiso que entrega la verificación. Nunca
+// revela si un correo existe: pedir el código responde siempre lo mismo y un
+// código rechazado da siempre el mismo error.
 @Service
 public class PasswordResetService {
 
@@ -35,6 +42,7 @@ public class PasswordResetService {
     private final OneTimeCodeProperties oneTimeCodeProperties;
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
+    private final PasswordResetTokenService resetTokenService;
     private final AuditService auditService;
     private final MessageResolver messages;
 
@@ -44,6 +52,7 @@ public class PasswordResetService {
         OneTimeCodeProperties oneTimeCodeProperties,
         EmailService emailService,
         PasswordEncoder passwordEncoder,
+        PasswordResetTokenService resetTokenService,
         AuditService auditService,
         MessageResolver messages
     ) {
@@ -52,6 +61,7 @@ public class PasswordResetService {
         this.oneTimeCodeProperties = oneTimeCodeProperties;
         this.emailService = emailService;
         this.passwordEncoder = passwordEncoder;
+        this.resetTokenService = resetTokenService;
         this.auditService = auditService;
         this.messages = messages;
     }
@@ -82,13 +92,10 @@ public class PasswordResetService {
         );
     }
 
+    /** Consume el código y entrega el permiso para cambiar la contraseña. */
     // Sin rollback ante un código rechazado: los intentos fallidos deben quedar guardados.
     @Transactional(dontRollbackOn = InvalidVerificationCodeException.class)
-    public MessageResponse resetPassword(PasswordResetConfirmRequest request) {
-        if (!request.newPassword().equals(request.confirmPassword())) {
-            throw new InvalidRequestException(messages.get("validation.password.mismatch"), "confirmPassword");
-        }
-
+    public PasswordResetTokenResponse verifyCode(PasswordResetCodeRequest request) {
         User user = findEligibleUser(normalizeEmail(request.email()))
             .orElseThrow(this::invalidCode);
 
@@ -96,6 +103,30 @@ public class PasswordResetService {
             oneTimeCodeService.verify(user, OneTimeCodePurpose.PASSWORD_RESET, request.code());
         } catch (InvalidVerificationCodeException exception) {
             throw invalidCode();
+        }
+
+        return new PasswordResetTokenResponse(
+            messages.get("auth.passwordReset.codeVerified"),
+            resetTokenService.issue(user),
+            resetTokenService.getExpirationSeconds()
+        );
+    }
+
+    @Transactional
+    public MessageResponse resetPassword(PasswordResetConfirmRequest request) {
+        if (!request.newPassword().equals(request.confirmPassword())) {
+            throw new InvalidRequestException(messages.get("validation.password.mismatch"), "confirmPassword");
+        }
+
+        String resetToken = request.resetToken();
+        User user = resetTokenService.readUserId(resetToken)
+            .flatMap(userId -> userRepository.findById(Objects.requireNonNull(userId)))
+            .filter(this::isEligible)
+            .filter(candidate -> resetTokenService.isValidFor(resetToken, candidate))
+            .orElseThrow(this::resetExpired);
+
+        if (passwordEncoder.matches(request.newPassword(), user.getPassword())) {
+            throw new InvalidRequestException(messages.get("validation.password.sameAsCurrent"), "newPassword");
         }
 
         user.setPassword(passwordEncoder.encode(request.newPassword()));
@@ -109,8 +140,19 @@ public class PasswordResetService {
 
     private Optional<User> findEligibleUser(String email) {
         return userRepository.findByEmailIgnoreCase(email)
-            .filter(User::isEmailVerified)
-            .filter(User::isEnabled);
+            .filter(this::isEligible);
+    }
+
+    private boolean isEligible(User user) {
+        return user.isEmailVerified() && user.isEnabled();
+    }
+
+    private InvalidVerificationCodeException resetExpired() {
+        return new InvalidVerificationCodeException(
+            ErrorCode.CODE_EXPIRED,
+            messages.get("auth.passwordReset.resetExpired"),
+            null
+        );
     }
 
     private InvalidVerificationCodeException invalidCode() {

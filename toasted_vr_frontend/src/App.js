@@ -243,13 +243,20 @@ function App() {
   const isEntryView = authView === authViews.entry;
   const showBackButton = !isEntryView && !verifiedUser && !isPasswordResetDone;
   const isAuthPanelActive = !isEntryView;
+  // Solo el formulario de registro (no la verificación ni el éxito) usa la
+  // tarjeta ancha con campos en dos columnas.
+  const isRegisterFormView = authView === authViews.register && !pendingRegistration && !verifiedUser;
 
   return (
     <div className="app-shell auth-shell">
       <div className="ambient-light ambient-light-left" />
       <div className="ambient-light ambient-light-right" />
 
-      <main className={`auth-experience ${isEntryView ? 'is-entry' : 'is-auth-active'}`}>
+      <main
+        className={`auth-experience ${isEntryView ? 'is-entry' : 'is-auth-active'}${
+          isRegisterFormView ? ' is-register' : ''
+        }`}
+      >
         <section className={`auth-hero-panel ${isAuthPanelActive ? 'is-muted' : ''}`}>
           <div className="auth-hero-content">
             <p className="eyebrow">{brand}</p>

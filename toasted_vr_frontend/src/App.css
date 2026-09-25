@@ -90,6 +90,9 @@ button {
 .auth-shell {
   display: grid;
   place-items: center;
+  /* Menos relleno en ventanas bajas (1366×768 con barras del navegador),
+     para que el login quepa sin scroll; en 1920×1080 sigue siendo 28px. */
+  padding-block: clamp(12px, 3vh, 28px);
 }
 
 .auth-shell::before,
@@ -411,6 +414,48 @@ button {
 .auth-flow-card.is-visible {
   opacity: 1;
   transform: translateX(0) scale(1);
+}
+
+/* Registro: tarjeta más ancha y campos en pares (nombre | usuario y
+   contraseña | confirmación) para que el formulario limpio quepa sin scroll
+   en 1366×768. Solo afecta al formulario de registro. */
+.auth-experience.is-auth-active.is-register {
+  grid-template-columns: minmax(0, 0.9fr) minmax(380px, 620px);
+}
+
+.auth-experience.is-register .auth-flow-card {
+  max-width: 620px;
+  padding: 26px 30px;
+}
+
+.auth-experience.is-register .back-link {
+  margin-bottom: 10px;
+}
+
+.auth-experience.is-register .hero-copy {
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.register-form {
+  gap: 14px;
+}
+
+.register-form .field-input {
+  min-height: 50px;
+}
+
+.register-form-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  align-items: start;
+}
+
+/* En la pantalla de entrada la tarjeta está oculta: se saca del flujo para
+   que no sume alto (y scroll), sin perder la animación al abrir el login. */
+.auth-experience.is-entry .auth-flow-card {
+  position: absolute;
 }
 
 .back-link {
@@ -917,6 +962,10 @@ select.field-input:focus {
 }
 
 @media (max-width: 720px) {
+  .register-form-row {
+    grid-template-columns: 1fr;
+  }
+
   .app-shell,
   .admin-shell {
     padding: 18px 12px;
@@ -1504,6 +1553,45 @@ select.field-input:focus {
   font-size: 0.82rem;
 }
 
+/* Tabla de "Usuarios registrados" (y "Roles y acceso"): columnas fijas para
+   que quepa completa; los textos largos se recortan con "…" y el valor
+   completo va en el atributo title. */
+.admin-users-table {
+  table-layout: fixed;
+}
+
+.admin-users-table th,
+.admin-users-table td {
+  padding: 10px 8px;
+  font-size: 0.82rem;
+}
+
+.admin-users-table th {
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+}
+
+.admin-users-table th:nth-child(1) { width: 15%; }
+.admin-users-table th:nth-child(2) { width: 24%; }
+.admin-users-table th:nth-child(3) { width: 13%; }
+.admin-users-table th:nth-child(4) { width: 11%; }
+.admin-users-table th:nth-child(5) { width: 10%; }
+.admin-users-table th:nth-child(6) { width: 8%; }
+.admin-users-table th:nth-child(7) { width: 9%; }
+.admin-users-table th:nth-child(8) { width: 10%; }
+
+.admin-users-table .admin-truncate-cell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-users-table .admin-row-action-btn {
+  padding: 6px 8px;
+  white-space: normal;
+  line-height: 1.25;
+}
+
 .admin-score-cell {
   font-weight: 700;
   color: var(--color-accent-deep);
@@ -1677,6 +1765,18 @@ select.field-input:focus {
 
 .admin-detail-drawer-open {
   transform: translateX(0);
+}
+
+/* Correos y nombres largos se parten dentro del panel: sin scroll horizontal. */
+.admin-detail-drawer .detail-row span {
+  flex-shrink: 0;
+}
+
+.admin-detail-drawer .detail-row strong {
+  min-width: 0;
+  font-size: 0.9rem;
+  text-align: right;
+  overflow-wrap: anywhere;
 }
 
 .admin-detail-panel-header {

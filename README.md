@@ -169,3 +169,17 @@ Los 3 deben decir Up (postgres además healthy) — ninguno debe decir Restartin
 
 Prueba en el navegador:
    http://localhost:3000
+
+
+
+   # Detén los contenedores actuales
+
+   * docker compose down
+
+   # Vuelve a levantar todo el entorno limpio
+
+   * docker compose --env-file .\Toasted_VR\.env -f .\docker-compose.yml -f .\Toasted_VR\docker-compose.backend.yml -f .\toasted_vr_frontend\docker-compose.frontend.yml up --build -d
+
+   # Verifica que todo esté corriendo correctamente:
+
+   * docker ps

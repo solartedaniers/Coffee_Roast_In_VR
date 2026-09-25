@@ -232,7 +232,7 @@ function AdminUserManagement({ texts, profileTexts, currentUser, onLogout, onUse
 
   const renderUserTable = (showActions = true) => (
     <div className="users-table-wrapper">
-      <table className="admin-compact-table">
+      <table className="admin-compact-table admin-users-table">
         <thead>
           <tr>
             <th>{texts.table.name}</th>
@@ -267,9 +267,9 @@ function AdminUserManagement({ texts, profileTexts, currentUser, onLogout, onUse
               onClick={() => openPanel(user)}
               style={{ cursor: 'pointer' }}
             >
-              <td><strong>{user.name}</strong></td>
-              <td className="admin-muted-cell">{user.email}</td>
-              <td>{user.username}</td>
+              <td className="admin-truncate-cell" title={user.name}><strong>{user.name}</strong></td>
+              <td className="admin-muted-cell admin-truncate-cell" title={user.email}>{user.email}</td>
+              <td className="admin-truncate-cell" title={user.username}>{user.username}</td>
               <td>{texts.roles[user.role.toLowerCase()] || user.role}</td>
               <td>
                 <span className={`status-pill ${user.enabled ? 'active' : 'blocked'}`}>

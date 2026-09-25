@@ -143,3 +143,43 @@ describe('AdminUserManagement (RF020)', () => {
     expect(within(withoutLevel).getByText('180.0°C')).toBeInTheDocument();
   });
 });
+
+describe('AdminUserManagement – tabla de usuarios', () => {
+  const longEmail = 'maria.fernanda.rodriguez.bastidas.pruebas@universidaddenarino.edu.co';
+
+  beforeEach(() => {
+    fetchUsers.mockResolvedValue({
+      content: [{
+        id: 5,
+        name: 'María Fernanda Rodríguez Bastidas',
+        email: longEmail,
+        username: 'mafe_rodriguez_2026',
+        role: 'PLAYER',
+        enabled: true,
+        emailVerified: true,
+        createdAt: '2026-09-20T15:00:00Z',
+      }],
+      number: 0,
+      size: 10,
+      totalPages: 1,
+      totalElements: 1,
+    });
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  // Los textos largos se recortan con "…" por CSS; el valor completo queda
+  // disponible al pasar el mouse.
+  test('keeps the full name, email and username in the title of the truncated cells', async () => {
+    renderAdmin();
+
+    const emailCell = await screen.findByText(longEmail);
+    expect(emailCell).toHaveAttribute('title', longEmail);
+    expect(emailCell).toHaveClass('admin-truncate-cell');
+    expect(screen.getByTitle('María Fernanda Rodríguez Bastidas')).toHaveClass('admin-truncate-cell');
+    expect(screen.getByTitle('mafe_rodriguez_2026')).toHaveClass('admin-truncate-cell');
+    expect(screen.getByRole('table')).toHaveClass('admin-users-table');
+  });
+});

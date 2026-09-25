@@ -99,21 +99,38 @@ function RegisterForm({ texts, onRegistrationSuccess, onSwitchToLogin }) {
   };
 
   return (
-    <form className="form-grid" onSubmit={handleSubmit}>
-      <label className="field-group">
-        <span className="field-label">{texts.labels.fullName}</span>
-        <input
-          className="field-input"
-          type="text"
-          name="name"
-          placeholder={texts.placeholders.fullName}
-          value={formData.name}
-          onChange={handleChange}
-          aria-invalid={Boolean(fieldErrors.name)}
-          required
-        />
-        <FieldError message={fieldErrors.name} />
-      </label>
+    <form className="form-grid register-form" onSubmit={handleSubmit}>
+      <div className="register-form-row">
+        <label className="field-group">
+          <span className="field-label">{texts.labels.fullName}</span>
+          <input
+            className="field-input"
+            type="text"
+            name="name"
+            placeholder={texts.placeholders.fullName}
+            value={formData.name}
+            onChange={handleChange}
+            aria-invalid={Boolean(fieldErrors.name)}
+            required
+          />
+          <FieldError message={fieldErrors.name} />
+        </label>
+
+        <label className="field-group">
+          <span className="field-label">{texts.labels.username}</span>
+          <input
+            className="field-input"
+            type="text"
+            name="username"
+            placeholder={texts.placeholders.username}
+            value={formData.username}
+            onChange={handleChange}
+            aria-invalid={Boolean(fieldErrors.username)}
+            required
+          />
+          <FieldError message={fieldErrors.username} />
+        </label>
+      </div>
 
       <label className="field-group">
         <span className="field-label">{texts.labels.email}</span>
@@ -131,38 +148,25 @@ function RegisterForm({ texts, onRegistrationSuccess, onSwitchToLogin }) {
         <FieldError message={fieldErrors.email} />
       </label>
 
-      <label className="field-group">
-        <span className="field-label">{texts.labels.username}</span>
-        <input
-          className="field-input"
-          type="text"
-          name="username"
-          placeholder={texts.placeholders.username}
-          value={formData.username}
+      <div className="register-form-row">
+        <PasswordField
+          name="password"
+          value={formData.password}
           onChange={handleChange}
-          aria-invalid={Boolean(fieldErrors.username)}
-          required
+          placeholder={texts.placeholders.password}
+          label={texts.labels.password}
+          error={fieldErrors.password}
         />
-        <FieldError message={fieldErrors.username} />
-      </label>
 
-      <PasswordField
-        name="password"
-        value={formData.password}
-        onChange={handleChange}
-        placeholder={texts.placeholders.password}
-        label={texts.labels.password}
-        error={fieldErrors.password}
-      />
-
-      <PasswordField
-        name="confirmPassword"
-        value={formData.confirmPassword}
-        onChange={handleChange}
-        placeholder={texts.placeholders.confirmPassword}
-        label={texts.labels.confirmPassword}
-        error={fieldErrors.confirmPassword}
-      />
+        <PasswordField
+          name="confirmPassword"
+          value={formData.confirmPassword}
+          onChange={handleChange}
+          placeholder={texts.placeholders.confirmPassword}
+          label={texts.labels.confirmPassword}
+          error={fieldErrors.confirmPassword}
+        />
+      </div>
 
       {status.text && (
         <p className={`status-message ${status.isError ? 'error' : 'success'}`} aria-live="polite">

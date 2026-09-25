@@ -183,3 +183,35 @@ describe('AdminUserManagement – tabla de usuarios', () => {
     expect(screen.getByRole('table')).toHaveClass('admin-users-table');
   });
 });
+
+describe('AdminUserManagement – cerrar sesión', () => {
+  beforeEach(() => {
+    fetchUsers.mockResolvedValue({ content: [], number: 0, size: 10, totalPages: 0, totalElements: 0 });
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('shows the logout button at the top of the content, with the player style, and not in the sidebar', async () => {
+    const onLogout = jest.fn();
+    render(
+      <AdminUserManagement
+        texts={texts}
+        profileTexts={esTexts.profile}
+        currentUser={currentUser}
+        onLogout={onLogout}
+        onUserUpdate={jest.fn()}
+      />
+    );
+
+    const logoutButton = await screen.findByRole('button', { name: texts.buttons.logout });
+    expect(logoutButton).toHaveClass('secondary-button', 'admin-logout-btn');
+    expect(screen.getAllByRole('button', { name: texts.buttons.logout })).toHaveLength(1);
+    expect(within(screen.getByRole('main')).getByRole('button', { name: texts.buttons.logout })).toBe(logoutButton);
+    expect(within(screen.getByRole('navigation')).queryByRole('button', { name: texts.buttons.logout })).toBeNull();
+
+    fireEvent.click(logoutButton);
+    expect(onLogout).toHaveBeenCalledTimes(1);
+  });
+});

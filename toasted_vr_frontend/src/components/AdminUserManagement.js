@@ -719,18 +719,17 @@ function AdminUserManagement({ texts, profileTexts, currentUser, onLogout, onUse
             </button>
           ))}
         </nav>
-
-        <button
-          type="button"
-          className="admin-sidebar-logout text-link"
-          onClick={onLogout}
-        >
-          {texts.buttons.logout}
-        </button>
       </aside>
 
       {/* Main content area */}
       <main className="admin-main-content">
+        {/* Cerrar sesión arriba a la derecha, igual que en la barra del jugador. */}
+        <div className="admin-topbar">
+          <button type="button" className="secondary-button admin-logout-btn" onClick={onLogout}>
+            {texts.buttons.logout}
+          </button>
+        </div>
+
         {status.text && (
           <p
             className={`status-message ${status.isError ? 'error' : 'success'}`}

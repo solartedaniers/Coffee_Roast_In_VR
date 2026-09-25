@@ -160,7 +160,7 @@ function AdminUserManagement({ texts, profileTexts, currentUser, onLogout, onUse
     } finally {
       setIsLoadingDetail(false);
     }
-  }, []);
+  }, [texts.messages.detailLoadError]);
 
   const closePanel = useCallback(() => {
     setPanel({ isOpen: false, user: null, pendingRole: '' });
@@ -392,12 +392,9 @@ function AdminUserManagement({ texts, profileTexts, currentUser, onLogout, onUse
     if (!stats) return null;
 
     const klOrder = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'NOT_SET'];
-    const klLabels = {
-      BEGINNER: texts.options?.allRoles ? 'Principiante' : 'Principiante',
-      INTERMEDIATE: 'Intermedio',
-      ADVANCED: 'Avanzado',
-      NOT_SET: texts.statsSection.notSet,
-    };
+    // Los usuarios sin nivel se muestran como "Sin configurar" (distinto del
+    // "Sin nivel" de las sesiones).
+    const klLabels = { ...texts.sessionLevels, NOT_SET: texts.statsSection.notSet };
 
     const resultLabels = texts.simulationsSection?.results || {};
     const totalSessions = stats.totalSessions || 0;

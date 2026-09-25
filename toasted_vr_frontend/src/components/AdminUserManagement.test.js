@@ -97,6 +97,11 @@ describe('AdminUserManagement (RF020)', () => {
     expect(screen.getByText(texts.statsSection.sessionResultsTitle)).toBeInTheDocument();
     expect(screen.getByText(texts.statsSection.notSet)).toBeInTheDocument();
     expect(screen.getByText(texts.metrics.total)).toBeInTheDocument();
+    // Los nombres de nivel salen de es.json y se ven igual que antes en los
+    // dos paneles (conocimiento y promedio por nivel).
+    ['Principiante', 'Intermedio', 'Avanzado'].forEach((label) => {
+      expect(screen.getAllByText(label)).toHaveLength(2);
+    });
   });
 
   test('shows a dash when there are no sessions to average', async () => {

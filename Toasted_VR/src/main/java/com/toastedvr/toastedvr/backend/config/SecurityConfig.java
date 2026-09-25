@@ -76,7 +76,8 @@ public class SecurityConfig {
                     HttpMethod.GET,
                     "/api/v1/roasting/sessions",
                     "/api/v1/roasting/sessions/summary",
-                    "/api/v1/roasting/sessions/*"
+                    "/api/v1/roasting/sessions/*",
+                    "/api/v1/roasting/ranking"
                 ).authenticated()
                 .requestMatchers(HttpMethod.PATCH, "/api/v1/users/me/knowledge-level").authenticated()
                 .requestMatchers(HttpMethod.PATCH, "/api/v1/users/me/profile").authenticated()

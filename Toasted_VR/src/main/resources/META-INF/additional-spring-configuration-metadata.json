@@ -143,6 +143,12 @@
       "defaultValue": 10
     },
     {
+      "name": "app.roasting.ranking-size",
+      "type": "java.lang.Integer",
+      "description": "Posiciones que muestra el top del ranking por nivel.",
+      "defaultValue": 10
+    },
+    {
       "name": "app.roast-validation.charge-temperature-min",
       "type": "java.lang.Double",
       "description": "Temperatura de carga minima aceptada (C); es la del aire al cargar.",

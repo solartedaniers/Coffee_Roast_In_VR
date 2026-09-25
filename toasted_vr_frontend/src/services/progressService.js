@@ -1,6 +1,7 @@
 import apiClient, { getErrorMessage } from './apiClient';
 
-// Progreso del jugador (RF016): historial, resumen y detalle de sus sesiones.
+// Progreso del jugador: historial, resumen y detalle de sus sesiones (RF016)
+// y ranking por nivel (RF017).
 const ROASTING_SESSIONS_PATH = '/roasting/sessions';
 
 /** Página del historial (la más reciente primero); result filtra por resultado si viene. */
@@ -17,6 +18,17 @@ export async function getSessionHistory({ page = 0, result = '' } = {}) {
 export async function getSessionSummary() {
   try {
     const response = await apiClient.get(`${ROASTING_SESSIONS_PATH}/summary`);
+    return response.data;
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+/** Ranking de un nivel; sin level el servidor usa el nivel actual del jugador (RF017). */
+export async function getRanking(level) {
+  try {
+    const params = level ? { level } : {};
+    const response = await apiClient.get('/roasting/ranking', { params });
     return response.data;
   } catch (error) {
     throw new Error(getErrorMessage(error));

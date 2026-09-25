@@ -333,7 +333,7 @@
         "viewProcess": "Visualizar Proceso de Tueste",
         "manualControl": "Control de Tueste Manual",
         "openGeneralSettings": "Configuración Interna",
-        "dataHistory": "Guardar Datos",
+        "dataHistory": "Historial y ranking",
         "helpButton": "Ayuda",
         "abort": "Salir del tueste",
         "close": "Cerrar menú"
@@ -377,8 +377,29 @@
       "finalColumn": "Final (°C)"
     },
     "dataHistory": {
-      "title": "Historial de tuestes",
+      "title": "Historial y ranking",
       "close": "Cerrar",
+      "tabs": {
+        "history": "Historial",
+        "ranking": "Ranking"
+      },
+      "ranking": {
+        "levelLabel": "Nivel",
+        "chooseLevel": "Elige un nivel",
+        "noLevel": "Elige un nivel para ver el ranking.",
+        "loading": "Cargando ranking...",
+        "loadError": "No se pudo cargar el ranking.",
+        "empty": "Todavía nadie tiene tuestes en este nivel.",
+        "noSessionsInLevel": "Aún no tienes tuestes en este nivel. Guarda uno para aparecer en el ranking.",
+        "yourPosition": "Tu posición",
+        "you": "(tú)",
+        "columns": {
+          "position": "Posición",
+          "username": "Usuario",
+          "bestScore": "Mejor puntaje",
+          "date": "Fecha"
+        }
+      },
       "loading": "Cargando historial...",
       "loadError": "No se pudo cargar el historial.",
       "empty": "Todavía no tienes tuestes guardados.",

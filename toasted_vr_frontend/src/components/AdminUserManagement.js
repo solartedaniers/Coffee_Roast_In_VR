@@ -469,6 +469,34 @@ function AdminUserManagement({ texts, profileTexts, currentUser, onLogout, onUse
               </div>
             </div>
           </div>
+
+          {/* RF020: el puntaje va de 0 a 100, así que el promedio es el ancho de la barra. */}
+          <div className="admin-stats-panel">
+            <h3 className="admin-stats-subtitle">{texts.statsSection.averageTitle}</h3>
+            <div className="admin-dist-list">
+              {['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'NOT_SET'].map((key) => {
+                const average = stats.averageScoreByLevel?.[key] ?? null;
+                return (
+                  <div className="admin-dist-row" key={key}>
+                    <span className="admin-dist-label">{texts.sessionLevels[key]}</span>
+                    <div className="admin-dist-bar-track">
+                      <div className="admin-dist-bar-fill" style={{ width: `${average ?? 0}%` }} />
+                    </div>
+                    <span className="admin-dist-count">{average != null ? `${average}%` : texts.noValue}</span>
+                  </div>
+                );
+              })}
+              <div className="admin-dist-row admin-dist-total">
+                <span className="admin-dist-label">{texts.statsSection.averageGeneral}</span>
+                <div className="admin-dist-bar-track">
+                  <div className="admin-dist-bar-fill" style={{ width: `${stats.averageScore ?? 0}%`, opacity: 0.3 }} />
+                </div>
+                <span className="admin-dist-count">
+                  {stats.averageScore != null ? `${stats.averageScore}%` : texts.noValue}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
     );
@@ -510,9 +538,11 @@ function AdminUserManagement({ texts, profileTexts, currentUser, onLogout, onUse
               <thead>
                 <tr>
                   <th>{texts.simulationsSection.columns.user}</th>
+                  <th>{texts.simulationsSection.columns.level}</th>
                   <th>{texts.simulationsSection.columns.result}</th>
                   <th>{texts.simulationsSection.columns.score}</th>
                   <th>{texts.simulationsSection.columns.duration}</th>
+                  <th>{texts.simulationsSection.columns.targetTemp}</th>
                   <th>{texts.simulationsSection.columns.temp}</th>
                   <th>{texts.simulationsSection.columns.date}</th>
                 </tr>
@@ -525,6 +555,7 @@ function AdminUserManagement({ texts, profileTexts, currentUser, onLogout, onUse
                       <br />
                       <small className="admin-muted-cell">{session.userUsername}</small>
                     </td>
+                    <td>{texts.sessionLevels[session.knowledgeLevel ?? 'NOT_SET']}</td>
                     <td>
                       <span className={`result-pill ${RESULT_COLORS[session.result] || ''}`}>
                         {texts.simulationsSection.results[session.result] || session.result}
@@ -532,6 +563,7 @@ function AdminUserManagement({ texts, profileTexts, currentUser, onLogout, onUse
                     </td>
                     <td className="admin-score-cell">{session.qualityScore}%</td>
                     <td>{formatDuration(session.totalDurationSeconds)}</td>
+                    <td>{session.targetTemperature?.toFixed(1)}°C</td>
                     <td>{session.finalTemperature?.toFixed(1)}°C</td>
                     <td className="admin-muted-cell">
                       {formatLocalDate(session.createdAt)}

@@ -13,6 +13,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class AdminStatsService {
 
+    // Misma clave que usa knowledgeLevelCounts para "sin nivel".
+    private static final String NO_LEVEL_KEY = "NOT_SET";
+
     private final UserRepository userRepository;
     private final RoastingSessionRepository roastingSessionRepository;
 
@@ -50,7 +53,27 @@ public class AdminStatsService {
             adminUsers,
             knowledgeLevelCounts,
             totalSessions,
-            sessionResultCounts
+            sessionResultCounts,
+            oneDecimal(roastingSessionRepository.averageQualityScore()),
+            averageScoreByLevel()
         );
+    }
+
+    // Siempre las cuatro claves, en orden; un nivel sin sesiones queda en null.
+    private Map<String, Double> averageScoreByLevel() {
+        Map<String, Double> averages = new LinkedHashMap<>();
+        for (KnowledgeLevel level : KnowledgeLevel.values()) {
+            averages.put(level.name(), null);
+        }
+        averages.put(NO_LEVEL_KEY, null);
+        roastingSessionRepository.averageQualityScoreByLevel().forEach(row -> averages.put(
+            row.getLevel() == null ? NO_LEVEL_KEY : row.getLevel().name(),
+            oneDecimal(row.getAverage())
+        ));
+        return averages;
+    }
+
+    private Double oneDecimal(Double value) {
+        return value == null ? null : Math.round(value * 10) / 10.0;
     }
 }

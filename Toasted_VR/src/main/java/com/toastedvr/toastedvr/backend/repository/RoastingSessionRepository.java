@@ -29,6 +29,23 @@ public interface RoastingSessionRepository extends JpaRepository<RoastingSession
         """)
     SessionHistorySummaryResponse summarizeByUserId(@Param("userId") Long userId);
 
+    @Query("select avg(s.qualityScore) from RoastingSession s")
+    Double averageQualityScore();
+
+    // Promedio por nivel guardado; las sesiones sin nivel forman el grupo null.
+    @Query("""
+        select s.knowledgeLevel as level, avg(s.qualityScore) as average
+        from RoastingSession s
+        group by s.knowledgeLevel
+        """)
+    List<LevelAverage> averageQualityScoreByLevel();
+
+    interface LevelAverage {
+        KnowledgeLevel getLevel();
+
+        Double getAverage();
+    }
+
     // Sesiones que cuentan para el ranking de un nivel, de mejor a peor y, en
     // empate, de la más antigua a la más nueva. Las sesiones sin nivel no
     // entran; enabled o role en null se tratan como activo y PLAYER, igual que User.

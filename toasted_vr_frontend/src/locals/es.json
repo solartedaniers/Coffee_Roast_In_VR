@@ -568,12 +568,21 @@
       "knowledgeTitle": "Nivel de conocimiento",
       "notSet": "Sin configurar",
       "sessionResultsTitle": "Resultados de tostión",
+      "averageTitle": "Puntaje promedio por nivel",
+      "averageGeneral": "General",
       "loadingStats": "Cargando estadísticas..."
     },
     "rolesSection": {
       "title": "Roles y control de acceso",
       "subtitle": "Administra roles y estado de cada cuenta de usuario."
     },
+    "sessionLevels": {
+      "BEGINNER": "Principiante",
+      "INTERMEDIATE": "Intermedio",
+      "ADVANCED": "Avanzado",
+      "NOT_SET": "Sin nivel"
+    },
+    "noValue": "—",
     "simulationsSection": {
       "title": "Historial de simulaciones",
       "subtitle": "Todas las sesiones de tostado registradas en el sistema.",
@@ -582,6 +591,8 @@
         "result": "Resultado",
         "score": "Puntuación",
         "duration": "Duración",
+        "level": "Nivel",
+        "targetTemp": "Temp. objetivo",
         "temp": "Temp. final",
         "date": "Fecha"
       },

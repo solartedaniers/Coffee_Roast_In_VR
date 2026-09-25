@@ -38,6 +38,7 @@ public class AdminRoastingService {
             session.getResult().name(),
             session.getQualityScore(),
             session.isFirstCrackReached(),
+            session.getKnowledgeLevel(),
             ApiInstants.from(session.getCreatedAt())
         );
     }

@@ -266,7 +266,7 @@ class RankingChangesIntegrationTests {
         changes(admin).andExpect(jsonPath("$.hasChanges").value(false));
 
         viewer.updateKnowledgeLevel(null);
-        userRepository.save(viewer);
+        userRepository.save(Objects.requireNonNull(viewer));
         changes(viewer)
             .andExpect(jsonPath("$.hasChanges").value(false))
             .andExpect(jsonPath("$.level").isEmpty());

@@ -107,7 +107,7 @@ class RoastingSessionLevelIntegrationTests {
     @Test
     void shouldStoreNullLevelWhenTheUserHasNotChosenOne() throws Exception {
         player.updateKnowledgeLevel(null);
-        userRepository.save(player);
+        userRepository.save(Objects.requireNonNull(player));
 
         JsonNode body = save(validPayload());
 
@@ -119,7 +119,7 @@ class RoastingSessionLevelIntegrationTests {
     void shouldGenerateFeedbackWithTheLevelStoredInTheSessionEvenIfTheUserChangedIt() throws Exception {
         Long sessionId = requireId(save(validPayload()));
         player.updateKnowledgeLevel(KnowledgeLevel.ADVANCED);
-        userRepository.save(player);
+        userRepository.save(Objects.requireNonNull(player));
 
         requestFeedback(sessionId);
 

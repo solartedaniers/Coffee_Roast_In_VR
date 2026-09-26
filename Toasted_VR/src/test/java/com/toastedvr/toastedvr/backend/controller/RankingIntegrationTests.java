@@ -188,7 +188,7 @@ class RankingIntegrationTests {
     @Test
     void shouldReturnAnEmptyListWhenTheViewerHasNoLevelAndSendsNone() throws Exception {
         viewer.updateKnowledgeLevel(null);
-        userRepository.save(viewer);
+        userRepository.save(Objects.requireNonNull(viewer));
         User rival = saveUser("rivalUser", Role.PLAYER, KnowledgeLevel.INTERMEDIATE);
         saveSession(rival, KnowledgeLevel.INTERMEDIATE, 90, 1);
 

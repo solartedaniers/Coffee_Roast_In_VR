@@ -104,7 +104,7 @@ class RoastSessionValidationIntegrationTests {
         for (JsonNode scenario : scenarios) {
             for (KnowledgeLevel level : KnowledgeLevel.values()) {
                 player.updateKnowledgeLevel(level);
-                userRepository.save(player);
+                userRepository.save(Objects.requireNonNull(player));
                 JsonNode expected = scenario.at("/expected/" + level.name());
 
                 postSession(toPayload(scenario.get("sim"), expected))

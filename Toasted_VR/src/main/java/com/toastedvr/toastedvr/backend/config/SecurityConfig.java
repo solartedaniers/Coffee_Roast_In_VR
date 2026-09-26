@@ -77,8 +77,10 @@ public class SecurityConfig {
                     "/api/v1/roasting/sessions",
                     "/api/v1/roasting/sessions/summary",
                     "/api/v1/roasting/sessions/*",
-                    "/api/v1/roasting/ranking"
+                    "/api/v1/roasting/ranking",
+                    "/api/v1/roasting/ranking/changes"
                 ).authenticated()
+                .requestMatchers(HttpMethod.PUT, "/api/v1/roasting/ranking/seen").authenticated()
                 .requestMatchers(HttpMethod.PATCH, "/api/v1/users/me/knowledge-level").authenticated()
                 .requestMatchers(HttpMethod.PATCH, "/api/v1/users/me/profile").authenticated()
                 .requestMatchers("/api/v1/users/me/unity-access-code/**").authenticated()
@@ -99,7 +101,7 @@ public class SecurityConfig {
             .toList();
 
         configuration.setAllowedOrigins(origins);
-        configuration.setAllowedMethods(List.of("GET", "POST", "PATCH", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Content-Type", "Authorization"));
         configuration.setAllowCredentials(false);
         configuration.setMaxAge(3600L);

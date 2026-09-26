@@ -149,6 +149,12 @@
       "defaultValue": 10
     },
     {
+      "name": "app.roasting.ranking-poll-seconds",
+      "type": "java.lang.Integer",
+      "description": "Segundos entre consultas del cliente para saber si el ranking cambio (punto de aviso).",
+      "defaultValue": 60
+    },
+    {
       "name": "app.roast-validation.charge-temperature-min",
       "type": "java.lang.Double",
       "description": "Temperatura de carga minima aceptada (C); es la del aire al cargar.",

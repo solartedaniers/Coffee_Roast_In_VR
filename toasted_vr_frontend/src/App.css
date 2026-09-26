@@ -1190,6 +1190,7 @@ select.field-input:focus {
 }
 
 .player-progress-btn {
+  position: relative;
   display: grid;
   place-items: center;
   width: 33px;
@@ -1205,6 +1206,56 @@ select.field-input:focus {
 
 .player-progress-btn-crown {
   color: var(--color-crown-gold);
+}
+
+/* Punto de aviso: el ranking cambió desde la última visita. */
+.player-progress-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-danger);
+  box-shadow: 0 0 0 2px var(--color-bg-input);
+}
+
+/* Movimiento en el ranking respecto a la última visita. */
+.ranking-movement {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 99px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.ranking-movement-up {
+  color: var(--color-success);
+  background: var(--color-success-soft);
+}
+
+.ranking-movement-down {
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+}
+
+.ranking-movement-new {
+  color: var(--color-highlight);
+  background: var(--color-highlight-soft);
+}
+
+/* Texto solo para lectores de pantalla. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* Barra superior del contenido: cerrar sesión arriba a la derecha, con el

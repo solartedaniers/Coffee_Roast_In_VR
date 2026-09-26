@@ -35,6 +35,25 @@ export async function getRanking(level) {
   }
 }
 
+/** Si el ranking del nivel del jugador cambió desde la última vez que lo vio (punto de aviso). */
+export async function getRankingChanges() {
+  try {
+    const response = await apiClient.get('/roasting/ranking/changes');
+    return response.data;
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+/** Marca como visto exactamente el ranking mostrado, identificado por su firma. */
+export async function markRankingSeen(signature) {
+  try {
+    await apiClient.put('/roasting/ranking/seen', { signature });
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
 export async function getSessionDetail(sessionId) {
   try {
     const response = await apiClient.get(`${ROASTING_SESSIONS_PATH}/${sessionId}`);

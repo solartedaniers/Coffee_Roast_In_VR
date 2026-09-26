@@ -106,13 +106,14 @@ class RankingIntegrationTests {
     }
 
     @Test
+    // Además del movimiento (▲▼/Nuevo), nada que identifique al jugador más allá del username.
     void shouldSendOnlyPositionUsernameScoreAndDate() throws Exception {
         saveSession(viewer, KnowledgeLevel.INTERMEDIATE, 70, 1);
 
         JsonNode entry = readJson(ranking(viewer, "")).at("/top/0");
 
         assertThat(entry.fieldNames()).toIterable()
-            .containsExactlyInAnyOrder("position", "username", "bestScore", "achievedAt");
+            .containsExactlyInAnyOrder("position", "username", "bestScore", "achievedAt", "movement");
     }
 
     @Test

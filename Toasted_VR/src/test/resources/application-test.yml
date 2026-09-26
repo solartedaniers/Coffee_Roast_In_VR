@@ -42,6 +42,7 @@ app:
   roasting:
     history-page-size: 10
     ranking-size: 10
+    ranking-poll-seconds: 60
   roast-validation:
     charge-temperature-min: 0
     charge-temperature-max: 750

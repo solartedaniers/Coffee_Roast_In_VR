@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import RankingTab from './RankingTab';
 import esTexts from '../../locals/es.json';
 import { getRanking, getSessionHistory, getSessionSummary } from '../../services/progressService';
@@ -134,5 +134,68 @@ describe('Ranking tab', () => {
 
     expect(await screen.findByText(rankingTexts.loadError)).toBeInTheDocument();
     expect(screen.getByRole('combobox')).toBeInTheDocument();
+  });
+
+  test('shows ▲, ▼ and "Nuevo" since the last visit, and nothing when the row did not move', async () => {
+    const withMovement = (position, username, movement) => ({ ...entry(position, username, 90 - position), movement });
+    getRanking.mockResolvedValue({
+      level: 'INTERMEDIATE',
+      top: [
+        withMovement(1, 'carlaUser', { direction: 'NEW', places: 0 }),
+        withMovement(2, 'viewerUser', { direction: 'UP', places: 1 }),
+        withMovement(3, 'anaUser', { direction: 'DOWN', places: 2 }),
+        withMovement(4, 'betoUser', { direction: 'SAME', places: 0 }),
+      ],
+      me: withMovement(2, 'viewerUser', { direction: 'UP', places: 1 }),
+      hasSessionsInLevel: true,
+      signature: 'sig',
+    });
+    openRankingTab();
+    await screen.findByText('carlaUser');
+
+    const rows = tableRows();
+    expect(within(rows[1]).getByRole('img', { name: rankingTexts.movement.newLabel })).toHaveTextContent('Nuevo');
+    expect(within(rows[1]).getByText('Nuevo')).toHaveClass('ranking-movement-new');
+    expect(within(rows[2]).getByRole('img', { name: 'Subió 1 puesto' })).toHaveTextContent('▲ 1');
+    expect(within(rows[2]).getByText('▲ 1')).toHaveClass('ranking-movement-up');
+    expect(within(rows[3]).getByRole('img', { name: 'Bajó 2 puestos' })).toHaveTextContent('▼ 2');
+    expect(within(rows[3]).getByText('▼ 2')).toHaveClass('ranking-movement-down');
+    expect(within(rows[4]).queryByRole('img')).not.toBeInTheDocument();
+  });
+
+  test('shows no arrows on the first visit', async () => {
+    openRankingTab();
+    await screen.findByText('betoUser');
+
+    expect(screen.queryByRole('img')).not.toBeInTheDocument();
+  });
+
+  test('shows the movement of the player row outside the top', async () => {
+    const top = Array.from({ length: 10 }, (_, index) => ({ ...entry(index + 1, `rival${index}`, 99 - index), movement: null }));
+    getRanking.mockResolvedValue({
+      level: 'INTERMEDIATE',
+      top,
+      me: { ...entry(12, 'viewerUser', 50), movement: { direction: 'DOWN', places: 1 } },
+      hasSessionsInLevel: true,
+      signature: 'sig',
+    });
+    openRankingTab();
+    await screen.findByText('rival0');
+
+    expect(within(tableRows()[11]).getByRole('img', { name: 'Bajó 1 puesto' })).toBeInTheDocument();
+  });
+
+  test('passes every shown ranking to onLoaded, so it can be marked as seen', async () => {
+    const onLoaded = jest.fn();
+    render(<RankingTab texts={texts} onLoaded={onLoaded} />);
+    await screen.findByText('betoUser');
+    expect(onLoaded).toHaveBeenLastCalledWith(intermediateRanking);
+
+    const advanced = { level: 'ADVANCED', top: [], me: null, hasSessionsInLevel: false, signature: 'sig-adv' };
+    getRanking.mockResolvedValue(advanced);
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'ADVANCED' } });
+
+    await waitFor(() => expect(onLoaded).toHaveBeenLastCalledWith(advanced));
+    expect(onLoaded).toHaveBeenCalledTimes(2);
   });
 });

@@ -389,6 +389,17 @@
         "noSessionsInLevel": "Aún no tienes tuestes en este nivel. Guarda uno para aparecer en el ranking.",
         "yourPosition": "Tu posición",
         "you": "(tú)",
+        "changesNotice": "Hay cambios en el ranking desde tu última visita",
+        "movement": {
+          "up": "▲ {places}",
+          "down": "▼ {places}",
+          "new": "Nuevo",
+          "upLabel": "Subió {places} {unit}",
+          "downLabel": "Bajó {places} {unit}",
+          "newLabel": "Nuevo desde tu última visita",
+          "placeOne": "puesto",
+          "placeMany": "puestos"
+        },
         "columns": {
           "position": "Posición",
           "username": "Usuario",

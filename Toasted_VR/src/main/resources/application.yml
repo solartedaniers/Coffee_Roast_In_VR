@@ -112,10 +112,12 @@
     # Permiso para cambiar la contraseña después de verificar el código.
     password-reset:
       token-expiration-minutes: ${PASSWORD_RESET_TOKEN_EXPIRATION_MINUTES:10}
-    # Historial de sesiones (RF016) y tamaño del top del ranking (RF017).
+    # Historial de sesiones (RF016), tamaño del top del ranking y cada
+    # cuántos segundos el cliente consulta si el ranking cambió (RF017).
     roasting:
       history-page-size: ${ROAST_HISTORY_PAGE_SIZE:10}
       ranking-size: ${ROAST_RANKING_SIZE:10}
+      ranking-poll-seconds: ${ROAST_RANKING_POLL_SECONDS:60}
     # Validación de sesiones de tueste en el servidor (RF015). Deben coincidir
     # con RoastConstants.js del frontend.
     roast-validation:

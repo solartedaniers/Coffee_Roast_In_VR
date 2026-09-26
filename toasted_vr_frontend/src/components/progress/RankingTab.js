@@ -1,17 +1,22 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { getRanking } from '../../services/progressService';
 import { formatLocalDate } from '../../utils/dateFormat';
 
 const LEVELS = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'];
 
+const MOVEMENT_CLASSES = Object.freeze({ UP: 'up', DOWN: 'down', NEW: 'new' });
+
 // Ranking por nivel (RF017). Primero se pide sin nivel para que el servidor
 // use el del jugador; después, el que elija en el selector. Solo se muestran
-// posición, username, mejor puntaje y fecha.
-export default function RankingTab({ texts }) {
+// posición, username, mejor puntaje y fecha, con ▲▼/"Nuevo" respecto a la
+// última visita. onLoaded recibe cada ranking mostrado (para marcarlo visto).
+export default function RankingTab({ texts, onLoaded }) {
   const rankingTexts = texts.ranking;
   const [chosenLevel, setChosenLevel] = useState(null);
   const [ranking, setRanking] = useState(null);
   const [status, setStatus] = useState('loading');
+  const onLoadedRef = useRef(onLoaded);
+  onLoadedRef.current = onLoaded;
 
   useEffect(() => {
     let isCurrent = true;
@@ -21,6 +26,7 @@ export default function RankingTab({ texts }) {
         if (!isCurrent) return;
         setRanking(data);
         setStatus('ready');
+        onLoadedRef.current?.(data);
       })
       .catch(() => {
         if (isCurrent) setStatus('error');
@@ -34,9 +40,27 @@ export default function RankingTab({ texts }) {
   const me = ranking?.me;
   const isMeOutsideTop = me != null && me.position > ranking.top.length;
 
+  // Sin movimiento (primera visita o sin cambios) no se muestra nada.
+  const renderMovement = (movement) => {
+    const kind = movement && MOVEMENT_CLASSES[movement.direction];
+    if (!kind) return null;
+    const movementTexts = rankingTexts.movement;
+    const unit = movement.places === 1 ? movementTexts.placeOne : movementTexts.placeMany;
+    const fill = (template) => template.replace('{places}', movement.places).replace('{unit}', unit);
+    const label = fill(movementTexts[`${kind}Label`]);
+    return (
+      <span className={`ranking-movement ranking-movement-${kind}`} role="img" aria-label={label} title={label}>
+        {fill(movementTexts[kind])}
+      </span>
+    );
+  };
+
   const renderRow = (entry, isMe) => (
     <tr key={entry.position} className={isMe ? 'is-selected' : undefined}>
-      <td className="admin-score-cell">{entry.position}</td>
+      <td className="admin-score-cell">
+        <span>{entry.position}</span>
+        {renderMovement(entry.movement)}
+      </td>
       <td>
         <strong>{entry.username}</strong>
         {isMe && ` ${rankingTexts.you}`}

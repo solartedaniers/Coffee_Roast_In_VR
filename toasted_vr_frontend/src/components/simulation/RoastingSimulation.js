@@ -7,7 +7,7 @@ import RoastOvenVisual from './RoastOvenVisual';
 import RoastResultsPanel from './RoastResultsPanel';
 import GeneralSettingsPanel from './GeneralSettingsPanel';
 import CurveProgrammingPanel from './CurveProgrammingPanel';
-import RoastDataHistoryPanel from './RoastDataHistoryPanel';
+import PlayerProgressButtons from '../progress/PlayerProgressButtons';
 import HelpPanel from './HelpPanel';
 import { saveRoastingSession, getRoastingFeedback } from '../../services/simulationService';
 
@@ -162,7 +162,6 @@ export default function RoastingSimulation({
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isCurveProgrammingOpen, setIsCurveProgrammingOpen] = useState(false);
-  const [isDataHistoryOpen, setIsDataHistoryOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [roastCurves, setRoastCurves] = useState(createDefaultRoastCurves);
 
@@ -711,12 +710,6 @@ export default function RoastingSimulation({
         onChangeCurve={handleChangeCurve}
       />
 
-      <RoastDataHistoryPanel
-        texts={texts.dataHistory}
-        isOpen={isDataHistoryOpen}
-        onClose={() => setIsDataHistoryOpen(false)}
-      />
-
       <HelpPanel texts={texts.help} isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
 
       {/* ── Cabecera ───────────────────────────────────────── */}
@@ -731,6 +724,7 @@ export default function RoastingSimulation({
         </div>
 
         <div className="sim-header-user">
+          <PlayerProgressButtons texts={texts.dataHistory} currentUser={currentUser} />
           <button
             type="button"
             className="sim-user-chip"
@@ -869,7 +863,6 @@ export default function RoastingSimulation({
               onOpenAutoControl={handleOpenAutoControl}
               onOpenManualControl={handleOpenManualControl}
               onOpenSettings={() => setIsSettingsOpen(true)}
-              onOpenDataHistory={() => setIsDataHistoryOpen(true)}
               onOpenHelp={() => setIsHelpOpen(true)}
               onResetChart={handleResetChartView}
               onAbort={handleAbort}

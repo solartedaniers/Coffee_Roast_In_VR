@@ -4,13 +4,13 @@ import { OPERATION_MODES } from '../../domain/roasting/RoastConstants';
 // ================================================================
 // RoastMenuPanel
 // Responsabilidad única: el menú del botón "MENU" del HMI, como una
-// cuadrícula de recuadros (no una lista desplegable) — 5 opciones:
+// cuadrícula de recuadros (no una lista desplegable) — 4 opciones:
 // Control de Tueste Automático (cambia a modo AUTO y abre la
 // selección de curvas), Visualizar Proceso de Tueste, Control de
-// Tueste Manual (resaltado en verde cuando es el modo activo),
-// Configuración Interna y Guardar Datos. Ayuda y Salir del tueste
+// Tueste Manual (resaltado en verde cuando es el modo activo) y
+// Configuración Interna. Ayuda y Salir del tueste
 // viven en la misma esquina, como recuadros más chicos y aparte de
-// las 5 opciones principales.
+// las 4 opciones principales.
 // ================================================================
 export default function RoastMenuPanel({
   texts,
@@ -20,7 +20,6 @@ export default function RoastMenuPanel({
   onOpenAutoControl,
   onOpenManualControl,
   onOpenSettings,
-  onOpenDataHistory,
   onOpenHelp,
   onAbort,
 }) {
@@ -53,9 +52,6 @@ export default function RoastMenuPanel({
         <div className="roast-menu-tiles-secondary">
           <button type="button" className="roast-menu-tile roast-menu-tile-small" role="menuitem" onClick={onOpenSettings}>
             {texts.openGeneralSettings}
-          </button>
-          <button type="button" className="roast-menu-tile roast-menu-tile-small" role="menuitem" onClick={onOpenDataHistory}>
-            {texts.dataHistory}
           </button>
         </div>
 

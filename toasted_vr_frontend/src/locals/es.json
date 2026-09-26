@@ -333,7 +333,6 @@
         "viewProcess": "Visualizar Proceso de Tueste",
         "manualControl": "Control de Tueste Manual",
         "openGeneralSettings": "Configuración Interna",
-        "dataHistory": "Historial y ranking",
         "helpButton": "Ayuda",
         "abort": "Salir del tueste",
         "close": "Cerrar menú"
@@ -377,12 +376,9 @@
       "finalColumn": "Final (°C)"
     },
     "dataHistory": {
-      "title": "Historial y ranking",
+      "historyTitle": "Historial",
+      "rankingTitle": "Ranking",
       "close": "Cerrar",
-      "tabs": {
-        "history": "Historial",
-        "ranking": "Ranking"
-      },
       "ranking": {
         "levelLabel": "Nivel",
         "chooseLevel": "Elige un nivel",

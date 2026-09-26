@@ -36,7 +36,6 @@ export default function ManualControlPanel({
   onOpenAutoControl,
   onOpenManualControl,
   onOpenSettings,
-  onOpenDataHistory,
   onOpenHelp,
   onAbort,
 }) {
@@ -80,10 +79,6 @@ export default function ManualControlPanel({
             onOpenSettings={() => {
               setIsMenuOpen(false);
               onOpenSettings();
-            }}
-            onOpenDataHistory={() => {
-              setIsMenuOpen(false);
-              onOpenDataHistory();
             }}
             onOpenHelp={() => {
               setIsMenuOpen(false);

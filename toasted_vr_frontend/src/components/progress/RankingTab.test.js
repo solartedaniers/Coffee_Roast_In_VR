@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
-import RoastDataHistoryPanel from '../simulation/RoastDataHistoryPanel';
+import RankingTab from './RankingTab';
 import esTexts from '../../locals/es.json';
 import { getRanking, getSessionHistory, getSessionSummary } from '../../services/progressService';
 import { formatLocalDate } from '../../utils/dateFormat';
@@ -32,10 +32,7 @@ const intermediateRanking = {
   hasSessionsInLevel: true,
 };
 
-const openRankingTab = () => {
-  render(<RoastDataHistoryPanel texts={texts} isOpen onClose={jest.fn()} />);
-  fireEvent.click(screen.getByRole('tab', { name: texts.tabs.ranking }));
-};
+const openRankingTab = () => render(<RankingTab texts={texts} />);
 
 // Fila 0 = encabezado.
 const tableRows = () => screen.getAllByRole('row');
@@ -51,21 +48,11 @@ describe('Ranking tab', () => {
     jest.clearAllMocks();
   });
 
-  test('shows the Historial and Ranking tabs, starting on the history', async () => {
-    render(<RoastDataHistoryPanel texts={texts} isOpen onClose={jest.fn()} />);
-
-    expect(screen.getByRole('tab', { name: texts.tabs.history })).toHaveAttribute('aria-selected', 'true');
-    expect(screen.getByRole('tab', { name: texts.tabs.ranking })).toHaveAttribute('aria-selected', 'false');
-    expect(await screen.findByText(texts.empty)).toBeInTheDocument();
-    expect(getRanking).not.toHaveBeenCalled();
-  });
-
   test('asks for the player level by default and shows position, username, best score and date', async () => {
     openRankingTab();
 
     expect(await screen.findByText('betoUser')).toBeInTheDocument();
     expect(getRanking).toHaveBeenCalledWith(null);
-    expect(screen.getByRole('tab', { name: texts.tabs.ranking })).toHaveClass('roast-menu-mode-btn-active');
     expect(screen.getByRole('combobox')).toHaveValue('INTERMEDIATE');
 
     const firstRow = within(tableRows()[1]);
@@ -146,7 +133,6 @@ describe('Ranking tab', () => {
     openRankingTab();
 
     expect(await screen.findByText(rankingTexts.loadError)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('tab', { name: texts.tabs.history }));
-    expect(await screen.findByText(texts.empty)).toBeInTheDocument();
+    expect(screen.getByRole('combobox')).toBeInTheDocument();
   });
 });

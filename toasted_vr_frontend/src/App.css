@@ -45,6 +45,7 @@
   --color-status-finished-soft: rgba(139, 94, 60, 0.1);
   --color-flame-tile: var(--color-danger);
   --color-flame-tile-soft: var(--color-danger-soft);
+  --color-crown-gold: #c9a227;
 }
 
 * {
@@ -1178,6 +1179,32 @@ select.field-input:focus {
 .admin-nav-icon {
   font-size: 1.05rem;
   flex-shrink: 0;
+}
+
+/* Botones de icono de la barra del jugador (historial y ranking): mismo
+   alto, relleno y estilo que el botón "Cerrar sesión" (.sim-logout-btn). */
+.player-progress-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.player-progress-btn {
+  display: grid;
+  place-items: center;
+  width: 33px;
+  height: 33px;
+  padding: 7px;
+  font-size: 0.8rem;
+}
+
+.player-progress-btn svg {
+  width: 17px;
+  height: 17px;
+}
+
+.player-progress-btn-crown {
+  color: var(--color-crown-gold);
 }
 
 /* Barra superior del contenido: cerrar sesión arriba a la derecha, con el

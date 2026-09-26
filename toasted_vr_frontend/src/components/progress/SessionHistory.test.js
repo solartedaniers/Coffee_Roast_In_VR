@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
-import RoastDataHistoryPanel from '../simulation/RoastDataHistoryPanel';
+import SessionHistoryView from './SessionHistoryView';
 import esTexts from '../../locals/es.json';
 import { getSessionDetail, getSessionHistory, getSessionSummary } from '../../services/progressService';
 import { getRoastingFeedback } from '../../services/simulationService';
@@ -42,13 +42,12 @@ const legacyRawSession = {
 
 const page = (content, extra = {}) => ({ content, number: 0, totalPages: 1, totalElements: content.length, ...extra });
 
-const renderPanel = () =>
-  render(<RoastDataHistoryPanel texts={texts} isOpen onClose={jest.fn()} />);
+const renderPanel = () => render(<SessionHistoryView texts={texts} />);
 
 // Fila 0 = encabezado; las sesiones siguen en el orden que envía el servidor.
 const dataRow = (index) => screen.getAllByRole('row')[index];
 
-describe('RoastDataHistoryPanel', () => {
+describe('SessionHistoryView', () => {
   beforeEach(() => {
     getSessionSummary.mockResolvedValue({ bestScore: 91, averageScore: 53.5, totalSessions: 2 });
     getSessionHistory.mockResolvedValue(page([perfectSession, legacyRawSession]));
@@ -63,7 +62,6 @@ describe('RoastDataHistoryPanel', () => {
 
     expect(await screen.findByText(formatLocalDateTime(perfectSession.createdAt))).toBeInTheDocument();
     expect(screen.queryByText(/todavía no está disponible/)).not.toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: texts.title })).toBeInTheDocument();
     expect(screen.getByText(texts.summary.best)).toBeInTheDocument();
     expect(screen.getByText('91%')).toBeInTheDocument();
     expect(screen.getByText('53.5%')).toBeInTheDocument();
@@ -134,7 +132,7 @@ describe('RoastDataHistoryPanel', () => {
     renderPanel();
 
     expect(await screen.findByText(texts.loadError)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: texts.close })).toBeInTheDocument();
+    expect(screen.getByRole('combobox')).toBeInTheDocument();
   });
 
   test('opens the detail of a session and requests the AI feedback again', async () => {
@@ -177,12 +175,5 @@ describe('RoastDataHistoryPanel', () => {
     fireEvent.click(await screen.findByRole('button', { name: texts.buttons.feedback }));
 
     expect(await screen.findByText(texts.feedback.unavailable)).toBeInTheDocument();
-  });
-
-  test('renders nothing while closed', () => {
-    render(<RoastDataHistoryPanel texts={texts} isOpen={false} onClose={jest.fn()} />);
-
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    expect(getSessionHistory).not.toHaveBeenCalled();
   });
 });

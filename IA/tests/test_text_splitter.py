@@ -30,7 +30,17 @@ def test_propagates_source_metadata_to_every_chunk():
     chunks = splitter.split_documents([Document(sequential_words(400), {"file_name": "example.pdf"})])
 
     assert chunks
-    assert all(chunk.metadata == {"file_name": "example.pdf"} for chunk in chunks)
+    assert all(chunk.metadata["file_name"] == "example.pdf" for chunk in chunks)
+
+
+def test_adds_the_position_metadata_spring_ai_added():
+    chunks = splitter.split_documents([Document(sequential_words(400)), Document("otra página")])
+
+    first_page = [chunk for chunk in chunks if chunk.metadata["total_chunks"] > 1]
+    assert [chunk.metadata["chunk_index"] for chunk in first_page] == list(range(len(first_page)))
+    assert len({chunk.metadata["parent_document_id"] for chunk in first_page}) == 1
+    assert chunks[-1].metadata["parent_document_id"] != chunks[0].metadata["parent_document_id"]
+    assert (chunks[-1].metadata["chunk_index"], chunks[-1].metadata["total_chunks"]) == (0, 1)
 
 
 def test_does_not_share_the_metadata_dictionary_between_chunks():

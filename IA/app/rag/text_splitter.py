@@ -1,4 +1,11 @@
+import uuid
+
 from app.rag.document import Document
+
+# Metadatos de posición que Spring AI agregaba a cada fragmento.
+PARENT_DOCUMENT_ID_KEY = "parent_document_id"
+CHUNK_INDEX_KEY = "chunk_index"
+TOTAL_CHUNKS_KEY = "total_chunks"
 
 # Caracteres que String.strip() de Java considera espacio. A diferencia de Python, Java no
 # quita los espacios de no separación (U+00A0, U+2007, U+202F) ni U+0085.
@@ -24,9 +31,16 @@ class CharacterTextSplitter:
         self.chunk_overlap_chars = chunk_overlap_chars
 
     def split_documents(self, documents: list[Document]) -> list[Document]:
-        return [Document(chunk, dict(document.metadata))
-                for document in documents
-                for chunk in self.split_text(document.text)]
+        result = []
+        for document in documents:
+            chunks = self.split_text(document.text)
+            parent_id = str(uuid.uuid4())
+            for index, chunk in enumerate(chunks):
+                metadata = dict(document.metadata) | {
+                    PARENT_DOCUMENT_ID_KEY: parent_id, CHUNK_INDEX_KEY: index, TOTAL_CHUNKS_KEY: len(chunks),
+                }
+                result.append(Document(chunk, metadata))
+        return result
 
     def split_text(self, text: str) -> list[str]:
         chunks = []

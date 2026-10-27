@@ -52,6 +52,7 @@ class Settings(BaseSettings):
 
     rag_embedding_model: str = "nomic-embed-text"
     rag_embedding_dimensions: int = Field(default=768, gt=0)
+    rag_embedding_batch_size: int = Field(default=32, gt=0)
     rag_vector_table: str = "rag_document_chunks"
     rag_docs_dir: Path = SERVICE_ROOT / "rag-docs"
     rag_top_k: int = Field(default=4, gt=0)

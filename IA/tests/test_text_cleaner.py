@@ -18,7 +18,8 @@ def test_drops_the_trailing_partial_sentence():
     ("¡Excelente!", "¡Excelente!"),
     ("Sin ningún final", "Sin ningún final"),
     ("", ""),
-    ("\n\nTodo después de la línea en blanco.", ""),
+    # Java quita los espacios antes de buscar la línea en blanco.
+    ("\n\nTexto tras saltos iniciales.", "Texto tras saltos iniciales."),
 ])
 def test_cleans_like_java(raw, expected):
     assert cleaner.clean(raw) == expected

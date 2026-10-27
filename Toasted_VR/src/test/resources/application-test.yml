@@ -64,3 +64,4 @@ app:
   unity-code:
     hmac-pepper: unity-access-code-test-pepper
     encryption-key: MDEyMzQ1Njc4OUFCQ0RFRjAxMjM0NTY3ODlBQkNERUY=
+    expiration-minutes: 10

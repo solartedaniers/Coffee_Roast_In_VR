@@ -92,8 +92,13 @@ test('restores original values when edit mode is cancelled', async () => {
   expect(screen.queryByLabelText('contraseña actual')).not.toBeInTheDocument();
 });
 
-test('loads the Unity access status without requesting or displaying a raw code', async () => {
-  fetchUnityAccessCodeStatus.mockResolvedValue({ exists: true, createdAt: '2026-09-03T10:00:00' });
+test('loads the active Unity access status without requesting or displaying a raw code', async () => {
+  fetchUnityAccessCodeStatus.mockResolvedValue({
+    exists: true,
+    active: true,
+    createdAt: '2026-09-03T10:00:00',
+    expiresAt: '2099-09-03T10:10:00Z',
+  });
 
   renderProfileSettings();
 
@@ -101,6 +106,24 @@ test('loads the Unity access status without requesting or displaying a raw code'
   expect(fetchUnityAccessCodeStatus).toHaveBeenCalledTimes(1);
   expect(screen.queryByText('K7MP-4XQ2')).not.toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'Ver código' })).toBeInTheDocument();
+  expect(screen.getByText(/Válido hasta el/)).toBeInTheDocument();
+});
+
+test('shows the generate-new-code action when the Unity access code is expired', async () => {
+  fetchUnityAccessCodeStatus.mockResolvedValue({
+    exists: true,
+    active: false,
+    expiresAt: '2026-09-03T10:10:00Z',
+  });
+
+  renderProfileSettings();
+
+  expect(await screen.findByText('Vencido')).toBeInTheDocument();
+  expect(screen.getByText('Tu código venció. Genera uno nuevo para volver a iniciar sesión en Unity.')).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Generar nuevo código' })).toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'Ver código' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'Enviar por correo' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'Regenerar código' })).not.toBeInTheDocument();
 });
 
 test('creates and copies a Unity access code after password confirmation', async () => {
@@ -126,7 +149,7 @@ test('creates and copies a Unity access code after password confirmation', async
 });
 
 test('reveals a configured code and clears sensitive state when the confirmation closes', async () => {
-  fetchUnityAccessCodeStatus.mockResolvedValue({ exists: true });
+  fetchUnityAccessCodeStatus.mockResolvedValue({ exists: true, active: true, expiresAt: '2099-09-03T10:10:00Z' });
   revealUnityAccessCode.mockResolvedValue({ code: 'ABCD-2345' });
 
   renderProfileSettings();
@@ -147,7 +170,7 @@ test('reveals a configured code and clears sensitive state when the confirmation
 });
 
 test('emails and regenerates a configured Unity access code', async () => {
-  fetchUnityAccessCodeStatus.mockResolvedValue({ exists: true });
+  fetchUnityAccessCodeStatus.mockResolvedValue({ exists: true, active: true, expiresAt: '2099-09-03T10:10:00Z' });
   emailUnityAccessCode.mockResolvedValue(undefined);
   regenerateUnityAccessCode.mockResolvedValue({ code: 'WXYZ-6789' });
 
@@ -160,7 +183,7 @@ test('emails and regenerates a configured Unity access code', async () => {
   });
   fireEvent.click(within(confirmation).getByRole('button', { name: 'Enviar código' }));
 
-  expect(await screen.findByText('El código se envió correctamente a tu correo registrado.')).toBeInTheDocument();
+  expect(await screen.findByText('El código se envió correctamente a tu correo registrado. Su vencimiento no cambió.')).toBeInTheDocument();
   expect(emailUnityAccessCode).toHaveBeenCalledWith('Password123!');
 
   fireEvent.click(screen.getByRole('button', { name: 'Regenerar código' }));

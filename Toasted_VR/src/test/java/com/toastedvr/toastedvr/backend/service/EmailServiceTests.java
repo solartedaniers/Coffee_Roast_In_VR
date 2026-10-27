@@ -40,7 +40,21 @@ class EmailServiceTests {
             .contains("tu contraseña no cambiará");
     }
 
+    @Test
+    void shouldExplainUnityCodeExpirationWithoutExtendingIt() {
+        String body = emailServiceWithExpiration(1, 10).buildUnityAccessCodeMessage("Ana", "ABCD-2345");
+
+        assertThat(body)
+            .contains("ABCD-2345")
+            .contains("expires 10 minutes after it was generated")
+            .contains("does not extend its expiration time");
+    }
+
     private EmailService emailServiceWithExpiration(int minutes) {
+        return emailServiceWithExpiration(minutes, 10);
+    }
+
+    private EmailService emailServiceWithExpiration(int minutes, int unityExpirationMinutes) {
         ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
         messageSource.setBasename("messages");
         messageSource.setDefaultEncoding("UTF-8");
@@ -53,7 +67,8 @@ class EmailServiceTests {
             true,
             "no-reply@toastedvr.test",
             properties,
-            new MessageResolver(messageSource)
+            new MessageResolver(messageSource),
+            unityExpirationMinutes
         );
     }
 }

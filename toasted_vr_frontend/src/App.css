@@ -1461,6 +1461,16 @@ select.field-input:focus {
   font-weight: 700;
 }
 
+.unity-access-badge-active {
+  background: var(--color-success-soft);
+  color: #426b4f;
+}
+
+.unity-access-badge-expired {
+  background: var(--color-danger-soft);
+  color: #8a3f3f;
+}
+
 .unity-access-actions {
   display: flex;
   align-items: center;
@@ -1477,6 +1487,18 @@ select.field-input:focus {
 .unity-regenerate-button,
 .unity-retry-button {
   font-weight: 600;
+}
+
+.unity-regenerate-button {
+  padding: 8px 10px;
+  border: 1px solid rgba(157, 79, 79, 0.35);
+  border-radius: 10px;
+  color: var(--color-danger);
+}
+
+.unity-regenerate-button:hover {
+  color: #7d3434;
+  background: var(--color-danger-soft);
 }
 
 .unity-confirmation-backdrop {
@@ -1992,4 +2014,5 @@ select.field-input:focus {
   .unity-result-close {
     width: 100%;
   }
+
 }

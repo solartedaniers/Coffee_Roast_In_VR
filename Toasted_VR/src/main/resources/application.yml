@@ -85,6 +85,7 @@
     unity-code:
       hmac-pepper: ${UNITY_CODE_HMAC_PEPPER:}
       encryption-key: ${UNITY_CODE_ENCRYPTION_KEY:}
+      expiration-minutes: ${UNITY_ACCESS_CODE_EXPIRATION_MINUTES:10}
     bootstrap-admin:
       enabled: ${APP_BOOTSTRAP_ADMIN_ENABLED:false}
       name: ${APP_BOOTSTRAP_ADMIN_NAME:}

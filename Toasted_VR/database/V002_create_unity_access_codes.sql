@@ -6,6 +6,7 @@ create table if not exists public.unity_access_codes (
   encryption_iv varchar(32) not null,
   encryption_key_version integer not null,
   created_at timestamp not null,
+  expires_at timestamp,
   regenerated_at timestamp,
   last_emailed_at timestamp
 );

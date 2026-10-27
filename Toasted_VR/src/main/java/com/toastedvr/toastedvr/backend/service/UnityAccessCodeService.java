@@ -10,9 +10,12 @@ import com.toastedvr.toastedvr.backend.exception.ResourceNotFoundException;
 import com.toastedvr.toastedvr.backend.repository.UnityAccessCodeRepository;
 import com.toastedvr.toastedvr.backend.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Objects;
 import java.util.Optional;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -25,30 +28,36 @@ public class UnityAccessCodeService {
     private final PasswordEncoder passwordEncoder;
     private final UnityAccessCodeCryptoService cryptoService;
     private final EmailService emailService;
+    private final long expirationMinutes;
 
     public UnityAccessCodeService(
         UnityAccessCodeRepository unityAccessCodeRepository,
         UserRepository userRepository,
         PasswordEncoder passwordEncoder,
         UnityAccessCodeCryptoService cryptoService,
-        EmailService emailService
+        EmailService emailService,
+        @Value("${app.unity-code.expiration-minutes:10}") long expirationMinutes
     ) {
         this.unityAccessCodeRepository = unityAccessCodeRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.cryptoService = cryptoService;
         this.emailService = emailService;
+        this.expirationMinutes = expirationMinutes;
     }
 
     public UnityAccessCodeStatusResponse getStatus(Long userId) {
+        LocalDateTime now = utcNow();
         return unityAccessCodeRepository.findByUserId(Objects.requireNonNull(userId))
             .map(code -> new UnityAccessCodeStatusResponse(
                 true,
+                !code.isExpiredAt(now),
                 code.getCreatedAt(),
                 code.getRegeneratedAt(),
-                code.getLastEmailedAt()
+                code.getLastEmailedAt(),
+                toInstant(code.getExpiresAt())
             ))
-            .orElse(new UnityAccessCodeStatusResponse(false, null, null, null));
+            .orElse(new UnityAccessCodeStatusResponse(false, false, null, null, null, null));
     }
 
     @Transactional
@@ -56,19 +65,37 @@ public class UnityAccessCodeService {
         User user = findUser(userId);
         confirmPassword(user, currentPassword);
 
-        if (unityAccessCodeRepository.findByUserId(user.getId()).isPresent()) {
+        LocalDateTime now = utcNow();
+        Optional<UnityAccessCode> storedCode = unityAccessCodeRepository.findByUserId(user.getId());
+        if (storedCode.isPresent() && !storedCode.get().isExpiredAt(now)) {
             throw new ConflictException("A Unity access code already exists for this user.");
         }
 
         String rawCode = cryptoService.generateCode();
         UnityAccessCodeCryptoService.EncryptedCode encryptedCode = cryptoService.encrypt(rawCode);
+        LocalDateTime expiresAt = now.plusMinutes(expirationMinutes);
+        if (storedCode.isPresent()) {
+            UnityAccessCode accessCode = storedCode.get();
+            accessCode.replaceCode(
+                cryptoService.lookupHash(rawCode),
+                encryptedCode.encryptedCode(),
+                encryptedCode.encryptionIv(),
+                encryptedCode.encryptionKeyVersion(),
+                now,
+                expiresAt
+            );
+            unityAccessCodeRepository.save(accessCode);
+            return toResponse(rawCode, accessCode);
+        }
+
         UnityAccessCode accessCode = new UnityAccessCode(
             user,
             cryptoService.lookupHash(rawCode),
             encryptedCode.encryptedCode(),
             encryptedCode.encryptionIv(),
             encryptedCode.encryptionKeyVersion(),
-            LocalDateTime.now()
+            now,
+            expiresAt
         );
         unityAccessCodeRepository.save(accessCode);
 
@@ -79,7 +106,7 @@ public class UnityAccessCodeService {
     public UnityAccessCodeResponse reveal(Long userId, String currentPassword) {
         User user = findUser(userId);
         confirmPassword(user, currentPassword);
-        UnityAccessCode accessCode = findAccessCode(user.getId());
+        UnityAccessCode accessCode = findActiveAccessCode(user.getId());
         return toResponse(decrypt(accessCode), accessCode);
     }
 
@@ -87,7 +114,7 @@ public class UnityAccessCodeService {
     public void email(Long userId, String currentPassword) {
         User user = findUser(userId);
         confirmPassword(user, currentPassword);
-        UnityAccessCode accessCode = findAccessCode(user.getId());
+        UnityAccessCode accessCode = findActiveAccessCode(user.getId());
         emailService.sendUnityAccessCode(user.getEmail(), user.getName(), cryptoService.formatCode(decrypt(accessCode)));
         accessCode.markEmailed();
         unityAccessCodeRepository.save(accessCode);
@@ -99,13 +126,16 @@ public class UnityAccessCodeService {
         confirmPassword(user, currentPassword);
         UnityAccessCode accessCode = findAccessCode(user.getId());
 
+        LocalDateTime now = utcNow();
         String rawCode = cryptoService.generateCode();
         UnityAccessCodeCryptoService.EncryptedCode encryptedCode = cryptoService.encrypt(rawCode);
         accessCode.replaceCode(
             cryptoService.lookupHash(rawCode),
             encryptedCode.encryptedCode(),
             encryptedCode.encryptionIv(),
-            encryptedCode.encryptionKeyVersion()
+            encryptedCode.encryptionKeyVersion(),
+            now,
+            now.plusMinutes(expirationMinutes)
         );
         unityAccessCodeRepository.save(accessCode);
 
@@ -119,6 +149,7 @@ public class UnityAccessCodeService {
         }
 
         return unityAccessCodeRepository.findByLookupHash(cryptoService.lookupHash(normalizedCode))
+            .filter(code -> !code.isExpiredAt(utcNow()))
             .map((@NonNull UnityAccessCode code) -> code.getUser());
     }
 
@@ -130,6 +161,14 @@ public class UnityAccessCodeService {
     private UnityAccessCode findAccessCode(Long userId) {
         return unityAccessCodeRepository.findByUserId(userId)
             .orElseThrow(() -> new ResourceNotFoundException("No Unity access code exists for this user."));
+    }
+
+    private UnityAccessCode findActiveAccessCode(Long userId) {
+        UnityAccessCode accessCode = findAccessCode(userId);
+        if (accessCode.isExpiredAt(utcNow())) {
+            throw new ResourceNotFoundException("No active Unity access code exists for this user.");
+        }
+        return accessCode;
     }
 
     private void confirmPassword(User user, String currentPassword) {
@@ -150,7 +189,16 @@ public class UnityAccessCodeService {
         return new UnityAccessCodeResponse(
             cryptoService.formatCode(rawCode),
             accessCode.getCreatedAt(),
-            accessCode.getRegeneratedAt()
+            accessCode.getRegeneratedAt(),
+            toInstant(accessCode.getExpiresAt())
         );
+    }
+
+    private LocalDateTime utcNow() {
+        return LocalDateTime.now(ZoneOffset.UTC);
+    }
+
+    private Instant toInstant(LocalDateTime value) {
+        return value == null ? null : value.toInstant(ZoneOffset.UTC);
     }
 }

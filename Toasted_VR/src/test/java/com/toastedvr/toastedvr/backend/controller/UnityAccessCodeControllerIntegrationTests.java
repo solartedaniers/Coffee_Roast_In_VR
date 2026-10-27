@@ -8,6 +8,9 @@ import com.toastedvr.toastedvr.backend.repository.UnityAccessCodeRepository;
 import com.toastedvr.toastedvr.backend.repository.UserRepository;
 import com.toastedvr.toastedvr.backend.security.JwtService;
 import com.toastedvr.toastedvr.backend.security.UserPrincipal;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Map;
 import java.util.Objects;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.lang.NonNull;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -56,6 +60,9 @@ class UnityAccessCodeControllerIntegrationTests {
     @Autowired
     private JwtService jwtService;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
     @MockitoBean
     private JavaMailSender mailSender;
 
@@ -80,6 +87,8 @@ class UnityAccessCodeControllerIntegrationTests {
         assertThat(storedCode.getEncryptedCode()).doesNotContain(code.replace("-", ""));
         assertThat(storedCode.getEncryptionIv()).isNotBlank();
         assertThat(storedCode.getCreatedAt()).isNotNull();
+        assertThat(storedCode.getExpiresAt()).isAfter(storedCode.getCreatedAt());
+        assertThat(storedCode.getExpiresAt()).isBeforeOrEqualTo(storedCode.getCreatedAt().plusMinutes(10));
     }
 
     @Test
@@ -110,7 +119,9 @@ class UnityAccessCodeControllerIntegrationTests {
             )
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.exists").value(true))
+            .andExpect(jsonPath("$.active").value(true))
             .andExpect(jsonPath("$.createdAt").exists())
+            .andExpect(jsonPath("$.expiresAt").exists())
             .andExpect(jsonPath("$.code").doesNotExist())
             .andExpect(jsonPath("$.encryptedCode").doesNotExist())
             .andExpect(jsonPath("$.lookupHash").doesNotExist());
@@ -131,6 +142,7 @@ class UnityAccessCodeControllerIntegrationTests {
     @Test
     void shouldRevealEmailAndRegenerateCodeAfterPasswordConfirmation() throws Exception {
         String originalCode = createCode(CORRECT_PASSWORD);
+        LocalDateTime originalExpiration = storedCode().getExpiresAt();
         String revealedCode = responseField(
             mockMvc.perform(authenticatedPost("/api/v1/users/me/unity-access-code/reveal", CORRECT_PASSWORD))
                 .andExpect(status().isOk())
@@ -141,16 +153,19 @@ class UnityAccessCodeControllerIntegrationTests {
         );
 
         assertThat(revealedCode).isEqualTo(originalCode);
+        assertThat(storedCode().getExpiresAt()).isEqualTo(originalExpiration);
 
         mockMvc.perform(authenticatedPost("/api/v1/users/me/unity-access-code/email", CORRECT_PASSWORD))
             .andExpect(status().isNoContent());
         verify(mailSender).send(anySimpleMailMessage());
-        assertThat(unityAccessCodeRepository.findByUserId(user.getId()).orElseThrow().getLastEmailedAt()).isNotNull();
+        assertThat(storedCode().getLastEmailedAt()).isNotNull();
+        assertThat(storedCode().getExpiresAt()).isEqualTo(originalExpiration);
 
         String regeneratedCode = responseField(
             mockMvc.perform(authenticatedPost("/api/v1/users/me/unity-access-code/regenerate", CORRECT_PASSWORD))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.regeneratedAt").exists())
+                .andExpect(jsonPath("$.expiresAt").exists())
                 .andReturn()
                 .getResponse()
                 .getContentAsString(),
@@ -158,6 +173,7 @@ class UnityAccessCodeControllerIntegrationTests {
         );
 
         assertThat(regeneratedCode).isNotEqualTo(originalCode);
+        assertThat(storedCode().getExpiresAt()).isAfter(originalExpiration);
         assertUnityLoginRejected(originalCode);
         assertUnityLoginAccepted(regeneratedCode.toLowerCase().replace("-", " "));
     }
@@ -167,6 +183,44 @@ class UnityAccessCodeControllerIntegrationTests {
         String code = createCode(CORRECT_PASSWORD);
 
         assertUnityLoginAccepted(code);
+    }
+
+    @Test
+    void shouldRejectUnityLoginAfterCodeExpirationWithGenericMessage() throws Exception {
+        String code = createCode(CORRECT_PASSWORD);
+        updateStoredExpiration(LocalDateTime.now(ZoneOffset.UTC).minusMinutes(1));
+
+        assertUnityLoginRejected(code);
+    }
+
+    @Test
+    void shouldRejectLegacyCodeWithoutExpirationWithGenericMessage() throws Exception {
+        String code = createCode(CORRECT_PASSWORD);
+        jdbcTemplate.update("update unity_access_codes set expires_at = null where user_id = ?", user.getId());
+
+        assertUnityLoginRejected(code);
+
+        mockMvc.perform(
+                get("/api/v1/users/me/unity-access-code")
+                    .header("Authorization", "Bearer " + accessToken)
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.exists").value(true))
+            .andExpect(jsonPath("$.active").value(false))
+            .andExpect(jsonPath("$.expiresAt").doesNotExist());
+    }
+
+    @Test
+    void shouldCreateNewCodeWhenStoredCodeIsExpired() throws Exception {
+        String expiredCode = createCode(CORRECT_PASSWORD);
+        updateStoredExpiration(LocalDateTime.now(ZoneOffset.UTC).minusMinutes(1));
+
+        String replacementCode = createCode(CORRECT_PASSWORD);
+
+        assertThat(replacementCode).isNotEqualTo(expiredCode);
+        assertThat(unityAccessCodeRepository.count()).isEqualTo(1);
+        assertUnityLoginRejected(expiredCode);
+        assertUnityLoginAccepted(replacementCode);
     }
 
     @Test
@@ -201,6 +255,18 @@ class UnityAccessCodeControllerIntegrationTests {
             .getResponse()
             .getContentAsString();
         return responseField(response, "code");
+    }
+
+    private UnityAccessCode storedCode() {
+        return unityAccessCodeRepository.findByUserId(user.getId()).orElseThrow();
+    }
+
+    private void updateStoredExpiration(LocalDateTime expiresAt) {
+        jdbcTemplate.update(
+            "update unity_access_codes set expires_at = ? where user_id = ?",
+            Timestamp.valueOf(expiresAt),
+            user.getId()
+        );
     }
 
     private @NonNull MockHttpServletRequestBuilder authenticatedPost(

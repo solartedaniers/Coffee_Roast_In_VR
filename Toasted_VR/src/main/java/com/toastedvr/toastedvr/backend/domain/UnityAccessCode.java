@@ -38,6 +38,8 @@ public class UnityAccessCode {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    private LocalDateTime expiresAt;
+
     private LocalDateTime regeneratedAt;
 
     private LocalDateTime lastEmailedAt;
@@ -51,7 +53,8 @@ public class UnityAccessCode {
         String encryptedCode,
         String encryptionIv,
         int encryptionKeyVersion,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        LocalDateTime expiresAt
     ) {
         this.user = user;
         this.lookupHash = lookupHash;
@@ -59,6 +62,7 @@ public class UnityAccessCode {
         this.encryptionIv = encryptionIv;
         this.encryptionKeyVersion = encryptionKeyVersion;
         this.createdAt = createdAt;
+        this.expiresAt = expiresAt;
     }
 
     public Long getId() {
@@ -93,16 +97,32 @@ public class UnityAccessCode {
         return regeneratedAt;
     }
 
+    public LocalDateTime getExpiresAt() {
+        return expiresAt;
+    }
+
     public LocalDateTime getLastEmailedAt() {
         return lastEmailedAt;
     }
 
-    public void replaceCode(String lookupHash, String encryptedCode, String encryptionIv, int encryptionKeyVersion) {
+    public void replaceCode(
+        String lookupHash,
+        String encryptedCode,
+        String encryptionIv,
+        int encryptionKeyVersion,
+        LocalDateTime regeneratedAt,
+        LocalDateTime expiresAt
+    ) {
         this.lookupHash = lookupHash;
         this.encryptedCode = encryptedCode;
         this.encryptionIv = encryptionIv;
         this.encryptionKeyVersion = encryptionKeyVersion;
-        this.regeneratedAt = LocalDateTime.now();
+        this.regeneratedAt = regeneratedAt;
+        this.expiresAt = expiresAt;
+    }
+
+    public boolean isExpiredAt(LocalDateTime moment) {
+        return expiresAt == null || !expiresAt.isAfter(moment);
     }
 
     public void markEmailed() {

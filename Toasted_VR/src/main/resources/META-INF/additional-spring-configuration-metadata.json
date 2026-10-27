@@ -98,6 +98,12 @@
       "description": "Clave usada para cifrar el codigo de acceso de Unity."
     },
     {
+      "name": "app.unity-code.expiration-minutes",
+      "type": "java.lang.Long",
+      "description": "Minutes a Unity access code remains valid after creation or regeneration.",
+      "defaultValue": 10
+    },
+    {
       "name": "app.password-policy.min-length",
       "type": "java.lang.Integer",
       "description": "Longitud minima de la contraseña (registro, perfil y recuperacion).",

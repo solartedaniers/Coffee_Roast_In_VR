@@ -27,6 +27,11 @@ const initialPasswordFields = {
   confirmPassword: '',
 };
 
+const formatUnityCodeExpiration = (expiresAt) => new Intl.DateTimeFormat('es-CO', {
+  dateStyle: 'short',
+  timeStyle: 'short',
+}).format(new Date(expiresAt));
+
 function buildInitialForm(user) {
   return {
     name: user.name || '',
@@ -57,6 +62,7 @@ export default function ProfileSettings({
   const [unityCurrentPassword, setUnityCurrentPassword] = useState('');
   const [unityCode, setUnityCode] = useState('');
   const [isUnityActionLoading, setIsUnityActionLoading] = useState(false);
+  const [unityStatusNow, setUnityStatusNow] = useState(() => Date.now());
   const { fieldErrors, setFieldErrors, clearFieldError, clearAllFieldErrors } = useFieldErrors();
 
   const clearUnitySensitiveState = () => {
@@ -73,6 +79,7 @@ export default function ProfileSettings({
     try {
       const nextStatus = await fetchUnityAccessCodeStatus();
       setUnityCodeStatus(nextStatus);
+      setUnityStatusNow(Date.now());
     } catch {
       setUnityStatusMessage({ text: texts.unityAccess.messages.statusError, isError: true });
     } finally {
@@ -96,9 +103,28 @@ export default function ProfileSettings({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser, isOpen]);
 
+  useEffect(() => {
+    if (!isOpen || !unityCodeStatus?.active || !unityCodeStatus.expiresAt) {
+      return undefined;
+    }
+
+    const millisecondsUntilExpiry = new Date(unityCodeStatus.expiresAt).getTime() - Date.now();
+    const refreshDelay = Math.min(Math.max(millisecondsUntilExpiry + 50, 50), 60000);
+    const timeoutId = window.setTimeout(() => setUnityStatusNow(Date.now()), refreshDelay);
+    return () => window.clearTimeout(timeoutId);
+  }, [isOpen, unityCodeStatus, unityStatusNow]);
+
   if (!isOpen) {
     return null;
   }
+
+  const unityCodeIsActive = Boolean(
+    unityCodeStatus?.exists
+      && unityCodeStatus.active
+      && unityCodeStatus.expiresAt
+      && new Date(unityCodeStatus.expiresAt).getTime() > unityStatusNow
+  );
+  const unityCodeIsExpired = Boolean(unityCodeStatus?.exists && !unityCodeIsActive);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -422,16 +448,25 @@ export default function ProfileSettings({
               <h3 id="unity-access-title">{texts.unityAccess.title}</h3>
               <p>{texts.unityAccess.subtitle}</p>
             </div>
-            {unityCodeStatus?.exists && (
-              <span className="unity-access-badge">{texts.unityAccess.configured}</span>
+            {unityCodeIsActive && (
+              <span className="unity-access-badge unity-access-badge-active">{texts.unityAccess.configured}</span>
+            )}
+            {unityCodeIsExpired && (
+              <span className="unity-access-badge unity-access-badge-expired">{texts.unityAccess.expired}</span>
             )}
           </div>
 
           {isUnityStatusLoading ? (
             <p className="unity-access-description" aria-live="polite">{texts.unityAccess.loading}</p>
-          ) : unityCodeStatus?.exists ? (
+          ) : unityCodeIsActive ? (
             <>
               <p className="unity-access-description">{texts.unityAccess.configuredDescription}</p>
+              <p className="unity-access-description">
+                {texts.unityAccess.expiresAt.replace(
+                  '{date}',
+                  formatUnityCodeExpiration(unityCodeStatus.expiresAt)
+                )}
+              </p>
               <div className="unity-access-actions">
                 <button type="button" className="secondary-button" onClick={() => handleOpenUnityAction(UNITY_ACTIONS.reveal)}>
                   {texts.unityAccess.buttons.reveal}
@@ -446,9 +481,13 @@ export default function ProfileSettings({
             </>
           ) : !unityStatusMessage.isError ? (
             <>
-              <p className="unity-access-description">{texts.unityAccess.notConfiguredDescription}</p>
+              <p className="unity-access-description">
+                {unityCodeIsExpired
+                  ? texts.unityAccess.expiredDescription
+                  : texts.unityAccess.notConfiguredDescription}
+              </p>
               <button type="button" className="secondary-button unity-create-button" onClick={() => handleOpenUnityAction(UNITY_ACTIONS.create)}>
-                {texts.unityAccess.buttons.create}
+                {unityCodeIsExpired ? texts.unityAccess.buttons.createNew : texts.unityAccess.buttons.create}
               </button>
             </>
           ) : (

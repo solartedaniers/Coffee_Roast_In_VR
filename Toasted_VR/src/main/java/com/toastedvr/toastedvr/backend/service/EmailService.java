@@ -16,19 +16,22 @@ public class EmailService {
     private final String senderEmail;
     private final OneTimeCodeProperties oneTimeCodeProperties;
     private final MessageResolver messages;
+    private final long unityAccessCodeExpirationMinutes;
 
     public EmailService(
         JavaMailSender mailSender,
         @Value("${app.mail.enabled:false}") boolean mailEnabled,
         @Value("${app.mail.from:no-reply@toastedvr.local}") String senderEmail,
         OneTimeCodeProperties oneTimeCodeProperties,
-        MessageResolver messages
+        MessageResolver messages,
+        @Value("${app.unity-code.expiration-minutes:10}") long unityAccessCodeExpirationMinutes
     ) {
         this.mailSender = mailSender;
         this.mailEnabled = mailEnabled;
         this.senderEmail = senderEmail;
         this.oneTimeCodeProperties = oneTimeCodeProperties;
         this.messages = messages;
+        this.unityAccessCodeExpirationMinutes = unityAccessCodeExpirationMinutes;
     }
 
     public void sendVerificationCode(String recipientEmail, String recipientName, String verificationCode) {
@@ -103,13 +106,13 @@ public class EmailService {
         );
     }
 
-    private String buildUnityAccessCodeMessage(String recipientName, String unityAccessCode) {
+    String buildUnityAccessCodeMessage(String recipientName, String unityAccessCode) {
         return """
             Hello %s,
 
-            Your permanent Toasted VR Unity access code is: %s
+            Your Toasted VR Unity access code is: %s
 
-            Keep this code private. It remains valid until you regenerate it from your profile.
-            """.formatted(recipientName, unityAccessCode);
+            Keep this code private. It expires %d minutes after it was generated. Sending this email does not extend its expiration time.
+            """.formatted(recipientName, unityAccessCode, unityAccessCodeExpirationMinutes);
     }
 }

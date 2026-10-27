@@ -1,5 +1,6 @@
 package com.toastedvr.toastedvr.backend.controller;
 
+import com.toastedvr.toastedvr.backend.client.AiFeedbackClient;
 import com.toastedvr.toastedvr.backend.domain.KnowledgeLevel;
 import com.toastedvr.toastedvr.backend.domain.RoastingResult;
 import com.toastedvr.toastedvr.backend.domain.RoastingSession;
@@ -8,7 +9,6 @@ import com.toastedvr.toastedvr.backend.dto.SessionHistoryItemResponse;
 import com.toastedvr.toastedvr.backend.dto.SessionHistorySummaryResponse;
 import com.toastedvr.toastedvr.backend.dto.SessionResultResponse;
 import com.toastedvr.toastedvr.backend.security.UserPrincipal;
-import com.toastedvr.toastedvr.backend.service.OllamaFeedbackService;
 import com.toastedvr.toastedvr.backend.service.RoastingSessionService;
 import jakarta.validation.Valid;
 import java.util.Map;
@@ -30,14 +30,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class RoastingSessionController {
 
     private final RoastingSessionService roastingSessionService;
-    private final OllamaFeedbackService ollamaFeedbackService;
+    private final AiFeedbackClient aiFeedbackClient;
 
     public RoastingSessionController(
         RoastingSessionService roastingSessionService,
-        OllamaFeedbackService ollamaFeedbackService
+        AiFeedbackClient aiFeedbackClient
     ) {
         this.roastingSessionService = roastingSessionService;
-        this.ollamaFeedbackService = ollamaFeedbackService;
+        this.aiFeedbackClient = aiFeedbackClient;
     }
 
     @PostMapping("/sessions")
@@ -85,7 +85,7 @@ public class RoastingSessionController {
             session.getKnowledgeLevel(),
             session.getUser().getKnowledgeLevel()
         );
-        String feedback = Objects.requireNonNullElse(ollamaFeedbackService.generateFeedback(session, level), "");
+        String feedback = Objects.requireNonNullElse(aiFeedbackClient.generateFeedback(session, level), "");
         return Map.of("feedback", feedback);
     }
 }

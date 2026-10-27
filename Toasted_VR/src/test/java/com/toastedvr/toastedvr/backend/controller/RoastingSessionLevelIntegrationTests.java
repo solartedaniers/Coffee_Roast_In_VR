@@ -2,6 +2,7 @@ package com.toastedvr.toastedvr.backend.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.toastedvr.toastedvr.backend.client.AiFeedbackClient;
 import com.toastedvr.toastedvr.backend.domain.KnowledgeLevel;
 import com.toastedvr.toastedvr.backend.domain.RoastingResult;
 import com.toastedvr.toastedvr.backend.domain.RoastingSession;
@@ -12,7 +13,6 @@ import com.toastedvr.toastedvr.backend.repository.RoastingSessionRepository;
 import com.toastedvr.toastedvr.backend.repository.UserRepository;
 import com.toastedvr.toastedvr.backend.security.JwtService;
 import com.toastedvr.toastedvr.backend.security.UserPrincipal;
-import com.toastedvr.toastedvr.backend.service.OllamaFeedbackService;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -68,7 +68,7 @@ class RoastingSessionLevelIntegrationTests {
     private JwtService jwtService;
 
     @MockitoBean
-    private OllamaFeedbackService ollamaFeedbackService;
+    private AiFeedbackClient aiFeedbackClient;
 
     private User player;
 
@@ -80,7 +80,7 @@ class RoastingSessionLevelIntegrationTests {
         player.assignRole(Role.PLAYER);
         player.updateKnowledgeLevel(KnowledgeLevel.INTERMEDIATE);
         player = userRepository.save(Objects.requireNonNull(player));
-        when(ollamaFeedbackService.generateFeedback(any(), any())).thenReturn("ok");
+        when(aiFeedbackClient.generateFeedback(any(), any())).thenReturn("ok");
     }
 
     // Los demás tests borran usuarios sin borrar sesiones; se limpia al salir
@@ -123,7 +123,7 @@ class RoastingSessionLevelIntegrationTests {
 
         requestFeedback(sessionId);
 
-        verify(ollamaFeedbackService).generateFeedback(any(RoastingSession.class), eq(KnowledgeLevel.INTERMEDIATE));
+        verify(aiFeedbackClient).generateFeedback(any(RoastingSession.class), eq(KnowledgeLevel.INTERMEDIATE));
     }
 
     @Test
@@ -134,7 +134,7 @@ class RoastingSessionLevelIntegrationTests {
 
         requestFeedback(legacy.getId());
 
-        verify(ollamaFeedbackService).generateFeedback(any(RoastingSession.class), eq(KnowledgeLevel.INTERMEDIATE));
+        verify(aiFeedbackClient).generateFeedback(any(RoastingSession.class), eq(KnowledgeLevel.INTERMEDIATE));
     }
 
     private JsonNode save(Map<String, Object> payload) throws Exception {

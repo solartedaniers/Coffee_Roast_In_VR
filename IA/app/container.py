@@ -11,13 +11,14 @@ from app.feedback.providers.ollama import OllamaFeedbackProvider, OllamaOptions
 from app.feedback.service import FeedbackService
 from app.feedback.text_cleaner import FeedbackTextCleaner
 from app.net.bounded_http import BoundedHttpClient, HttpTimeout
-from app.rag.chunk_search import ChunkSearch, SemanticChunkSearch
+from app.rag.chunk_search import ChunkSearch, HybridChunkSearch, SemanticChunkSearch
 from app.rag.context_retriever import RagContextRetriever
 from app.rag.database import Database
 from app.rag.embeddings import OllamaEmbeddings
 from app.rag.ingestion_service import RagIngestionService
 from app.rag.pdf_reader import PdfPageReader
 from app.rag.query_builder import RagQueryBuilder
+from app.rag.rank_fusion import ReciprocalRankFusion
 from app.rag.schema import RagSchema
 from app.rag.text_splitter import CharacterTextSplitter
 from app.roast_reference import DevelopmentTimeRange
@@ -77,6 +78,10 @@ def build_embeddings(settings: Settings, http: BoundedHttpClient) -> OllamaEmbed
 
 def build_chunk_search(settings: Settings, database: Database, embeddings: OllamaEmbeddings) -> ChunkSearch:
     """La misma búsqueda la usan la retroalimentación y la evaluación del RAG."""
+    if settings.rag_hybrid_search_enabled:
+        return HybridChunkSearch(database, settings.rag_vector_table, embeddings,
+                                 ReciprocalRankFusion(settings.rag_rrf_k), settings.rag_candidate_pool,
+                                 settings.rag_text_search_config)
     return SemanticChunkSearch(database, settings.rag_vector_table, embeddings)
 
 

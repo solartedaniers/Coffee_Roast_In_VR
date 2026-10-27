@@ -58,6 +58,11 @@ class Settings(BaseSettings):
     rag_top_k: int = Field(default=4, gt=0)
     rag_chunk_size_chars: int = Field(default=700, gt=0)
     rag_chunk_overlap_chars: int = Field(default=100, ge=0)
+    # Búsqueda híbrida: semántica + texto completo de Postgres, combinadas con RRF.
+    rag_hybrid_search_enabled: bool = False
+    rag_rrf_k: int = Field(default=60, ge=0)
+    rag_candidate_pool: int = Field(default=20, gt=0)
+    rag_text_search_config: str = "spanish"
     # Development Time Ratio óptimo para cafés de altura de Nariño. Solo describe la
     # desviación en la búsqueda del RAG; no afecta el puntaje ni la fase del tueste.
     rag_dtr_optimal_min: float = 0.18

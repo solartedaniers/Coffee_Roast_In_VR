@@ -1,4 +1,5 @@
 """Formato de números igual al de String.format(Locale.US, ...) de Java, para que el prompt no cambie."""
+import math
 from decimal import ROUND_HALF_UP, Decimal
 
 NULL_TEXT = "null"
@@ -13,6 +14,10 @@ def fixed(value: float | None, places: int) -> str:
     """
     if value is None:
         return NULL_TEXT[:places]
+    if math.isnan(value):
+        return "NaN"
+    if math.isinf(value):
+        return "Infinity" if value > 0 else "-Infinity"
     exponent = Decimal(1).scaleb(-places)
     return format(Decimal(repr(float(value))).quantize(exponent, rounding=ROUND_HALF_UP), "f")
 

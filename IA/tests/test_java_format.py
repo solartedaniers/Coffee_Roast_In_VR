@@ -35,3 +35,9 @@ def test_formats_nulls_like_java():
 def test_formats_integers_and_enums():
     assert integer(92) == "92"
     assert text(RoastingResult.PERFECT) == "PERFECT"
+
+
+def test_formats_non_finite_values_like_java():
+    assert fixed(float("inf"), 0) == "Infinity"
+    assert fixed(float("-inf"), 1) == "-Infinity"
+    assert fixed(float("nan"), 1) == "NaN"

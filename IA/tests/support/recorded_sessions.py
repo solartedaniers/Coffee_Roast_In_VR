@@ -8,7 +8,7 @@ from pathlib import Path
 from app.contracts import RoastFeedbackRequest
 from app.domain import KnowledgeLevel, RoastingResult
 
-SNAPSHOTS_DIR = Path(__file__).resolve().parents[2] / "src" / "test" / "resources" / "snapshots"
+SNAPSHOTS_DIR = Path(__file__).resolve().parents[1] / "snapshots"
 
 
 @dataclass(frozen=True)

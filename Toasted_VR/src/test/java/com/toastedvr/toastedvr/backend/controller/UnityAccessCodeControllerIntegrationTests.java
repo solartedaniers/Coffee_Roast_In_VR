@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Map;
 import java.util.Objects;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,6 +76,12 @@ class UnityAccessCodeControllerIntegrationTests {
         userRepository.deleteAll();
         user = createUser("Unity User", "unity@toastedvr.test", "unityUser", true, true);
         accessToken = jwtService.generateToken(new UserPrincipal(user));
+    }
+
+    @AfterEach
+    void cleanDatabase() {
+        unityAccessCodeRepository.deleteAll();
+        userRepository.deleteAll();
     }
 
     @Test

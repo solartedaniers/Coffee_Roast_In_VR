@@ -23,6 +23,11 @@ class ApplicationConfigurationTests {
         assertThat(properties.getProperty("spring.jpa.show-sql")).isEqualTo("${JPA_SHOW_SQL:false}");
     }
 
+    @Test
+    void shouldReachTheAiServiceOnTheLocalHostByDefault() {
+        assertThat(properties.getProperty("app.ai-service.base-url")).isEqualTo("${AI_SERVICE_BASE_URL:http://localhost:8082}");
+    }
+
     private static Properties loadApplicationYaml() {
         YamlPropertiesFactoryBean factory = new YamlPropertiesFactoryBean();
         factory.setResources(new ClassPathResource("application.yml"));

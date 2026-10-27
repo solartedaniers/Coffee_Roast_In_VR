@@ -11,7 +11,7 @@ from app.feedback.providers.ollama import OllamaFeedbackProvider, OllamaOptions
 from app.feedback.service import FeedbackService
 from app.feedback.text_cleaner import FeedbackTextCleaner
 from app.net.bounded_http import BoundedHttpClient, HttpTimeout
-from app.rag.chunk_search import SemanticChunkSearch
+from app.rag.chunk_search import ChunkSearch, SemanticChunkSearch
 from app.rag.context_retriever import RagContextRetriever
 from app.rag.database import Database
 from app.rag.embeddings import OllamaEmbeddings
@@ -59,19 +59,36 @@ def provider_configuration(settings: Settings) -> str:
     return ",".join(f"{name}:{models[name]}" for name in settings.feedback_provider_chain)
 
 
+def build_http(settings: Settings) -> BoundedHttpClient:
+    return BoundedHttpClient([settings.groq_base_url, settings.ollama_base_url], settings.http_max_response_bytes)
+
+
+def build_database(settings: Settings, read_only: bool = False) -> Database:
+    return Database(settings.db_url, settings.db_username, settings.db_password.get_secret_value(),
+                    settings.db_connect_timeout_seconds, read_only)
+
+
+def build_embeddings(settings: Settings, http: BoundedHttpClient) -> OllamaEmbeddings:
+    return OllamaEmbeddings(http, settings.ollama_base_url, settings.rag_embedding_model,
+                            settings.rag_embedding_dimensions,
+                            HttpTimeout(seconds(settings.ollama_connect_timeout_millis),
+                                        seconds(settings.ollama_read_timeout_millis)))
+
+
+def build_chunk_search(settings: Settings, database: Database, embeddings: OllamaEmbeddings) -> ChunkSearch:
+    """La misma búsqueda la usan la retroalimentación y la evaluación del RAG."""
+    return SemanticChunkSearch(database, settings.rag_vector_table, embeddings)
+
+
 def build_services(settings: Settings) -> Services:
-    http = BoundedHttpClient([settings.groq_base_url, settings.ollama_base_url], settings.http_max_response_bytes)
-    database = Database(settings.db_url, settings.db_username, settings.db_password.get_secret_value(),
-                        settings.db_connect_timeout_seconds)
+    http = build_http(settings)
+    database = build_database(settings)
     development_range = DevelopmentTimeRange(settings.rag_dtr_optimal_min, settings.rag_dtr_optimal_max)
-    embeddings = OllamaEmbeddings(http, settings.ollama_base_url, settings.rag_embedding_model,
-                                  settings.rag_embedding_dimensions,
-                                  HttpTimeout(seconds(settings.ollama_connect_timeout_millis),
-                                              seconds(settings.ollama_read_timeout_millis)))
+    embeddings = build_embeddings(settings, http)
     providers = build_providers(settings, http)
     cache = FeedbackCache(settings.feedback_cache_ttl_seconds, settings.feedback_cache_max_entries)
     feedback = FeedbackService(
-        RagContextRetriever(SemanticChunkSearch(database, settings.rag_vector_table, embeddings),
+        RagContextRetriever(build_chunk_search(settings, database, embeddings),
                             RagQueryBuilder(development_range), settings.rag_top_k),
         FeedbackPromptBuilder(development_range),
         ProviderChain([providers[name] for name in settings.feedback_provider_chain], FeedbackTextCleaner(),

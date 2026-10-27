@@ -58,9 +58,10 @@ jobs:
         working-directory: IA
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-python@v5
         with:
-          distribution: temurin
-          java-version: '17'
-          cache: maven
-      - run: ./mvnw -B test
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: IA/pyproject.toml
+      - run: python -m pip install -e ".[dev]"
+      - run: python -m pytest -q

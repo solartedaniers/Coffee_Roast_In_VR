@@ -1,0 +1,46 @@
+import logging
+
+from app.contracts import RoastFeedbackRequest
+from app.domain import KnowledgeLevel
+from app.rag.database import Database
+from app.rag.embeddings import OllamaEmbeddings
+from app.rag.query_builder import RagQueryBuilder
+from app.rag.vector_store import FILE_NAME_METADATA_KEY, PgVectorStore, ScoredChunk
+
+log = logging.getLogger(__name__)
+PREVIEW_CHARS = 80
+
+
+class RagContextRetriever:
+    """Fragmentos de rag-docs/ más parecidos a la sesión, para agregarlos al prompt."""
+
+    def __init__(self, database: Database, vector_table: str, embeddings: OllamaEmbeddings,
+                 query_builder: RagQueryBuilder, top_k: int):
+        self.database = database
+        self.vector_table = vector_table
+        self.embeddings = embeddings
+        self.query_builder = query_builder
+        self.top_k = top_k
+
+    def find_relevant_chunks(self, session: RoastFeedbackRequest, knowledge_level: KnowledgeLevel | None) -> list[str]:
+        # El RAG es un extra sobre la retroalimentación: si falla (base caída, índice vacío,
+        # Ollama apagado) se sigue sin contexto, nunca se rompe la respuesta.
+        try:
+            vector = self.embeddings.embed_one(self.query_builder.build(session, knowledge_level))
+            with self.database.transaction() as connection:
+                chunks = PgVectorStore(connection, self.vector_table).similarity_search(vector, self.top_k)
+        except Exception as error:
+            log.warning("RAG retrieval failed, continuing without extra context: %s", error)
+            return []
+        self._log_retrieved(chunks)
+        return [chunk.text for chunk in chunks]
+
+    @staticmethod
+    def _log_retrieved(chunks: list[ScoredChunk]) -> None:
+        # Siempre visible (no solo en debug) para verificar el RAG desde los logs.
+        if not chunks:
+            log.info("RAG retrieval returned 0 chunks (empty index or no match above threshold)")
+        for chunk in chunks:
+            preview = chunk.text if len(chunk.text) <= PREVIEW_CHARS else chunk.text[:PREVIEW_CHARS] + "..."
+            log.info('RAG retrieved chunk from file=%s score=%s: "%s"',
+                     chunk.metadata.get(FILE_NAME_METADATA_KEY, "unknown"), chunk.score, preview)

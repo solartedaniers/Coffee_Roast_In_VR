@@ -60,6 +60,8 @@ class Settings(BaseSettings):
     rag_chunk_overlap_chars: int = Field(default=100, ge=0)
     # Filtros sobre lo recuperado. 0 (o false) los deja apagados.
     rag_min_similarity: float = Field(default=0.0, ge=0, le=1)
+    rag_deduplicate_chunks: bool = False
+    rag_max_chunks_per_page: int = Field(default=0, ge=0)
     # Candidatos que se piden antes de filtrar, para que queden top_k después de los filtros.
     rag_candidate_pool: int = Field(default=20, gt=0)
     # Development Time Ratio óptimo para cafés de altura de Nariño. Solo describe la

@@ -11,7 +11,13 @@ from app.feedback.providers.ollama import OllamaFeedbackProvider, OllamaOptions
 from app.feedback.service import FeedbackService
 from app.feedback.text_cleaner import FeedbackTextCleaner
 from app.net.bounded_http import BoundedHttpClient, HttpTimeout
-from app.rag.chunk_filters import ChunkFilter, FilteredChunkSearch, MinimumSimilarityFilter
+from app.rag.chunk_filters import (
+    ChunkFilter,
+    DuplicateTextFilter,
+    FilteredChunkSearch,
+    MinimumSimilarityFilter,
+    PageQuotaFilter,
+)
 from app.rag.chunk_search import ChunkSearch, SemanticChunkSearch
 from app.rag.context_retriever import RagContextRetriever
 from app.rag.database import Database
@@ -87,6 +93,10 @@ def build_chunk_filters(settings: Settings) -> list[ChunkFilter]:
     filters: list[ChunkFilter] = []
     if settings.rag_min_similarity > 0:
         filters.append(MinimumSimilarityFilter(settings.rag_min_similarity))
+    if settings.rag_deduplicate_chunks:
+        filters.append(DuplicateTextFilter())
+    if settings.rag_max_chunks_per_page > 0:
+        filters.append(PageQuotaFilter(settings.rag_max_chunks_per_page))
     return filters
 
 

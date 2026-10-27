@@ -1,5 +1,12 @@
+import pytest
+
 from app.container import build_chunk_search
-from app.rag.chunk_filters import FilteredChunkSearch, MinimumSimilarityFilter
+from app.rag.chunk_filters import (
+    DuplicateTextFilter,
+    FilteredChunkSearch,
+    MinimumSimilarityFilter,
+    PageQuotaFilter,
+)
 from app.rag.chunk_search import SemanticChunkSearch
 from app.rag.vector_store import ScoredChunk
 
@@ -51,3 +58,29 @@ def test_the_container_only_wraps_the_search_when_a_filter_is_on(settings):
     assert isinstance(filtered, FilteredChunkSearch)
     assert [type(item) for item in filtered.filters] == [MinimumSimilarityFilter]
     assert filtered.candidate_pool == 20
+
+
+def test_keeps_the_first_copy_of_repeated_texts():
+    kept = DuplicateTextFilter().apply([chunk("Mismo  texto", 0.9), chunk("mismo texto", 0.8), chunk("otro", 0.7)])
+
+    assert [(item.text, item.score) for item in kept] == [("Mismo  texto", 0.9), ("otro", 0.7)]
+
+
+def test_limits_the_chunks_taken_from_the_same_page():
+    chunks = [chunk("a", page=1), chunk("b", page=1), chunk("c", page=2), chunk("d", file_name="b.pdf", page=1)]
+
+    assert texts(PageQuotaFilter(1).apply(chunks)) == ["a", "c", "d"]
+
+
+def test_rejects_a_page_quota_below_one():
+    with pytest.raises(ValueError):
+        PageQuotaFilter(0)
+
+
+def test_the_container_applies_the_filters_in_order(settings):
+    configured = settings.model_copy(update={"rag_min_similarity": 0.5, "rag_deduplicate_chunks": True,
+                                             "rag_max_chunks_per_page": 2})
+
+    filtered = build_chunk_search(configured, object(), object())
+
+    assert [type(item) for item in filtered.filters] == [MinimumSimilarityFilter, DuplicateTextFilter, PageQuotaFilter]

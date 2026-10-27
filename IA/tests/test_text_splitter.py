@@ -1,7 +1,8 @@
 import pytest
 
 from app.rag.document import Document
-from app.rag.text_splitter import CharacterTextSplitter, java_strip
+from app.java_format import java_strip
+from app.rag.text_splitter import CharacterTextSplitter
 
 splitter = CharacterTextSplitter(700, 100)
 

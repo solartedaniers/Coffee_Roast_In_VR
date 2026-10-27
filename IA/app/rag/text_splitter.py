@@ -1,25 +1,12 @@
 import uuid
 
+from app.java_format import java_strip
 from app.rag.document import Document
 
 # Metadatos de posición que Spring AI agregaba a cada fragmento.
 PARENT_DOCUMENT_ID_KEY = "parent_document_id"
 CHUNK_INDEX_KEY = "chunk_index"
 TOTAL_CHUNKS_KEY = "total_chunks"
-
-# Caracteres que String.strip() de Java considera espacio. A diferencia de Python, Java no
-# quita los espacios de no separación (U+00A0, U+2007, U+202F) ni U+0085.
-_JAVA_NON_WHITESPACE = {chr(0x00A0), chr(0x2007), chr(0x202F), chr(0x0085)}
-
-
-def java_strip(value: str) -> str:
-    start, end = 0, len(value)
-    while start < end and value[start].isspace() and value[start] not in _JAVA_NON_WHITESPACE:
-        start += 1
-    while end > start and value[end - 1].isspace() and value[end - 1] not in _JAVA_NON_WHITESPACE:
-        end -= 1
-    return value[start:end]
-
 
 class CharacterTextSplitter:
     """Ventana deslizante por caracteres, con solapamiento, igual a la que usaba el servicio en Java."""

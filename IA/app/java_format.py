@@ -30,3 +30,17 @@ def integer(value: int | None) -> str:
 def text(value: object | None) -> str:
     """Equivale a "%s" con enums y cadenas."""
     return NULL_TEXT if value is None else str(value)
+
+
+# Caracteres que String.strip() de Java considera espacio. A diferencia de Python, Java no
+# quita los espacios de no separación (U+00A0, U+2007, U+202F) ni U+0085.
+_JAVA_NON_WHITESPACE = {chr(0x00A0), chr(0x2007), chr(0x202F), chr(0x0085)}
+
+
+def java_strip(value: str) -> str:
+    start, end = 0, len(value)
+    while start < end and value[start].isspace() and value[start] not in _JAVA_NON_WHITESPACE:
+        start += 1
+    while end > start and value[end - 1].isspace() and value[end - 1] not in _JAVA_NON_WHITESPACE:
+        end -= 1
+    return value[start:end]

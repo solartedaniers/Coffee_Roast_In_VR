@@ -9,7 +9,7 @@ TOTAL_CHUNKS_KEY = "total_chunks"
 
 # Caracteres que String.strip() de Java considera espacio. A diferencia de Python, Java no
 # quita los espacios de no separación (U+00A0, U+2007, U+202F) ni U+0085.
-_JAVA_NON_WHITESPACE = {" ", " ", " ", "\u0085"}
+_JAVA_NON_WHITESPACE = {chr(0x00A0), chr(0x2007), chr(0x202F), chr(0x0085)}
 
 
 def java_strip(value: str) -> str:

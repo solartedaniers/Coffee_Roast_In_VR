@@ -57,7 +57,8 @@ def test_skips_chunks_that_are_only_whitespace():
 
 def test_strips_like_java():
     assert java_strip("\t texto \n") == "texto"
-    assert java_strip(" texto ") == " texto "
+    no_break_space = chr(0x00A0)
+    assert java_strip(f"{no_break_space}texto{no_break_space}") == f"{no_break_space}texto{no_break_space}"
 
 
 def test_rejects_an_overlap_as_large_as_the_chunk():

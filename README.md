@@ -100,30 +100,34 @@ JPA_SHOW_SQL=true
    ```
 4. La aplicacion quedara disponible en `http://localhost:3000`.
 
-### 3. Retroalimentacion con IA (Ollama + Phi-4-mini) - Opcional
+### 3. Retroalimentacion con IA (Groq + Ollama) - Opcional
 
-Tengo la parte de IA separada en su propio servicio, la carpeta `IA/`: genera
-la retroalimentacion que se muestra al finalizar un tueste con un modelo local
-via [Ollama](https://ollama.com) y hace el RAG sobre los PDFs de
-`IA/src/main/resources/rag-docs/`. Corre en el host, fuera de Docker, igual
-que Ollama. El frontend y Unity siguen llamando al backend como siempre, y el
-backend le delega el trabajo al servicio IA.
+Tengo la parte de IA separada en su propio servicio, la carpeta `IA/`, escrito
+en Python con FastAPI: genera la retroalimentacion que se muestra al finalizar
+un tueste y hace el RAG sobre los PDFs de `IA/rag-docs/`. La retroalimentacion
+la redacta Groq (`openai/gpt-oss-120b`, capa gratuita) y, si Groq falla o se
+queda sin cuota, Ollama local (`phi4-mini`). Corre en el host, fuera de Docker,
+igual que Ollama. El frontend y Unity siguen llamando al backend como siempre,
+y el backend le delega el trabajo al servicio IA.
 
 **Instalacion**
 1. Instalo Ollama desde [https://ollama.com](https://ollama.com).
 2. Descargo los modelos:
    ```bash
-   ollama pull phi4-mini
    ollama pull nomic-embed-text
+   ollama pull phi4-mini
    ```
-3. Levanto el servicio IA siguiendo `IA/README.md` (`./mvnw spring-boot:run`
-   desde `IA/`, queda en `http://127.0.0.1:8082`).
+3. Si quiero usar Groq, creo una llave en [https://console.groq.com](https://console.groq.com)
+   y la pongo como `GROQ_API_KEY` en `IA/.env` (ese archivo nunca se sube).
+4. Levanto el servicio IA siguiendo `IA/README.md` (Python 3.12, entorno
+   virtual en `IA/.venv` y `python -m app` desde `IA/`; queda en
+   `http://127.0.0.1:8082`).
 
 El backend encuentra el servicio IA con `AI_SERVICE_BASE_URL` (backend en el
 host) o `DOCKER_AI_SERVICE_BASE_URL` (backend en Docker) en `Toasted_VR/.env`,
 ver `Toasted_VR/.env.example`.
 
-**Es opcional.** Si el servicio IA u Ollama no estan corriendo, el resto de
+**Es opcional.** Si el servicio IA no esta corriendo, o ni Groq ni Ollama responden, el resto de
 la aplicacion funciona con normalidad; simplemente no se muestra la
 retroalimentacion de IA y en su lugar aparece el mensaje "Retroalimentacion
 no disponible por ahora".
@@ -136,13 +140,13 @@ Trabajo cada cambio en su propia rama y lo integro a `main` solo por Pull Reques
 
 - `backend-tests`: los tests de `Toasted_VR` con Java 17 y Maven (`./mvnw -B test`). Usan el perfil `test` (H2 en memoria, correo deshabilitado y servicio IA simulado), así que no necesitan PostgreSQL, el servicio IA ni SMTP.
 - `frontend-tests`: en `toasted_vr_frontend` con Node 20 corre `npm ci`, los tests con `CI=true` y `npm run build`.
-- `ai-tests`: los tests del servicio `IA/` con Java 17 y Maven. También usan H2 y no necesitan Ollama.
+- `ai-tests`: los tests del servicio `IA/` con Python 3.12 y pytest. No necesitan PostgreSQL, Ollama ni Groq.
 
 Solo fusiono un PR cuando los checks están en verde. Para revisarlo antes de abrir el PR, corro lo mismo localmente:
 
 ```bash
 cd Toasted_VR && ./mvnw -B test
-cd IA && ./mvnw -B test
+cd IA && .venv/Scripts/python -m pytest -q
 cd toasted_vr_frontend && npm ci && CI=true npm test -- --watchAll=false && CI=true npm run build
 ```
 

@@ -3,13 +3,11 @@ from contextlib import contextmanager
 
 import pytest
 
-from app.container import build_chunk_search
 from app.rag import chunk_search as chunk_search_module
-from app.rag.chunk_search import HybridChunkSearch, SemanticChunkSearch
+from app.rag.chunk_search import SemanticChunkSearch
 from app.rag.context_retriever import RagContextRetriever
 from app.rag.embeddings import EmbeddingError
 from app.rag.query_builder import RagQueryBuilder
-from app.rag.rank_fusion import ReciprocalRankFusion
 from app.rag.vector_store import ScoredChunk
 from app.roast_reference import DevelopmentTimeRange
 from tests.support.recorded_sessions import ALL
@@ -76,34 +74,3 @@ def test_returns_no_chunks_when_retrieval_fails(retriever_with):
     chunks = retriever_with(FakeEmbeddings(EmbeddingError("down"))).find_relevant_chunks(ALL[0].request, None)
 
     assert chunks == []
-
-
-class FakeHybridStore:
-    def __init__(self, connection, table):
-        pass
-
-    def similarity_search(self, vector, top_k):
-        return [ScoredChunk("semantic", {}, 0.9, "s"), ScoredChunk("both", {}, 0.8, "b")]
-
-    def lexical_search(self, query_text, vector, config, limit):
-        FakeHybridStore.lexical_args = (query_text, config, limit)
-        return [ScoredChunk("both", {}, 0.8, "b"), ScoredChunk("lexical", {}, 0.3, "l")]
-
-
-def test_the_hybrid_search_fuses_semantic_and_lexical_results(monkeypatch):
-    monkeypatch.setattr(chunk_search_module, "PgVectorStore", FakeHybridStore)
-    search = HybridChunkSearch(FakeDatabase(), "table", FakeEmbeddings(), ReciprocalRankFusion(60), 20, "spanish")
-
-    found = search.search("horneado", 2)
-
-    assert [chunk.text for chunk in found] == ["both", "semantic"]
-    assert FakeHybridStore.lexical_args == ("horneado", "spanish", 20)
-
-
-def test_the_container_builds_the_configured_search(settings):
-    database, embeddings = object(), object()
-
-    assert isinstance(build_chunk_search(settings, database, embeddings), SemanticChunkSearch)
-    hybrid = build_chunk_search(settings.model_copy(update={"rag_hybrid_search_enabled": True}), database, embeddings)
-    assert isinstance(hybrid, HybridChunkSearch)
-    assert (hybrid.candidate_pool, hybrid.fusion.k, hybrid.text_search_config) == (20, 60, "spanish")

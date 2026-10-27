@@ -11,6 +11,7 @@ from app.feedback.providers.ollama import OllamaFeedbackProvider, OllamaOptions
 from app.feedback.service import FeedbackService
 from app.feedback.text_cleaner import FeedbackTextCleaner
 from app.net.bounded_http import BoundedHttpClient, HttpTimeout
+from app.rag.chunk_filters import ChunkFilter, FilteredChunkSearch, MinimumSimilarityFilter
 from app.rag.chunk_search import ChunkSearch, SemanticChunkSearch
 from app.rag.context_retriever import RagContextRetriever
 from app.rag.database import Database
@@ -77,7 +78,16 @@ def build_embeddings(settings: Settings, http: BoundedHttpClient) -> OllamaEmbed
 
 def build_chunk_search(settings: Settings, database: Database, embeddings: OllamaEmbeddings) -> ChunkSearch:
     """La misma búsqueda la usan la retroalimentación y la evaluación del RAG."""
-    return SemanticChunkSearch(database, settings.rag_vector_table, embeddings)
+    search = SemanticChunkSearch(database, settings.rag_vector_table, embeddings)
+    filters = build_chunk_filters(settings)
+    return FilteredChunkSearch(search, filters, settings.rag_candidate_pool) if filters else search
+
+
+def build_chunk_filters(settings: Settings) -> list[ChunkFilter]:
+    filters: list[ChunkFilter] = []
+    if settings.rag_min_similarity > 0:
+        filters.append(MinimumSimilarityFilter(settings.rag_min_similarity))
+    return filters
 
 
 def build_services(settings: Settings) -> Services:

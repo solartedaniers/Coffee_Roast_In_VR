@@ -58,6 +58,10 @@ class Settings(BaseSettings):
     rag_top_k: int = Field(default=4, gt=0)
     rag_chunk_size_chars: int = Field(default=700, gt=0)
     rag_chunk_overlap_chars: int = Field(default=100, ge=0)
+    # Filtros sobre lo recuperado. 0 (o false) los deja apagados.
+    rag_min_similarity: float = Field(default=0.0, ge=0, le=1)
+    # Candidatos que se piden antes de filtrar, para que queden top_k después de los filtros.
+    rag_candidate_pool: int = Field(default=20, gt=0)
     # Development Time Ratio óptimo para cafés de altura de Nariño. Solo describe la
     # desviación en la búsqueda del RAG; no afecta el puntaje ni la fase del tueste.
     rag_dtr_optimal_min: float = 0.18

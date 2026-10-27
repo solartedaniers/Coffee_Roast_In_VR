@@ -85,19 +85,19 @@ class FakeHybridStore:
     def similarity_search(self, vector, top_k):
         return [ScoredChunk("semantic", {}, 0.9, "s"), ScoredChunk("both", {}, 0.8, "b")]
 
-    def lexical_search(self, query_text, vector, config, limit):
-        FakeHybridStore.lexical_args = (query_text, config, limit)
+    def lexical_search(self, query_text, vector, config, limit, max_document_ratio):
+        FakeHybridStore.lexical_args = (query_text, config, limit, max_document_ratio)
         return [ScoredChunk("both", {}, 0.8, "b"), ScoredChunk("lexical", {}, 0.3, "l")]
 
 
 def test_the_hybrid_search_fuses_semantic_and_lexical_results(monkeypatch):
     monkeypatch.setattr(chunk_search_module, "PgVectorStore", FakeHybridStore)
-    search = HybridChunkSearch(FakeDatabase(), "table", FakeEmbeddings(), ReciprocalRankFusion(60), 20, "spanish")
+    search = HybridChunkSearch(FakeDatabase(), "table", FakeEmbeddings(), ReciprocalRankFusion(60), 20, "spanish", 0.1)
 
     found = search.search("horneado", 2)
 
     assert [chunk.text for chunk in found] == ["both", "semantic"]
-    assert FakeHybridStore.lexical_args == ("horneado", "spanish", 20)
+    assert FakeHybridStore.lexical_args == ("horneado", "spanish", 20, 0.1)
 
 
 def test_the_container_builds_the_configured_search(settings):
@@ -106,4 +106,5 @@ def test_the_container_builds_the_configured_search(settings):
     assert isinstance(build_chunk_search(settings, database, embeddings), SemanticChunkSearch)
     hybrid = build_chunk_search(settings.model_copy(update={"rag_hybrid_search_enabled": True}), database, embeddings)
     assert isinstance(hybrid, HybridChunkSearch)
-    assert (hybrid.candidate_pool, hybrid.fusion.k, hybrid.text_search_config) == (20, 60, "spanish")
+    assert (hybrid.candidate_pool, hybrid.fusion.k, hybrid.text_search_config, hybrid.max_document_ratio) == (
+        20, 60, "spanish", 1.0)

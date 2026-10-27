@@ -81,7 +81,7 @@ def build_chunk_search(settings: Settings, database: Database, embeddings: Ollam
     if settings.rag_hybrid_search_enabled:
         return HybridChunkSearch(database, settings.rag_vector_table, embeddings,
                                  ReciprocalRankFusion(settings.rag_rrf_k), settings.rag_candidate_pool,
-                                 settings.rag_text_search_config)
+                                 settings.rag_text_search_config, settings.rag_lexical_max_document_ratio)
     return SemanticChunkSearch(database, settings.rag_vector_table, embeddings)
 
 

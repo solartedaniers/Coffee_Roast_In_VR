@@ -63,6 +63,8 @@ class Settings(BaseSettings):
     rag_rrf_k: int = Field(default=60, ge=0)
     rag_candidate_pool: int = Field(default=20, gt=0)
     rag_text_search_config: str = "spanish"
+    # Fracción máxima de fragmentos en que puede aparecer una palabra para usarla en la búsqueda léxica.
+    rag_lexical_max_document_ratio: float = Field(default=1.0, gt=0, le=1)
     # Development Time Ratio óptimo para cafés de altura de Nariño. Solo describe la
     # desviación en la búsqueda del RAG; no afecta el puntaje ni la fase del tueste.
     rag_dtr_optimal_min: float = 0.18

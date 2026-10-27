@@ -66,3 +66,21 @@ def test_finds_chunks_by_their_words_in_spanish_and_keeps_their_similarity(schem
     assert [round(chunk.score, 2) for chunk in found] == [0.6, 1.0]
     assert all(chunk.chunk_id for chunk in found)
     assert nothing == []
+
+
+def test_ignores_words_that_appear_in_too_many_chunks(schema, database):
+    with database.transaction() as connection:
+        store = PgVectorStore(connection, schema.vector_table)
+        store.add(
+            [Document("café café café café", {"file_name": "it-a.pdf"}), Document("café tostado", {"file_name": "it-a.pdf"}),
+             Document("café horneado", {"file_name": "it-a.pdf"}), Document("curva", {"file_name": "it-a.pdf"})],
+            [[1.0, 0.0, 0.0]] * 4,
+        )
+
+        every_word = store.lexical_search("café horneado", [1.0, 0.0, 0.0], "spanish", 10)
+        rare_words = store.lexical_search("café horneado", [1.0, 0.0, 0.0], "spanish", 10, max_document_ratio=0.5)
+        only_common = store.lexical_search("café", [1.0, 0.0, 0.0], "spanish", 10, max_document_ratio=0.5)
+
+    assert len(every_word) == 3
+    assert [chunk.text for chunk in rare_words] == ["café horneado"]
+    assert only_common == []

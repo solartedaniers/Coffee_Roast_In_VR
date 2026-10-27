@@ -20,7 +20,7 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
 
     Optional<User> findByUsernameIgnoreCase(String username);
 
-    Optional<User> findByRefreshToken(String refreshToken);
+    Optional<User> findByRefreshTokenHash(String refreshTokenHash);
 
     long countByEnabled(boolean enabled);
 

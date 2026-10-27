@@ -1,6 +1,9 @@
 package com.toastedvr.toastedvr.backend.domain;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -11,6 +14,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.ColumnDefault;
 
 @Entity
 @Table(name = "users")
@@ -39,7 +43,8 @@ public class User {
     private boolean emailVerified;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, columnDefinition = "varchar(20) default 'PLAYER'")
+    @Column(nullable = false, length = 20)
+    @ColumnDefault("'PLAYER'")
     private Role role;
 
     @Column(nullable = false, columnDefinition = "boolean default true")
@@ -59,10 +64,16 @@ public class User {
     @Column(length = 20)
     private KnowledgeLevel knowledgeLevel;
 
-    @Column(length = 512)
-    private String refreshToken;
+    // Solo se guarda el hash SHA-256 del refresh token; la columna conserva su nombre.
+    @Column(name = "refresh_token", length = 512)
+    private String refreshTokenHash;
 
     private LocalDateTime refreshTokenExpiresAt;
+
+    // Los access tokens emitidos antes de este momento (en segundos, como el iat
+    // del JWT) dejan de ser válidos; se fija al cambiar la contraseña. Se guarda
+    // como LocalDateTime, igual que las demás fechas de la entidad.
+    private LocalDateTime sessionsInvalidatedAt;
 
     protected User() {
     }
@@ -154,12 +165,6 @@ public class User {
         this.profileImageUrl = profileImageUrl;
     }
 
-    public void updateVerificationCode(String verificationCode, LocalDateTime expiresAt) {
-        this.verificationCode = verificationCode;
-        this.verificationCodeExpiresAt = expiresAt;
-        this.emailVerified = false;
-    }
-
     public void markEmailAsVerified() {
         this.emailVerified = true;
         this.verificationCode = null;
@@ -190,21 +195,30 @@ public class User {
         this.knowledgeLevel = knowledgeLevel;
     }
 
-    public String getRefreshToken() {
-        return refreshToken;
+    public String getRefreshTokenHash() {
+        return refreshTokenHash;
     }
 
     public LocalDateTime getRefreshTokenExpiresAt() {
         return refreshTokenExpiresAt;
     }
 
-    public void updateRefreshToken(String refreshToken, LocalDateTime expiresAt) {
-        this.refreshToken = refreshToken;
+    public void updateRefreshTokenHash(String refreshTokenHash, LocalDateTime expiresAt) {
+        this.refreshTokenHash = refreshTokenHash;
         this.refreshTokenExpiresAt = expiresAt;
     }
 
+    public Instant getSessionsInvalidatedAt() {
+        return sessionsInvalidatedAt == null ? null : sessionsInvalidatedAt.atZone(ZoneId.systemDefault()).toInstant();
+    }
+
+    public void invalidateSessions(Instant moment) {
+        this.sessionsInvalidatedAt = LocalDateTime.ofInstant(moment.truncatedTo(ChronoUnit.SECONDS), ZoneId.systemDefault());
+        clearRefreshToken();
+    }
+
     public void clearRefreshToken() {
-        this.refreshToken = null;
+        this.refreshTokenHash = null;
         this.refreshTokenExpiresAt = null;
     }
 }

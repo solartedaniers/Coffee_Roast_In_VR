@@ -1,7 +1,9 @@
 package com.toastedvr.toastedvr.backend.service;
 
+import com.toastedvr.toastedvr.backend.config.MessageResolver;
 import com.toastedvr.toastedvr.backend.domain.Role;
 import com.toastedvr.toastedvr.backend.domain.User;
+import com.toastedvr.toastedvr.backend.dto.ApiInstants;
 import com.toastedvr.toastedvr.backend.dto.UpdateUserRoleRequest;
 import com.toastedvr.toastedvr.backend.dto.UpdateUserStatusRequest;
 import com.toastedvr.toastedvr.backend.dto.UserAdminResponse;
@@ -22,10 +24,12 @@ public class AdminUserService {
 
     private final UserRepository userRepository;
     private final AuditService auditService;
+    private final MessageResolver messages;
 
-    public AdminUserService(UserRepository userRepository, AuditService auditService) {
+    public AdminUserService(UserRepository userRepository, AuditService auditService, MessageResolver messages) {
         this.userRepository = userRepository;
         this.auditService = auditService;
+        this.messages = messages;
     }
 
     public Page<UserSummaryResponse> listUsers(
@@ -48,33 +52,36 @@ public class AdminUserService {
     }
 
     public UserAdminResponse getUserById(Long id) {
-        return toAdminResponse(findOrThrow(id), "User found.");
+        return toAdminResponse(findOrThrow(id), messages.get("admin.user.found"));
     }
 
     @Transactional
     public UserAdminResponse updateStatus(Long targetId, Long requesterId, UpdateUserStatusRequest request) {
         if (targetId.equals(requesterId) && Boolean.FALSE.equals(request.enabled())) {
-            throw new ConflictException("You cannot block your own account.");
+            throw new ConflictException(messages.get("admin.user.cannotBlockSelf"));
         }
 
         User user = findOrThrow(targetId);
+        boolean previousEnabled = user.isEnabled();
 
         if (Boolean.TRUE.equals(request.enabled())) {
             user.activate();
         } else {
             user.block();
+            // Sin refresh token no puede renovar la sesión; el filtro JWT rechaza el access token vigente.
+            user.clearRefreshToken();
         }
 
-        auditService.logStatusChange(requesterId, user.getId(), user.isEnabled());
+        auditService.logStatusChange(requesterId, user.getId(), previousEnabled, user.isEnabled());
 
-        String action = user.isEnabled() ? "activated" : "blocked";
-        return toAdminResponse(user, "The account was " + action + " successfully.");
+        String messageKey = user.isEnabled() ? "admin.user.activated" : "admin.user.blocked";
+        return toAdminResponse(user, messages.get(messageKey));
     }
 
     @Transactional
     public UserAdminResponse updateRole(Long targetId, Long requesterId, UpdateUserRoleRequest request) {
         if (targetId.equals(requesterId)) {
-            throw new ConflictException("No puedes cambiar tu propio rol.");
+            throw new ConflictException(messages.get("admin.user.cannotChangeOwnRole"));
         }
 
         User user = findOrThrow(targetId);
@@ -82,12 +89,12 @@ public class AdminUserService {
         user.assignRole(request.role());
         auditService.logRoleChange(requesterId, user.getId(), previousRole.name(), request.role().name());
 
-        return toAdminResponse(user, "Rol actualizado a " + request.role() + " correctamente.");
+        return toAdminResponse(user, messages.get("admin.user.roleUpdated", request.role()));
     }
 
     private @NonNull User findOrThrow(Long id) {
         User user = userRepository.findById(Objects.requireNonNull(id))
-            .orElseThrow(() -> new ResourceNotFoundException("No user exists with this ID."));
+            .orElseThrow(() -> new ResourceNotFoundException(messages.get("admin.user.notFound")));
 
         return Objects.requireNonNull(user, "Resolved user must not be null.");
     }
@@ -143,7 +150,7 @@ public class AdminUserService {
             user.isEmailVerified(),
             user.isEnabled(),
             user.getRole(),
-            user.getCreatedAt(),
+            ApiInstants.from(user.getCreatedAt()),
             user.getKnowledgeLevel()
         );
     }
@@ -157,7 +164,7 @@ public class AdminUserService {
             user.isEmailVerified(),
             user.isEnabled(),
             user.getRole(),
-            user.getCreatedAt(),
+            ApiInstants.from(user.getCreatedAt()),
             message
         );
     }

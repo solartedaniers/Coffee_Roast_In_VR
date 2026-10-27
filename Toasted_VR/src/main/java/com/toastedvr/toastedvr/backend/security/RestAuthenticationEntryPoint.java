@@ -1,7 +1,9 @@
 package com.toastedvr.toastedvr.backend.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.toastedvr.toastedvr.backend.config.MessageResolver;
 import com.toastedvr.toastedvr.backend.dto.ApiErrorResponse;
+import com.toastedvr.toastedvr.backend.exception.ErrorCode;
 import com.toastedvr.toastedvr.backend.service.AuditService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,10 +21,12 @@ public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     private final AuditService auditService;
     private final ObjectMapper objectMapper;
+    private final MessageResolver messages;
 
-    public RestAuthenticationEntryPoint(AuditService auditService, ObjectMapper objectMapper) {
+    public RestAuthenticationEntryPoint(AuditService auditService, ObjectMapper objectMapper, MessageResolver messages) {
         this.auditService = auditService;
         this.objectMapper = objectMapper;
+        this.messages = messages;
     }
 
     @Override
@@ -35,13 +39,26 @@ public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
         String failureDetail = detail != null ? detail : "Authentication required";
 
         auditService.logUnauthorizedAccess("anonymous", request.getRequestURI(), failureDetail);
-        writeResponse(response, request.getRequestURI(), HttpStatus.UNAUTHORIZED, "No autorizado.");
+
+        ErrorCode code = request.getAttribute(JwtAuthenticationFilter.AUTH_FAILURE_CODE) instanceof ErrorCode failureCode
+            ? failureCode
+            : ErrorCode.UNAUTHORIZED;
+        writeResponse(response, request.getRequestURI(), HttpStatus.UNAUTHORIZED, code, messages.get(messageKeyFor(code)));
+    }
+
+    private String messageKeyFor(ErrorCode code) {
+        return switch (code) {
+            case ACCOUNT_BLOCKED -> "auth.account.blocked";
+            case SESSION_REVOKED -> "auth.session.revoked";
+            default -> "error.security.unauthorized";
+        };
     }
 
     private void writeResponse(
         HttpServletResponse response,
         String path,
         HttpStatus status,
+        ErrorCode code,
         String message
     ) throws IOException {
         response.setStatus(status.value());
@@ -53,7 +70,9 @@ public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
                 status.value(),
                 status.getReasonPhrase(),
                 message,
-                path
+                path,
+                code,
+                null
             )
         );
     }

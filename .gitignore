@@ -13,3 +13,4 @@ graph.json
 # Claude Code (config local)
 .claude/
 .claudeignore
+requerimientos/

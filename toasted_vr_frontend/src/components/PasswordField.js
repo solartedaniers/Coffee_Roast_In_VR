@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import FieldError from './FieldError';
 
-function PasswordField({ name, value, onChange, placeholder, label, required = true }) {
+function PasswordField({ name, value, onChange, placeholder, label, required = true, error }) {
   const [isVisible, setIsVisible] = useState(false);
 
   return (
@@ -15,6 +16,7 @@ function PasswordField({ name, value, onChange, placeholder, label, required = t
           value={value}
           onChange={onChange}
           required={required}
+          aria-invalid={Boolean(error)}
         />
         <button
           type="button"
@@ -35,6 +37,7 @@ function PasswordField({ name, value, onChange, placeholder, label, required = t
           )}
         </button>
       </div>
+      <FieldError message={error} />
     </label>
   );
 }

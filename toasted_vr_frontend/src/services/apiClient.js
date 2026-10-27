@@ -1,12 +1,39 @@
 import axios from 'axios';
 import { apiBaseUrl } from '../config/env';
 import { readSession, saveSession, clearSession } from './sessionService';
+import esTexts from '../locals/es.json';
 
 export const getErrorMessage = (error) =>
-  error.response?.data?.message || 'No fue posible conectar con el servidor.';
+  error.response?.data?.message || esTexts.app.errors.connection;
+
+// Convierte un error de axios en un Error con el código y los detalles que
+// envía el backend, para que la interfaz pueda decidir qué texto mostrar.
+export const toApiError = (error) => {
+  const apiError = new Error(getErrorMessage(error));
+  apiError.code = error.response?.data?.code ?? null;
+  apiError.details = error.response?.data?.details ?? null;
+  apiError.status = error.response?.status ?? null;
+  return apiError;
+};
 
 const AUTH_PATH_PREFIX = '/auth/';
 const SESSION_EXPIRED_EVENT = 'toastedvr:session-expired';
+export const ACCOUNT_BLOCKED_EVENT = 'toastedvr:account-blocked';
+export const SESSION_REVOKED_EVENT = 'toastedvr:session-revoked';
+
+// Rechazos en los que renovar la sesión no sirve: se cierra la sesión local
+// y se avisa a la interfaz con el evento correspondiente.
+const FORCED_LOGOUT_EVENTS = {
+  ACCOUNT_BLOCKED: ACCOUNT_BLOCKED_EVENT,
+  SESSION_REVOKED: SESSION_REVOKED_EVENT
+};
+
+const forcedLogoutEvent = (error) => FORCED_LOGOUT_EVENTS[error?.response?.data?.code];
+
+const endLocalSession = (eventName) => {
+  clearSession();
+  window.dispatchEvent(new Event(eventName));
+};
 
 const apiClient = axios.create({
   baseURL: apiBaseUrl,
@@ -54,6 +81,12 @@ apiClient.interceptors.response.use(
     const { config, response } = error;
     const isAuthEndpoint = config?.url?.startsWith(AUTH_PATH_PREFIX);
 
+    const forcedEvent = forcedLogoutEvent(error);
+    if (forcedEvent && !isAuthEndpoint) {
+      endLocalSession(forcedEvent);
+      return Promise.reject(error);
+    }
+
     if (!config || response?.status !== 401 || isAuthEndpoint || config._retry) {
       return Promise.reject(error);
     }
@@ -69,8 +102,7 @@ apiClient.interceptors.response.use(
       return apiClient(config);
     } catch (refreshError) {
       refreshPromise = null;
-      clearSession();
-      window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT));
+      endLocalSession(forcedLogoutEvent(refreshError) ?? SESSION_EXPIRED_EVENT);
       return Promise.reject(error);
     }
   }

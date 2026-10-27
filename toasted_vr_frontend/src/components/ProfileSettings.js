@@ -1,15 +1,36 @@
 import React, { useEffect, useState } from 'react';
+import FieldError from './FieldError';
 import PasswordField from './PasswordField';
-import { updateProfile } from '../services/profileService';
+import {
+  createUnityAccessCode,
+  emailUnityAccessCode,
+  fetchUnityAccessCodeStatus,
+  regenerateUnityAccessCode,
+  revealUnityAccessCode,
+  updateProfile,
+} from '../services/profileService';
+import { useFieldErrors } from '../hooks/useFieldErrors';
+import { getFieldErrors, hasFieldErrors } from '../utils/errorMessages';
 
 const PLAYER_LEVELS = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'];
 const MAX_PROFILE_IMAGE_BYTES = 900 * 1024;
+const UNITY_ACTIONS = {
+  create: 'create',
+  reveal: 'reveal',
+  email: 'email',
+  regenerate: 'regenerate',
+};
 
 const initialPasswordFields = {
   currentPassword: '',
   newPassword: '',
   confirmPassword: '',
 };
+
+const formatUnityCodeExpiration = (expiresAt) => new Intl.DateTimeFormat('es-CO', {
+  dateStyle: 'short',
+  timeStyle: 'short',
+}).format(new Date(expiresAt));
 
 function buildInitialForm(user) {
   return {
@@ -34,6 +55,37 @@ export default function ProfileSettings({
   const [isSaving, setIsSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isPasswordChangeVisible, setIsPasswordChangeVisible] = useState(false);
+  const [unityCodeStatus, setUnityCodeStatus] = useState(null);
+  const [isUnityStatusLoading, setIsUnityStatusLoading] = useState(false);
+  const [unityStatusMessage, setUnityStatusMessage] = useState({ text: '', isError: false });
+  const [unityAction, setUnityAction] = useState(null);
+  const [unityCurrentPassword, setUnityCurrentPassword] = useState('');
+  const [unityCode, setUnityCode] = useState('');
+  const [isUnityActionLoading, setIsUnityActionLoading] = useState(false);
+  const [unityStatusNow, setUnityStatusNow] = useState(() => Date.now());
+  const { fieldErrors, setFieldErrors, clearFieldError, clearAllFieldErrors } = useFieldErrors();
+
+  const clearUnitySensitiveState = () => {
+    setUnityAction(null);
+    setUnityCurrentPassword('');
+    setUnityCode('');
+    setIsUnityActionLoading(false);
+  };
+
+  const loadUnityCodeStatus = async () => {
+    setIsUnityStatusLoading(true);
+    setUnityStatusMessage({ text: '', isError: false });
+
+    try {
+      const nextStatus = await fetchUnityAccessCodeStatus();
+      setUnityCodeStatus(nextStatus);
+      setUnityStatusNow(Date.now());
+    } catch {
+      setUnityStatusMessage({ text: texts.unityAccess.messages.statusError, isError: true });
+    } finally {
+      setIsUnityStatusLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -41,16 +93,43 @@ export default function ProfileSettings({
       setStatus({ text: '', isError: false });
       setIsEditing(false);
       setIsPasswordChangeVisible(false);
+      setUnityCodeStatus(null);
+      clearUnitySensitiveState();
+      loadUnityCodeStatus();
+    } else {
+      clearUnitySensitiveState();
     }
+    // The modal lifecycle intentionally resets all sensitive Unity state.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen || !unityCodeStatus?.active || !unityCodeStatus.expiresAt) {
+      return undefined;
+    }
+
+    const millisecondsUntilExpiry = new Date(unityCodeStatus.expiresAt).getTime() - Date.now();
+    const refreshDelay = Math.min(Math.max(millisecondsUntilExpiry + 50, 50), 60000);
+    const timeoutId = window.setTimeout(() => setUnityStatusNow(Date.now()), refreshDelay);
+    return () => window.clearTimeout(timeoutId);
+  }, [isOpen, unityCodeStatus, unityStatusNow]);
 
   if (!isOpen) {
     return null;
   }
 
+  const unityCodeIsActive = Boolean(
+    unityCodeStatus?.exists
+      && unityCodeStatus.active
+      && unityCodeStatus.expiresAt
+      && new Date(unityCodeStatus.expiresAt).getTime() > unityStatusNow
+  );
+  const unityCodeIsExpired = Boolean(unityCodeStatus?.exists && !unityCodeIsActive);
+
   const handleChange = (event) => {
     const { name, value } = event.target;
     setFormData((current) => ({ ...current, [name]: value }));
+    clearFieldError(name);
   };
 
   const handleStartEditing = () => {
@@ -62,6 +141,7 @@ export default function ProfileSettings({
   const handleCancelEditing = () => {
     setFormData({ ...buildInitialForm(currentUser), ...initialPasswordFields });
     setStatus({ text: '', isError: false });
+    clearAllFieldErrors();
     setIsEditing(false);
     setIsPasswordChangeVisible(false);
   };
@@ -74,7 +154,77 @@ export default function ProfileSettings({
   const handleCancelPasswordChange = () => {
     setFormData((current) => ({ ...current, ...initialPasswordFields }));
     setStatus({ text: '', isError: false });
+    clearAllFieldErrors();
     setIsPasswordChangeVisible(false);
+  };
+
+  const handleClose = () => {
+    setFormData((current) => ({ ...current, ...initialPasswordFields }));
+    clearUnitySensitiveState();
+    onClose();
+  };
+
+  const handleOpenUnityAction = (action) => {
+    setUnityStatusMessage({ text: '', isError: false });
+    setUnityCurrentPassword('');
+    setUnityCode('');
+    setUnityAction(action);
+  };
+
+  const handleCloseUnityAction = () => {
+    clearUnitySensitiveState();
+  };
+
+  const handleUnityAction = async (event) => {
+    event.preventDefault();
+
+    if (!unityCurrentPassword.trim()) {
+      setUnityStatusMessage({ text: texts.unityAccess.messages.passwordRequired, isError: true });
+      return;
+    }
+
+    setIsUnityActionLoading(true);
+    setUnityStatusMessage({ text: '', isError: false });
+
+    try {
+      let response;
+      if (unityAction === UNITY_ACTIONS.create) {
+        response = await createUnityAccessCode(unityCurrentPassword);
+      } else if (unityAction === UNITY_ACTIONS.reveal) {
+        response = await revealUnityAccessCode(unityCurrentPassword);
+      } else if (unityAction === UNITY_ACTIONS.email) {
+        await emailUnityAccessCode(unityCurrentPassword);
+      } else if (unityAction === UNITY_ACTIONS.regenerate) {
+        response = await regenerateUnityAccessCode(unityCurrentPassword);
+      }
+
+      setUnityCurrentPassword('');
+
+      if (unityAction === UNITY_ACTIONS.email) {
+        setUnityAction(null);
+        setUnityCode('');
+        await loadUnityCodeStatus();
+        setUnityStatusMessage({ text: texts.unityAccess.messages.emailSent, isError: false });
+      } else {
+        setUnityCode(response.code);
+        await loadUnityCodeStatus();
+      }
+    } catch {
+      setUnityCurrentPassword('');
+      setUnityCode('');
+      setUnityStatusMessage({ text: texts.unityAccess.messages.actionError, isError: true });
+    } finally {
+      setIsUnityActionLoading(false);
+    }
+  };
+
+  const handleCopyUnityCode = async () => {
+    try {
+      await navigator.clipboard.writeText(unityCode);
+      setUnityStatusMessage({ text: texts.unityAccess.messages.copied, isError: false });
+    } catch {
+      setUnityStatusMessage({ text: texts.unityAccess.messages.copyError, isError: true });
+    }
   };
 
   const handleImageChange = (event) => {
@@ -103,18 +253,24 @@ export default function ProfileSettings({
   const handleSubmit = async (event) => {
     event.preventDefault();
 
+    const validationErrors = {};
     if (formData.newPassword && formData.newPassword !== formData.confirmPassword) {
-      setStatus({ text: texts.messages.passwordMismatch, isError: true });
-      return;
+      validationErrors.confirmPassword = texts.messages.passwordMismatch;
     }
 
     if (formData.newPassword && !formData.currentPassword) {
-      setStatus({ text: texts.messages.currentPasswordRequired, isError: true });
+      validationErrors.currentPassword = texts.messages.currentPasswordRequired;
+    }
+
+    if (hasFieldErrors(validationErrors)) {
+      setFieldErrors(validationErrors);
+      setStatus({ text: '', isError: false });
       return;
     }
 
     setIsSaving(true);
     setStatus({ text: '', isError: false });
+    clearAllFieldErrors();
 
     try {
       const updatedUser = await updateProfile({
@@ -129,9 +285,15 @@ export default function ProfileSettings({
       onUserUpdate(updatedUser);
       setIsEditing(false);
       setIsPasswordChangeVisible(false);
+      clearUnitySensitiveState();
       onClose();
     } catch (error) {
-      setStatus({ text: error.message, isError: true });
+      const apiFieldErrors = getFieldErrors(error);
+      if (hasFieldErrors(apiFieldErrors)) {
+        setFieldErrors(apiFieldErrors);
+      } else {
+        setStatus({ text: error.message, isError: true });
+      }
     } finally {
       setIsSaving(false);
     }
@@ -143,7 +305,7 @@ export default function ProfileSettings({
     <div className="profile-modal-backdrop" role="presentation">
       <section className="profile-modal" role="dialog" aria-modal="true" aria-label={texts.ariaLabel}>
         <header className="profile-modal-header">
-          <button type="button" className="secondary-button profile-close-button" onClick={onClose}>
+          <button type="button" className="secondary-button profile-close-button" onClick={handleClose}>
             {texts.buttons.close}
           </button>
         </header>
@@ -187,8 +349,10 @@ export default function ProfileSettings({
                 value={formData.username}
                 onChange={handleChange}
                 readOnly={!isEditing}
+                aria-invalid={Boolean(fieldErrors.username)}
                 required
               />
+              <FieldError message={fieldErrors.username} />
             </label>
 
             {currentUser.role === 'PLAYER' && (
@@ -228,6 +392,7 @@ export default function ProfileSettings({
                 placeholder={texts.placeholders.currentPassword}
                 label={texts.labels.currentPassword}
                 required={isPasswordChangeVisible}
+                error={fieldErrors.currentPassword}
               />
               <div className="profile-grid">
                 <PasswordField
@@ -237,6 +402,7 @@ export default function ProfileSettings({
                   placeholder={texts.placeholders.newPassword}
                   label={texts.labels.newPassword}
                   required={isPasswordChangeVisible}
+                  error={fieldErrors.newPassword}
                 />
                 <PasswordField
                   name="confirmPassword"
@@ -245,6 +411,7 @@ export default function ProfileSettings({
                   placeholder={texts.placeholders.confirmPassword}
                   label={texts.labels.confirmPassword}
                   required={isPasswordChangeVisible}
+                  error={fieldErrors.confirmPassword}
                 />
               </div>
               <button type="button" className="text-link profile-password-toggle" onClick={handleCancelPasswordChange}>
@@ -274,6 +441,116 @@ export default function ProfileSettings({
             </button>
           )}
         </form>
+
+        <section className="unity-access-section" aria-labelledby="unity-access-title">
+          <div className="unity-access-heading">
+            <div>
+              <h3 id="unity-access-title">{texts.unityAccess.title}</h3>
+              <p>{texts.unityAccess.subtitle}</p>
+            </div>
+            {unityCodeIsActive && (
+              <span className="unity-access-badge unity-access-badge-active">{texts.unityAccess.configured}</span>
+            )}
+            {unityCodeIsExpired && (
+              <span className="unity-access-badge unity-access-badge-expired">{texts.unityAccess.expired}</span>
+            )}
+          </div>
+
+          {isUnityStatusLoading ? (
+            <p className="unity-access-description" aria-live="polite">{texts.unityAccess.loading}</p>
+          ) : unityCodeIsActive ? (
+            <>
+              <p className="unity-access-description">{texts.unityAccess.configuredDescription}</p>
+              <p className="unity-access-description">
+                {texts.unityAccess.expiresAt.replace(
+                  '{date}',
+                  formatUnityCodeExpiration(unityCodeStatus.expiresAt)
+                )}
+              </p>
+              <div className="unity-access-actions">
+                <button type="button" className="secondary-button" onClick={() => handleOpenUnityAction(UNITY_ACTIONS.reveal)}>
+                  {texts.unityAccess.buttons.reveal}
+                </button>
+                <button type="button" className="secondary-button" onClick={() => handleOpenUnityAction(UNITY_ACTIONS.email)}>
+                  {texts.unityAccess.buttons.email}
+                </button>
+                <button type="button" className="text-link unity-regenerate-button" onClick={() => handleOpenUnityAction(UNITY_ACTIONS.regenerate)}>
+                  {texts.unityAccess.buttons.regenerate}
+                </button>
+              </div>
+            </>
+          ) : !unityStatusMessage.isError ? (
+            <>
+              <p className="unity-access-description">
+                {unityCodeIsExpired
+                  ? texts.unityAccess.expiredDescription
+                  : texts.unityAccess.notConfiguredDescription}
+              </p>
+              <button type="button" className="secondary-button unity-create-button" onClick={() => handleOpenUnityAction(UNITY_ACTIONS.create)}>
+                {unityCodeIsExpired ? texts.unityAccess.buttons.createNew : texts.unityAccess.buttons.create}
+              </button>
+            </>
+          ) : (
+            <button type="button" className="text-link unity-retry-button" onClick={loadUnityCodeStatus}>
+              {texts.unityAccess.buttons.retry}
+            </button>
+          )}
+
+          {unityStatusMessage.text && !unityAction && (
+            <p className={`status-message ${unityStatusMessage.isError ? 'error' : 'success'}`} aria-live="polite">
+              {unityStatusMessage.text}
+            </p>
+          )}
+        </section>
+
+        {unityAction && (
+          <div className="unity-confirmation-backdrop" role="presentation">
+            <section className="unity-confirmation-modal" role="dialog" aria-modal="true" aria-labelledby="unity-confirmation-title">
+              <h3 id="unity-confirmation-title">{texts.unityAccess.confirmation[unityAction].title}</h3>
+              <p>{unityCode ? texts.unityAccess.messages.codeReady : texts.unityAccess.confirmation[unityAction].description}</p>
+
+              {unityCode ? (
+                <div className="unity-code-result" aria-live="polite">
+                  <strong>{unityCode}</strong>
+                  <button type="button" className="primary-button" onClick={handleCopyUnityCode}>
+                    {texts.unityAccess.buttons.copy}
+                  </button>
+                </div>
+              ) : (
+                <form className="unity-confirmation-form" onSubmit={handleUnityAction}>
+                  <PasswordField
+                    name="unityCurrentPassword"
+                    value={unityCurrentPassword}
+                    onChange={(event) => setUnityCurrentPassword(event.target.value)}
+                    placeholder={texts.unityAccess.passwordPlaceholder}
+                    label={texts.unityAccess.passwordLabel}
+                    required
+                  />
+                  <div className="profile-actions">
+                    <button type="button" className="secondary-button" onClick={handleCloseUnityAction} disabled={isUnityActionLoading}>
+                      {texts.unityAccess.buttons.cancel}
+                    </button>
+                    <button type="submit" className="primary-button" disabled={isUnityActionLoading}>
+                      {isUnityActionLoading ? texts.unityAccess.buttons.processing : texts.unityAccess.confirmation[unityAction].confirm}
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {unityStatusMessage.text && (
+                <p className={`status-message ${unityStatusMessage.isError ? 'error' : 'success'}`} aria-live="polite">
+                  {unityStatusMessage.text}
+                </p>
+              )}
+
+              {unityCode && (
+                <button type="button" className="secondary-button unity-result-close" onClick={handleCloseUnityAction}>
+                  {texts.unityAccess.buttons.close}
+                </button>
+              )}
+            </section>
+          </div>
+        )}
       </section>
     </div>
   );

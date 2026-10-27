@@ -1,27 +1,27 @@
 package com.toastedvr.toastedvr.backend.dto;
 
-import jakarta.validation.constraints.Email;
+import com.toastedvr.toastedvr.backend.validation.ValidEmail;
+import com.toastedvr.toastedvr.backend.validation.ValidPassword;
+import com.toastedvr.toastedvr.backend.validation.ValidUsername;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
 
 public record RegisterUserRequest(
-    @NotBlank(message = "El nombre es obligatorio")
+    // Letras de cualquier idioma (incluye tildes y ñ) y espacios entre palabras.
+    @NotBlank(message = "{validation.name.required}")
+    @Pattern(regexp = "^[\\p{L}\\p{M} ]*$", message = "{validation.name.lettersOnly}")
     String name,
 
-    @NotBlank(message = "El correo electronico es obligatorio")
-    @Email(message = "Debes ingresar un correo electronico valido")
+    @NotBlank(message = "{validation.email.required}")
+    @ValidEmail
     String email,
 
-    @NotBlank(message = "El nombre de usuario es obligatorio")
-    @Size(min = 4, max = 20, message = "El usuario debe tener entre 4 y 20 caracteres")
+    @NotBlank(message = "{validation.username.required}")
+    @ValidUsername
     String username,
 
-    @NotBlank(message = "La contrasena es obligatoria")
-    @Pattern(
-        regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z]).{8,}$",
-        message = "La contrasena debe tener minimo 8 caracteres, una mayuscula, una minuscula y un numero"
-    )
+    @NotBlank(message = "{validation.password.required}")
+    @ValidPassword
     String password
 ) {
 }

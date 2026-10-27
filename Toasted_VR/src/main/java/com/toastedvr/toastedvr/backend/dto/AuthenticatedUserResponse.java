@@ -3,7 +3,7 @@ package com.toastedvr.toastedvr.backend.dto;
 import com.toastedvr.toastedvr.backend.domain.KnowledgeLevel;
 import com.toastedvr.toastedvr.backend.domain.Role;
 import com.toastedvr.toastedvr.backend.domain.User;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record AuthenticatedUserResponse(
     Long id,
@@ -14,7 +14,7 @@ public record AuthenticatedUserResponse(
     boolean emailVerified,
     boolean enabled,
     Role role,
-    LocalDateTime lastLoginAt,
+    Instant lastLoginAt,
     KnowledgeLevel knowledgeLevel
 ) {
     public static AuthenticatedUserResponse from(User user) {
@@ -27,7 +27,7 @@ public record AuthenticatedUserResponse(
             user.isEmailVerified(),
             user.isEnabled(),
             user.getRole(),
-            user.getLastLoginAt(),
+            ApiInstants.from(user.getLastLoginAt()),
             user.getKnowledgeLevel()
         );
     }

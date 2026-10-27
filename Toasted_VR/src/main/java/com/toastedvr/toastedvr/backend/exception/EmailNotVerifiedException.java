@@ -1,8 +1,8 @@
 package com.toastedvr.toastedvr.backend.exception;
 
-public class EmailNotVerifiedException extends RuntimeException {
+public class EmailNotVerifiedException extends ApiException {
 
     public EmailNotVerifiedException(String message) {
-        super(message);
+        super(ErrorCode.EMAIL_NOT_VERIFIED, message);
     }
 }

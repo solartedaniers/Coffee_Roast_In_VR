@@ -1,0 +1,4 @@
+# Los scripts que se ejecutan dentro de contenedores Linux deben quedar en LF
+# sin importar core.autocrlf: un shebang con CRLF rompe el ENTRYPOINT
+# ("exec /entrypoint.sh: no such file or directory").
+*.sh text eol=lf

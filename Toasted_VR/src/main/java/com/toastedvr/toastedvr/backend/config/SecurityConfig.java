@@ -58,7 +58,12 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/api/v1/auth/register",
                     "/api/v1/auth/verify-email",
+                    "/api/v1/auth/resend-verification-code",
+                    "/api/v1/auth/password-reset/request",
+                    "/api/v1/auth/password-reset/verify-code",
+                    "/api/v1/auth/password-reset/confirm",
                     "/api/v1/auth/login",
+                    "/api/v1/auth/unity-login",
                     "/api/v1/auth/refresh",
                     "/v3/api-docs/**",
                     "/swagger-ui/**",
@@ -67,8 +72,18 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/auth/logout").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/v1/roasting/sessions").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/v1/roasting/sessions/*/feedback").authenticated()
+                .requestMatchers(
+                    HttpMethod.GET,
+                    "/api/v1/roasting/sessions",
+                    "/api/v1/roasting/sessions/summary",
+                    "/api/v1/roasting/sessions/*",
+                    "/api/v1/roasting/ranking",
+                    "/api/v1/roasting/ranking/changes"
+                ).authenticated()
+                .requestMatchers(HttpMethod.PUT, "/api/v1/roasting/ranking/seen").authenticated()
                 .requestMatchers(HttpMethod.PATCH, "/api/v1/users/me/knowledge-level").authenticated()
                 .requestMatchers(HttpMethod.PATCH, "/api/v1/users/me/profile").authenticated()
+                .requestMatchers("/api/v1/users/me/unity-access-code/**").authenticated()
                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                 .anyRequest().denyAll()
             )
@@ -86,7 +101,7 @@ public class SecurityConfig {
             .toList();
 
         configuration.setAllowedOrigins(origins);
-        configuration.setAllowedMethods(List.of("GET", "POST", "PATCH", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Content-Type", "Authorization"));
         configuration.setAllowCredentials(false);
         configuration.setMaxAge(3600L);

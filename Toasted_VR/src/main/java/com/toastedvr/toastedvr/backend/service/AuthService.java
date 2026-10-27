@@ -4,11 +4,17 @@ import java.time.LocalDateTime;
 import java.util.Locale;
 import java.util.Objects;
 
+import com.toastedvr.toastedvr.backend.config.MessageResolver;
+import com.toastedvr.toastedvr.backend.config.OneTimeCodeProperties;
+import com.toastedvr.toastedvr.backend.domain.OneTimeCodePurpose;
 import com.toastedvr.toastedvr.backend.domain.User;
+import com.toastedvr.toastedvr.backend.dto.CodeSentResponse;
+import com.toastedvr.toastedvr.backend.dto.EmailRequest;
 import com.toastedvr.toastedvr.backend.dto.AuthenticatedUserResponse;
 import com.toastedvr.toastedvr.backend.dto.LoginRequest;
 import com.toastedvr.toastedvr.backend.dto.LoginResponse;
 import com.toastedvr.toastedvr.backend.dto.LogoutResponse;
+import com.toastedvr.toastedvr.backend.dto.OneTimeCodePolicyResponse;
 import com.toastedvr.toastedvr.backend.dto.RefreshTokenRequest;
 import com.toastedvr.toastedvr.backend.dto.RefreshTokenResponse;
 import com.toastedvr.toastedvr.backend.dto.RegisterUserRequest;
@@ -19,13 +25,14 @@ import com.toastedvr.toastedvr.backend.exception.AccountBlockedException;
 import com.toastedvr.toastedvr.backend.exception.AuthenticationFailedException;
 import com.toastedvr.toastedvr.backend.exception.ConflictException;
 import com.toastedvr.toastedvr.backend.exception.EmailNotVerifiedException;
+import com.toastedvr.toastedvr.backend.exception.InvalidRequestException;
 import com.toastedvr.toastedvr.backend.exception.InvalidVerificationCodeException;
 import com.toastedvr.toastedvr.backend.exception.ResourceNotFoundException;
 import com.toastedvr.toastedvr.backend.repository.UserRepository;
 import com.toastedvr.toastedvr.backend.security.JwtService;
 import com.toastedvr.toastedvr.backend.security.UserPrincipal;
+import com.toastedvr.toastedvr.backend.validation.EmailDomainPolicy;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -34,31 +41,43 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final VerificationCodeGenerator verificationCodeGenerator;
+    private final OneTimeCodeService oneTimeCodeService;
+    private final OneTimeCodeProperties oneTimeCodeProperties;
     private final EmailService emailService;
     private final JwtService jwtService;
     private final TokenBlacklistService tokenBlacklistService;
+    private final RefreshTokenService refreshTokenService;
     private final AuditService auditService;
-    private final int codeExpirationMinutes;
+    private final UnityAccessCodeService unityAccessCodeService;
+    private final EmailDomainPolicy emailDomainPolicy;
+    private final MessageResolver messages;
 
     public AuthService(
         UserRepository userRepository,
         PasswordEncoder passwordEncoder,
-        VerificationCodeGenerator verificationCodeGenerator,
+        OneTimeCodeService oneTimeCodeService,
+        OneTimeCodeProperties oneTimeCodeProperties,
         EmailService emailService,
         JwtService jwtService,
         TokenBlacklistService tokenBlacklistService,
+        RefreshTokenService refreshTokenService,
         AuditService auditService,
-        @Value("${app.verification.code-expiration-minutes:15}") int codeExpirationMinutes
+        UnityAccessCodeService unityAccessCodeService,
+        EmailDomainPolicy emailDomainPolicy,
+        MessageResolver messages
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-        this.verificationCodeGenerator = verificationCodeGenerator;
+        this.oneTimeCodeService = oneTimeCodeService;
+        this.oneTimeCodeProperties = oneTimeCodeProperties;
         this.emailService = emailService;
         this.jwtService = jwtService;
         this.tokenBlacklistService = tokenBlacklistService;
+        this.refreshTokenService = refreshTokenService;
         this.auditService = auditService;
-        this.codeExpirationMinutes = codeExpirationMinutes;
+        this.unityAccessCodeService = unityAccessCodeService;
+        this.emailDomainPolicy = emailDomainPolicy;
+        this.messages = messages;
     }
 
     @Transactional
@@ -66,6 +85,9 @@ public class AuthService {
         String normalizedEmail = normalizeEmail(request.email());
         String normalizedUsername = request.username().trim();
 
+        emailDomainPolicy.findProblem(normalizedEmail).ifPresent(message -> {
+            throw new InvalidRequestException(message, "email");
+        });
         validateUniqueness(normalizedEmail, normalizedUsername);
 
         User user = new User(
@@ -75,49 +97,37 @@ public class AuthService {
             passwordEncoder.encode(request.password())
         );
 
-        String verificationCode = verificationCodeGenerator.generate();
-        user.updateVerificationCode(
-            verificationCode,
-            LocalDateTime.now().plusMinutes(codeExpirationMinutes)
-        );
-
         userRepository.save(user);
+        String verificationCode = oneTimeCodeService.issue(user, OneTimeCodePurpose.EMAIL_VERIFICATION);
         emailService.sendVerificationCode(user.getEmail(), user.getName(), verificationCode);
 
         return new RegisterUserResponse(
-            "Te enviamos un codigo de verificacion a tu correo.",
+            messages.get("auth.register.codeSent"),
             user.getEmail(),
-            codeExpirationMinutes
+            oneTimeCodeProperties.getExpirationMinutes(),
+            OneTimeCodePolicyResponse.from(oneTimeCodeProperties)
         );
     }
 
-    @Transactional
+    // Sin rollback ante un código rechazado: el bloqueo de reenvíos debe quedar guardado.
+    @Transactional(dontRollbackOn = InvalidVerificationCodeException.class)
+    public CodeSentResponse resendVerificationCode(EmailRequest request) {
+        User user = findPendingUser(request.email());
+        String verificationCode = oneTimeCodeService.resend(user, OneTimeCodePurpose.EMAIL_VERIFICATION);
+        emailService.sendVerificationCode(user.getEmail(), user.getName(), verificationCode);
+
+        return new CodeSentResponse(
+            messages.get("auth.register.codeSent"),
+            user.getEmail(),
+            OneTimeCodePolicyResponse.from(oneTimeCodeProperties)
+        );
+    }
+
+    // Sin rollback ante un código rechazado: los intentos fallidos deben quedar guardados.
+    @Transactional(dontRollbackOn = InvalidVerificationCodeException.class)
     public UserResponse verifyEmail(VerifyEmailRequest request) {
-        String normalizedEmail = normalizeEmail(request.email());
-        User user = userRepository.findByEmailIgnoreCase(normalizedEmail)
-            .orElseThrow(() -> new ResourceNotFoundException("No existe una cuenta pendiente para ese correo."));
-
-        if (user.isEmailVerified()) {
-            throw new ConflictException("Esta cuenta ya fue verificada.");
-        }
-
-        if (user.getVerificationCodeExpiresAt() == null
-            || user.getVerificationCodeExpiresAt().isBefore(LocalDateTime.now())) {
-            String newCode = verificationCodeGenerator.generate();
-            user.updateVerificationCode(
-                newCode,
-                LocalDateTime.now().plusMinutes(codeExpirationMinutes)
-            );
-            userRepository.save(user);
-            emailService.sendVerificationCode(user.getEmail(), user.getName(), newCode);
-            throw new InvalidVerificationCodeException(
-                "El codigo vencio. Te enviamos uno nuevo al correo registrado."
-            );
-        }
-
-        if (!request.code().equals(user.getVerificationCode())) {
-            throw new InvalidVerificationCodeException("El codigo ingresado no es correcto.");
-        }
+        User user = findPendingUser(request.email());
+        oneTimeCodeService.verify(user, OneTimeCodePurpose.EMAIL_VERIFICATION, request.code());
 
         user.markEmailAsVerified();
         userRepository.save(user);
@@ -128,7 +138,7 @@ public class AuthService {
             user.getEmail(),
             user.getUsername(),
             user.isEmailVerified(),
-            "La cuenta fue verificada y creada correctamente."
+            messages.get("auth.verification.success")
         );
     }
 
@@ -137,22 +147,37 @@ public class AuthService {
         String normalizedEmail = normalizeEmail(request.email());
 
         User user = userRepository.findByEmailIgnoreCase(normalizedEmail)
-            .orElseThrow(() -> new AuthenticationFailedException("Las credenciales ingresadas no son validas."));
+            .orElseThrow(() -> new AuthenticationFailedException(messages.get("auth.login.invalidCredentials")));
 
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
-            throw new AuthenticationFailedException("Las credenciales ingresadas no son validas.");
+            throw new AuthenticationFailedException(messages.get("auth.login.invalidCredentials"));
         }
 
         if (!user.isEmailVerified()) {
-            throw new EmailNotVerifiedException("Debes verificar tu correo antes de iniciar sesion.");
+            throw new EmailNotVerifiedException(messages.get("auth.login.emailNotVerified"));
         }
 
         if (!user.isEnabled()) {
-            throw new AccountBlockedException("La cuenta se encuentra bloqueada.");
+            throw new AccountBlockedException(messages.get("auth.account.blocked"));
         }
 
-        String refreshToken = jwtService.generateRefreshToken();
-        user.updateRefreshToken(refreshToken, LocalDateTime.now().plusDays(30));
+        return createLoginResponse(user);
+    }
+
+    @Transactional
+    public LoginResponse loginWithUnityAccessCode(String code) {
+        User user = unityAccessCodeService.findUserByCode(code)
+            .orElseThrow(() -> new AuthenticationFailedException("Invalid Unity access code."));
+
+        if (!user.isEmailVerified() || !user.isEnabled()) {
+            throw new AuthenticationFailedException("Invalid Unity access code.");
+        }
+
+        return createLoginResponse(user);
+    }
+
+    private LoginResponse createLoginResponse(User user) {
+        String refreshToken = refreshTokenService.issue(user);
         user.updateLastLoginAt(LocalDateTime.now());
         userRepository.save(user);
 
@@ -169,24 +194,23 @@ public class AuthService {
         );
     }
 
-    @Transactional
+    // Sin rollback al rechazar: el refresh token vencido debe quedar borrado.
+    @Transactional(dontRollbackOn = AuthenticationFailedException.class)
     public RefreshTokenResponse refresh(RefreshTokenRequest request) {
-        User user = userRepository.findByRefreshToken(request.refreshToken())
-            .orElseThrow(() -> new AuthenticationFailedException("El refresh token no es valido."));
+        User user = refreshTokenService.findOwner(request.refreshToken())
+            .orElseThrow(() -> new AuthenticationFailedException(messages.get("auth.refresh.invalidToken")));
 
-        if (user.getRefreshTokenExpiresAt() == null
-            || user.getRefreshTokenExpiresAt().isBefore(LocalDateTime.now())) {
+        if (refreshTokenService.isExpired(user)) {
             user.clearRefreshToken();
             userRepository.save(user);
-            throw new AuthenticationFailedException("El refresh token expiro. Por favor inicia sesion nuevamente.");
+            throw new AuthenticationFailedException(messages.get("auth.refresh.expiredToken"));
         }
 
         if (!user.isEnabled()) {
-            throw new AccountBlockedException("La cuenta se encuentra bloqueada.");
+            throw new AccountBlockedException(messages.get("auth.account.blocked"));
         }
 
-        String newRefreshToken = jwtService.generateRefreshToken();
-        user.updateRefreshToken(newRefreshToken, LocalDateTime.now().plusDays(30));
+        String newRefreshToken = refreshTokenService.issue(user);
         userRepository.save(user);
 
         UserPrincipal principal = new UserPrincipal(user);
@@ -210,16 +234,27 @@ public class AuthService {
             userRepository.save(user);
         });
         auditService.logLogout(userId, username);
-        return new LogoutResponse("La sesion fue cerrada correctamente.");
+        return new LogoutResponse(messages.get("auth.logout.success"));
+    }
+
+    private User findPendingUser(String email) {
+        User user = userRepository.findByEmailIgnoreCase(normalizeEmail(email))
+            .orElseThrow(() -> new ResourceNotFoundException(messages.get("auth.verification.pendingAccountNotFound")));
+
+        if (user.isEmailVerified()) {
+            throw new ConflictException(messages.get("auth.verification.alreadyVerified"));
+        }
+
+        return user;
     }
 
     private void validateUniqueness(String email, String username) {
         if (userRepository.existsByUsernameIgnoreCase(username)) {
-            throw new ConflictException("El nombre de usuario ya esta en uso.");
+            throw new ConflictException(messages.get("auth.register.usernameTaken"), "username");
         }
 
         if (userRepository.existsByEmailIgnoreCase(email)) {
-            throw new ConflictException("El correo electronico ya esta registrado.");
+            throw new ConflictException(messages.get("auth.register.emailTaken"), "email");
         }
     }
 

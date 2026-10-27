@@ -7,13 +7,17 @@ import RoastingSimulation from './components/simulation/RoastingSimulation';
 import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
 import VerificationForm from './components/VerificationForm';
+import ForgotPasswordForm from './components/ForgotPasswordForm';
+import PasswordResetForm from './components/PasswordResetForm';
 import { logoutUser } from './services/authService';
+import { ACCOUNT_BLOCKED_EVENT, SESSION_REVOKED_EVENT } from './services/apiClient';
 import { clearSession, readSession, saveSession } from './services/sessionService';
 
 const authViews = {
   entry: 'entry',
   register: 'register',
-  login: 'login'
+  login: 'login',
+  forgotPassword: 'forgotPassword'
 };
 
 function App() {
@@ -26,6 +30,11 @@ function App() {
   const [pendingRegistration, setPendingRegistration] = useState(null);
   const [verifiedUser, setVerifiedUser] = useState(null);
   const [session, setSession] = useState(() => readSession());
+  const [loginNotice, setLoginNotice] = useState('');
+  const [passwordReset, setPasswordReset] = useState(null);
+  const [isPasswordResetDone, setIsPasswordResetDone] = useState(false);
+  const [isResetCodeVerified, setIsResetCodeVerified] = useState(false);
+  const passwordResetTexts = esTexts.auth.passwordReset;
 
   const simulationTexts = esTexts.simulation;
   const knowledgeLevelTexts = esTexts.knowledgeLevel;
@@ -49,11 +58,24 @@ function App() {
 
   const handleSwitchAuthView = (nextView) => {
     setAuthView(nextView);
+    setLoginNotice('');
+    setPasswordReset(null);
+    setIsPasswordResetDone(false);
+    setIsResetCodeVerified(false);
 
     if (nextView !== authViews.register) {
       setPendingRegistration(null);
       setVerifiedUser(null);
     }
+  };
+
+  // Cuenta registrada pero sin verificar: se abre la verificación con la
+  // cuenta regresiva en 0 para que el usuario pida un código nuevo.
+  const handleVerifyAccount = (email) => {
+    setPendingRegistration({ email, codePolicy: null });
+    setVerifiedUser(null);
+    setLoginNotice('');
+    setAuthView(authViews.register);
   };
 
   const handleLoginSuccess = (loginResponse) => {
@@ -66,6 +88,7 @@ function App() {
 
     saveSession(nextSession);
     setSession(nextSession);
+    setLoginNotice('');
   };
 
   const handleKnowledgeLevelSet = (updatedUser) => {
@@ -103,6 +126,27 @@ function App() {
   useEffect(() => {
     window.addEventListener('toastedvr:session-expired', resetToLoggedOutState);
     return () => window.removeEventListener('toastedvr:session-expired', resetToLoggedOutState);
+  }, []);
+
+  // El backend rechazó la sesión sin posibilidad de renovarla (cuenta
+  // bloqueada o contraseña cambiada en otro dispositivo): se lleva al usuario
+  // al login con el aviso correspondiente.
+  useEffect(() => {
+    const noticesByEvent = {
+      [ACCOUNT_BLOCKED_EVENT]: esTexts.auth.errors.ACCOUNT_BLOCKED,
+      [SESSION_REVOKED_EVENT]: esTexts.auth.errors.SESSION_REVOKED
+    };
+    const handlers = Object.entries(noticesByEvent).map(([eventName, notice]) => {
+      const handler = () => {
+        resetToLoggedOutState();
+        setAuthView(authViews.login);
+        setLoginNotice(notice);
+      };
+      window.addEventListener(eventName, handler);
+      return [eventName, handler];
+    });
+
+    return () => handlers.forEach(([eventName, handler]) => window.removeEventListener(eventName, handler));
   }, []);
 
   if (currentUser && isAdmin) {
@@ -155,7 +199,30 @@ function App() {
     );
   }
 
-  const currentTitle = authView === authViews.login
+  const isPasswordResetView = authView === authViews.forgotPassword;
+  const passwordResetTitle = isPasswordResetDone
+    ? passwordResetTexts.success.title
+    : isResetCodeVerified
+      ? passwordResetTexts.resetTitle
+      : passwordReset
+        ? passwordResetTexts.codeTitle
+        : passwordResetTexts.title;
+  const passwordResetSubtitle = isPasswordResetDone
+    ? passwordResetTexts.success.subtitle
+    : isResetCodeVerified
+      ? passwordResetTexts.resetSubtitle
+      : passwordReset
+        ? passwordResetTexts.codeSubtitle
+        : passwordResetTexts.subtitle;
+
+  const handleRestartPasswordReset = () => {
+    setPasswordReset(null);
+    setIsResetCodeVerified(false);
+  };
+
+  const currentTitle = isPasswordResetView
+    ? passwordResetTitle
+    : authView === authViews.login
     ? loginTexts.title
     : verifiedUser
       ? registerTexts.success.title
@@ -163,7 +230,9 @@ function App() {
         ? registerTexts.verification.title
         : registerTexts.title;
 
-  const currentSubtitle = authView === authViews.login
+  const currentSubtitle = isPasswordResetView
+    ? passwordResetSubtitle
+    : authView === authViews.login
     ? loginTexts.subtitle
     : verifiedUser
       ? registerTexts.success.subtitle
@@ -172,15 +241,22 @@ function App() {
         : registerTexts.subtitle;
 
   const isEntryView = authView === authViews.entry;
-  const showBackButton = !isEntryView && !verifiedUser;
+  const showBackButton = !isEntryView && !verifiedUser && !isPasswordResetDone;
   const isAuthPanelActive = !isEntryView;
+  // Solo el formulario de registro (no la verificación ni el éxito) usa la
+  // tarjeta ancha con campos en dos columnas.
+  const isRegisterFormView = authView === authViews.register && !pendingRegistration && !verifiedUser;
 
   return (
     <div className="app-shell auth-shell">
       <div className="ambient-light ambient-light-left" />
       <div className="ambient-light ambient-light-right" />
 
-      <main className={`auth-experience ${isEntryView ? 'is-entry' : 'is-auth-active'}`}>
+      <main
+        className={`auth-experience ${isEntryView ? 'is-entry' : 'is-auth-active'}${
+          isRegisterFormView ? ' is-register' : ''
+        }`}
+      >
         <section className={`auth-hero-panel ${isAuthPanelActive ? 'is-muted' : ''}`}>
           <div className="auth-hero-content">
             <p className="eyebrow">{brand}</p>
@@ -239,8 +315,9 @@ function App() {
               {authView === authViews.register && pendingRegistration && !verifiedUser && (
                 <VerificationForm
                   email={pendingRegistration.email}
-                  expiresInMinutes={pendingRegistration.expiresInMinutes}
+                  codePolicy={pendingRegistration.codePolicy}
                   texts={registerTexts}
+                  errorTexts={esTexts.auth.errors}
                   onVerificationSuccess={handleVerificationSuccess}
                 />
               )}
@@ -263,9 +340,40 @@ function App() {
               {authView === authViews.login && (
                 <LoginForm
                   texts={loginTexts}
+                  errorTexts={esTexts.auth.errors}
+                  notice={loginNotice}
                   onLoginSuccess={handleLoginSuccess}
+                  onVerifyAccount={handleVerifyAccount}
+                  onForgotPassword={() => handleSwitchAuthView(authViews.forgotPassword)}
                   onSwitchToRegister={() => handleSwitchAuthView(authViews.register)}
                 />
+              )}
+
+              {isPasswordResetView && !passwordReset && (
+                <ForgotPasswordForm texts={passwordResetTexts} onCodeRequested={setPasswordReset} />
+              )}
+
+              {isPasswordResetView && passwordReset && !isPasswordResetDone && (
+                <PasswordResetForm
+                  email={passwordReset.email}
+                  codePolicy={passwordReset.codePolicy}
+                  texts={passwordResetTexts}
+                  errorTexts={esTexts.auth.errors}
+                  onCodeVerified={() => setIsResetCodeVerified(true)}
+                  onRestart={handleRestartPasswordReset}
+                  onResetSuccess={() => setIsPasswordResetDone(true)}
+                />
+              )}
+
+              {isPasswordResetView && isPasswordResetDone && (
+                <section className="success-panel" aria-live="polite">
+                  <div className="success-badge">{passwordResetTexts.success.badge}</div>
+                  <h2>{passwordResetTexts.success.title}</h2>
+                  <p>{passwordResetTexts.success.text}</p>
+                  <button type="button" onClick={() => handleSwitchAuthView(authViews.login)}>
+                    {passwordResetTexts.buttons.goToLogin}
+                  </button>
+                </section>
               )}
             </>
           )}

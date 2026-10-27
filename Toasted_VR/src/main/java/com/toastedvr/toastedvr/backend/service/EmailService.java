@@ -1,5 +1,7 @@
 package com.toastedvr.toastedvr.backend.service;
 
+import com.toastedvr.toastedvr.backend.config.MessageResolver;
+import com.toastedvr.toastedvr.backend.config.OneTimeCodeProperties;
 import com.toastedvr.toastedvr.backend.exception.EmailDeliveryException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
@@ -12,52 +14,105 @@ public class EmailService {
     private final JavaMailSender mailSender;
     private final boolean mailEnabled;
     private final String senderEmail;
-    private final int codeExpirationMinutes;
+    private final OneTimeCodeProperties oneTimeCodeProperties;
+    private final MessageResolver messages;
+    private final long unityAccessCodeExpirationMinutes;
 
     public EmailService(
         JavaMailSender mailSender,
         @Value("${app.mail.enabled:false}") boolean mailEnabled,
         @Value("${app.mail.from:no-reply@toastedvr.local}") String senderEmail,
-        @Value("${app.verification.code-expiration-minutes:2}") int codeExpirationMinutes
+        OneTimeCodeProperties oneTimeCodeProperties,
+        MessageResolver messages,
+        @Value("${app.unity-code.expiration-minutes:10}") long unityAccessCodeExpirationMinutes
     ) {
         this.mailSender = mailSender;
         this.mailEnabled = mailEnabled;
         this.senderEmail = senderEmail;
-        this.codeExpirationMinutes = codeExpirationMinutes;
+        this.oneTimeCodeProperties = oneTimeCodeProperties;
+        this.messages = messages;
+        this.unityAccessCodeExpirationMinutes = unityAccessCodeExpirationMinutes;
     }
 
     public void sendVerificationCode(String recipientEmail, String recipientName, String verificationCode) {
         if (!mailEnabled) {
-            throw new EmailDeliveryException(
-                "El envio de correo esta desactivado. Activa MAIL_ENABLED y configura SMTP en el archivo .env.",
-                null
-            );
+            throw new EmailDeliveryException(messages.get("email.delivery.disabled"), null);
         }
 
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(senderEmail);
         message.setTo(recipientEmail);
-        message.setSubject("Codigo de Verificacion - Toasted VR");
-        message.setText(buildMessage(recipientName, verificationCode));
+        message.setSubject(messages.get("email.verification.subject"));
+        message.setText(buildVerificationMessage(recipientName, verificationCode));
 
         try {
             mailSender.send(message);
         } catch (Exception exception) {
-            throw new EmailDeliveryException(
-                "No fue posible enviar el codigo de verificacion. Revisa la configuracion SMTP.",
-                exception
-            );
+            throw new EmailDeliveryException(messages.get("email.delivery.verificationFailed"), exception);
         }
     }
 
-    private String buildMessage(String recipientName, String verificationCode) {
+    public void sendPasswordResetCode(String recipientEmail, String recipientName, String resetCode) {
+        if (!mailEnabled) {
+            throw new EmailDeliveryException(messages.get("email.delivery.disabled"), null);
+        }
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(senderEmail);
+        message.setTo(recipientEmail);
+        message.setSubject(messages.get("email.passwordReset.subject"));
+        message.setText(buildPasswordResetMessage(recipientName, resetCode));
+
+        try {
+            mailSender.send(message);
+        } catch (Exception exception) {
+            throw new EmailDeliveryException(messages.get("email.delivery.passwordResetFailed"), exception);
+        }
+    }
+
+    public void sendUnityAccessCode(String recipientEmail, String recipientName, String unityAccessCode) {
+        if (!mailEnabled) {
+            throw new EmailDeliveryException("Email delivery is disabled.", null);
+        }
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(senderEmail);
+        message.setTo(recipientEmail);
+        message.setSubject("Your Toasted VR Unity Access Code");
+        message.setText(buildUnityAccessCodeMessage(recipientName, unityAccessCode));
+
+        try {
+            mailSender.send(message);
+        } catch (Exception exception) {
+            throw new EmailDeliveryException("Unable to send the Unity access code email.", exception);
+        }
+    }
+
+    String buildVerificationMessage(String recipientName, String verificationCode) {
+        return messages.get(
+            "email.verification.body",
+            recipientName,
+            verificationCode,
+            oneTimeCodeProperties.getExpirationMinutes()
+        );
+    }
+
+    String buildPasswordResetMessage(String recipientName, String resetCode) {
+        return messages.get(
+            "email.passwordReset.body",
+            recipientName,
+            resetCode,
+            oneTimeCodeProperties.getExpirationMinutes()
+        );
+    }
+
+    String buildUnityAccessCodeMessage(String recipientName, String unityAccessCode) {
         return """
-            Hola %s,
+            Hello %s,
 
-            Tu codigo de verificacion para Toasted VR es: %s
+            Your Toasted VR Unity access code is: %s
 
-            Este codigo vence en %d minutos.
-            Si no solicitaste esta cuenta, puedes ignorar este mensaje.
-            """.formatted(recipientName, verificationCode, codeExpirationMinutes);
+            Keep this code private. It expires %d minutes after it was generated. Sending this email does not extend its expiration time.
+            """.formatted(recipientName, unityAccessCode, unityAccessCodeExpirationMinutes);
     }
 }

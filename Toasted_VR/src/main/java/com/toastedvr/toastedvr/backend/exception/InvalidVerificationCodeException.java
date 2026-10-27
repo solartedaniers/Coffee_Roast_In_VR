@@ -1,8 +1,14 @@
 package com.toastedvr.toastedvr.backend.exception;
 
-public class InvalidVerificationCodeException extends RuntimeException {
+import java.util.Map;
+
+public class InvalidVerificationCodeException extends ApiException {
 
     public InvalidVerificationCodeException(String message) {
-        super(message);
+        super(ErrorCode.INVALID_CODE, message);
+    }
+
+    public InvalidVerificationCodeException(ErrorCode code, String message, Map<String, Object> details) {
+        super(code, message, details, null);
     }
 }

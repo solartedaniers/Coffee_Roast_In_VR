@@ -980,6 +980,10 @@
   gap: 8px;
 }
 
+.roast-menu-tiles-secondary > .roast-menu-tile:only-child {
+  grid-column: 1 / -1;
+}
+
 .roast-menu-corner {
   display: grid;
   grid-template-columns: 1fr 1fr;

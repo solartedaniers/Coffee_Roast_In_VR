@@ -1,4 +1,4 @@
-import apiClient, { getErrorMessage } from './apiClient';
+import apiClient, { toApiError } from './apiClient';
 
 export const fetchUsers = async ({ name, email, enabled, role, page, size }) => {
   try {
@@ -15,7 +15,7 @@ export const fetchUsers = async ({ name, email, enabled, role, page, size }) => 
 
     return response.data;
   } catch (error) {
-    throw new Error(getErrorMessage(error));
+    throw toApiError(error);
   }
 };
 
@@ -24,7 +24,7 @@ export const fetchUserDetail = async (userId) => {
     const response = await apiClient.get(`/admin/users/${userId}`);
     return response.data;
   } catch (error) {
-    throw new Error(getErrorMessage(error));
+    throw toApiError(error);
   }
 };
 
@@ -33,7 +33,7 @@ export const updateUserStatus = async (userId, enabled) => {
     const response = await apiClient.patch(`/admin/users/${userId}/status`, { enabled });
     return response.data;
   } catch (error) {
-    throw new Error(getErrorMessage(error));
+    throw toApiError(error);
   }
 };
 
@@ -42,7 +42,7 @@ export const updateUserRole = async (userId, role) => {
     const response = await apiClient.patch(`/admin/users/${userId}/role`, { role });
     return response.data;
   } catch (error) {
-    throw new Error(getErrorMessage(error));
+    throw toApiError(error);
   }
 };
 
@@ -53,7 +53,7 @@ export const fetchAllSessions = async ({ page = 0, size = 20 } = {}) => {
     });
     return response.data;
   } catch (error) {
-    throw new Error(getErrorMessage(error));
+    throw toApiError(error);
   }
 };
 
@@ -62,6 +62,6 @@ export const fetchAdminStats = async () => {
     const response = await apiClient.get('/admin/stats');
     return response.data;
   } catch (error) {
-    throw new Error(getErrorMessage(error));
+    throw toApiError(error);
   }
 };

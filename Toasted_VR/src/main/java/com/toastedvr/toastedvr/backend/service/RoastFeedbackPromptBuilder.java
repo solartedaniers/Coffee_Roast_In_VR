@@ -1,8 +1,8 @@
 package com.toastedvr.toastedvr.backend.service;
 
 import com.toastedvr.toastedvr.backend.domain.KnowledgeLevel;
-import com.toastedvr.toastedvr.backend.domain.RoastingResult;
 import com.toastedvr.toastedvr.backend.domain.RoastingSession;
+import java.util.List;
 
 // ================================================================
 // RoastFeedbackPromptBuilder
@@ -27,17 +27,20 @@ final class RoastFeedbackPromptBuilder {
         Datos de una sesión de tueste de café en un simulador por computadora \
         (no hay objetos físicos: solo estos números).
         Resultado: %s. Puntaje: %d/100.
-        Temperatura de carga: %s. Temperatura objetivo: %.1f°C. Temperatura final: %.1f°C.
+        Temperatura de carga: %s.
+        Temperatura objetivo: %.1f°C. Temperatura final: %.1f°C. %s
         Fase del tueste alcanzada al finalizar: %s.
-        Duración: %d segundos. First crack alcanzado: %s. Tiempo de desarrollo \
-        tras el first crack: %s segundos.
-        Nivel del usuario: %s.
+        Duración total: %d segundos. First crack alcanzado: %s.
         %s
+        Nivel del usuario: %s.
         Escribe 2 o 3 frases en español, en texto plano, explicando qué salió \
         bien o mal según esos datos y una sugerencia concreta para el próximo \
         tueste. No inventes objetos, herramientas ni escenas que no estén en \
         los datos. No repitas estas instrucciones. No uses markdown ni encabezados.
         %s
+        %s
+        Recuerda el resultado real de esta sesión: %s (puntaje %d/100). Tu \
+        sugerencia debe ser consistente con ese resultado, no contradecirlo.
 
         Retroalimentación:""";
 
@@ -48,8 +51,11 @@ final class RoastFeedbackPromptBuilder {
     // Rango recomendado para cargar el grano — mismo valor que
     // CHARGE_TEMP_IDEAL_MIN_C/MAX_C en RoastConstants.js del frontend
     // (no hay constantes compartidas entre backend y frontend hoy).
-    private static final double CHARGE_IDEAL_MIN_C = 180.0;
-    private static final double CHARGE_IDEAL_MAX_C = 200.0;
+    // Visibilidad de paquete (no private): RagContextRetrievalService también
+    // las usa para la query de búsqueda en pgvector, mismo criterio que
+    // resolveRoastPhaseLabel más abajo.
+    static final double CHARGE_IDEAL_MIN_C = 180.0;
+    static final double CHARGE_IDEAL_MAX_C = 200.0;
 
     // Umbrales de fase del tueste — mismos valores que MAILLARD_TEMP_START_C,
     // MAILLARD_TEMP_END_C y SECOND_CRACK_TEMP_MIN_C en RoastConstants.js del
@@ -63,10 +69,24 @@ final class RoastFeedbackPromptBuilder {
     private static final String FIRST_CRACK_PHASE_LABEL = "Primer Crack";
     private static final String SECOND_CRACK_PHASE_LABEL = "Segundo Crack";
 
+    // Mismo rango que rag.query.dtr-optimal-min/max (application.yml), usado
+    // por RagContextRetrievalService para la query de búsqueda — duplicado
+    // aquí como texto explícito para el modelo, mismo criterio de "no hay
+    // constantes compartidas hoy" que ya aplica a CHARGE_IDEAL_MIN_C/MAX_C.
+    private static final double DTR_IDEAL_MIN_RATIO = 0.18;
+    private static final double DTR_IDEAL_MAX_RATIO = 0.22;
+
+    private static final String BELOW_TARGET_LABEL = "POR DEBAJO";
+    private static final String ABOVE_TARGET_LABEL = "POR ENCIMA";
+
+    private static final String DEVELOPMENT_TIME_SHORT_LABEL = "CORTO";
+    private static final String DEVELOPMENT_TIME_LONG_LABEL = "PROLONGADO";
+    private static final String DEVELOPMENT_TIME_OPTIMAL_LABEL = "dentro del rango óptimo";
+
     private RoastFeedbackPromptBuilder() {
     }
 
-    static String build(RoastingSession session, KnowledgeLevel knowledgeLevel) {
+    static String build(RoastingSession session, KnowledgeLevel knowledgeLevel, List<String> retrievedContext) {
         KnowledgeLevel level = knowledgeLevel != null ? knowledgeLevel : KnowledgeLevel.INTERMEDIATE;
         return PROMPT_TEMPLATE.formatted(
             session.getResult(),
@@ -76,14 +96,74 @@ final class RoastFeedbackPromptBuilder {
                 : NOT_AVAILABLE,
             session.getTargetTemperature(),
             session.getFinalTemperature(),
+            targetVsFinalDeltaText(session),
             resolveRoastPhaseLabel(session.getFinalTemperature()),
             session.getTotalDurationSeconds(),
             Boolean.TRUE.equals(session.isFirstCrackReached()) ? YES : NO,
-            session.getDevelopmentTimeSeconds() != null ? session.getDevelopmentTimeSeconds().toString() : NOT_AVAILABLE,
+            developmentTimeText(session),
             shortLabelFor(level),
-            secondCrackZoneNote(session),
-            vocabularyReminderFor(level)
+            vocabularyReminderFor(level),
+            retrievedContextBlock(retrievedContext),
+            session.getResult(),
+            session.getQualityScore()
         );
+    }
+
+    // Deja ya calculada la dirección y magnitud de la diferencia entre
+    // objetivo y final, en vez de dejar que el modelo la infiera restando
+    // dos números mencionados en oraciones separadas — hallazgo: el modelo
+    // llegó a inventar un objetivo que no estaba en los datos reales.
+    private static String targetVsFinalDeltaText(RoastingSession session) {
+        double delta = session.getFinalTemperature() - session.getTargetTemperature();
+        if (delta == 0) {
+            return "La temperatura final coincidió exactamente con el objetivo.";
+        }
+        String direction = delta < 0 ? BELOW_TARGET_LABEL : ABOVE_TARGET_LABEL;
+        return "Quedó %.1f°C %s del objetivo.".formatted(Math.abs(delta), direction);
+    }
+
+    // Clasifica explícitamente el tiempo de desarrollo (corto/óptimo/
+    // prolongado) en vez de dar solo los segundos crudos — hallazgo: el
+    // modelo confundió un DTR alto (prolongado) con uno corto. Mismo rango
+    // y mismo vocabulario ("corto"/"prolongado") que ya usa la query de
+    // RagContextRetrievalService, para no introducir un tercer criterio.
+    private static String developmentTimeText(RoastingSession session) {
+        Integer developmentTime = session.getDevelopmentTimeSeconds();
+        Integer totalDuration = session.getTotalDurationSeconds();
+        if (developmentTime == null) {
+            return "Tiempo de desarrollo tras el first crack: %s.".formatted(NOT_AVAILABLE);
+        }
+
+        double ratio = developmentTime / (double) totalDuration;
+        String classification;
+        if (ratio < DTR_IDEAL_MIN_RATIO) {
+            classification = "esto es %s, no prolongado, respecto al rango óptimo de %.0f%%-%.0f%%"
+                .formatted(DEVELOPMENT_TIME_SHORT_LABEL, DTR_IDEAL_MIN_RATIO * 100, DTR_IDEAL_MAX_RATIO * 100);
+        } else if (ratio > DTR_IDEAL_MAX_RATIO) {
+            classification = "esto es %s, no corto, respecto al rango óptimo de %.0f%%-%.0f%%"
+                .formatted(DEVELOPMENT_TIME_LONG_LABEL, DTR_IDEAL_MIN_RATIO * 100, DTR_IDEAL_MAX_RATIO * 100);
+        } else {
+            classification = DEVELOPMENT_TIME_OPTIMAL_LABEL;
+        }
+        return "Tiempo de desarrollo tras el first crack: %d segundos de %d segundos totales (%.0f%% del tueste) — %s."
+            .formatted(developmentTime, totalDuration, ratio * 100, classification);
+    }
+
+    // Bloque opcional con los fragmentos recuperados de rag-docs/ (RAG) más
+    // relevantes para esta sesión. Vacío cuando no hay resultados —el prompt
+    // queda igual a como era antes de agregar RAG— para que el feedback siga
+    // funcionando aunque el índice de pgvector todavía no tenga PDFs cargados.
+    private static String retrievedContextBlock(List<String> retrievedContext) {
+        if (retrievedContext == null || retrievedContext.isEmpty()) {
+            return "";
+        }
+        StringBuilder block = new StringBuilder(
+            "Contexto de referencia de material académico (úsalo solo si es relevante, no lo cites textualmente):"
+        );
+        for (String chunk : retrievedContext) {
+            block.append("\n- ").append(chunk);
+        }
+        return block.toString();
     }
 
     // Traduce la temperatura final a la fase oficial del tueste alcanzada
@@ -91,7 +171,18 @@ final class RoastFeedbackPromptBuilder {
     // que GrainAppearanceModel.getGrainStateName() del frontend, colapsando
     // sus estados intermedios (DARK) dentro de "Primer Crack", que sigue
     // siendo la fase vigente hasta el segundo crack.
-    private static String resolveRoastPhaseLabel(double finalTemperature) {
+    // Visibilidad de paquete (no private): RagContextRetrievalService también
+    // la usa para construir la query de búsqueda en pgvector, así ambos
+    // puntos comparten la misma fuente de verdad para los umbrales de fase.
+    // Nota: cuando la fase es "Segundo Crack" con resultado BURNED, la
+    // explicación de que esa temperatura sería válida para un tueste oscuro
+    // (pero se penaliza porque el sistema en esta fase del proyecto solo
+    // evalúa hasta primer crack) ya la muestra el frontend como texto fijo
+    // (RoastFlavorProfileDescriber.js → clave BURNED_SECOND_CRACK_ZONE en
+    // es.json), no generado por el LLM. Este prompt solo reporta la fase;
+    // no le pide al modelo que la explique — un intento anterior de hacerlo
+    // desde aquí no logró que el modelo la sostuviera de forma consistente.
+    static String resolveRoastPhaseLabel(double finalTemperature) {
         if (finalTemperature <= DRYING_PHASE_END_C) {
             return DRYING_PHASE_LABEL;
         }
@@ -104,31 +195,21 @@ final class RoastFeedbackPromptBuilder {
         return SECOND_CRACK_PHASE_LABEL;
     }
 
-    // Cuando el tueste terminó en zona de segundo crack pero el resultado es
-    // BURNED (el techo de quemado queda debajo de esa zona a propósito, ver
-    // RoastFlavorProfileDescriber.js del frontend), le pide al modelo que
-    // explique la causa real en vez de solo decir "se quemó".
-    private static String secondCrackZoneNote(RoastingSession session) {
-        boolean reachedSecondCrackZone = session.getResult() == RoastingResult.BURNED
-            && session.getFinalTemperature() >= SECOND_CRACK_PHASE_START_C;
-        if (!reachedSecondCrackZone) {
-            return "";
-        }
-        return "Importante: esta sesión llegó a temperatura de SEGUNDO CRACK. Debes decir, con esta idea "
-            + "exacta y sin suavizarla: la temperatura alcanzada habría sido ideal para un tueste OSCURO, "
-            + "pero este simulador valida un perfil de tueste MEDIO, por eso el resultado es quemado. "
-            + "No uses frases vagas como \"se tostó correctamente hasta cierto punto\" ni evites nombrar "
-            + "el segundo crack o la palabra OSCURO.";
-    }
-
-    // Le señala al modelo cuando la carga quedó fuera del rango
-    // recomendado, para que lo mencione en la retroalimentación — mismo
-    // criterio que ya penaliza el puntaje en ChargeTemperaturePenaltyCalculator.js.
+    // Declara siempre si la carga está dentro o fuera del rango
+    // recomendado (mismo criterio que ya penaliza el puntaje en
+    // ChargeTemperaturePenaltyCalculator.js) — nunca en silencio cuando
+    // está bien, mismo estilo que developmentTimeText(), que también
+    // declara explícitamente el caso "dentro del rango óptimo". Hallazgo:
+    // el silencio en el caso bueno dejaba a la carga como un dato sin
+    // interpretar, y el modelo llenaba ese vacío inventando una relación
+    // entre carga y objetivo que no existe en el dominio (son puntos
+    // distintos del proceso, no valores comparables entre sí), llegando a
+    // recomendar "ajustar" la carga a un valor que ya tenía.
     private static String chargeTemperatureText(double chargeTemperature) {
         boolean outOfRange = chargeTemperature < CHARGE_IDEAL_MIN_C || chargeTemperature > CHARGE_IDEAL_MAX_C;
         String note = outOfRange
             ? " (fuera del rango recomendado de %.0f-%.0f°C)".formatted(CHARGE_IDEAL_MIN_C, CHARGE_IDEAL_MAX_C)
-            : "";
+            : " (dentro del rango recomendado de %.0f-%.0f°C)".formatted(CHARGE_IDEAL_MIN_C, CHARGE_IDEAL_MAX_C);
         return "%.1f°C%s".formatted(chargeTemperature, note);
     }
 

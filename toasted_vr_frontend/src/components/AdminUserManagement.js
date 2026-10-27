@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import ProfileSettings from './ProfileSettings';
+import { formatLocalDate } from '../utils/dateFormat';
 import {
   fetchUsers,
   fetchUserDetail,
@@ -42,10 +43,6 @@ function formatDuration(totalSeconds) {
   const mins = Math.floor(totalSeconds / 60);
   const secs = totalSeconds % 60;
   return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-}
-
-function formatDate(value) {
-  return value ? new Date(value).toLocaleDateString() : '—';
 }
 
 // ── Component ──────────────────────────────────────────────────────
@@ -163,7 +160,7 @@ function AdminUserManagement({ texts, profileTexts, currentUser, onLogout, onUse
     } finally {
       setIsLoadingDetail(false);
     }
-  }, []);
+  }, [texts.messages.detailLoadError]);
 
   const closePanel = useCallback(() => {
     setPanel({ isOpen: false, user: null, pendingRole: '' });
@@ -235,7 +232,7 @@ function AdminUserManagement({ texts, profileTexts, currentUser, onLogout, onUse
 
   const renderUserTable = (showActions = true) => (
     <div className="users-table-wrapper">
-      <table className="admin-compact-table">
+      <table className="admin-compact-table admin-users-table">
         <thead>
           <tr>
             <th>{texts.table.name}</th>
@@ -270,9 +267,9 @@ function AdminUserManagement({ texts, profileTexts, currentUser, onLogout, onUse
               onClick={() => openPanel(user)}
               style={{ cursor: 'pointer' }}
             >
-              <td><strong>{user.name}</strong></td>
-              <td className="admin-muted-cell">{user.email}</td>
-              <td>{user.username}</td>
+              <td className="admin-truncate-cell" title={user.name}><strong>{user.name}</strong></td>
+              <td className="admin-muted-cell admin-truncate-cell" title={user.email}>{user.email}</td>
+              <td className="admin-truncate-cell" title={user.username}>{user.username}</td>
               <td>{texts.roles[user.role.toLowerCase()] || user.role}</td>
               <td>
                 <span className={`status-pill ${user.enabled ? 'active' : 'blocked'}`}>
@@ -280,7 +277,7 @@ function AdminUserManagement({ texts, profileTexts, currentUser, onLogout, onUse
                 </span>
               </td>
               <td>{user.emailVerified ? texts.yes : texts.no}</td>
-              <td>{formatDate(user.createdAt)}</td>
+              <td>{formatLocalDate(user.createdAt)}</td>
               {showActions && (
                 <td>
                   <button
@@ -395,12 +392,9 @@ function AdminUserManagement({ texts, profileTexts, currentUser, onLogout, onUse
     if (!stats) return null;
 
     const klOrder = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'NOT_SET'];
-    const klLabels = {
-      BEGINNER: texts.options?.allRoles ? 'Principiante' : 'Principiante',
-      INTERMEDIATE: 'Intermedio',
-      ADVANCED: 'Avanzado',
-      NOT_SET: texts.statsSection.notSet,
-    };
+    // Los usuarios sin nivel se muestran como "Sin configurar" (distinto del
+    // "Sin nivel" de las sesiones).
+    const klLabels = { ...texts.sessionLevels, NOT_SET: texts.statsSection.notSet };
 
     const resultLabels = texts.simulationsSection?.results || {};
     const totalSessions = stats.totalSessions || 0;
@@ -472,6 +466,34 @@ function AdminUserManagement({ texts, profileTexts, currentUser, onLogout, onUse
               </div>
             </div>
           </div>
+
+          {/* RF020: el puntaje va de 0 a 100, así que el promedio es el ancho de la barra. */}
+          <div className="admin-stats-panel">
+            <h3 className="admin-stats-subtitle">{texts.statsSection.averageTitle}</h3>
+            <div className="admin-dist-list">
+              {['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'NOT_SET'].map((key) => {
+                const average = stats.averageScoreByLevel?.[key] ?? null;
+                return (
+                  <div className="admin-dist-row" key={key}>
+                    <span className="admin-dist-label">{texts.sessionLevels[key]}</span>
+                    <div className="admin-dist-bar-track">
+                      <div className="admin-dist-bar-fill" style={{ width: `${average ?? 0}%` }} />
+                    </div>
+                    <span className="admin-dist-count">{average != null ? `${average}%` : texts.noValue}</span>
+                  </div>
+                );
+              })}
+              <div className="admin-dist-row admin-dist-total">
+                <span className="admin-dist-label">{texts.statsSection.averageGeneral}</span>
+                <div className="admin-dist-bar-track">
+                  <div className="admin-dist-bar-fill" style={{ width: `${stats.averageScore ?? 0}%`, opacity: 0.3 }} />
+                </div>
+                <span className="admin-dist-count">
+                  {stats.averageScore != null ? `${stats.averageScore}%` : texts.noValue}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
     );
@@ -513,9 +535,11 @@ function AdminUserManagement({ texts, profileTexts, currentUser, onLogout, onUse
               <thead>
                 <tr>
                   <th>{texts.simulationsSection.columns.user}</th>
+                  <th>{texts.simulationsSection.columns.level}</th>
                   <th>{texts.simulationsSection.columns.result}</th>
                   <th>{texts.simulationsSection.columns.score}</th>
                   <th>{texts.simulationsSection.columns.duration}</th>
+                  <th>{texts.simulationsSection.columns.targetTemp}</th>
                   <th>{texts.simulationsSection.columns.temp}</th>
                   <th>{texts.simulationsSection.columns.date}</th>
                 </tr>
@@ -528,6 +552,7 @@ function AdminUserManagement({ texts, profileTexts, currentUser, onLogout, onUse
                       <br />
                       <small className="admin-muted-cell">{session.userUsername}</small>
                     </td>
+                    <td>{texts.sessionLevels[session.knowledgeLevel ?? 'NOT_SET']}</td>
                     <td>
                       <span className={`result-pill ${RESULT_COLORS[session.result] || ''}`}>
                         {texts.simulationsSection.results[session.result] || session.result}
@@ -535,9 +560,10 @@ function AdminUserManagement({ texts, profileTexts, currentUser, onLogout, onUse
                     </td>
                     <td className="admin-score-cell">{session.qualityScore}%</td>
                     <td>{formatDuration(session.totalDurationSeconds)}</td>
+                    <td>{session.targetTemperature?.toFixed(1)}°C</td>
                     <td>{session.finalTemperature?.toFixed(1)}°C</td>
                     <td className="admin-muted-cell">
-                      {new Date(session.createdAt).toLocaleDateString()}
+                      {formatLocalDate(session.createdAt)}
                     </td>
                   </tr>
                 ))}
@@ -578,7 +604,7 @@ function AdminUserManagement({ texts, profileTexts, currentUser, onLogout, onUse
                 [texts.detail.username, user.username],
                 [texts.detail.verified, user.emailVerified ? texts.yes : texts.no],
                 [texts.detail.status, user.enabled ? texts.options.active : texts.options.blocked],
-                [texts.detail.createdAt, formatDate(user.createdAt)],
+                [texts.detail.createdAt, formatLocalDate(user.createdAt)],
               ].map(([label, value]) => (
                 <div className="detail-row" key={label}>
                   <span>{label}</span>
@@ -693,18 +719,17 @@ function AdminUserManagement({ texts, profileTexts, currentUser, onLogout, onUse
             </button>
           ))}
         </nav>
-
-        <button
-          type="button"
-          className="admin-sidebar-logout text-link"
-          onClick={onLogout}
-        >
-          {texts.buttons.logout}
-        </button>
       </aside>
 
       {/* Main content area */}
       <main className="admin-main-content">
+        {/* Cerrar sesión arriba a la derecha, igual que en la barra del jugador. */}
+        <div className="admin-topbar">
+          <button type="button" className="secondary-button admin-logout-btn" onClick={onLogout}>
+            {texts.buttons.logout}
+          </button>
+        </div>
+
         {status.text && (
           <p
             className={`status-message ${status.isError ? 'error' : 'success'}`}

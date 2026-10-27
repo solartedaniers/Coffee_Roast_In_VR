@@ -1,0 +1,67 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:toasted_vr_test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+  mail:
+    host: localhost
+    port: 2525
+  ai:
+    vectorstore:
+      pgvector:
+        # H2 (used for the datasource above) has no pgvector extension, so
+        # the real app's initialize-schema: true would fail every test run
+        # with "bad SQL grammar [CREATE EXTENSION IF NOT EXISTS vector]".
+        initialize-schema: false
+
+app:
+  jwt:
+    secret: VG9hc3RlZFZSU3VwZXJTZWNyZXRLZXlGb3JUZXN0aW5nMjAyNiFUb2FzdGVkVlI=
+    expiration-seconds: 600
+    refresh-expiration-hours: 24
+  mail:
+    enabled: false
+  # Valores fijos para que los tests no dependan del .env local.
+  one-time-code:
+    expiration-minutes: 1
+    max-attempts: 5
+    max-resends: 3
+    resend-lock-minutes: 5
+  # Los tests usan dominios .test, que no existen en el DNS.
+  email-domain:
+    known-providers: gmail.com,hotmail.com,outlook.com,yahoo.com,icloud.com,hotmail.es,outlook.es,yahoo.es
+    max-typo-distance: 1
+    dns-check-enabled: false
+  password-reset:
+    token-expiration-minutes: 10
+  roasting:
+    history-page-size: 10
+    ranking-size: 10
+    ranking-poll-seconds: 60
+  roast-validation:
+    charge-temperature-min: 0
+    charge-temperature-max: 750
+    target-temperature-min: 150
+    target-temperature-max: 230
+    final-temperature-max: 250
+    raw-temperature-ceiling: 186
+    burned-temperature-ceiling: 217
+    defect-score-min: 5
+    defect-score-max: 50
+    perfect-score-min: 0
+    perfect-score-max: 100
+  password-policy:
+    min-length: 8
+    max-length: 72
+  username-policy:
+    min-length: 4
+    max-length: 20
+  unity-code:
+    hmac-pepper: unity-access-code-test-pepper
+    encryption-key: MDEyMzQ1Njc4OUFCQ0RFRjAxMjM0NTY3ODlBQkNERUY=
+    expiration-minutes: 10

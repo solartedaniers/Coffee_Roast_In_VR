@@ -32,13 +32,14 @@ public class AuditService {
         );
     }
 
-    public void logStatusChange(Long authorId, Long targetUserId, boolean enabled) {
+    public void logStatusChange(Long authorId, Long targetUserId, boolean previousEnabled, boolean newEnabled) {
         AUDIT_LOGGER.info(
-            "event=USER_STATUS_CHANGE timestamp={} authorId={} targetUserId={} enabled={}",
+            "event=USER_STATUS_CHANGE timestamp={} authorId={} targetUserId={} previousEnabled={} newEnabled={}",
             Instant.now(),
             authorId,
             targetUserId,
-            enabled
+            previousEnabled,
+            newEnabled
         );
     }
 
@@ -51,12 +52,30 @@ public class AuditService {
         );
     }
 
+    public void logPasswordReset(Long userId) {
+        AUDIT_LOGGER.info(
+            "event=PASSWORD_RESET timestamp={} userId={}",
+            Instant.now(),
+            userId
+        );
+    }
+
     public void logLogout(Long userId, String username) {
         AUDIT_LOGGER.info(
             "event=LOGOUT timestamp={} userId={} username={}",
             Instant.now(),
             userId,
             username
+        );
+    }
+
+    public void logRoastSessionRejected(Long userId, String rule, String detail) {
+        AUDIT_LOGGER.warn(
+            "event=ROAST_SESSION_REJECTED timestamp={} userId={} rule={} detail={}",
+            Instant.now(),
+            userId,
+            rule,
+            detail
         );
     }
 }

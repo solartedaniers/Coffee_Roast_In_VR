@@ -1,7 +1,9 @@
 package com.toastedvr.toastedvr.backend.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.toastedvr.toastedvr.backend.config.MessageResolver;
 import com.toastedvr.toastedvr.backend.dto.ApiErrorResponse;
+import com.toastedvr.toastedvr.backend.exception.ErrorCode;
 import com.toastedvr.toastedvr.backend.service.AuditService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,10 +23,12 @@ public class RestAccessDeniedHandler implements AccessDeniedHandler {
 
     private final AuditService auditService;
     private final ObjectMapper objectMapper;
+    private final MessageResolver messages;
 
-    public RestAccessDeniedHandler(AuditService auditService, ObjectMapper objectMapper) {
+    public RestAccessDeniedHandler(AuditService auditService, ObjectMapper objectMapper, MessageResolver messages) {
         this.auditService = auditService;
         this.objectMapper = objectMapper;
+        this.messages = messages;
     }
 
     @Override
@@ -45,8 +49,10 @@ public class RestAccessDeniedHandler implements AccessDeniedHandler {
                 Instant.now(),
                 HttpStatus.FORBIDDEN.value(),
                 HttpStatus.FORBIDDEN.getReasonPhrase(),
-                "Acceso denegado.",
-                request.getRequestURI()
+                messages.get("error.security.forbidden"),
+                request.getRequestURI(),
+                ErrorCode.FORBIDDEN,
+                null
             )
         );
     }

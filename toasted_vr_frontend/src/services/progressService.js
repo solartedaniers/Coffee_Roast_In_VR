@@ -1,0 +1,64 @@
+import apiClient, { getErrorMessage } from './apiClient';
+
+// Progreso del jugador: historial, resumen y detalle de sus sesiones (RF016)
+// y ranking por nivel (RF017).
+const ROASTING_SESSIONS_PATH = '/roasting/sessions';
+
+/** Página del historial (la más reciente primero); result filtra por resultado si viene. */
+export async function getSessionHistory({ page = 0, result = '' } = {}) {
+  try {
+    const params = result ? { page, result } : { page };
+    const response = await apiClient.get(ROASTING_SESSIONS_PATH, { params });
+    return response.data;
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+export async function getSessionSummary() {
+  try {
+    const response = await apiClient.get(`${ROASTING_SESSIONS_PATH}/summary`);
+    return response.data;
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+/** Ranking de un nivel; sin level el servidor usa el nivel actual del jugador (RF017). */
+export async function getRanking(level) {
+  try {
+    const params = level ? { level } : {};
+    const response = await apiClient.get('/roasting/ranking', { params });
+    return response.data;
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+/** Si el ranking del nivel del jugador cambió desde la última vez que lo vio (punto de aviso). */
+export async function getRankingChanges() {
+  try {
+    const response = await apiClient.get('/roasting/ranking/changes');
+    return response.data;
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+/** Marca como visto exactamente el ranking mostrado, identificado por su firma. */
+export async function markRankingSeen(signature) {
+  try {
+    await apiClient.put('/roasting/ranking/seen', { signature });
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+export async function getSessionDetail(sessionId) {
+  try {
+    const response = await apiClient.get(`${ROASTING_SESSIONS_PATH}/${sessionId}`);
+    return response.data;
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}

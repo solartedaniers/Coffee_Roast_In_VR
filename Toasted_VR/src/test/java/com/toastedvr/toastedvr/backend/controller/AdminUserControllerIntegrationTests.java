@@ -5,6 +5,7 @@ import com.toastedvr.toastedvr.backend.domain.User;
 import com.toastedvr.toastedvr.backend.repository.UserRepository;
 import com.toastedvr.toastedvr.backend.security.JwtService;
 import com.toastedvr.toastedvr.backend.security.UserPrincipal;
+import com.toastedvr.toastedvr.backend.service.AuditService;
 import java.util.Objects;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,6 +15,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.lang.NonNull;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -22,6 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -38,6 +41,9 @@ class AdminUserControllerIntegrationTests {
 
     @Autowired
     private JwtService jwtService;
+
+    @MockitoSpyBean
+    private AuditService auditService;
 
     private String adminToken;
     private Long adminId;
@@ -81,16 +87,19 @@ class AdminUserControllerIntegrationTests {
     }
 
     @Test
+    @SuppressWarnings("null")
     void shouldBlockAndActivateUserWithPersistedStatus() throws Exception {
         updateStatus(requirePlayerId(), false)
-            .andExpect(jsonPath("$.enabled").value(false));
+            .andExpect(jsonPath("$.enabled").value(false))
+            .andExpect(jsonPath("$.message").value("La cuenta fue bloqueada correctamente."));
         assertThat(userRepository.findById(requirePlayerId())).isPresent()
             .get()
             .extracting(User::isEnabled)
             .isEqualTo(false);
 
         updateStatus(requirePlayerId(), true)
-            .andExpect(jsonPath("$.enabled").value(true));
+            .andExpect(jsonPath("$.enabled").value(true))
+            .andExpect(jsonPath("$.message").value("La cuenta fue activada correctamente."));
         assertThat(userRepository.findById(requirePlayerId())).isPresent()
             .get()
             .extracting(User::isEnabled)
@@ -98,6 +107,7 @@ class AdminUserControllerIntegrationTests {
     }
 
     @Test
+    @SuppressWarnings("null")
     void shouldPreventAdministratorFromBlockingOwnAccount() throws Exception {
         mockMvc.perform(
                 patch("/api/v1/admin/users/{id}/status", requireAdminId())
@@ -106,11 +116,45 @@ class AdminUserControllerIntegrationTests {
                     .content("{\"enabled\":false}")
             )
             .andExpect(status().isConflict())
-            .andExpect(jsonPath("$.message").value("You cannot block your own account."));
+            .andExpect(jsonPath("$.message").value("No puedes bloquear tu propia cuenta."))
+            .andExpect(jsonPath("$.code").value("CONFLICT"));
         assertThat(userRepository.findById(requireAdminId())).isPresent()
             .get()
             .extracting(User::isEnabled)
             .isEqualTo(true);
+    }
+
+    @Test
+    void shouldAuditPreviousAndNewStatus() throws Exception {
+        updateStatus(requirePlayerId(), false);
+        verify(auditService).logStatusChange(requireAdminId(), requirePlayerId(), true, false);
+
+        updateStatus(requirePlayerId(), true);
+        verify(auditService).logStatusChange(requireAdminId(), requirePlayerId(), false, true);
+    }
+
+    @Test
+    void shouldReturnSpanishNotFoundMessageWithErrorCode() throws Exception {
+        mockMvc.perform(
+                get("/api/v1/admin/users/{id}", Long.MAX_VALUE)
+                    .header("Authorization", "Bearer " + adminToken)
+            )
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.message").value("Usuario no encontrado."))
+            .andExpect(jsonPath("$.code").value("NOT_FOUND"));
+    }
+
+    @Test
+    void shouldReturnSpanishValidationMessageWhenStatusIsMissing() throws Exception {
+        mockMvc.perform(
+                patch("/api/v1/admin/users/{id}/status", requirePlayerId())
+                    .header("Authorization", "Bearer " + adminToken)
+                    .contentType(jsonMediaType())
+                    .content("{}")
+            )
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value("El campo enabled es obligatorio."))
+            .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
     }
 
     private org.springframework.test.web.servlet.ResultActions updateStatus(

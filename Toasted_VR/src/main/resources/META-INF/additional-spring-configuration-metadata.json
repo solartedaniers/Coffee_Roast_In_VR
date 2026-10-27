@@ -21,9 +21,28 @@
       "description": "Cantidad de digitos del codigo de verificacion."
     },
     {
-      "name": "app.verification.code-expiration-minutes",
+      "name": "app.one-time-code.expiration-minutes",
       "type": "java.lang.Integer",
-      "description": "Minutos de vigencia del codigo de verificacion."
+      "description": "Minutos de vigencia de los codigos de verificacion y de recuperacion.",
+      "defaultValue": 1
+    },
+    {
+      "name": "app.one-time-code.max-attempts",
+      "type": "java.lang.Integer",
+      "description": "Intentos permitidos por codigo antes de invalidarlo.",
+      "defaultValue": 5
+    },
+    {
+      "name": "app.one-time-code.max-resends",
+      "type": "java.lang.Integer",
+      "description": "Reenvios permitidos antes de bloquear nuevos reenvios.",
+      "defaultValue": 3
+    },
+    {
+      "name": "app.one-time-code.resend-lock-minutes",
+      "type": "java.lang.Integer",
+      "description": "Minutos de bloqueo de reenvios al superar el limite.",
+      "defaultValue": 5
     },
     {
       "name": "app.jwt.secret",
@@ -34,7 +53,13 @@
       "name": "app.jwt.expiration-seconds",
       "type": "java.lang.Long",
       "description": "Segundos de vigencia de un token JWT antes de expirar.",
-      "defaultValue": 3600
+      "defaultValue": 600
+    },
+    {
+      "name": "app.jwt.refresh-expiration-hours",
+      "type": "java.lang.Long",
+      "description": "Horas de vigencia del refresh token, contadas desde su último uso.",
+      "defaultValue": 24
     },
     {
       "name": "app.bootstrap-admin.enabled",
@@ -61,6 +86,175 @@
       "name": "app.bootstrap-admin.password",
       "type": "java.lang.String",
       "description": "Contrasena inicial del administrador creado al iniciar la aplicacion."
+    },
+    {
+      "name": "app.unity-code.hmac-pepper",
+      "type": "java.lang.String",
+      "description": "Pepper usado para el hash de busqueda del codigo de acceso de Unity."
+    },
+    {
+      "name": "app.unity-code.encryption-key",
+      "type": "java.lang.String",
+      "description": "Clave usada para cifrar el codigo de acceso de Unity."
+    },
+    {
+      "name": "app.unity-code.expiration-minutes",
+      "type": "java.lang.Long",
+      "description": "Minutes a Unity access code remains valid after creation or regeneration.",
+      "defaultValue": 10
+    },
+    {
+      "name": "app.password-policy.min-length",
+      "type": "java.lang.Integer",
+      "description": "Longitud minima de la contraseña (registro, perfil y recuperacion).",
+      "defaultValue": 8
+    },
+    {
+      "name": "app.password-policy.max-length",
+      "type": "java.lang.Integer",
+      "description": "Longitud maxima de la contraseña en bytes UTF-8 (limite de BCrypt).",
+      "defaultValue": 72
+    },
+    {
+      "name": "app.username-policy.min-length",
+      "type": "java.lang.Integer",
+      "description": "Longitud minima del nombre de usuario.",
+      "defaultValue": 4
+    },
+    {
+      "name": "app.username-policy.max-length",
+      "type": "java.lang.Integer",
+      "description": "Longitud maxima del nombre de usuario.",
+      "defaultValue": 20
+    },
+    {
+      "name": "ollama.base-url",
+      "type": "java.lang.String",
+      "description": "URL de la instancia de Ollama usada por OllamaFeedbackService."
+    },
+    {
+      "name": "rag.query.dtr-optimal-min",
+      "type": "java.lang.Double",
+      "description": "Limite inferior del rango de Development Time Ratio optimo usado en la query de RAG."
+    },
+    {
+      "name": "rag.query.dtr-optimal-max",
+      "type": "java.lang.Double",
+      "description": "Limite superior del rango de Development Time Ratio optimo usado en la query de RAG."
+    },
+    {
+      "name": "app.roasting.history-page-size",
+      "type": "java.lang.Integer",
+      "description": "Sesiones por pagina en el historial del jugador.",
+      "defaultValue": 10
+    },
+    {
+      "name": "app.roasting.ranking-size",
+      "type": "java.lang.Integer",
+      "description": "Posiciones que muestra el top del ranking por nivel.",
+      "defaultValue": 10
+    },
+    {
+      "name": "app.roasting.ranking-poll-seconds",
+      "type": "java.lang.Integer",
+      "description": "Segundos entre consultas del cliente para saber si el ranking cambio (punto de aviso).",
+      "defaultValue": 60
+    },
+    {
+      "name": "app.roast-validation.charge-temperature-min",
+      "type": "java.lang.Double",
+      "description": "Temperatura de carga minima aceptada (C); es la del aire al cargar.",
+      "defaultValue": 0
+    },
+    {
+      "name": "app.roast-validation.charge-temperature-max",
+      "type": "java.lang.Double",
+      "description": "Temperatura de carga maxima aceptada (C); igual a MAX_AIR_TEMP_C del simulador.",
+      "defaultValue": 750
+    },
+    {
+      "name": "app.roast-validation.target-temperature-min",
+      "type": "java.lang.Double",
+      "description": "Temperatura objetivo minima aceptada (C).",
+      "defaultValue": 150
+    },
+    {
+      "name": "app.roast-validation.target-temperature-max",
+      "type": "java.lang.Double",
+      "description": "Temperatura objetivo maxima aceptada (C).",
+      "defaultValue": 230
+    },
+    {
+      "name": "app.roast-validation.final-temperature-max",
+      "type": "java.lang.Double",
+      "description": "Temperatura final maxima aceptada (C); igual a MAX_SAFE_TEMP_C del simulador.",
+      "defaultValue": 250
+    },
+    {
+      "name": "app.roast-validation.raw-temperature-ceiling",
+      "type": "java.lang.Double",
+      "description": "Bajo esta temperatura final el resultado solo puede ser RAW.",
+      "defaultValue": 186
+    },
+    {
+      "name": "app.roast-validation.burned-temperature-ceiling",
+      "type": "java.lang.Double",
+      "description": "Sobre esta temperatura final el resultado solo puede ser RAW o BURNED.",
+      "defaultValue": 217
+    },
+    {
+      "name": "app.roast-validation.defect-score-min",
+      "type": "java.lang.Integer",
+      "description": "Puntaje minimo de un resultado con defecto (RAW, BURNED, BAKED).",
+      "defaultValue": 5
+    },
+    {
+      "name": "app.roast-validation.defect-score-max",
+      "type": "java.lang.Integer",
+      "description": "Puntaje maximo de un resultado con defecto (RAW, BURNED, BAKED).",
+      "defaultValue": 50
+    },
+    {
+      "name": "app.roast-validation.perfect-score-min",
+      "type": "java.lang.Integer",
+      "description": "Puntaje minimo de un resultado PERFECT.",
+      "defaultValue": 0
+    },
+    {
+      "name": "app.roast-validation.perfect-score-max",
+      "type": "java.lang.Integer",
+      "description": "Puntaje maximo de un resultado PERFECT.",
+      "defaultValue": 100
+    },
+    {
+      "name": "app.email-domain.known-providers",
+      "type": "java.util.List<java.lang.String>",
+      "description": "Proveedores de correo conocidos; un dominio a un error de escritura de uno de ellos se rechaza en el registro.",
+      "defaultValue": "gmail.com,hotmail.com,outlook.com,yahoo.com,icloud.com,hotmail.es,outlook.es,yahoo.es"
+    },
+    {
+      "name": "app.email-domain.max-typo-distance",
+      "type": "java.lang.Integer",
+      "description": "Errores de escritura (Damerau-Levenshtein) para considerar un dominio como typo de un proveedor conocido.",
+      "defaultValue": 1
+    },
+    {
+      "name": "app.email-domain.dns-check-enabled",
+      "type": "java.lang.Boolean",
+      "description": "Consulta el DNS (MX/A/AAAA) para rechazar dominios que no existen en el registro.",
+      "defaultValue": true
+    },
+    {
+      "name": "app.email-domain.dns-timeout-millis",
+      "type": "java.lang.Integer",
+      "description": "Tiempo maximo de la consulta DNS; si vence, el correo se acepta.",
+      "defaultValue": 2000
+    },
+    {
+      "name": "app.password-reset.token-expiration-minutes",
+      "type": "java.lang.Integer",
+      "description": "Minutos que dura el permiso para cambiar la contrasena despues de verificar el codigo.",
+      "defaultValue": 10
     }
   ]
 }

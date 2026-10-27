@@ -1,16 +1,16 @@
 package com.toastedvr.toastedvr.backend.dto;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
-import jakarta.validation.constraints.Email;
+import com.toastedvr.toastedvr.backend.validation.ValidEmail;
 import jakarta.validation.constraints.NotBlank;
 
 public record LoginRequest(
     @JsonAlias({"identifier", "username"})
-    @NotBlank(message = "El correo electronico es obligatorio")
-    @Email(message = "El correo electronico no tiene un formato valido")
+    @NotBlank(message = "{validation.email.required}")
+    @ValidEmail
     String email,
 
-    @NotBlank(message = "La contrasena es obligatoria")
+    @NotBlank(message = "{validation.password.required}")
     String password
 ) {
 }

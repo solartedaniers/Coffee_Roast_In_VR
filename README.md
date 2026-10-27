@@ -155,3 +155,31 @@ Y dentro de esa caja:
 
 Si por ahora solo usas Supabase como base de datos, la forma mas clara y honesta es dejarlo como **`Supabase (PostgreSQL)`**.
 
+
+
+Abre Docker Desktop y espera a que esté completamente listo.
+Ve a la raíz del proyecto:
+   cd C:\Users\Alexander\Documents\Proyecto de Grado\Graduation_Project
+Levanta los 3 servicios (sin --build si no cambiaste nada de código desde hoy — arranca más rápido):
+   docker compose --env-file .\Toasted_VR\.env -f .\docker-compose.yml -f .\Toasted_VR\docker-compose.backend.yml -f .\toasted_vr_frontend\docker-compose.frontend.yml up -d
+Confirma que los 3 quedaron arriba sin reiniciarse:
+   docker compose --env-file .\Toasted_VR\.env -f .\docker-compose.yml -f .\Toasted_VR\docker-compose.backend.yml -f .\toasted_vr_frontend\docker-compose.frontend.yml ps
+
+Los 3 deben decir Up (postgres además healthy) — ninguno debe decir Restarting.
+
+Prueba en el navegador:
+   http://localhost:3000
+
+
+
+   # Detén los contenedores actuales
+
+   * docker compose down
+
+   # Vuelve a levantar todo el entorno limpio
+
+   * docker compose --env-file .\Toasted_VR\.env -f .\docker-compose.yml -f .\Toasted_VR\docker-compose.backend.yml -f .\toasted_vr_frontend\docker-compose.frontend.yml up --build -d
+
+   # Verifica que todo esté corriendo correctamente:
+
+   * docker ps

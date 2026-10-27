@@ -1,6 +1,9 @@
 {
   "app": {
-    "brand": "Toasted VR"
+    "brand": "Toasted VR",
+    "errors": {
+      "connection": "No fue posible conectar con el servidor."
+    }
   },
   "auth": {
     "entry": {
@@ -31,11 +34,69 @@
       },
       "links": {
         "forgotPassword": "¿Olvidaste tu contraseña?",
-        "createAccount": "Crear cuenta"
+        "createAccount": "Crear cuenta",
+        "verifyAccount": "Verificar mi cuenta"
+      }
+    },
+    "passwordReset": {
+      "title": "Recuperar contraseña",
+      "subtitle": "Te enviaremos un código a tu correo para crear una nueva contraseña.",
+      "codeTitle": "Verifica tu código",
+      "codeSubtitle": "Escribe el código de 6 dígitos que te enviamos al correo.",
+      "resetTitle": "Crea una nueva contraseña",
+      "resetSubtitle": "Tu código fue verificado. Escribe y confirma tu nueva contraseña segura.",
+      "badge": "Recuperación por correo",
+      "instructions": "Si el correo está registrado, enviamos un código de 6 dígitos a",
+      "timerLabel": "El código vence en",
+      "resendLockLabel": "Podrás pedir un nuevo código en",
+      "labels": {
+        "email": "Correo electrónico",
+        "newPassword": "Nueva contraseña",
+        "confirmPassword": "Confirmar nueva contraseña"
+      },
+      "placeholders": {
+        "email": "Ingresa el correo de tu cuenta",
+        "newPassword": "Crea una contraseña segura",
+        "confirmPassword": "Repite la nueva contraseña"
+      },
+      "buttons": {
+        "sendCode": "Enviar código",
+        "sending": "Enviando código...",
+        "verifyCode": "Verificar código",
+        "verifying": "Verificando código...",
+        "requestNewCode": "Solicitar un código nuevo",
+        "reset": "Cambiar contraseña",
+        "resetting": "Cambiando contraseña...",
+        "resend": "Reenviar código",
+        "resending": "Enviando código...",
+        "goToLogin": "Ir a iniciar sesión"
       },
       "messages": {
-        "forgotPasswordUnavailable": "La recuperación de contraseña aún no está disponible en esta versión."
+        "codeResent": "Si el correo está registrado, recibirás un nuevo código.",
+        "invalidCodeLength": "Debes ingresar los 6 dígitos del código.",
+        "invalidCode": "El código no es válido o venció. Solicita uno nuevo.",
+        "passwordMismatch": "Las contraseñas no coinciden."
+      },
+      "codeVerifiedBadge": "Código verificado",
+      "success": {
+        "badge": "Contraseña actualizada",
+        "title": "Todo listo",
+        "subtitle": "Ya puedes iniciar sesión con tu nueva contraseña.",
+        "text": "Tu contraseña fue actualizada y todas tus sesiones anteriores se cerraron."
       }
+    },
+    "validation": {
+      "invalidEmail": "Debes ingresar un correo electrónico válido (por ejemplo, usuario@dominio.com).",
+      "emailDomainTypo": "Correo inexistente: el dominio «{domain}» no existe. ¿Quisiste decir {suggestion}?"
+    },
+    "errors": {
+      "ACCOUNT_BLOCKED": "Fuiste bloqueado por el administrador.",
+      "SESSION_REVOKED": "Tu contraseña cambió. Inicia sesión de nuevo.",
+      "INVALID_CODE": "El código ingresado no es correcto.",
+      "CODE_EXPIRED": "El código venció. Solicita uno nuevo.",
+      "CODE_ATTEMPTS_EXHAUSTED": "Agotaste los intentos para este código. Solicita uno nuevo.",
+      "CODE_STILL_ACTIVE": "Tu código actual sigue vigente. Podrás pedir otro cuando venza.",
+      "TOO_MANY_RESENDS": "Intenta más tarde."
     },
     "register": {
       "switchLabel": "Registrarse",
@@ -61,21 +122,27 @@
         "verify": "Verificar código",
         "verifying": "Validando código...",
         "createAnother": "Registrar otra cuenta",
-        "goToLogin": "Ir a iniciar sesión"
+        "goToLogin": "Ir a iniciar sesión",
+        "resend": "Reenviar código",
+        "resending": "Enviando código..."
       },
       "links": {
         "login": "¿Ya tienes cuenta? Inicia sesión"
       },
       "messages": {
         "passwordMismatch": "Las contraseñas no coinciden.",
-        "invalidCodeLength": "Debes ingresar los 6 dígitos del código."
+        "invalidCodeLength": "Debes ingresar los 6 dígitos del código.",
+        "nameLettersOnly": "Este campo solo acepta letras."
       },
       "verification": {
         "badge": "Verificación por correo",
         "title": "Verificación de correo",
         "subtitle": "Confirma el código enviado para habilitar tu cuenta.",
         "instructions": "Escribe el código de 6 dígitos que enviamos a",
-        "timerLabel": "El código vence en"
+        "timerLabel": "El código vence en",
+        "attemptsLeft": "Intentos restantes: {count}",
+        "resendLockLabel": "Podrás pedir un nuevo código en",
+        "codeResent": "Te enviamos un nuevo código a tu correo."
       },
       "success": {
         "badge": "Cuenta verificada",
@@ -150,6 +217,62 @@
       "invalidImage": "Selecciona una imagen valida.",
       "imageTooLarge": "La imagen debe pesar menos de 900 KB."
     },
+    "unityAccess": {
+      "title": "Acceso a Unity",
+      "subtitle": "Administra tu código temporal para ingresar a la experiencia de Unity.",
+      "loading": "Consultando el estado del código...",
+      "configured": "Configurado",
+      "expired": "Vencido",
+      "configuredDescription": "Tu código está protegido y funciona durante 10 minutos desde su generación.",
+      "expiresAt": "Válido hasta el {date}.",
+      "notConfiguredDescription": "Crea un código válido durante 10 minutos para iniciar sesión en Unity.",
+      "expiredDescription": "Tu código venció. Genera uno nuevo para volver a iniciar sesión en Unity.",
+      "passwordLabel": "Contraseña actual",
+      "passwordPlaceholder": "Ingresa tu contraseña actual",
+      "buttons": {
+        "create": "Crear código",
+        "createNew": "Generar nuevo código",
+        "reveal": "Ver código",
+        "email": "Enviar por correo",
+        "regenerate": "Regenerar código",
+        "copy": "Copiar código",
+        "retry": "Intentar de nuevo",
+        "cancel": "Cancelar",
+        "close": "Cerrar",
+        "processing": "Procesando..."
+      },
+      "confirmation": {
+        "create": {
+          "title": "Crear código de acceso",
+          "description": "Confirma tu contraseña actual para crear un código válido durante 10 minutos.",
+          "confirm": "Crear código"
+        },
+        "reveal": {
+          "title": "Ver código de acceso",
+          "description": "Confirma tu contraseña actual para consultar el código.",
+          "confirm": "Ver código"
+        },
+        "email": {
+          "title": "Enviar código por correo",
+          "description": "Confirma tu contraseña actual para enviar el código a tu correo registrado.",
+          "confirm": "Enviar código"
+        },
+        "regenerate": {
+          "title": "Regenerar código de acceso",
+          "description": "El código anterior dejará de funcionar. Confirma tu contraseña para crear uno nuevo.",
+          "confirm": "Regenerar código"
+        }
+      },
+      "messages": {
+        "passwordRequired": "Ingresa tu contraseña actual para continuar.",
+        "statusError": "No fue posible consultar el estado del código de Unity.",
+        "actionError": "No fue posible completar la acción. Verifica tu contraseña e inténtalo de nuevo.",
+        "emailSent": "El código se envió correctamente a tu correo registrado. Su vencimiento no cambió.",
+        "codeReady": "Este código es válido durante 10 minutos desde su generación. Guárdalo en un lugar seguro.",
+        "copied": "Código copiado correctamente.",
+        "copyError": "No fue posible copiar el código. Selecciónalo y cópialo manualmente."
+      }
+    },
     "ariaLabel": "Perfil"
   },
   "simulation": {
@@ -214,7 +337,6 @@
         "viewProcess": "Visualizar Proceso de Tueste",
         "manualControl": "Control de Tueste Manual",
         "openGeneralSettings": "Configuración Interna",
-        "dataHistory": "Guardar Datos",
         "helpButton": "Ayuda",
         "abort": "Salir del tueste",
         "close": "Cerrar menú"
@@ -258,9 +380,96 @@
       "finalColumn": "Final (°C)"
     },
     "dataHistory": {
-      "title": "Guardar Datos",
+      "historyTitle": "Historial",
+      "rankingTitle": "Ranking",
       "close": "Cerrar",
-      "unavailable": "El historial de tuestes guardados todavía no está disponible en esta versión."
+      "ranking": {
+        "levelLabel": "Nivel",
+        "chooseLevel": "Elige un nivel",
+        "noLevel": "Elige un nivel para ver el ranking.",
+        "loading": "Cargando ranking...",
+        "loadError": "No se pudo cargar el ranking.",
+        "empty": "Todavía nadie tiene tuestes en este nivel.",
+        "noSessionsInLevel": "Aún no tienes tuestes en este nivel. Guarda uno para aparecer en el ranking.",
+        "yourPosition": "Tu posición",
+        "you": "(tú)",
+        "changesNotice": "Hay cambios en el ranking desde tu última visita",
+        "movement": {
+          "up": "▲ {places}",
+          "down": "▼ {places}",
+          "new": "Nuevo",
+          "upLabel": "Subió {places} {unit}",
+          "downLabel": "Bajó {places} {unit}",
+          "newLabel": "Nuevo desde tu última visita",
+          "placeOne": "puesto",
+          "placeMany": "puestos"
+        },
+        "columns": {
+          "position": "Posición",
+          "username": "Usuario",
+          "bestScore": "Mejor puntaje",
+          "date": "Fecha"
+        }
+      },
+      "loading": "Cargando historial...",
+      "loadError": "No se pudo cargar el historial.",
+      "empty": "Todavía no tienes tuestes guardados.",
+      "emptyFiltered": "No tienes tuestes con ese resultado.",
+      "noValue": "—",
+      "minutesUnit": "min",
+      "pageLabel": "Página {page} de {totalPages}",
+      "summary": {
+        "best": "Mejor puntaje",
+        "average": "Promedio",
+        "total": "Tuestes guardados"
+      },
+      "filter": {
+        "label": "Resultado",
+        "all": "Todos"
+      },
+      "columns": {
+        "date": "Fecha",
+        "level": "Nivel",
+        "result": "Resultado",
+        "score": "Puntaje",
+        "finalTemp": "Temp. final",
+        "duration": "Duración",
+        "dtr": "DTR"
+      },
+      "levels": {
+        "BEGINNER": "Principiante",
+        "INTERMEDIATE": "Intermedio",
+        "ADVANCED": "Avanzado"
+      },
+      "results": {
+        "PERFECT": "Perfecto",
+        "RAW": "Crudo",
+        "BURNED": "Quemado",
+        "BAKED": "Horneado"
+      },
+      "buttons": {
+        "previous": "Anterior",
+        "next": "Siguiente",
+        "view": "Ver detalle",
+        "back": "Volver al historial",
+        "feedback": "Pedir retroalimentación de IA"
+      },
+      "detail": {
+        "title": "Detalle del tueste",
+        "loading": "Cargando detalle...",
+        "chargeTemp": "Temperatura de carga",
+        "targetTemp": "Temperatura objetivo",
+        "peakTemp": "Temperatura máxima",
+        "firstCrack": "First crack alcanzado",
+        "devTime": "Tiempo de desarrollo",
+        "yes": "Sí",
+        "no": "No"
+      },
+      "feedback": {
+        "title": "Retroalimentación de IA",
+        "loading": "Generando retroalimentación...",
+        "unavailable": "La retroalimentación de IA no está disponible en este momento."
+      }
     },
     "help": {
       "title": "Ayuda",
@@ -280,6 +489,7 @@
       "title": "Evaluación del tueste",
       "PERFECT": "Tueste Perfecto",
       "RAW": "Café Crudo",
+      "RAW_REGRESSED": "Desarrollo interrumpido",
       "BURNED": "Café Quemado",
       "BAKED": "Café Horneado",
       "descriptions": {
@@ -289,6 +499,7 @@
         "PERFECT_DEEP": "Desarrollo más largo tras el first crack: notas más profundas de chocolate y frutos secos, con menor acidez.",
         "RAW_SEVERE": "El grano quedó muy crudo, lejos del punto de first crack: predominarán sabores ácidos, vegetales y astringentes muy marcados.",
         "RAW_CLOSE": "El grano casi alcanza el desarrollo, pero se retiró antes de tiempo: quedará una acidez punzante con fondo vegetal.",
+        "RAW_REGRESSED": "Se alcanzó el first crack, pero la temperatura bajó demasiado antes de completar el desarrollo: el tueste no llegó a asentarse, lo que dejará sabores subdesarrollados.",
         "BURNED_MILD": "El calor se mantuvo unos segundos de más sobre el límite: aparecerán notas amargas y ahumadas que taparán el resto del perfil.",
         "BURNED_SEVERE": "El grano estuvo mucho tiempo por encima del límite de quemado: quedará prácticamente carbonizado, con sabor a ceniza y sin aromas rescatables.",
         "BURNED_SECOND_CRACK_ZONE": "Esta temperatura habría sido ideal para un tueste oscuro (segundo crack), pero este simulador evalúa un perfil de tueste medio, así que se clasifica como quemado.",
@@ -368,12 +579,21 @@
       "knowledgeTitle": "Nivel de conocimiento",
       "notSet": "Sin configurar",
       "sessionResultsTitle": "Resultados de tostión",
+      "averageTitle": "Puntaje promedio por nivel",
+      "averageGeneral": "General",
       "loadingStats": "Cargando estadísticas..."
     },
     "rolesSection": {
       "title": "Roles y control de acceso",
       "subtitle": "Administra roles y estado de cada cuenta de usuario."
     },
+    "sessionLevels": {
+      "BEGINNER": "Principiante",
+      "INTERMEDIATE": "Intermedio",
+      "ADVANCED": "Avanzado",
+      "NOT_SET": "Sin nivel"
+    },
+    "noValue": "—",
     "simulationsSection": {
       "title": "Historial de simulaciones",
       "subtitle": "Todas las sesiones de tostado registradas en el sistema.",
@@ -382,6 +602,8 @@
         "result": "Resultado",
         "score": "Puntuación",
         "duration": "Duración",
+        "level": "Nivel",
+        "targetTemp": "Temp. objetivo",
         "temp": "Temp. final",
         "date": "Fecha"
       },

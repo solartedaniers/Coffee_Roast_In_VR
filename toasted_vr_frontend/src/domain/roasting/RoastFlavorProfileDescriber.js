@@ -26,12 +26,17 @@ export default class RoastFlavorProfileDescriber {
       finalTemperature,
       roastingElapsedSeconds,
       firstCrackTimeSeconds,
+      firstCrackReached,
       maxConsecutiveBurnSeconds,
       maillardStagnationSeconds,
     } = finishedSim;
 
     switch (result) {
       case RESULTS.RAW:
+        // Caso distinto de los otros dos: el grano sí cruzó first crack,
+        // pero la temperatura se desplomó después sin completar el
+        // desarrollo — no es lo mismo que nunca haber llegado.
+        if (firstCrackReached) return 'RAW_REGRESSED';
         return RAW_TEMP_CEILING_C - finalTemperature > 15 ? 'RAW_SEVERE' : 'RAW_CLOSE';
 
       case RESULTS.BURNED:

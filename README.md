@@ -102,24 +102,28 @@ JPA_SHOW_SQL=true
 
 ### 3. Retroalimentacion con IA (Ollama + Phi-4-mini) - Opcional
 
-El backend usa un modelo local via [Ollama](https://ollama.com) para generar
-la retroalimentacion de IA que se muestra al finalizar un tueste.
+Tengo la parte de IA separada en su propio servicio, la carpeta `IA/`: genera
+la retroalimentacion que se muestra al finalizar un tueste con un modelo local
+via [Ollama](https://ollama.com) y hace el RAG sobre los PDFs de
+`IA/src/main/resources/rag-docs/`. Corre en el host, fuera de Docker, igual
+que Ollama. El frontend y Unity siguen llamando al backend como siempre, y el
+backend le delega el trabajo al servicio IA.
 
 **Instalacion**
-1. Instala Ollama desde [https://ollama.com](https://ollama.com).
-2. Descarga el modelo:
+1. Instalo Ollama desde [https://ollama.com](https://ollama.com).
+2. Descargo los modelos:
    ```bash
    ollama pull phi4-mini
+   ollama pull nomic-embed-text
    ```
-3. Confirma que quedo instalado:
-   ```bash
-   ollama --version
-   ```
+3. Levanto el servicio IA siguiendo `IA/README.md` (`./mvnw spring-boot:run`
+   desde `IA/`, queda en `http://127.0.0.1:8082`).
 
-Por defecto el backend busca Ollama en `http://localhost:11434` (variable
-`OLLAMA_BASE_URL` en `Toasted_VR/.env`, ver `Toasted_VR/.env.example`).
+El backend encuentra el servicio IA con `AI_SERVICE_BASE_URL` (backend en el
+host) o `DOCKER_AI_SERVICE_BASE_URL` (backend en Docker) en `Toasted_VR/.env`,
+ver `Toasted_VR/.env.example`.
 
-**Es opcional.** Si Ollama no esta instalado o no esta corriendo, el resto de
+**Es opcional.** Si el servicio IA u Ollama no estan corriendo, el resto de
 la aplicacion funciona con normalidad; simplemente no se muestra la
 retroalimentacion de IA y en su lugar aparece el mensaje "Retroalimentacion
 no disponible por ahora".
@@ -128,15 +132,17 @@ no disponible por ahora".
 
 ## Flujo de Pull Requests y CI
 
-Trabajo cada cambio en su propia rama y lo integro a `main` solo por Pull Request. Cada PR hacia `main` (y cada push a `main`) dispara el workflow `.github/workflows/ci.yml` en GitHub Actions, que corre dos checks:
+Trabajo cada cambio en su propia rama y lo integro a `main` solo por Pull Request. Cada PR hacia `main` (y cada push a `main`) dispara el workflow `.github/workflows/ci.yml` en GitHub Actions, que corre tres checks:
 
-- `backend-tests`: los tests de `Toasted_VR` con Java 17 y Maven (`./mvnw -B test`). Usan el perfil `test` (H2 en memoria, correo deshabilitado y Ollama simulado), así que no necesitan PostgreSQL, Ollama ni SMTP.
+- `backend-tests`: los tests de `Toasted_VR` con Java 17 y Maven (`./mvnw -B test`). Usan el perfil `test` (H2 en memoria, correo deshabilitado y servicio IA simulado), así que no necesitan PostgreSQL, el servicio IA ni SMTP.
 - `frontend-tests`: en `toasted_vr_frontend` con Node 20 corre `npm ci`, los tests con `CI=true` y `npm run build`.
+- `ai-tests`: los tests del servicio `IA/` con Java 17 y Maven. También usan H2 y no necesitan Ollama.
 
-Solo fusiono un PR cuando los dos checks están en verde. Para revisarlo antes de abrir el PR, corro lo mismo localmente:
+Solo fusiono un PR cuando los checks están en verde. Para revisarlo antes de abrir el PR, corro lo mismo localmente:
 
 ```bash
 cd Toasted_VR && ./mvnw -B test
+cd IA && ./mvnw -B test
 cd toasted_vr_frontend && npm ci && CI=true npm test -- --watchAll=false && CI=true npm run build
 ```
 

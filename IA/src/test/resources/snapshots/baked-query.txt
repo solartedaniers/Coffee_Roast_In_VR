@@ -1,0 +1,2 @@
+Tueste de café. Resultado: BAKED. Puntaje: 15/100. Fase alcanzada: Secado. Nivel del usuario: INTERMEDIATE. Temperatura final por debajo del objetivo (150.0°C vs 215.0°C, faltaron 65.0°C). Tiempo de desarrollo prolongado tras el first crack, riesgo de sobre-tueste. Posible horneado. Temperatura de carga fuera del rango ideal (150.0°C).
+topK=4

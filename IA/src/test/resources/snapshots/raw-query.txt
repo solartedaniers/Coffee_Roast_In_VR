@@ -1,0 +1,2 @@
+Tueste de café. Resultado: RAW. Puntaje: 20/100. Fase alcanzada: Caramelización (reacción de Maillard). Nivel del usuario: INTERMEDIATE. Temperatura final por debajo del objetivo (180.0°C vs 210.0°C, faltaron 30.0°C).
+topK=4

@@ -1,0 +1,2 @@
+Tueste de café. Resultado: PERFECT. Puntaje: 92/100. Fase alcanzada: Caramelización (reacción de Maillard). Nivel del usuario: BEGINNER.
+topK=4

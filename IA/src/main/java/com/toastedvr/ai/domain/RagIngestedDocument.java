@@ -1,4 +1,4 @@
-package com.toastedvr.toastedvr.backend.domain;
+package com.toastedvr.ai.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

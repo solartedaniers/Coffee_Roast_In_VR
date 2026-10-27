@@ -1,6 +1,6 @@
-package com.toastedvr.toastedvr.backend.repository;
+package com.toastedvr.ai.repository;
 
-import com.toastedvr.toastedvr.backend.domain.RagIngestedDocument;
+import com.toastedvr.ai.domain.RagIngestedDocument;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 

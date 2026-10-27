@@ -1,12 +1,12 @@
-package com.toastedvr.toastedvr.backend.service;
+package com.toastedvr.ai.service;
 
-import com.toastedvr.toastedvr.backend.domain.KnowledgeLevel;
-import com.toastedvr.toastedvr.backend.domain.RoastingSession;
+import com.toastedvr.ai.config.OllamaProperties;
+import com.toastedvr.ai.domain.KnowledgeLevel;
+import com.toastedvr.ai.dto.RoastFeedbackRequest;
 import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
@@ -22,54 +22,47 @@ import org.springframework.web.client.RestClient;
 public class OllamaFeedbackService {
 
     private static final Logger log = LoggerFactory.getLogger(OllamaFeedbackService.class);
-    private static final String MODEL_NAME = "phi4-mini";
     private static final String GENERATE_ENDPOINT = "/api/generate";
     private static final String RESPONSE_FIELD = "response";
-    private static final int CONNECT_TIMEOUT_MS = 5_000;
-    // Phi-4-mini sobre CPU puede tardar hasta ~50s solo en cargar el modelo
-    // si Ollama lo había descargado de memoria (ver KEEP_ALIVE_DURATION).
-    private static final int READ_TIMEOUT_MS = 120_000;
-    // Le pide a Ollama que mantenga el modelo cargado en memoria tras cada
-    // respuesta, para que la siguiente petición no pague de nuevo el costo
-    // de carga (~30-50s en frío).
-    private static final String KEEP_ALIVE_DURATION = "10m";
 
     private final RestClient restClient;
+    private final OllamaProperties properties;
     private final RagContextRetrievalService ragContextRetrievalService;
 
     @SuppressWarnings("null")
     public OllamaFeedbackService(
-        @Value("${ollama.base-url:http://localhost:11434}") String baseUrl,
+        OllamaProperties properties,
         RagContextRetrievalService ragContextRetrievalService
     ) {
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-        requestFactory.setConnectTimeout(CONNECT_TIMEOUT_MS);
-        requestFactory.setReadTimeout(READ_TIMEOUT_MS);
+        requestFactory.setConnectTimeout(properties.getConnectTimeoutMillis());
+        requestFactory.setReadTimeout(properties.getReadTimeoutMillis());
 
         this.restClient = RestClient.builder()
-            .baseUrl(baseUrl)
+            .baseUrl(properties.getBaseUrl())
             .requestFactory(requestFactory)
             .build();
+        this.properties = properties;
         this.ragContextRetrievalService = ragContextRetrievalService;
     }
 
     // Devuelve null si Ollama no está disponible o falla — es un extra
     // sobre el resultado ya calculado, nunca debe tumbar el flujo principal.
     @SuppressWarnings("null")
-    public String generateFeedback(RoastingSession session, KnowledgeLevel knowledgeLevel) {
+    public String generateFeedback(RoastFeedbackRequest session, KnowledgeLevel knowledgeLevel) {
         try {
             List<String> retrievedContext = ragContextRetrievalService.findRelevantChunks(session, knowledgeLevel);
             Map<String, Object> requestBody = Map.of(
-                "model", MODEL_NAME,
+                "model", properties.getModel(),
                 "prompt", RoastFeedbackPromptBuilder.build(session, knowledgeLevel, retrievedContext),
                 "stream", false,
-                "keep_alive", KEEP_ALIVE_DURATION,
+                "keep_alive", properties.getKeepAlive(),
                 // phi4-mini a veces sigue generando texto tras un salto de línea
                 // doble (repite instrucciones o inventa una sección nueva).
                 // "stop" lo evita casi siempre; el corte en cutAtFirstBlankLine
                 // es el respaldo para cuando no lo evita.
                 "stop", java.util.List.of("\n\n"),
-                "options", Map.of("temperature", 0.4, "num_predict", 240)
+                "options", Map.of("temperature", properties.getTemperature(), "num_predict", properties.getNumPredict())
             );
 
             Map<String, Object> response = restClient.post()

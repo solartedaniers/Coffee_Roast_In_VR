@@ -1,7 +1,7 @@
-package com.toastedvr.toastedvr.backend.service;
+package com.toastedvr.ai.service;
 
-import com.toastedvr.toastedvr.backend.domain.KnowledgeLevel;
-import com.toastedvr.toastedvr.backend.domain.RoastingSession;
+import com.toastedvr.ai.domain.KnowledgeLevel;
+import com.toastedvr.ai.dto.RoastFeedbackRequest;
 import java.util.List;
 
 // ================================================================
@@ -86,7 +86,7 @@ final class RoastFeedbackPromptBuilder {
     private RoastFeedbackPromptBuilder() {
     }
 
-    static String build(RoastingSession session, KnowledgeLevel knowledgeLevel, List<String> retrievedContext) {
+    static String build(RoastFeedbackRequest session, KnowledgeLevel knowledgeLevel, List<String> retrievedContext) {
         KnowledgeLevel level = knowledgeLevel != null ? knowledgeLevel : KnowledgeLevel.INTERMEDIATE;
         return PROMPT_TEMPLATE.formatted(
             session.getResult(),
@@ -113,7 +113,7 @@ final class RoastFeedbackPromptBuilder {
     // objetivo y final, en vez de dejar que el modelo la infiera restando
     // dos números mencionados en oraciones separadas — hallazgo: el modelo
     // llegó a inventar un objetivo que no estaba en los datos reales.
-    private static String targetVsFinalDeltaText(RoastingSession session) {
+    private static String targetVsFinalDeltaText(RoastFeedbackRequest session) {
         double delta = session.getFinalTemperature() - session.getTargetTemperature();
         if (delta == 0) {
             return "La temperatura final coincidió exactamente con el objetivo.";
@@ -127,7 +127,7 @@ final class RoastFeedbackPromptBuilder {
     // modelo confundió un DTR alto (prolongado) con uno corto. Mismo rango
     // y mismo vocabulario ("corto"/"prolongado") que ya usa la query de
     // RagContextRetrievalService, para no introducir un tercer criterio.
-    private static String developmentTimeText(RoastingSession session) {
+    private static String developmentTimeText(RoastFeedbackRequest session) {
         Integer developmentTime = session.getDevelopmentTimeSeconds();
         Integer totalDuration = session.getTotalDurationSeconds();
         if (developmentTime == null) {

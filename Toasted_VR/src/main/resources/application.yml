@@ -36,41 +36,17 @@
             starttls:
               enable: ${MAIL_SMTP_STARTTLS_ENABLE:true}
 
-    ai:
-      ollama:
-        # Same Ollama instance/URL as ollama.base-url below (OllamaFeedbackService's
-        # own RestClient) — one env var for both instead of two to keep in sync.
-        base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
-        embedding:
-          options:
-            model: ${RAG_EMBEDDING_MODEL:nomic-embed-text}
-      vectorstore:
-        pgvector:
-          initialize-schema: true
-          table-name: rag_document_chunks
-          # Must match the embedding model's output size: nomic-embed-text
-          # produces 768-dimension vectors. Changing RAG_EMBEDDING_MODEL to a
-          # model with a different output size means updating this too.
-          dimensions: 768
-          index-type: HNSW
-          distance-type: COSINE_DISTANCE
-
-  ollama:
-    base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
-
-  rag:
-    query:
-      # Development Time Ratio (developmentTimeSeconds / totalDurationSeconds)
-      # considerado rango de control operativo óptimo para cafés de altura de
-      # Nariño (20% como punto de referencia ideal). Usado solo para describir
-      # la desviación en la query de búsqueda de RagContextRetrievalService,
-      # no afecta el puntaje ni la fase del tueste.
-      dtr-optimal-min: 0.18
-      dtr-optimal-max: 0.22
-
   app:
     cors:
       allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:3000}
+    # Servicio IA (IA/) al que se delegan la retroalimentación y la ingesta
+    # del RAG. El timeout de feedback debe ser mayor que el de Ollama en el
+    # servicio IA (120 s), que es quien espera al modelo.
+    ai-service:
+      base-url: ${AI_SERVICE_BASE_URL:http://localhost:8082}
+      connect-timeout-millis: ${AI_SERVICE_CONNECT_TIMEOUT_MILLIS:5000}
+      feedback-read-timeout-millis: ${AI_SERVICE_FEEDBACK_READ_TIMEOUT_MILLIS:130000}
+      ingestion-read-timeout-millis: ${AI_SERVICE_INGESTION_READ_TIMEOUT_MILLIS:1800000}
     jwt:
       # Sin valor por defecto: la aplicación no arranca si falta APP_JWT_SECRET.
       secret: ${APP_JWT_SECRET}

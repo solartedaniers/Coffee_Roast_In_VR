@@ -61,7 +61,7 @@ New-NetFirewallRule -DisplayName 'Toasted VR backend 8081' -Direction Inbound -P
 
 ## Full stack (database + backend + frontend) with one command
 
-The frontend has its own Compose override (`toasted_vr_frontend/docker-compose.frontend.yml`) that builds and serves it with nginx. Ollama/RAG intentionally stay outside all containers and keep running on the host; the backend reaches them through `host.docker.internal`, unaffected by the frontend addition.
+The frontend has its own Compose override (`toasted_vr_frontend/docker-compose.frontend.yml`) that builds and serves it with nginx. The AI service (`IA/`, feedback + RAG) and Ollama intentionally stay outside all containers and keep running on the host; the backend reaches the AI service through `host.docker.internal` (`DOCKER_AI_SERVICE_BASE_URL`), unaffected by the frontend addition.
 
 Run this from the repository root (not from `Toasted_VR`):
 

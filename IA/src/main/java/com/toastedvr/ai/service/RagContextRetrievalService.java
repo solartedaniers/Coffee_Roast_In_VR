@@ -1,7 +1,7 @@
-package com.toastedvr.toastedvr.backend.service;
+package com.toastedvr.ai.service;
 
-import com.toastedvr.toastedvr.backend.domain.KnowledgeLevel;
-import com.toastedvr.toastedvr.backend.domain.RoastingSession;
+import com.toastedvr.ai.domain.KnowledgeLevel;
+import com.toastedvr.ai.dto.RoastFeedbackRequest;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 public class RagContextRetrievalService {
 
     private static final Logger log = LoggerFactory.getLogger(RagContextRetrievalService.class);
-    private static final int TOP_K = 4;
 
     private final VectorStore vectorStore;
     // Development Time Ratio (developmentTimeSeconds / totalDurationSeconds)
@@ -24,15 +23,18 @@ public class RagContextRetrievalService {
     // porque es un criterio de dominio, no una constante de código.
     private final double dtrOptimalMin;
     private final double dtrOptimalMax;
+    private final int topK;
 
     public RagContextRetrievalService(
         VectorStore vectorStore,
         @Value("${rag.query.dtr-optimal-min:0.18}") double dtrOptimalMin,
-        @Value("${rag.query.dtr-optimal-max:0.22}") double dtrOptimalMax
+        @Value("${rag.query.dtr-optimal-max:0.22}") double dtrOptimalMax,
+        @Value("${rag.query.top-k:4}") int topK
     ) {
         this.vectorStore = vectorStore;
         this.dtrOptimalMin = dtrOptimalMin;
         this.dtrOptimalMax = dtrOptimalMax;
+        this.topK = topK;
     }
 
     // Returns an empty list instead of throwing on any failure (vector store
@@ -41,11 +43,11 @@ public class RagContextRetrievalService {
     // is an enhancement on top of the existing feedback, never a reason to
     // break it.
     @SuppressWarnings("null")
-    public List<String> findRelevantChunks(RoastingSession session, KnowledgeLevel knowledgeLevel) {
+    public List<String> findRelevantChunks(RoastFeedbackRequest session, KnowledgeLevel knowledgeLevel) {
         try {
             SearchRequest request = SearchRequest.builder()
                 .query(buildQuery(session, knowledgeLevel))
-                .topK(TOP_K)
+                .topK(topK)
                 .build();
             List<Document> results = vectorStore.similaritySearch(request);
             logRetrievedChunks(results);
@@ -84,7 +86,7 @@ public class RagContextRetrievalService {
     // academic material in Spanish. Only reads session fields — never writes
     // to the session or touches scoring/phase logic, both owned elsewhere
     // (RoastingSessionService / RoastFeedbackPromptBuilder).
-    private String buildQuery(RoastingSession session, KnowledgeLevel knowledgeLevel) {
+    private String buildQuery(RoastFeedbackRequest session, KnowledgeLevel knowledgeLevel) {
         KnowledgeLevel level = knowledgeLevel != null ? knowledgeLevel : KnowledgeLevel.INTERMEDIATE;
         String phaseLabel = RoastFeedbackPromptBuilder.resolveRoastPhaseLabel(session.getFinalTemperature());
         StringBuilder query = new StringBuilder(
@@ -141,7 +143,7 @@ public class RagContextRetrievalService {
         return query.toString();
     }
 
-    private static Double developmentTimeRatio(RoastingSession session) {
+    private static Double developmentTimeRatio(RoastFeedbackRequest session) {
         Integer developmentTime = session.getDevelopmentTimeSeconds();
         Integer totalDuration = session.getTotalDurationSeconds();
         if (developmentTime == null || totalDuration == null || totalDuration <= 0) {

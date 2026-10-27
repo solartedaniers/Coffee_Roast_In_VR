@@ -128,21 +128,6 @@
       "defaultValue": 20
     },
     {
-      "name": "ollama.base-url",
-      "type": "java.lang.String",
-      "description": "URL de la instancia de Ollama usada por OllamaFeedbackService."
-    },
-    {
-      "name": "rag.query.dtr-optimal-min",
-      "type": "java.lang.Double",
-      "description": "Limite inferior del rango de Development Time Ratio optimo usado en la query de RAG."
-    },
-    {
-      "name": "rag.query.dtr-optimal-max",
-      "type": "java.lang.Double",
-      "description": "Limite superior del rango de Development Time Ratio optimo usado en la query de RAG."
-    },
-    {
       "name": "app.roasting.history-page-size",
       "type": "java.lang.Integer",
       "description": "Sesiones por pagina en el historial del jugador.",

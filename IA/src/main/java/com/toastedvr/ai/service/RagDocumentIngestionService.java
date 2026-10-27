@@ -1,10 +1,10 @@
-package com.toastedvr.toastedvr.backend.service;
+package com.toastedvr.ai.service;
 
-import com.toastedvr.toastedvr.backend.domain.RagIngestedDocument;
-import com.toastedvr.toastedvr.backend.dto.RagIngestionSummaryResponse;
-import com.toastedvr.toastedvr.backend.dto.RagIngestionSummaryResponse.FileResult;
-import com.toastedvr.toastedvr.backend.dto.RagIngestionSummaryResponse.Status;
-import com.toastedvr.toastedvr.backend.repository.RagIngestedDocumentRepository;
+import com.toastedvr.ai.domain.RagIngestedDocument;
+import com.toastedvr.ai.dto.RagIngestionSummaryResponse;
+import com.toastedvr.ai.dto.RagIngestionSummaryResponse.FileResult;
+import com.toastedvr.ai.dto.RagIngestionSummaryResponse.Status;
+import com.toastedvr.ai.repository.RagIngestedDocumentRepository;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.reader.pdf.PagePdfDocumentReader;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.lang.NonNull;
@@ -39,13 +40,17 @@ public class RagDocumentIngestionService {
 
     private final VectorStore vectorStore;
     private final RagIngestedDocumentRepository ragIngestedDocumentRepository;
+    private final CharacterTextSplitter textSplitter;
 
     public RagDocumentIngestionService(
         VectorStore vectorStore,
-        RagIngestedDocumentRepository ragIngestedDocumentRepository
+        RagIngestedDocumentRepository ragIngestedDocumentRepository,
+        @Value("${rag.chunk.size-chars:700}") int chunkSizeChars,
+        @Value("${rag.chunk.overlap-chars:100}") int chunkOverlapChars
     ) {
         this.vectorStore = vectorStore;
         this.ragIngestedDocumentRepository = ragIngestedDocumentRepository;
+        this.textSplitter = new CharacterTextSplitter(chunkSizeChars, chunkOverlapChars);
     }
 
     public RagIngestionSummaryResponse ingestAll() {
@@ -136,7 +141,7 @@ public class RagDocumentIngestionService {
             page.getMetadata().put(FILE_NAME_METADATA_KEY, fileName);
             page.getMetadata().put(CONTENT_HASH_METADATA_KEY, contentHash);
         }
-        return Objects.requireNonNull(new CharacterTextSplitter().apply(pages), "Split chunks must not be null.");
+        return Objects.requireNonNull(textSplitter.apply(pages), "Split chunks must not be null.");
     }
 
     private static String sha256Of(Resource resource) throws IOException {

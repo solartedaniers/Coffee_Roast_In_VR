@@ -46,3 +46,23 @@ def test_records_and_updates_ingested_documents(schema, database):
     assert (saved.content_hash, saved.chunk_count) == ("a" * 64, 3)
     assert (updated.content_hash, updated.chunk_count) == ("b" * 64, 5)
     assert missing is None
+
+
+def test_finds_chunks_by_their_words_in_spanish_and_keeps_their_similarity(schema, database):
+    with database.transaction() as connection:
+        store = PgVectorStore(connection, schema.vector_table)
+        store.add(
+            [Document("El grano horneado sabe a pan", {"file_name": "it-a.pdf"}),
+             Document("Los granos horneados pierden acidez y el horneado domina", {"file_name": "it-a.pdf"}),
+             Document("Curva de enfriamiento", {"file_name": "it-b.pdf"})],
+            [[1.0, 0.0, 0.0], [0.6, 0.8, 0.0], [0.0, 1.0, 0.0]],
+        )
+
+        found = store.lexical_search("¿Qué es un café horneado?", [1.0, 0.0, 0.0], "spanish", 10)
+        nothing = store.lexical_search("¿?", [1.0, 0.0, 0.0], "spanish", 10)
+
+    assert [chunk.text for chunk in found] == ["Los granos horneados pierden acidez y el horneado domina",
+                                               "El grano horneado sabe a pan"]
+    assert [round(chunk.score, 2) for chunk in found] == [0.6, 1.0]
+    assert all(chunk.chunk_id for chunk in found)
+    assert nothing == []

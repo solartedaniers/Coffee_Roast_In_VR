@@ -1,6 +1,6 @@
 from app.rag.database import Database, to_libpq_url
 from app.rag.schema import RagSchema
-from app.rag.vector_store import vector_literal
+from app.rag.vector_store import any_word_query, vector_literal
 
 
 def test_accepts_the_jdbc_url_used_by_java():
@@ -23,3 +23,8 @@ def test_creates_the_same_tables_as_spring_only_if_missing():
                for statement in statements)
     assert any('"rag_ingested_documents"' in statement and "file_name varchar(255) NOT NULL UNIQUE" in statement
                for statement in statements)
+
+
+def test_a_text_query_accepts_any_of_its_words():
+    assert any_word_query("¿Qué es el primer crack?") == "Qué or es or el or primer or crack"
+    assert any_word_query("¿?") == ""

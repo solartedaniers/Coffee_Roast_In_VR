@@ -1,4 +1,5 @@
 import json
+import re
 import uuid
 from dataclasses import dataclass
 
@@ -9,13 +10,25 @@ from app.rag.document import Document
 FILE_NAME_METADATA_KEY = "file_name"
 # Spring AI usaba 1 - similarityThreshold con umbral 0: solo descarta similitud coseno <= 0.
 MAX_COSINE_DISTANCE = 1.0
+WORD_PATTERN = re.compile(r"[^\W_]+")
 
 
 @dataclass(frozen=True)
 class ScoredChunk:
     text: str
     metadata: dict[str, object]
+    # Similitud coseno con la búsqueda, también en los fragmentos encontrados por texto.
     score: float
+    chunk_id: str = ""
+
+
+def any_word_query(text: str) -> str:
+    """Consulta para websearch_to_tsquery que acepta cualquiera de las palabras.
+
+    Exigir todas dejaba sin resultados casi cualquier pregunta larga. Las palabras vacías las
+    descarta la configuración de texto de Postgres.
+    """
+    return " or ".join(WORD_PATTERN.findall(text))
 
 
 def vector_literal(vector: list[float]) -> str:
@@ -49,8 +62,33 @@ class PgVectorStore:
     def similarity_search(self, vector: list[float], top_k: int) -> list[ScoredChunk]:
         literal = vector_literal(vector)
         rows = self.connection.execute(
-            sql.SQL("SELECT content, metadata, embedding <=> %s::vector AS distance FROM {} "
+            sql.SQL("SELECT id, content, metadata, embedding <=> %s::vector AS distance FROM {} "
                     "WHERE embedding <=> %s::vector < %s ORDER BY distance LIMIT %s").format(self.table),
             (literal, literal, MAX_COSINE_DISTANCE, top_k),
         ).fetchall()
-        return [ScoredChunk(content, metadata or {}, 1.0 - distance) for content, metadata, distance in rows]
+        return [self._scored(row) for row in rows]
+
+    def lexical_search(self, query_text: str, vector: list[float], text_search_config: str,
+                       limit: int) -> list[ScoredChunk]:
+        """Búsqueda de texto completo de Postgres, ordenada por ts_rank_cd.
+
+        El tsvector se calcula en cada consulta: con unos miles de fragmentos no hace falta
+        una columna ni un índice nuevos, y el esquema queda igual.
+        """
+        words = any_word_query(query_text)
+        if not words:
+            return []
+        rows = self.connection.execute(
+            sql.SQL("SELECT id, content, metadata, embedding <=> %(vector)s::vector AS distance "
+                    "FROM {}, websearch_to_tsquery(%(config)s::regconfig, %(words)s) AS query "
+                    "WHERE to_tsvector(%(config)s::regconfig, content) @@ query "
+                    "ORDER BY ts_rank_cd(to_tsvector(%(config)s::regconfig, content), query) DESC, id "
+                    "LIMIT %(limit)s").format(self.table),
+            {"vector": vector_literal(vector), "config": text_search_config, "words": words, "limit": limit},
+        ).fetchall()
+        return [self._scored(row) for row in rows]
+
+    @staticmethod
+    def _scored(row) -> ScoredChunk:
+        chunk_id, content, metadata, distance = row
+        return ScoredChunk(content, metadata or {}, 1.0 - distance, str(chunk_id))

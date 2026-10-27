@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpServer;
+import com.toastedvr.ai.config.OllamaProperties;
 import com.toastedvr.ai.domain.KnowledgeLevel;
 import com.toastedvr.ai.dto.RoastFeedbackRequest;
 import java.io.IOException;
@@ -98,9 +99,12 @@ class OllamaFeedbackServiceTests {
         assertThat(feedback).isNull();
     }
 
+    // Solo se cambia la URL: el resto son los valores por defecto, que deben
+    // seguir siendo los que tenía el backend.
     private OllamaFeedbackService newService() {
-        String baseUrl = "http://127.0.0.1:" + ollama.getAddress().getPort();
-        return new OllamaFeedbackService(baseUrl, ragContextRetrievalService);
+        OllamaProperties properties = new OllamaProperties();
+        properties.setBaseUrl("http://127.0.0.1:" + ollama.getAddress().getPort());
+        return new OllamaFeedbackService(properties, ragContextRetrievalService);
     }
 
     private String ollamaJson(String response) throws Exception {

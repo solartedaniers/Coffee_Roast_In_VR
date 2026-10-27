@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 public class RagContextRetrievalService {
 
     private static final Logger log = LoggerFactory.getLogger(RagContextRetrievalService.class);
-    private static final int TOP_K = 4;
 
     private final VectorStore vectorStore;
     // Development Time Ratio (developmentTimeSeconds / totalDurationSeconds)
@@ -24,15 +23,18 @@ public class RagContextRetrievalService {
     // porque es un criterio de dominio, no una constante de código.
     private final double dtrOptimalMin;
     private final double dtrOptimalMax;
+    private final int topK;
 
     public RagContextRetrievalService(
         VectorStore vectorStore,
         @Value("${rag.query.dtr-optimal-min:0.18}") double dtrOptimalMin,
-        @Value("${rag.query.dtr-optimal-max:0.22}") double dtrOptimalMax
+        @Value("${rag.query.dtr-optimal-max:0.22}") double dtrOptimalMax,
+        @Value("${rag.query.top-k:4}") int topK
     ) {
         this.vectorStore = vectorStore;
         this.dtrOptimalMin = dtrOptimalMin;
         this.dtrOptimalMax = dtrOptimalMax;
+        this.topK = topK;
     }
 
     // Returns an empty list instead of throwing on any failure (vector store
@@ -45,7 +47,7 @@ public class RagContextRetrievalService {
         try {
             SearchRequest request = SearchRequest.builder()
                 .query(buildQuery(session, knowledgeLevel))
-                .topK(TOP_K)
+                .topK(topK)
                 .build();
             List<Document> results = vectorStore.similaritySearch(request);
             logRetrievedChunks(results);

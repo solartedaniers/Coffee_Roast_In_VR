@@ -54,6 +54,26 @@ rag:
     # no afecta el puntaje ni la fase del tueste.
     dtr-optimal-min: 0.18
     dtr-optimal-max: 0.22
+    # Fragmentos de rag-docs/ que se agregan al prompt en cada petición.
+    top-k: ${RAG_TOP_K:4}
+  # Tamaño y solapamiento (en caracteres) de los fragmentos en que se parte
+  # cada PDF al ingestarlo. Cambiarlos no re-ingesta los PDFs ya cargados.
+  chunk:
+    size-chars: ${RAG_CHUNK_SIZE_CHARS:700}
+    overlap-chars: ${RAG_CHUNK_OVERLAP_CHARS:100}
 
 ollama:
   base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+  model: ${OLLAMA_FEEDBACK_MODEL:phi4-mini}
+  connect-timeout-millis: ${OLLAMA_CONNECT_TIMEOUT_MILLIS:5000}
+  # Phi-4-mini sobre CPU puede tardar hasta ~50s solo en cargar el modelo si
+  # Ollama lo había descargado de memoria (ver keep-alive).
+  read-timeout-millis: ${OLLAMA_READ_TIMEOUT_MILLIS:120000}
+  # Le pide a Ollama que mantenga el modelo cargado en memoria tras cada
+  # respuesta, para que la siguiente petición no pague de nuevo el costo de
+  # carga (~30-50s en frío).
+  keep-alive: ${OLLAMA_KEEP_ALIVE:10m}
+  temperature: ${OLLAMA_TEMPERATURE:0.4}
+  # Límite de tokens de la respuesta; el texto se recorta a la última frase
+  # completa si el modelo se corta a mitad.
+  num-predict: ${OLLAMA_NUM_PREDICT:240}

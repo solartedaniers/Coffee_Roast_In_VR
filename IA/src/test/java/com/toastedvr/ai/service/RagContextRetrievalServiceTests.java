@@ -26,7 +26,7 @@ class RagContextRetrievalServiceTests {
     private static Locale originalLocale;
 
     private final VectorStore vectorStore = mock(VectorStore.class);
-    private final RagContextRetrievalService service = new RagContextRetrievalService(vectorStore, 0.18, 0.22);
+    private final RagContextRetrievalService service = new RagContextRetrievalService(vectorStore, 0.18, 0.22, 4);
 
     @BeforeAll
     static void useRecordedLocale() {

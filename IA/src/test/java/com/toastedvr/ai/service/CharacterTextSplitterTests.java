@@ -10,7 +10,7 @@ import org.springframework.ai.document.Document;
 
 class CharacterTextSplitterTests {
 
-    private final CharacterTextSplitter splitter = new CharacterTextSplitter();
+    private final CharacterTextSplitter splitter = new CharacterTextSplitter(700, 100);
 
     @Test
     void keepsShortTextAsOneChunk() {

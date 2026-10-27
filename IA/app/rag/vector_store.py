@@ -69,12 +69,8 @@ class PgVectorStore:
         return [self._scored(row) for row in rows]
 
     def lexical_search(self, query_text: str, vector: list[float], text_search_config: str,
-                       limit: int, max_document_ratio: float = 1.0) -> list[ScoredChunk]:
+                       limit: int) -> list[ScoredChunk]:
         """Búsqueda de texto completo de Postgres, ordenada por ts_rank_cd.
-
-        ts_rank_cd no pondera qué tan rara es cada palabra, así que las que aparecen en más de
-        `max_document_ratio` de los fragmentos (como "café" o "tueste") se quitan de la consulta:
-        si no, llenan los resultados de fragmentos que solo las repiten. Con 1.0 no se quita ninguna.
 
         El tsvector se calcula en cada consulta: con unos miles de fragmentos no hace falta
         una columna ni un índice nuevos, y el esquema queda igual.
@@ -82,20 +78,13 @@ class PgVectorStore:
         words = any_word_query(query_text)
         if not words:
             return []
-        corpus = sql.SQL("SELECT to_tsvector({}::regconfig, content) FROM {}").format(
-            sql.Literal(text_search_config), self.table).as_string(self.connection)
         rows = self.connection.execute(
-            sql.SQL("WITH total AS (SELECT count(*) AS chunks FROM {table}), "
-                    "kept AS (SELECT term.lexeme FROM unnest(to_tsvector(%(config)s::regconfig, %(words)s)) AS term "
-                    "JOIN ts_stat(%(corpus)s) AS stat ON stat.word = term.lexeme, total "
-                    "WHERE stat.ndoc <= %(ratio)s * total.chunks), "
-                    "query AS (SELECT string_agg(quote_literal(lexeme), ' | ')::tsquery AS terms FROM kept) "
-                    "SELECT id, content, metadata, embedding <=> %(vector)s::vector AS distance FROM {table}, query "
-                    "WHERE query.terms IS NOT NULL AND to_tsvector(%(config)s::regconfig, content) @@ query.terms "
-                    "ORDER BY ts_rank_cd(to_tsvector(%(config)s::regconfig, content), query.terms) DESC, id "
-                    "LIMIT %(limit)s").format(table=self.table),
-            {"vector": vector_literal(vector), "config": text_search_config, "words": words,
-             "corpus": corpus, "ratio": max_document_ratio, "limit": limit},
+            sql.SQL("SELECT id, content, metadata, embedding <=> %(vector)s::vector AS distance "
+                    "FROM {}, websearch_to_tsquery(%(config)s::regconfig, %(words)s) AS query "
+                    "WHERE to_tsvector(%(config)s::regconfig, content) @@ query "
+                    "ORDER BY ts_rank_cd(to_tsvector(%(config)s::regconfig, content), query) DESC, id "
+                    "LIMIT %(limit)s").format(self.table),
+            {"vector": vector_literal(vector), "config": text_search_config, "words": words, "limit": limit},
         ).fetchall()
         return [self._scored(row) for row in rows]
 

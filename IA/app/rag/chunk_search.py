@@ -34,15 +34,13 @@ class HybridChunkSearch:
     """
 
     def __init__(self, database: Database, vector_table: str, embeddings: OllamaEmbeddings,
-                 fusion: ReciprocalRankFusion, candidate_pool: int, text_search_config: str,
-                 max_document_ratio: float):
+                 fusion: ReciprocalRankFusion, candidate_pool: int, text_search_config: str):
         self.database = database
         self.vector_table = vector_table
         self.embeddings = embeddings
         self.fusion = fusion
         self.candidate_pool = candidate_pool
         self.text_search_config = text_search_config
-        self.max_document_ratio = max_document_ratio
 
     def search(self, query: str, top_k: int) -> list[ScoredChunk]:
         vector = self.embeddings.embed_one(query)
@@ -50,5 +48,5 @@ class HybridChunkSearch:
         with self.database.transaction() as connection:
             store = PgVectorStore(connection, self.vector_table)
             semantic = store.similarity_search(vector, pool)
-            lexical = store.lexical_search(query, vector, self.text_search_config, pool, self.max_document_ratio)
+            lexical = store.lexical_search(query, vector, self.text_search_config, pool)
         return self.fusion.fuse([semantic, lexical])[:top_k]

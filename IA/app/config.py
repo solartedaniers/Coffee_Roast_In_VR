@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     db_url: str = "jdbc:postgresql://localhost:5433/toasted_vr_db"
     db_username: str = "toasted_vr_user"
     db_password: SecretStr = SecretStr("")
+    db_connect_timeout_seconds: int = Field(default=5, gt=0)
 
     ollama_base_url: str = "http://localhost:11434"
     ollama_feedback_model: str = "phi4-mini"

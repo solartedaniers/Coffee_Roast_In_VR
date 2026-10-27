@@ -126,6 +126,22 @@ no disponible por ahora".
 
 ---
 
+## Flujo de Pull Requests y CI
+
+Trabajo cada cambio en su propia rama y lo integro a `main` solo por Pull Request. Cada PR hacia `main` (y cada push a `main`) dispara el workflow `.github/workflows/ci.yml` en GitHub Actions, que corre dos checks:
+
+- `backend-tests`: los tests de `Toasted_VR` con Java 17 y Maven (`./mvnw -B test`). Usan el perfil `test` (H2 en memoria, correo deshabilitado y Ollama simulado), así que no necesitan PostgreSQL, Ollama ni SMTP.
+- `frontend-tests`: en `toasted_vr_frontend` con Node 20 corre `npm ci`, los tests con `CI=true` y `npm run build`.
+
+Solo fusiono un PR cuando los dos checks están en verde. Para revisarlo antes de abrir el PR, corro lo mismo localmente:
+
+```bash
+cd Toasted_VR && ./mvnw -B test
+cd toasted_vr_frontend && npm ci && CI=true npm test -- --watchAll=false && CI=true npm run build
+```
+
+---
+
 ## Contexto Importante para Futuros Desarrolladores
 
 1. **Base de datos actual:** el proyecto usa **Supabase** como proveedor administrado de **PostgreSQL**. Si en documentacion antigua aparece MySQL, ya no aplica.

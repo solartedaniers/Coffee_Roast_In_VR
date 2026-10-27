@@ -3,7 +3,8 @@ from contextlib import contextmanager
 
 import pytest
 
-from app.rag import context_retriever as module
+from app.rag import chunk_search as chunk_search_module
+from app.rag.chunk_search import SemanticChunkSearch
 from app.rag.context_retriever import RagContextRetriever
 from app.rag.embeddings import EmbeddingError
 from app.rag.query_builder import RagQueryBuilder
@@ -44,13 +45,13 @@ class FakeStore:
 
 @pytest.fixture
 def retriever_with(monkeypatch, settings):
-    monkeypatch.setattr(module, "PgVectorStore", FakeStore)
+    monkeypatch.setattr(chunk_search_module, "PgVectorStore", FakeStore)
     FakeStore.searches = []
 
     def build(embeddings) -> RagContextRetriever:
         query_builder = RagQueryBuilder(DevelopmentTimeRange(settings.rag_dtr_optimal_min, settings.rag_dtr_optimal_max))
-        return RagContextRetriever(FakeDatabase(), settings.rag_vector_table, embeddings, query_builder,
-                                   settings.rag_top_k)
+        search = SemanticChunkSearch(FakeDatabase(), settings.rag_vector_table, embeddings)
+        return RagContextRetriever(search, query_builder, settings.rag_top_k)
 
     return build
 

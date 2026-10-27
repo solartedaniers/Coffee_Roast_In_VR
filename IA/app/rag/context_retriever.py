@@ -2,10 +2,9 @@ import logging
 
 from app.contracts import RoastFeedbackRequest
 from app.domain import KnowledgeLevel
-from app.rag.database import Database
-from app.rag.embeddings import OllamaEmbeddings
+from app.rag.chunk_search import ChunkSearch
 from app.rag.query_builder import RagQueryBuilder
-from app.rag.vector_store import FILE_NAME_METADATA_KEY, PgVectorStore, ScoredChunk
+from app.rag.vector_store import FILE_NAME_METADATA_KEY, ScoredChunk
 
 log = logging.getLogger(__name__)
 PREVIEW_CHARS = 80
@@ -14,11 +13,8 @@ PREVIEW_CHARS = 80
 class RagContextRetriever:
     """Fragmentos de rag-docs/ más parecidos a la sesión, para agregarlos al prompt."""
 
-    def __init__(self, database: Database, vector_table: str, embeddings: OllamaEmbeddings,
-                 query_builder: RagQueryBuilder, top_k: int):
-        self.database = database
-        self.vector_table = vector_table
-        self.embeddings = embeddings
+    def __init__(self, chunk_search: ChunkSearch, query_builder: RagQueryBuilder, top_k: int):
+        self.chunk_search = chunk_search
         self.query_builder = query_builder
         self.top_k = top_k
 
@@ -26,9 +22,7 @@ class RagContextRetriever:
         # El RAG es un extra sobre la retroalimentación: si falla (base caída, índice vacío,
         # Ollama apagado) se sigue sin contexto, nunca se rompe la respuesta.
         try:
-            vector = self.embeddings.embed_one(self.query_builder.build(session, knowledge_level))
-            with self.database.transaction() as connection:
-                chunks = PgVectorStore(connection, self.vector_table).similarity_search(vector, self.top_k)
+            chunks = self.chunk_search.search(self.query_builder.build(session, knowledge_level), self.top_k)
         except Exception as error:
             log.warning("RAG retrieval failed, continuing without extra context: %s", error)
             return []

@@ -11,6 +11,7 @@ from app.feedback.providers.ollama import OllamaFeedbackProvider, OllamaOptions
 from app.feedback.service import FeedbackService
 from app.feedback.text_cleaner import FeedbackTextCleaner
 from app.net.bounded_http import BoundedHttpClient, HttpTimeout
+from app.rag.chunk_search import SemanticChunkSearch
 from app.rag.context_retriever import RagContextRetriever
 from app.rag.database import Database
 from app.rag.embeddings import OllamaEmbeddings
@@ -70,8 +71,8 @@ def build_services(settings: Settings) -> Services:
     providers = build_providers(settings, http)
     cache = FeedbackCache(settings.feedback_cache_ttl_seconds, settings.feedback_cache_max_entries)
     feedback = FeedbackService(
-        RagContextRetriever(database, settings.rag_vector_table, embeddings, RagQueryBuilder(development_range),
-                            settings.rag_top_k),
+        RagContextRetriever(SemanticChunkSearch(database, settings.rag_vector_table, embeddings),
+                            RagQueryBuilder(development_range), settings.rag_top_k),
         FeedbackPromptBuilder(development_range),
         ProviderChain([providers[name] for name in settings.feedback_provider_chain], FeedbackTextCleaner(),
                       seconds(settings.feedback_total_timeout_millis)),

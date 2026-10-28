@@ -1,6 +1,6 @@
 # Servicio IA (Toasted VR)
 
-Aquí tengo separada toda la parte de IA del proyecto: la retroalimentación de cada sesión de tueste y el RAG sobre los PDFs de `rag-docs/`. Es un servicio en Python con FastAPI que corre en el host, fuera de Docker, igual que Ollama.
+Aquí tengo separada toda la parte de IA del proyecto: la retroalimentación de cada sesión de tueste, el asistente de voz que responde preguntas durante el tueste y el RAG sobre los PDFs de `rag-docs/`. Es un servicio en Python con FastAPI que corre en el host, fuera de Docker, igual que Ollama.
 
 La retroalimentación la redacta un LLM con cadena de respaldo: primero Groq (`openai/gpt-oss-120b`) y, si falla o se queda sin cuota, Ollama local (`phi4-mini`). Si ninguno responde, la retroalimentación queda vacía y la sesión se ve igual que siempre.
 
@@ -125,6 +125,61 @@ Lo que revertí, con sus mediciones guardadas como evidencia:
 - **Modelo multilingüe bge-m3** (16): con la misma partición queda por debajo de nomic (0,342 contra 0,482). Revisándolo, varias de sus respuestas son páginas relevantes que no están entre las esperadas: es una limitación de etiquetar por página.
 
 Un hallazgo importante: el índice actual (1243 fragmentos) lo armó la versión en Java, cuyo lector de PDF dejaba el texto con muchos espacios. Reingestar los mismos PDFs con el lector de Python, sin ningún otro cambio, deja 390 fragmentos y baja el MRR a 0,335 (10). Por eso, cuando reingeste, lo hago con la partición por frases de 500 y no con la de caracteres.
+
+## Asistente de voz
+
+Durante el tueste el jugador puede preguntar por voz y oír la respuesta en pocos segundos. Unity llama al backend (`POST /api/v1/roasting/assistant/questions`) y el backend llama aquí a `POST /api/v1/voice/questions` con el audio, el usuario, su nivel y el estado del tueste. El contrato completo para Unity está en [docs/unity-voice-contract.md](docs/unity-voice-contract.md).
+
+Cada pregunta pasa por cuatro pasos, cada uno con respaldo:
+
+1. **Voz a texto:** Groq Whisper (`whisper-large-v3-turbo`); si falla, Azure Speech. Las frases que Whisper inventa con el silencio ("Gracias por ver el video"…) se filtran con `config/whisper_silence_phrases.json` y responden 422.
+2. **Fragmentos del RAG:** los 3 más cercanos a la pregunta, con su cita validada.
+3. **Respuesta:** Groq `openai/gpt-oss-20b` con salida JSON estricta, máximo 3 frases, adaptada al nivel del jugador y con las 2 últimas respuestas del mismo intento como contexto. El modelo tiene que decir qué fuentes usó (PDFs o el estado del tueste); si no usa ninguna o cita una que no se le dio, el asistente se abstiene en vez de inventar. No hay respaldo en Ollama a propósito: phi4-mini tarda demasiado para una respuesta hablada.
+4. **Texto a voz:** Azure (`es-CO-SalomeNeural`); si falla o se llega al límite mensual, Piper local con `es_MX-claude-high`.
+
+Si Groq no responde, el jugador oye una frase fija ("No puedo responder en este momento…"). Esa frase y la de abstención están en `config/voice_messages.json` y su audio se genera al arrancar y queda guardado en `voice-cache/`, así que se oyen al instante y sin gastar cuota.
+
+Límites (todos en `IA/.env`): una pregunta a la vez y 6 por minuto por jugador, audio de hasta 15 s y 600 000 bytes, y 25 s en total por pregunta (`VOICE_TOTAL_TIMEOUT_MILLIS`, menor que los 30 s que espera el backend en `AI_SERVICE_VOICE_READ_TIMEOUT_MILLIS`).
+
+### Cuotas gratuitas
+
+- **Azure Speech F0:** 500 000 caracteres de voz al mes. Llevo mi propio contador en la tabla `tts_monthly_usage` y al llegar a `AZURE_TTS_MONTHLY_CHAR_LIMIT` (450 000) paso directo a Piper. Una respuesta típica gasta unos 150–300 caracteres.
+- **Groq:** Whisper 20 pedidos por minuto y 2 000 al día; `gpt-oss-20b` 30 por minuto y 1 000 al día. La documentación de Groq da los límites por modelo, pero no dice explícitamente si se comparten entre modelos de la misma organización; por eso uso `gpt-oss-20b` para la voz y dejo `gpt-oss-120b` para la retroalimentación. Cada pregunta gasta una transcripción y una respuesta.
+
+### Tablas nuevas
+
+Al arrancar se crean, si no existen, `tts_monthly_usage` (caracteres de Azure por mes) y `voice_assistant_exchanges` (historial de preguntas y respuestas por usuario e intento, con proveedores y latencia). No tienen endpoint de consulta todavía.
+
+### Instalar Piper
+
+Piper va en `IA/voice-runtime/`, que git ignora. Lo descargo solo de las fuentes oficiales:
+
+- Ejecutable: release `2023.11.14-2` de https://github.com/rhasspy/piper/releases (`piper_windows_amd64.zip` en Windows, `piper_linux_x86_64.tar.gz` en Ubuntu). Lo descomprimo en `voice-runtime/piper/`.
+- Voz: `es_MX-claude-high.onnx` y `es_MX-claude-high.onnx.json` de https://huggingface.co/rhasspy/piper-voices (carpeta `es/es_MX/claude/high/`). Los dejo en `voice-runtime/voices/`.
+
+En Windows las rutas por defecto ya apuntan ahí. En Ubuntu el ejecutable no tiene `.exe`, así que en `IA/.env` pongo:
+
+```bash
+PIPER_EXECUTABLE=voice-runtime/piper/piper
+PIPER_MODEL=voice-runtime/voices/es_MX-claude-high.onnx
+```
+
+y le doy permiso de ejecución con `chmod +x voice-runtime/piper/piper`. Para probar solo Piper uso `VOICE_SPEECH_PROVIDERS=piper`.
+
+### Latencia medida
+
+Medí con el servicio real (Groq, Azure y Piper de verdad) desde mi equipo con Windows, contra una copia desechable de la base, con preguntas de 2–3 s:
+
+| Pregunta | Resultado | Voz a texto | RAG | Respuesta | Voz | Total servidor | Total cliente |
+|---|---|---|---|---|---|---|---|
+| ¿Qué pasa con el grano en el primer crack? | ANSWERED | — | — | — | Azure | 6,3 s | 6,9 s |
+| ¿Debería bajar el gas ahora? (calor 80 %, +14 °C/min) | ANSWERED | 1,0 s | 0,7 s | 1,2 s | Azure 3,0 s | 5,9 s | 6,7 s |
+| ¿Quién ganó el mundial de 2014? | ABSTAINED | 1,3 s | 0,7 s | 0,8 s | caché 0 s | 2,7 s | 3,6 s |
+| ¿Y cuánto tiempo falta para eso? | ABSTAINED | 1,1 s | 0,8 s | 1,1 s | caché 0 s | 3,0 s | 3,7 s |
+| Audio sin voz | 422 SILENT_AUDIO | — | — | — | — | — | 1,2 s |
+| ¿Qué pasa con el grano en el primer crack? (solo Piper) | ANSWERED | 1,3 s | 0,8 s | 1,7 s | Piper 4,5 s | 8,3 s | 9,1 s |
+
+El paso más lento es generar la voz, porque espera el audio completo antes de responder.
 
 ## Servidor Ubuntu
 

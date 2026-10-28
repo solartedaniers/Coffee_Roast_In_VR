@@ -1,0 +1,2433 @@
+{
+  "label": "12-caracteres-250",
+  "measured_at": "2026-10-28T00:32:35+00:00",
+  "configuration": {
+    "rag_embedding_model": "nomic-embed-text",
+    "rag_embedding_dimensions": 768,
+    "rag_embedding_batch_size": 32,
+    "rag_query_prefix": "",
+    "rag_document_prefix": "",
+    "rag_vector_table": "rag_chunks_nomic_char250",
+    "rag_top_k": 4,
+    "rag_chunk_size_chars": 700,
+    "rag_chunk_overlap_chars": 100,
+    "rag_text_splitter": "characters",
+    "rag_min_chunk_chars": 80,
+    "rag_repeated_line_page_ratio": 0.5,
+    "rag_min_similarity": 0.0,
+    "rag_deduplicate_chunks": true,
+    "rag_max_chunks_per_page": 1,
+    "rag_candidate_pool": 20,
+    "rag_dtr_optimal_min": 0.18,
+    "rag_dtr_optimal_max": 0.22
+  },
+  "summary": {
+    "player": {
+      "cases": 25,
+      "mrr_at_10": 0.2931,
+      "hit_at_1": 0.12,
+      "hit_at_3": 0.4,
+      "hit_at_4": 0.52,
+      "hit_at_5": 0.56,
+      "misses_at_top_k": [
+        "P01",
+        "P02",
+        "P04",
+        "P07",
+        "P09",
+        "P14",
+        "P15",
+        "P17",
+        "P19",
+        "P22",
+        "P23",
+        "P24"
+      ]
+    },
+    "negative": {
+      "cases": 5,
+      "cases_with_context": 5,
+      "mean_returned": 4
+    },
+    "session": {
+      "cases": 4,
+      "cases_with_context": 4,
+      "mean_returned": 4
+    },
+    "repeated_texts_in_top_k": 0,
+    "latency_ms": {
+      "p50": 550.5,
+      "max": 17342.3
+    }
+  },
+  "cases": [
+    {
+      "case_id": "P01",
+      "kind": "player",
+      "first_relevant_rank": 6,
+      "latency_ms": 10810.85,
+      "returned_in_top_k": 4,
+      "repeated_texts_in_top_k": 0,
+      "retrieved": [
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 6,
+          "score": 0.725173,
+          "preview": "del café que se tuesta y la forma en que se desarrolla el proceso. Los atributos sensoriales y la calidad sensorial fina"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 3,
+          "score": 0.724918,
+          "preview": "calidad de una taza de café, que la bondad de la mezcla escogida. Este último punto es el más interesante des- de una óp"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 6,
+          "score": 0.719793,
+          "preview": "de olores ajenos al café. • Formación correcta de estibas para mantener buena aireación. • Impedir la ganancia o pérdida"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 13,
+          "score": 0.717981,
+          "preview": "cidez, el sabor residual y el cuerpo del café. El tueste del café es una fase vital dentro de la cadena de elaboración. "
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 10,
+          "score": 0.713671,
+          "preview": "arse. Superﬁcie Características del café según el grado de tueste y estilo"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 5,
+          "score": 0.710998,
+          "preview": "cos responsables del oscurecimiento del café pueden variar según el calor aplicado y del tiempo del tueste. Fragancia y "
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 4,
+          "score": 0.709968,
+          "preview": "ro™, con secado mecánico hasta alcanzar un porcentaje de humedad entre el 10% y el 11,5%. Se realizó la trilla de café y"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 2,
+          "score": 0.708894,
+          "preview": "después del tueste suele ser objeto de un control continuo, puesto que la pérdida de peso no es solamente un factor econ"
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 2,
+          "score": 0.708881,
+          "preview": "stado. Se analizó el perfil sensorial del café tostado mediante catadores entrenados, siguiendo el protocolo de la Speci"
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 13,
+          "score": 0.70826,
+          "preview": "ra sobre el nivel del mar a la cual se lleva a cabo la tostión del café sobre las características sensoriales para dos t"
+        }
+      ]
+    },
+    {
+      "case_id": "P02",
+      "kind": "player",
+      "first_relevant_rank": null,
+      "latency_ms": 17342.26,
+      "returned_in_top_k": 4,
+      "repeated_texts_in_top_k": 0,
+      "retrieved": [
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 13,
+          "score": 0.711017,
+          "preview": "cidez, el sabor residual y el cuerpo del café. El tueste del café es una fase vital dentro de la cadena de elaboración. "
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 5,
+          "score": 0.710972,
+          "preview": "irecta con el proceso de tostado, a medida que el café almendra verde es sometido a temperaturas que facilitan las reacc"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 4,
+          "score": 0.689999,
+          "preview": "o, para obtener el café natural. implica la recolección de café cereza, el boyado (clasiﬁcación por ﬂota - ción de grano"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 10,
+          "score": 0.68879,
+          "preview": "arse. Superﬁcie Características del café según el grado de tueste y estilo"
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 11,
+          "score": 0.687095,
+          "preview": "idad de la bebida de café, con un sabor amargo débil, aproximadamente una cuarta parte de la cafeína, sin embargo, en su"
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 2,
+          "score": 0.686856,
+          "preview": "tes mencionados. Palabras clave: tueste de café, calidad sensorial, coffea arabica, taza de café 1 Autor principal. Corr"
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 4,
+          "score": 0.686391,
+          "preview": "tos, y el tiempo final de tueste fue definido por el color del grano 55-65 en la escala AGTRON/SCA para tostado. En la F"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 4,
+          "score": 0.682941,
+          "preview": "e humedad entre el 10,0% y el 11,5%. Se realizó la trilla de café y una selección de la almendra sana, eliminando los de"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 13,
+          "score": 0.68205,
+          "preview": "que: En las seis variedades de café mejoradas que se evaluaron, los tiempos de tueste se encontraron entre 8 y 12 minuto"
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 4,
+          "score": 0.681624,
+          "preview": "intón, maduro y sobremaduro, lo que subraya la importancia de la madurez en la calidad del café. Además del estado de ma"
+        }
+      ]
+    },
+    {
+      "case_id": "P03",
+      "kind": "player",
+      "first_relevant_rank": 4,
+      "latency_ms": 14818.88,
+      "returned_in_top_k": 4,
+      "repeated_texts_in_top_k": 0,
+      "retrieved": [
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 2,
+          "score": 0.675511,
+          "preview": "potencial. Etapas del proceso de tueste Durante el tueste pueden diferenciarse cuatro etapas, descritas en la Tabla 1."
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 11,
+          "score": 0.64979,
+          "preview": "lizar pausas pequeñas cada hora durante el tueste para hacer una llamada o ir al baño. • Siempre tener a mano una muestr"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 2,
+          "score": 0.635822,
+          "preview": "para el control del tueste son: el tiempo, la pérdida de peso y las diversas mediciones de color como son la luminosidad"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 3,
+          "score": 0.626061,
+          "preview": "a de tueste, definida como la combinación de temperatura y tiempo a la cual el café almendra verde es sometida, permite "
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 4,
+          "score": 0.617461,
+          "preview": "intón, maduro y sobremaduro, lo que subraya la importancia de la madurez en la calidad del café. Además del estado de ma"
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 6,
+          "score": 0.61721,
+          "preview": "or su parte, la acidez muestra un comportamiento contrario, su intensidad disminuye a medida que aumenta el grado de tue"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 10,
+          "score": 0.611644,
+          "preview": "De acuerdo a estas dos varia - bles se pueden obtener varios tipos de tueste con el mismo café, además de graﬁcar las cu"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 6,
+          "score": 0.611561,
+          "preview": "ciclo de secado: debe lograr una hu - medad de más o menos 11,5%, que es la hu - medad ideal para entregar el lote de ca"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 3,
+          "score": 0.610762,
+          "preview": "cidez, el sabor residual y el cuerpo del café. El tueste del café es una fase vital dentro de la cadena de elaboración. "
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 2,
+          "score": 0.607996,
+          "preview": "sorial. Estos cambios normalmente están asociados al grado de tueste, que es una importante medida para evaluar la calid"
+        }
+      ]
+    },
+    {
+      "case_id": "P04",
+      "kind": "player",
+      "first_relevant_rank": null,
+      "latency_ms": 16050.23,
+      "returned_in_top_k": 4,
+      "repeated_texts_in_top_k": 0,
+      "retrieved": [
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 8,
+          "score": 0.710125,
+          "preview": "), para separar el grano de acuerdo con su tamaño. Tostado y enfriado: Se procedió a colocar a los granos seleccionados "
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 5,
+          "score": 0.704381,
+          "preview": "se definió un rango de color de grano medio como referencia para finalizar el proceso. Además, se establecieron tiempos "
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 8,
+          "score": 0.696291,
+          "preview": "granos. 5.3.4. Desarrollo del grano • Inicio de tueste. • Expansión y brillo. 5.3.5. Acabado y enfriamiento • Temperatur"
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 5,
+          "score": 0.683481,
+          "preview": "/SCA asegurando el desarrollo completo del grano. Lípidos. El análisis de varianza del diseño completamente aleatorio en"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 4,
+          "score": 0.675708,
+          "preview": "o y fue definido por el color del grano 55-65 en la escala AGTRON/SCA, para garantizar el desarrollo completo del grano "
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 2,
+          "score": 0.67319,
+          "preview": "el tueste el grano pierde entre un 11% y 20% de peso por deshidratación, su estructura se vuelve frágil, adquiere su col"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 6,
+          "score": 0.672845,
+          "preview": "grano (piedras, palos, piolas) y el retiro del per - gamino en el caso del café lavado o despulpado natural, y la cereza"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 3,
+          "score": 0.668818,
+          "preview": "a de tueste, definida como la combinación de temperatura y tiempo a la cual el café almendra verde es sometida, permite "
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 11,
+          "score": 0.662252,
+          "preview": "na a emplear para preparar el café, la densidad del grano y proceso postcosecha. • El grano resultante tiene mayor volum"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 5,
+          "score": 0.659129,
+          "preview": "on agua fría y limpia, hasta cubrir el nivel de grano, desde el inicio de la fermentación. • Proteger el tanque de cambi"
+        }
+      ]
+    },
+    {
+      "case_id": "P05",
+      "kind": "player",
+      "first_relevant_rank": 1,
+      "latency_ms": 16234.16,
+      "returned_in_top_k": 4,
+      "repeated_texts_in_top_k": 0,
+      "retrieved": [
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 10,
+          "score": 0.73809,
+          "preview": "asNotas Después de varios minutos se escu cha un Crack, el grano se expande de tamaño.Esta etapa es llamada el primer Cr"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 11,
+          "score": 0.730075,
+          "preview": "lizar pausas pequeñas cada hora durante el tueste para hacer una llamada o ir al baño. • Siempre tener a mano una muestr"
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 10,
+          "score": 0.699611,
+          "preview": "como resultado el ruido caracteristico de crack , para este estudio se consideraron datos relevantes como: origen (Jama)"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 6,
+          "score": 0.677734,
+          "preview": ") Primer ciclo de secado: en la primera fase de secado hay que dar al café un ciclo continuo has - ta llegar más o menos"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 4,
+          "score": 0.635784,
+          "preview": "Si, durante 1ª fase del sec ado No Si Despulpado natural rojo Si, sobre maduro Pergamino amarill o oscuro o rojizo Si, e"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 8,
+          "score": 0.628285,
+          "preview": "granos se maniﬁesta por el sonido . -El color cambia a c afé medio . -Pierde apr oximadamente el 13% de su peso . -Emite"
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 6,
+          "score": 0.623564,
+          "preview": "or su parte, la acidez muestra un comportamiento contrario, su intensidad disminuye a medida que aumenta el grado de tue"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 13,
+          "score": 0.623297,
+          "preview": "cidez, el sabor residual y el cuerpo del café. El tueste del café es una fase vital dentro de la cadena de elaboración. "
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 3,
+          "score": 0.615208,
+          "preview": "a de tueste, definida como la combinación de temperatura y tiempo a la cual el café almendra verde es sometida, permite "
+        }
+      ]
+    },
+    {
+      "case_id": "P06",
+      "kind": "player",
+      "first_relevant_rank": 3,
+      "latency_ms": 11395.86,
+      "returned_in_top_k": 4,
+      "repeated_texts_in_top_k": 0,
+      "retrieved": [
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 10,
+          "score": 0.743248,
+          "preview": "como resultado el ruido caracteristico de crack , para este estudio se consideraron datos relevantes como: origen (Jama)"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 11,
+          "score": 0.743171,
+          "preview": "ndo crack, y decidir a simple vista (según la muestra o el patrón seleccionado) el momento de sacar el café de la máquin"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 10,
+          "score": 0.690576,
+          "preview": "asNotas Después de varios minutos se escu cha un Crack, el grano se expande de tamaño.Esta etapa es llamada el primer Cr"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 6,
+          "score": 0.64747,
+          "preview": "grano (piedras, palos, piolas) y el retiro del per - gamino en el caso del café lavado o despulpado natural, y la cereza"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 8,
+          "score": 0.646263,
+          "preview": "granos se maniﬁesta por el sonido . -El color cambia a c afé medio . -Pierde apr oximadamente el 13% de su peso . -Emite"
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 4,
+          "score": 0.641477,
+          "preview": "ro™, con secado mecánico hasta alcanzar un porcentaje de humedad entre el 10% y el 11,5%. Se realizó la trilla de café y"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 3,
+          "score": 0.633448,
+          "preview": "cidez, el sabor residual y el cuerpo del café. El tueste del café es una fase vital dentro de la cadena de elaboración. "
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 3,
+          "score": 0.619952,
+          "preview": "a de tueste, definida como la combinación de temperatura y tiempo a la cual el café almendra verde es sometida, permite "
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 4,
+          "score": 0.617783,
+          "preview": "Si, durante 1ª fase del sec ado No Si Despulpado natural rojo Si, sobre maduro Pergamino amarill o oscuro o rojizo Si, e"
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 4,
+          "score": 0.617166,
+          "preview": "a calidad del café (Osorio et al. 2022). El control adecuado del tueste es esencial para evitar defectos que alteran la "
+        }
+      ]
+    },
+    {
+      "case_id": "P07",
+      "kind": "player",
+      "first_relevant_rank": 5,
+      "latency_ms": 11747.15,
+      "returned_in_top_k": 4,
+      "repeated_texts_in_top_k": 0,
+      "retrieved": [
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 8,
+          "score": 0.672788,
+          "preview": "lor) pero tener sabores completamente diferentes. Un tueste oscuro “duro” puede fácilmente tener sabor plano y amargo si"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 5,
+          "score": 0.665613,
+          "preview": "rollándose los dulces como caramelo, miel, vainilla, llegando a chocolate y finalizando con tabaco, tostado y humo, desc"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 11,
+          "score": 0.657341,
+          "preview": "e. • Entre los tuestes se podría realizar nuevas mezclas, por ejemplo: 30% claro, 30% medio, 40% oscuro. • Las muestras "
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 4,
+          "score": 0.652212,
+          "preview": "finales de tueste: entre 8 y 12 minutos • Color del grano tostado: entre 55-65 en la escala Agtron/SCA • Tueste: medio •"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 9,
+          "score": 0.646873,
+          "preview": "n cada región. Es - tas diferencias han dado origen a la preferencia de ciertos grados o niveles de tueste, basados en e"
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 6,
+          "score": 0.646336,
+          "preview": "s tuestes ligeros a medios, los niveles de ácidos orgánicos se mantienen estables, pero en los tuestes más oscuros se re"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 4,
+          "score": 0.64186,
+          "preview": "Si, durante 1ª fase del sec ado No Si Despulpado natural rojo Si, sobre maduro Pergamino amarill o oscuro o rojizo Si, e"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 10,
+          "score": 0.63766,
+          "preview": "la Base: Despulpado Natural y/o Lavado. (+) Natural y (-) Lavad o (+) Natural (-) Lavad o (+) Lavado (-) Natural Nivel d"
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 4,
+          "score": 0.633918,
+          "preview": "intón, maduro y sobremaduro, lo que subraya la importancia de la madurez en la calidad del café. Además del estado de ma"
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 3,
+          "score": 0.633121,
+          "preview": "e un grado de tostado medio a un grado de tostado oscuro. El contenido de ácido quínico y láctico aumenta con un grado d"
+        }
+      ]
+    },
+    {
+      "case_id": "P08",
+      "kind": "player",
+      "first_relevant_rank": 4,
+      "latency_ms": 753.57,
+      "returned_in_top_k": 4,
+      "repeated_texts_in_top_k": 0,
+      "retrieved": [
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 11,
+          "score": 0.700613,
+          "preview": "ndo crack, y decidir a simple vista (según la muestra o el patrón seleccionado) el momento de sacar el café de la máquin"
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 10,
+          "score": 0.694425,
+          "preview": "como resultado el ruido caracteristico de crack , para este estudio se consideraron datos relevantes como: origen (Jama)"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 10,
+          "score": 0.694085,
+          "preview": "asNotas Después de varios minutos se escu cha un Crack, el grano se expande de tamaño.Esta etapa es llamada el primer Cr"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 8,
+          "score": 0.690442,
+          "preview": "desarrollar el color oscuro deseado, pero en la moderación de la temperatura, los azúcares se mantendrán dulces y sabore"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 6,
+          "score": 0.686907,
+          "preview": "ene realizar tres ciclos de secado con periodos de descanso o estabilización para preservar la fragancia y me - jorar su"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 3,
+          "score": 0.680191,
+          "preview": "a de tueste, definida como la combinación de temperatura y tiempo a la cual el café almendra verde es sometida, permite "
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 5,
+          "score": 0.665173,
+          "preview": "se definió un rango de color de grano medio como referencia para finalizar el proceso. Además, se establecieron tiempos "
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 9,
+          "score": 0.663678,
+          "preview": "que entre mayor es la temperatura, el tiempo de tostado es menor; sumado a esto Osorio et al. (2022) mencionó que los ti"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 9,
+          "score": 0.651449,
+          "preview": "de los descriptores, pues al incrementarse el tiempo de tueste se pueden llegar a tener descriptores tales como pesados "
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 11,
+          "score": 0.649869,
+          "preview": "del café, pero también puede ser fuente que evite el desarrollo u oculte los atributos sensoriales. Según lo reportado p"
+        }
+      ]
+    },
+    {
+      "case_id": "P09",
+      "kind": "player",
+      "first_relevant_rank": 10,
+      "latency_ms": 629.57,
+      "returned_in_top_k": 4,
+      "repeated_texts_in_top_k": 0,
+      "retrieved": [
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 13,
+          "score": 0.70945,
+          "preview": "la escala AGTRON/SCA para todos los tratamientos. El tiempo de tueste mostró efecto por la interacción temperatura inici"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 10,
+          "score": 0.699021,
+          "preview": "ificado como tueste medio según la escala AGTRON/SCA (55-65), generó la máxima expresión de todos los atributos sensoria"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 9,
+          "score": 0.681939,
+          "preview": "acuerdo a la temperatura (°C) 95 85 75 65 55 45 35 25 SCAA: Escala Agtron (Sistema de puntos para clasiﬁcar el grado - c"
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 5,
+          "score": 0.673673,
+          "preview": "Aunque se generaron diferentes curvas, el grado de tueste final para todas las variedades y en todos los tratamientos fu"
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 4,
+          "score": 0.672973,
+          "preview": "tos, y el tiempo final de tueste fue definido por el color del grano 55-65 en la escala AGTRON/SCA para tostado. En la F"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 5,
+          "score": 0.657046,
+          "preview": "e generaron diferentes puntos de tueste para el mismo café, se estableció como punto de control el color del grano 55-65"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 4,
+          "score": 0.654959,
+          "preview": "o y fue definido por el color del grano 55-65 en la escala AGTRON/SCA, para garantizar el desarrollo completo del grano "
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 14,
+          "score": 0.654154,
+          "preview": "l grano tostado en un rango medio medido en la escala 55-65 AGTRON/SCA, permite evidenciar que la calidad inicial del ca"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 8,
+          "score": 0.652383,
+          "preview": "Exotérmica) Fase de des arrollo del grano Fase de enfriamient o -Evaporación del agua. -Cambio de color (verde- amarillo"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 2,
+          "score": 0.636895,
+          "preview": "para el control del tueste son: el tiempo, la pérdida de peso y las diversas mediciones de color como son la luminosidad"
+        }
+      ]
+    },
+    {
+      "case_id": "P10",
+      "kind": "player",
+      "first_relevant_rank": 2,
+      "latency_ms": 545.36,
+      "returned_in_top_k": 4,
+      "repeated_texts_in_top_k": 0,
+      "retrieved": [
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 2,
+          "score": 0.731859,
+          "preview": "granos son sometidos al calor debe ser controlado cuidadosamente por el tostador, quien generalmente se guía por el colo"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 8,
+          "score": 0.727548,
+          "preview": "y a canguil. - Se funden los azuc ares. -El grano aumenta notablemente de tamaño. -Se torna de un color café claro. -Pie"
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 8,
+          "score": 0.714816,
+          "preview": "), para separar el grano de acuerdo con su tamaño. Tostado y enfriado: Se procedió a colocar a los granos seleccionados "
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 2,
+          "score": 0.713788,
+          "preview": "el tueste el grano pierde entre un 11% y 20% de peso por deshidratación, su estructura se vuelve frágil, adquiere su col"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 3,
+          "score": 0.708917,
+          "preview": "a de tueste, definida como la combinación de temperatura y tiempo a la cual el café almendra verde es sometida, permite "
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 6,
+          "score": 0.700186,
+          "preview": "grano (piedras, palos, piolas) y el retiro del per - gamino en el caso del café lavado o despulpado natural, y la cereza"
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 5,
+          "score": 0.689259,
+          "preview": "del grano tostado se usó como criterio de control, pues aún con granos que presentan colores que cumplen con el rango ob"
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 4,
+          "score": 0.688535,
+          "preview": "Avances Técnicos 573 4 sin embargo, el maestro tostador supervisa el proceso observando el desarrollo del color, volumen"
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 2,
+          "score": 0.682388,
+          "preview": "tostado fue el T3, registrado por una temperatura de 220°C por 8:10 minutos, con un punto de equílibrio térmico en un ra"
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 9,
+          "score": 0.680033,
+          "preview": "sensorial (SCA, 2024). Se generaron 3 curvas de tostado, con el grado de tueste definido por el color del grano 55 -65 e"
+        }
+      ]
+    },
+    {
+      "case_id": "P11",
+      "kind": "player",
+      "first_relevant_rank": 3,
+      "latency_ms": 529.51,
+      "returned_in_top_k": 4,
+      "repeated_texts_in_top_k": 0,
+      "retrieved": [
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 8,
+          "score": 0.750833,
+          "preview": "), para separar el grano de acuerdo con su tamaño. Tostado y enfriado: Se procedió a colocar a los granos seleccionados "
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 2,
+          "score": 0.727532,
+          "preview": "el tueste el grano pierde entre un 11% y 20% de peso por deshidratación, su estructura se vuelve frágil, adquiere su col"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 8,
+          "score": 0.717858,
+          "preview": "ran parte a la evaporación de su humedad y en menor parte de otros componentes. • El grano aumenta de volumen, entre un "
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 2,
+          "score": 0.716214,
+          "preview": "granos son sometidos al calor debe ser controlado cuidadosamente por el tostador, quien generalmente se guía por el colo"
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 2,
+          "score": 0.705492,
+          "preview": "tostado fue el T3, registrado por una temperatura de 220°C por 8:10 minutos, con un punto de equílibrio térmico en un ra"
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 4,
+          "score": 0.700165,
+          "preview": "Avances Técnicos 573 4 sin embargo, el maestro tostador supervisa el proceso observando el desarrollo del color, volumen"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 11,
+          "score": 0.699211,
+          "preview": "na a emplear para preparar el café, la densidad del grano y proceso postcosecha. • El grano resultante tiene mayor volum"
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 5,
+          "score": 0.695432,
+          "preview": "del grano tostado se usó como criterio de control, pues aún con granos que presentan colores que cumplen con el rango ob"
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 4,
+          "score": 0.690863,
+          "preview": "tos, y el tiempo final de tueste fue definido por el color del grano 55-65 en la escala AGTRON/SCA para tostado. En la F"
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 14,
+          "score": 0.690192,
+          "preview": "l grano tostado en un rango medio medido en la escala 55-65 AGTRON/SCA, permite evidenciar que la calidad inicial del ca"
+        }
+      ]
+    },
+    {
+      "case_id": "P12",
+      "kind": "player",
+      "first_relevant_rank": 4,
+      "latency_ms": 529.43,
+      "returned_in_top_k": 4,
+      "repeated_texts_in_top_k": 0,
+      "retrieved": [
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 2,
+          "score": 0.70936,
+          "preview": "potencial. Etapas del proceso de tueste Durante el tueste pueden diferenciarse cuatro etapas, descritas en la Tabla 1."
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 11,
+          "score": 0.684254,
+          "preview": "masiado tiempo de tueste, debido a que los compuestos volátiles se perderían. • Este tiempo depende de varios factores: "
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 3,
+          "score": 0.6788,
+          "preview": "intenso. El grado de tueste, comúnmente definido por el color, por sí solo no es un indicador de un proceso correcto, pu"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 8,
+          "score": 0.670213,
+          "preview": "desarrollar el color oscuro deseado, pero en la moderación de la temperatura, los azúcares se mantendrán dulces y sabore"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 10,
+          "score": 0.667051,
+          "preview": "Es necesario tomar en cuenta que, para elaborar una curva o perﬁl de tueste, se debe anotar las temperaturas registradas"
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 5,
+          "score": 0.657577,
+          "preview": "nfiguración de defectos de tueste. Tiempo de tueste Las diferencias en las curvas de tueste estuvieron influenciadas por"
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 6,
+          "score": 0.655688,
+          "preview": "or su parte, la acidez muestra un comportamiento contrario, su intensidad disminuye a medida que aumenta el grado de tue"
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 14,
+          "score": 0.655085,
+          "preview": "peratura inicial de la curva de tueste presentó efecto en el ácido oxálico y la teobromina. Estos dos compuestos present"
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 9,
+          "score": 0.654683,
+          "preview": "que entre mayor es la temperatura, el tiempo de tostado es menor; sumado a esto Osorio et al. (2022) mencionó que los ti"
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 7,
+          "score": 0.652259,
+          "preview": "Avances Técnicos 573 7 Figura 5. Efecto de variables del proceso de tueste en diferentes compuestos químicos. Familias c"
+        }
+      ]
+    },
+    {
+      "case_id": "P13",
+      "kind": "player",
+      "first_relevant_rank": 1,
+      "latency_ms": 495.9,
+      "returned_in_top_k": 4,
+      "repeated_texts_in_top_k": 0,
+      "retrieved": [
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 11,
+          "score": 0.705859,
+          "preview": "masiado tiempo de tueste, debido a que los compuestos volátiles se perderían. • Este tiempo depende de varios factores: "
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 2,
+          "score": 0.703196,
+          "preview": "potencial. Etapas del proceso de tueste Durante el tueste pueden diferenciarse cuatro etapas, descritas en la Tabla 1."
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 9,
+          "score": 0.696929,
+          "preview": "que entre mayor es la temperatura, el tiempo de tostado es menor; sumado a esto Osorio et al. (2022) mencionó que los ti"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 5,
+          "score": 0.6743,
+          "preview": "ores tiempos de tueste se encontraron en el tratamiento D-30 (170°C) con un promedio de 11,47 minutos, la variedad que p"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 2,
+          "score": 0.656843,
+          "preview": "de tueste. Así, el café puede sufrir una pérdida de peso del 18% o más, mientras que, para un tueste muy ligero dicha pé"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 8,
+          "score": 0.656501,
+          "preview": "lor) pero tener sabores completamente diferentes. Un tueste oscuro “duro” puede fácilmente tener sabor plano y amargo si"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 10,
+          "score": 0.65186,
+          "preview": "afés con densidades medias (suaves) se pueden tostar con temperaturas medias al inicio y al ﬁnal del tostado. 7. Curvas "
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 4,
+          "score": 0.650288,
+          "preview": "o y Tabi. Se generaron cinco diferentes curvas de tueste (Figura 4), la curva base tuvo como temperatura inicial 200°C ("
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 10,
+          "score": 0.6441,
+          "preview": "tiempos de tueste se encontraron en el rango entre 8 y 12 minutos, lo que concuerda con lo expuesto por Sualeh et al. (2"
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 2,
+          "score": 0.640767,
+          "preview": "sorial. Estos cambios normalmente están asociados al grado de tueste, que es una importante medida para evaluar la calid"
+        }
+      ]
+    },
+    {
+      "case_id": "P14",
+      "kind": "player",
+      "first_relevant_rank": 9,
+      "latency_ms": 522.06,
+      "returned_in_top_k": 4,
+      "repeated_texts_in_top_k": 0,
+      "retrieved": [
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 9,
+          "score": 0.796419,
+          "preview": "el menor tiempo de tostado fue el T3 (220°C) con un promedio de 08:10 minutos, la temperatura inicial repercute directam"
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 2,
+          "score": 0.790102,
+          "preview": "tostado fue el T3, registrado por una temperatura de 220°C por 8:10 minutos, con un punto de equílibrio térmico en un ra"
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 3,
+          "score": 0.770076,
+          "preview": "mo de la temperatura de tostado. El contenido restante es de alrededor del 50% en un tostado claro, con trazas en un tos"
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 2,
+          "score": 0.767476,
+          "preview": "ontrol d el tueste es clave para la expresión de la calidad del producto, es así como las desviaciones en temperatura o "
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 6,
+          "score": 0.756867,
+          "preview": "proceso de tostado. En este estudio, los ácidos grasos no mostraron efecto por los cambios en la temperatura inicial de "
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 11,
+          "score": 0.755054,
+          "preview": "capacidad de regular la temperatura durante el proceso de tostado. • Debe contar con un sistema de enfriamiento rápido p"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 7,
+          "score": 0.752579,
+          "preview": "Cenicafé, 73(1) 2022 30 de café (que es más frecuentemente referido como el grado de tostado) utilizando diferentes tiem"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 2,
+          "score": 0.747542,
+          "preview": "temperatura inicial de tostado, no hay consenso en los valores de temperatura inicial de tueste; sin embargo, la metodol"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 10,
+          "score": 0.746876,
+          "preview": "afés con densidades medias (suaves) se pueden tostar con temperaturas medias al inicio y al ﬁnal del tostado. 7. Curvas "
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 11,
+          "score": 0.746589,
+          "preview": "pida dado que, a mayor grado de temperatura, menor tiempo de tostado, en este sentido, si el perfil sensorial se mantuvo"
+        }
+      ]
+    },
+    {
+      "case_id": "P15",
+      "kind": "player",
+      "first_relevant_rank": null,
+      "latency_ms": 521.5,
+      "returned_in_top_k": 4,
+      "repeated_texts_in_top_k": 0,
+      "retrieved": [
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 2,
+          "score": 0.767597,
+          "preview": "el tueste el grano pierde entre un 11% y 20% de peso por deshidratación, su estructura se vuelve frágil, adquiere su col"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 8,
+          "score": 0.732843,
+          "preview": "granos. 5.3.4. Desarrollo del grano • Inicio de tueste. • Expansión y brillo. 5.3.5. Acabado y enfriamiento • Temperatur"
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 8,
+          "score": 0.727848,
+          "preview": "), para separar el grano de acuerdo con su tamaño. Tostado y enfriado: Se procedió a colocar a los granos seleccionados "
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 13,
+          "score": 0.71688,
+          "preview": "os químicos existentes en el grano de café. El tueste debe asegurar mínimo el control de variables como temperatura, tie"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 5,
+          "score": 0.714979,
+          "preview": "on agua fría y limpia, hasta cubrir el nivel de grano, desde el inicio de la fermentación. • Proteger el tanque de cambi"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 3,
+          "score": 0.710551,
+          "preview": "a de tueste, definida como la combinación de temperatura y tiempo a la cual el café almendra verde es sometida, permite "
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 2,
+          "score": 0.710316,
+          "preview": "para el control del tueste son: el tiempo, la pérdida de peso y las diversas mediciones de color como son la luminosidad"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 11,
+          "score": 0.706511,
+          "preview": "na a emplear para preparar el café, la densidad del grano y proceso postcosecha. • El grano resultante tiene mayor volum"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 4,
+          "score": 0.704734,
+          "preview": "ad está sujeta a la variedad, tecnolo - gía de manejo de las plantaciones (nutrición, densidad de siembra, manejo del te"
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 5,
+          "score": 0.703273,
+          "preview": "nfiguración de defectos de tueste. Tiempo de tueste Las diferencias en las curvas de tueste estuvieron influenciadas por"
+        }
+      ]
+    },
+    {
+      "case_id": "P16",
+      "kind": "player",
+      "first_relevant_rank": 1,
+      "latency_ms": 434.53,
+      "returned_in_top_k": 4,
+      "repeated_texts_in_top_k": 0,
+      "retrieved": [
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 7,
+          "score": 0.776074,
+          "preview": "na de las materias primas para las reacciones de Maillard. Impacto general del beneﬁcio en el perﬁl de sabor Flujograma "
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 14,
+          "score": 0.743,
+          "preview": "Cenicafé, 72(1) 2021 57 muchos compuestos volátiles y no volátiles (melanoidinas y sus precursores ácidos) por la reacci"
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 4,
+          "score": 0.721513,
+          "preview": "acciones: caramelización y la reacción de Maillard. En la caramelización, el calor descompone los carbohidratos formando"
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 8,
+          "score": 0.720757,
+          "preview": "que forma ácidos como el succínico (Scholz- Bottcher et al., 1991). Un gran número de ácidos se generan por la reacción "
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 3,
+          "score": 0.713861,
+          "preview": "é, que se originan de las reacciones de Maillard o de la caramelización de los carbohidratos, dependen no solo de la com"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 9,
+          "score": 0.697907,
+          "preview": "den y donde abundan los compuestos de Maillard y los productos de descomposición de los lípidos (Giacalone et al., 2019)"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 2,
+          "score": 0.667742,
+          "preview": "n forman moléculas más complejas de color pardo, con aroma típico de caramelo; y la reacción de Maillard que implica la "
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 10,
+          "score": 0.615755,
+          "preview": "tos a Ahumado-dulce; no se reconocen ninguna de las características inherentes del grano . French Después de unos pocos "
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 8,
+          "score": 0.601533,
+          "preview": "), para separar el grano de acuerdo con su tamaño. Tostado y enfriado: Se procedió a colocar a los granos seleccionados "
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 3,
+          "score": 0.591203,
+          "preview": ", cup of coffee Artículo recibido 20 julio 2025 Aceptado para publicación: 20 agosto 2025"
+        }
+      ]
+    },
+    {
+      "case_id": "P17",
+      "kind": "player",
+      "first_relevant_rank": null,
+      "latency_ms": 464.51,
+      "returned_in_top_k": 4,
+      "repeated_texts_in_top_k": 0,
+      "retrieved": [
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 3,
+          "score": 0.741958,
+          "preview": "sabor ácido se da con el aumento del grado de tueste (Barbosa et al., 2019). La acidez del café proviene de compuestos c"
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 6,
+          "score": 0.723305,
+          "preview": "s tuestes ligeros a medios, los niveles de ácidos orgánicos se mantienen estables, pero en los tuestes más oscuros se re"
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 10,
+          "score": 0.703888,
+          "preview": "reportados por la mayoría de trabajos, puesto que están presentes en cantidades significativas (Clarke & Vitzthum, 2001)"
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 3,
+          "score": 0.700572,
+          "preview": "de tueste (Clarke & Vitzthum, 2001). Gloess et al. (2014) reportan que el contenido total de los ácidos orgánicos perman"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 8,
+          "score": 0.690975,
+          "preview": "acidez muestra un comportamiento diferente, pues su intensidad disminuye a medida que aumenta el grado de tostación (Bar"
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 8,
+          "score": 0.686922,
+          "preview": "La mayoría de los ácidos carboxílicos alifáticos presentes en el café verde se comportan como los ácidos clorogénicos, s"
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 9,
+          "score": 0.686241,
+          "preview": "de tueste. Castillo® Naranjal Castillo® Pueblo Bello Castillo® El Tambo Cenicafé 1 Castillo® General Tabi Ácido acético "
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 2,
+          "score": 0.68606,
+          "preview": "potencial. Etapas del proceso de tueste Durante el tueste pueden diferenciarse cuatro etapas, descritas en la Tabla 1."
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 8,
+          "score": 0.684719,
+          "preview": "que puede llegar a durar hasta 20 días. • La acidez decrece gradualmente. • La mayor concentración de furfural, que pert"
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 2,
+          "score": 0.684166,
+          "preview": "ias tanto en las características físicas como químicas de las muestras de café, están influenciados por el nivel de tues"
+        }
+      ]
+    },
+    {
+      "case_id": "P18",
+      "kind": "player",
+      "first_relevant_rank": 2,
+      "latency_ms": 390.98,
+      "returned_in_top_k": 4,
+      "repeated_texts_in_top_k": 0,
+      "retrieved": [
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 6,
+          "score": 0.729449,
+          "preview": "ivos tales como pesados y ásperos. El sabor amargo y el sabor ácido son los atributos utilizados con mayor frecuencia pa"
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 11,
+          "score": 0.718525,
+          "preview": "Cenicafé, 72(1) 2021 54 amargo del café con su contenido de cafeína, pero con poco éxito (Clarke & Macrae, 1985). De hec"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 2,
+          "score": 0.717505,
+          "preview": "rrelacionado con el amargor, menores contenidos de estos compuestos se encuentran en tuestes más oscuros (Barbosa et al."
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 10,
+          "score": 0.713436,
+          "preview": "arse. Superﬁcie Características del café según el grado de tueste y estilo"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 4,
+          "score": 0.707882,
+          "preview": "o, para obtener el café natural. implica la recolección de café cereza, el boyado (clasiﬁcación por ﬂota - ción de grano"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 3,
+          "score": 0.7003,
+          "preview": "calidad de una taza de café, que la bondad de la mezcla escogida. Este último punto es el más interesante des- de una óp"
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 13,
+          "score": 0.689666,
+          "preview": "https://acortar.link/JbCnFJ Sabando, E. (2024, octubre 28). Producción del Café arábigo. (Z. Casanova, Entrevistador) Sa"
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 2,
+          "score": 0.68949,
+          "preview": "el grado de tostado. Cabe indicar que en el perfil sensorial no mostraron efectos significativos en la taza de café , pe"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 13,
+          "score": 0.688841,
+          "preview": "cidez, el sabor residual y el cuerpo del café. El tueste del café es una fase vital dentro de la cadena de elaboración. "
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 11,
+          "score": 0.687298,
+          "preview": "resultado sea bueno (conﬁrmado por otras personas o clientes). • Con café verde malo NO se puede tostar café bueno. • El"
+        }
+      ]
+    },
+    {
+      "case_id": "P19",
+      "kind": "player",
+      "first_relevant_rank": null,
+      "latency_ms": 491.41,
+      "returned_in_top_k": 4,
+      "repeated_texts_in_top_k": 0,
+      "retrieved": [
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 4,
+          "score": 0.741787,
+          "preview": "intón, maduro y sobremaduro, lo que subraya la importancia de la madurez en la calidad del café. Además del estado de ma"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 3,
+          "score": 0.740827,
+          "preview": "cidez, el sabor residual y el cuerpo del café. El tueste del café es una fase vital dentro de la cadena de elaboración. "
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 6,
+          "score": 0.738724,
+          "preview": "del café que se tuesta y la forma en que se desarrolla el proceso. Los atributos sensoriales y la calidad sensorial fina"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 11,
+          "score": 0.734756,
+          "preview": "antes de la catación. • El café tostado no debe tener puntas oscuras (tueste muy rápido) o estar horneado (tueste muy le"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 11,
+          "score": 0.727834,
+          "preview": "o por las diversas combinaciones de temperatura y tiempo que genera la curva de tueste, como también por el grado final "
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 10,
+          "score": 0.717065,
+          "preview": "De acuerdo a estas dos varia - bles se pueden obtener varios tipos de tueste con el mismo café, además de graﬁcar las cu"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 5,
+          "score": 0.716856,
+          "preview": "cos responsables del oscurecimiento del café pueden variar según el calor aplicado y del tiempo del tueste. Fragancia y "
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 3,
+          "score": 0.715914,
+          "preview": "a de tueste, definida como la combinación de temperatura y tiempo a la cual el café almendra verde es sometida, permite "
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 8,
+          "score": 0.712971,
+          "preview": "ado durante el mismo tiempo, mientras que el valor más bajo fue para el café obtenido por vía seca y semi-lavados que fu"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 2,
+          "score": 0.711861,
+          "preview": "de tueste. Así, el café puede sufrir una pérdida de peso del 18% o más, mientras que, para un tueste muy ligero dicha pé"
+        }
+      ]
+    },
+    {
+      "case_id": "P20",
+      "kind": "player",
+      "first_relevant_rank": 2,
+      "latency_ms": 471.15,
+      "returned_in_top_k": 4,
+      "repeated_texts_in_top_k": 0,
+      "retrieved": [
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 11,
+          "score": 0.867688,
+          "preview": "0 (Figura 7). Ácidos clorogénicos totales. Se ha reportado que los granos de café poseen importantes cantidades de ácido"
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 8,
+          "score": 0.858974,
+          "preview": "es contribuye a la vivacidad del café, al dulzor y al carácter de la bebida. Los tipos de ácidos que se encuentran en el"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 8,
+          "score": 0.835765,
+          "preview": "en los azúcares y los ácidos clorogénicos, aumentan las substancias grasas debido a las altas temperaturas. • Además, un"
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 16,
+          "score": 0.812604,
+          "preview": "0. 1080/10942912.2013.805769 Chaves-Ulate, E., Esquivel-Rodríguez, P. (2019). Ácidos clorogénicos presentes en el café: "
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 1,
+          "score": 0.812417,
+          "preview": "café: lípidos, ácidos grasos, ácidos carboxílicos alifáticos, alcaloides, ácidos clorogénicos totales y azúcares. La int"
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 6,
+          "score": 0.798788,
+          "preview": "ad del café, entre otros aspectos, depende de los ácidos carboxílicos alifáticos, que se ven influenciados por el proces"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 3,
+          "score": 0.787014,
+          "preview": "sabor ácido se da con el aumento del grado de tueste (Barbosa et al., 2019). La acidez del café proviene de compuestos c"
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 6,
+          "score": 0.77611,
+          "preview": "llo ® Naranjal, Castillo ® El Tambo y Tabi. Ácidos grasos. Entre los ácidos grasos presentes en el café, el ácido linole"
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 2,
+          "score": 0.775872,
+          "preview": "ias tanto en las características físicas como químicas de las muestras de café, están influenciados por el nivel de tues"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 9,
+          "score": 0.775195,
+          "preview": "or Giacalone et al. (2019), donde el tueste medio recibe las mayores puntuaciones medias en este atributo. La acidez del"
+        }
+      ]
+    },
+    {
+      "case_id": "P21",
+      "kind": "player",
+      "first_relevant_rank": 3,
+      "latency_ms": 469.91,
+      "returned_in_top_k": 4,
+      "repeated_texts_in_top_k": 0,
+      "retrieved": [
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 14,
+          "score": 0.707611,
+          "preview": "peratura inicial de la curva de tueste presentó efecto en el ácido oxálico y la teobromina. Estos dos compuestos present"
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 5,
+          "score": 0.706018,
+          "preview": "turas de tueste entre 170 y 200 °C se sugieren como adecuadas para desarrollar sabores balanceados y fragancias compleja"
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 2,
+          "score": 0.674791,
+          "preview": "calor. en el grano que determinan los compuestos responsables del aroma y el sabor. Cuando el tueste se desarrolla bajo "
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 4,
+          "score": 0.67323,
+          "preview": "co unidades de trabajo de 5 kg; a cada unidad se le aplicaron los tratamientos variando la temperatura inicial de tueste"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 11,
+          "score": 0.668581,
+          "preview": "o por las diversas combinaciones de temperatura y tiempo que genera la curva de tueste, como también por el grado final "
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 13,
+          "score": 0.667605,
+          "preview": ". Repositorio Institucional Uniandes. https://repositorio.uniandes.edu.co/handle/1992/51724 Osorio, V ., Pabón, J., y Ec"
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 5,
+          "score": 0.666278,
+          "preview": "n ). RESULTADOS Y DISCUSIÓN En esta investigación se evaluó el efecto de diferentes curvas de tueste (combinación tiempo"
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 4,
+          "score": 0.662812,
+          "preview": "o y Tabi. Se generaron cinco diferentes curvas de tueste (Figura 4), la curva base tuvo como temperatura inicial 200°C ("
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 7,
+          "score": 0.660218,
+          "preview": "Avances Técnicos 573 7 Figura 5. Efecto de variables del proceso de tueste en diferentes compuestos químicos. Familias c"
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 1,
+          "score": 0.659114,
+          "preview": "ina de Calidad, Cenicafé. https://orcid.org/0000-0003-1576-2297; https://orcid.org/0000-0002-1532-8055 y https://orcid.o"
+        }
+      ]
+    },
+    {
+      "case_id": "P22",
+      "kind": "player",
+      "first_relevant_rank": null,
+      "latency_ms": 620.77,
+      "returned_in_top_k": 4,
+      "repeated_texts_in_top_k": 0,
+      "retrieved": [
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 2,
+          "score": 0.780313,
+          "preview": "calor. en el grano que determinan los compuestos responsables del aroma y el sabor. Cuando el tueste se desarrolla bajo "
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 2,
+          "score": 0.776448,
+          "preview": "granos son sometidos al calor debe ser controlado cuidadosamente por el tostador, quien generalmente se guía por el colo"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 8,
+          "score": 0.747831,
+          "preview": "granos. 5.3.4. Desarrollo del grano • Inicio de tueste. • Expansión y brillo. 5.3.5. Acabado y enfriamiento • Temperatur"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 3,
+          "score": 0.732099,
+          "preview": "a de tueste, definida como la combinación de temperatura y tiempo a la cual el café almendra verde es sometida, permite "
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 5,
+          "score": 0.725679,
+          "preview": "e generaron diferentes puntos de tueste para el mismo café, se estableció como punto de control el color del grano 55-65"
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 8,
+          "score": 0.72352,
+          "preview": "), para separar el grano de acuerdo con su tamaño. Tostado y enfriado: Se procedió a colocar a los granos seleccionados "
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 5,
+          "score": 0.719113,
+          "preview": "se definió un rango de color de grano medio como referencia para finalizar el proceso. Además, se establecieron tiempos "
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 13,
+          "score": 0.717358,
+          "preview": "os químicos existentes en el grano de café. El tueste debe asegurar mínimo el control de variables como temperatura, tie"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 6,
+          "score": 0.714425,
+          "preview": "grano (piedras, palos, piolas) y el retiro del per - gamino en el caso del café lavado o despulpado natural, y la cereza"
+        }
+      ]
+    },
+    {
+      "case_id": "P23",
+      "kind": "player",
+      "first_relevant_rank": null,
+      "latency_ms": 503.92,
+      "returned_in_top_k": 4,
+      "repeated_texts_in_top_k": 0,
+      "retrieved": [
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 6,
+          "score": 0.71845,
+          "preview": "ez que llega a la humedad ideal (11 al 11.5%). El almacenamiento o curado del café permite: • Estabilizar la humedad y e"
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 2,
+          "score": 0.690501,
+          "preview": "el tueste el grano pierde entre un 11% y 20% de peso por deshidratación, su estructura se vuelve frágil, adquiere su col"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 8,
+          "score": 0.684807,
+          "preview": "ran parte a la evaporación de su humedad y en menor parte de otros componentes. • El grano aumenta de volumen, entre un "
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 5,
+          "score": 0.674534,
+          "preview": "Secar lentamente en capas cada vez más gruesas, una vez que se ha eliminado la humedad superﬁcial."
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 2,
+          "score": 0.671499,
+          "preview": "granos son sometidos al calor debe ser controlado cuidadosamente por el tostador, quien generalmente se guía por el colo"
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 7,
+          "score": 0.666277,
+          "preview": "rano alcanzó un porcentaje de humedad 12% de acuerdo con lo establecido por el INEN 285 (2006). Trillado: Este proceso s"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 3,
+          "score": 0.663779,
+          "preview": "a de tueste, definida como la combinación de temperatura y tiempo a la cual el café almendra verde es sometida, permite "
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 8,
+          "score": 0.663051,
+          "preview": "), para separar el grano de acuerdo con su tamaño. Tostado y enfriado: Se procedió a colocar a los granos seleccionados "
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 10,
+          "score": 0.661333,
+          "preview": "tos a Ahumado-dulce; no se reconocen ninguna de las características inherentes del grano . French Después de unos pocos "
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 5,
+          "score": 0.655778,
+          "preview": "se definió un rango de color de grano medio como referencia para finalizar el proceso. Además, se establecieron tiempos "
+        }
+      ]
+    },
+    {
+      "case_id": "P24",
+      "kind": "player",
+      "first_relevant_rank": null,
+      "latency_ms": 508.18,
+      "returned_in_top_k": 4,
+      "repeated_texts_in_top_k": 0,
+      "retrieved": [
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 5,
+          "score": 0.766276,
+          "preview": "ado del café, en este caso el color del grano fue definido como un criterio de control y las diferencias en las curvas f"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 8,
+          "score": 0.763662,
+          "preview": "y a canguil. - Se funden los azuc ares. -El grano aumenta notablemente de tamaño. -Se torna de un color café claro. -Pie"
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 5,
+          "score": 0.762181,
+          "preview": "se definió un rango de color de grano medio como referencia para finalizar el proceso. Además, se establecieron tiempos "
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 2,
+          "score": 0.76007,
+          "preview": "granos son sometidos al calor debe ser controlado cuidadosamente por el tostador, quien generalmente se guía por el colo"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 3,
+          "score": 0.756178,
+          "preview": "a de tueste, definida como la combinación de temperatura y tiempo a la cual el café almendra verde es sometida, permite "
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 2,
+          "score": 0.744589,
+          "preview": "3,5%. Esta fase final de tueste se diferencia por la generación de color y desarrollo óptimo del grano. Curva e indicado"
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 4,
+          "score": 0.74398,
+          "preview": "o y Tabi. Se generaron cinco diferentes curvas de tueste (Figura 4), la curva base tuvo como temperatura inicial 200°C ("
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 1,
+          "score": 0.739054,
+          "preview": "la curva base de tueste a 185°C (D-15) y 170°C (D-30). El tiempo final de tueste fue definido por el color del grano 55-"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 10,
+          "score": 0.735947,
+          "preview": "se presentaran diferencias significativas entre las variedades evaluadas, ni en su interacción con las temperaturas inic"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 13,
+          "score": 0.73472,
+          "preview": "que: En las seis variedades de café mejoradas que se evaluaron, los tiempos de tueste se encontraron entre 8 y 12 minuto"
+        }
+      ]
+    },
+    {
+      "case_id": "P25",
+      "kind": "player",
+      "first_relevant_rank": 2,
+      "latency_ms": 669.63,
+      "returned_in_top_k": 4,
+      "repeated_texts_in_top_k": 0,
+      "retrieved": [
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 9,
+          "score": 0.759377,
+          "preview": "que entre mayor es la temperatura, el tiempo de tostado es menor; sumado a esto Osorio et al. (2022) mencionó que los ti"
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 11,
+          "score": 0.74873,
+          "preview": "pida dado que, a mayor grado de temperatura, menor tiempo de tostado, en este sentido, si el perfil sensorial se mantuvo"
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 2,
+          "score": 0.746912,
+          "preview": "calor. en el grano que determinan los compuestos responsables del aroma y el sabor. Cuando el tueste se desarrolla bajo "
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 3,
+          "score": 0.741651,
+          "preview": "ínimo el control de variables como temperatura, tiempo y grado de tueste, siendo este último uno de los principales fact"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 5,
+          "score": 0.731579,
+          "preview": "a Tabla 1 se muestran las temperaturas (°C) y tiempos promedios (minutos) de las cinco curvas utilizadas para cada varie"
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 13,
+          "score": 0.730127,
+          "preview": "a por temperatura inicial de tueste. Figura 8. Valores promedio e intervalos de confianza para el contenido de ácidos cl"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 11,
+          "score": 0.728364,
+          "preview": "entre otros: • Controlar la variable de temperatura y tiempo, lo que permitirá obtener el grado de tueste deseado a trav"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 10,
+          "score": 0.727479,
+          "preview": "afés con densidades medias (suaves) se pueden tostar con temperaturas medias al inicio y al ﬁnal del tostado. 7. Curvas "
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 2,
+          "score": 0.726439,
+          "preview": "para controlar durante el proceso: tiempo, temperatura, pérdida de peso y los parámetros de color, lo que hace difícil l"
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 4,
+          "score": 0.72401,
+          "preview": "o y Tabi. Se generaron cinco diferentes curvas de tueste (Figura 4), la curva base tuvo como temperatura inicial 200°C ("
+        }
+      ]
+    },
+    {
+      "case_id": "N1",
+      "kind": "negative",
+      "first_relevant_rank": null,
+      "latency_ms": 601.25,
+      "returned_in_top_k": 4,
+      "repeated_texts_in_top_k": 0,
+      "retrieved": [
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 3,
+          "score": 0.741388,
+          "preview": "cidez, el sabor residual y el cuerpo del café. El tueste del café es una fase vital dentro de la cadena de elaboración. "
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 6,
+          "score": 0.726765,
+          "preview": "otro ciclo de se - cado al café de alta calidad para reducir la hu - medad hasta llegar a un 15% de humedad. e) Segundo "
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 8,
+          "score": 0.726614,
+          "preview": "es contribuye a la vivacidad del café, al dulzor y al carácter de la bebida. Los tipos de ácidos que se encuentran en el"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 13,
+          "score": 0.705466,
+          "preview": "calidad de una taza de café, que la bondad de la mezcla escogida. Este último punto es el más interesante des- de una óp"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 2,
+          "score": 0.700556,
+          "preview": "de tueste. Así, el café puede sufrir una pérdida de peso del 18% o más, mientras que, para un tueste muy ligero dicha pé"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 4,
+          "score": 0.692108,
+          "preview": "e humedad entre el 10,0% y el 11,5%. Se realizó la trilla de café y una selección de la almendra sana, eliminando los de"
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 11,
+          "score": 0.690605,
+          "preview": "idad de la bebida de café, con un sabor amargo débil, aproximadamente una cuarta parte de la cafeína, sin embargo, en su"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 10,
+          "score": 0.690565,
+          "preview": "De acuerdo a estas dos varia - bles se pueden obtener varios tipos de tueste con el mismo café, además de graﬁcar las cu"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 11,
+          "score": 0.689351,
+          "preview": "resultado sea bueno (conﬁrmado por otras personas o clientes). • Con café verde malo NO se puede tostar café bueno. • El"
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 6,
+          "score": 0.684963,
+          "preview": "de lípidos en café tostado para seis variedades de café tostado y cinco temperaturas iniciales de tueste. Castillo® Nara"
+        }
+      ]
+    },
+    {
+      "case_id": "N2",
+      "kind": "negative",
+      "first_relevant_rank": null,
+      "latency_ms": 472.79,
+      "returned_in_top_k": 4,
+      "repeated_texts_in_top_k": 0,
+      "retrieved": [
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 4,
+          "score": 0.741442,
+          "preview": "o, para obtener el café natural. implica la recolección de café cereza, el boyado (clasiﬁcación por ﬂota - ción de grano"
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 8,
+          "score": 0.72189,
+          "preview": "es contribuye a la vivacidad del café, al dulzor y al carácter de la bebida. Los tipos de ácidos que se encuentran en el"
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 11,
+          "score": 0.721288,
+          "preview": "0 (Figura 7). Ácidos clorogénicos totales. Se ha reportado que los granos de café poseen importantes cantidades de ácido"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 3,
+          "score": 0.713829,
+          "preview": "cidez, el sabor residual y el cuerpo del café. El tueste del café es una fase vital dentro de la cadena de elaboración. "
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 1,
+          "score": 0.711169,
+          "preview": "café: lípidos, ácidos grasos, ácidos carboxílicos alifáticos, alcaloides, ácidos clorogénicos totales y azúcares. La int"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 8,
+          "score": 0.711105,
+          "preview": "en los azúcares y los ácidos clorogénicos, aumentan las substancias grasas debido a las altas temperaturas. • Además, un"
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 7,
+          "score": 0.710055,
+          "preview": "Avances Técnicos 573 7 Figura 5. Efecto de variables del proceso de tueste en diferentes compuestos químicos. Familias c"
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 2,
+          "score": 0.708559,
+          "preview": "tos de calidad y se genera en cierta medida por los ácidos carboxílicos alifáticos. El café verde de la especie arábica "
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 4,
+          "score": 0.707035,
+          "preview": "intón, maduro y sobremaduro, lo que subraya la importancia de la madurez en la calidad del café. Además del estado de ma"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 3,
+          "score": 0.706289,
+          "preview": "a de tueste, definida como la combinación de temperatura y tiempo a la cual el café almendra verde es sometida, permite "
+        }
+      ]
+    },
+    {
+      "case_id": "N3",
+      "kind": "negative",
+      "first_relevant_rank": null,
+      "latency_ms": 609.02,
+      "returned_in_top_k": 4,
+      "repeated_texts_in_top_k": 0,
+      "retrieved": [
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 11,
+          "score": 0.749776,
+          "preview": "na a emplear para preparar el café, la densidad del grano y proceso postcosecha. • El grano resultante tiene mayor volum"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 4,
+          "score": 0.749402,
+          "preview": "o de preparación: proporción de café, molienda, temperatura y calidad del agua, además de temperaturas de análisis. Se r"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 8,
+          "score": 0.746983,
+          "preview": "ícil (pero no imposible) que podamos preparar el café inmediatamente. Estos gases se desprenden de forma rápida en las p"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 4,
+          "score": 0.732345,
+          "preview": "de azúcar) y secado, para obtener el café lavado. Implica la recolección de café cereza, despulpado con o sin fermenta- "
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 6,
+          "score": 0.72043,
+          "preview": "del café que se tuesta y la forma en que se desarrolla el proceso. Los atributos sensoriales y la calidad sensorial fina"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 5,
+          "score": 0.71672,
+          "preview": "cos responsables del oscurecimiento del café pueden variar según el calor aplicado y del tiempo del tueste. Fragancia y "
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 6,
+          "score": 0.714473,
+          "preview": "ada Se rehumedec e y sec a varias ve ces en verd e 4.2.5. Almacenamiento o Curado del Café Es un proceso adicional al se"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 2,
+          "score": 0.714004,
+          "preview": "1. Introducción 2. El tostado de café en la región sur 3. Variables que determinan la calidad del café 4. Aspectos básic"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 7,
+          "score": 0.71287,
+          "preview": "Cenicafé, 73(1) 2022 30 de café (que es más frecuentemente referido como el grado de tostado) utilizando diferentes tiem"
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 2,
+          "score": 0.710734,
+          "preview": "stado. Se analizó el perfil sensorial del café tostado mediante catadores entrenados, siguiendo el protocolo de la Speci"
+        }
+      ]
+    },
+    {
+      "case_id": "N4",
+      "kind": "negative",
+      "first_relevant_rank": null,
+      "latency_ms": 461.48,
+      "returned_in_top_k": 4,
+      "repeated_texts_in_top_k": 0,
+      "retrieved": [
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 2,
+          "score": 0.751396,
+          "preview": "tes mencionados. Palabras clave: tueste de café, calidad sensorial, coffea arabica, taza de café 1 Autor principal. Corr"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 13,
+          "score": 0.723469,
+          "preview": "calidad de una taza de café, que la bondad de la mezcla escogida. Este último punto es el más interesante des- de una óp"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 10,
+          "score": 0.72011,
+          "preview": "éndose también, otros datos como: origen, densidad, tipo de café, porcentaje de hume - dad, peso inicial, peso ﬁnal, mer"
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 8,
+          "score": 0.718409,
+          "preview": "periodo de tiempo de 24 horas con el propósito de liberar los gases y evitar burbujas en la preparación del café en taza"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 4,
+          "score": 0.716327,
+          "preview": "o, para obtener el café natural. implica la recolección de café cereza, el boyado (clasiﬁcación por ﬂota - ción de grano"
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 4,
+          "score": 0.710103,
+          "preview": "de Mendoza et al. (2023), han demostrado que el uso de frutos inmaduros en la producción de café reduce significativamen"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 5,
+          "score": 0.707768,
+          "preview": "pedir la ﬂuidización del mucílago. 4.2.3. Aspectos generales en cuanto a la densidad Clasiﬁcación de densidades del café"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 8,
+          "score": 0.704954,
+          "preview": "Manual básico de buenas prácticas para el tostado del café 16 Manual básico de buenas prácticas para el tostado del café"
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 10,
+          "score": 0.70411,
+          "preview": "mor), porcentaje de húmedad (12%), peso inicial de 100 gramos por batch y número de grado de tueste en escala Agtron.gg "
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 12,
+          "score": 0.702081,
+          "preview": "020). Manual básico del catador de café. Volumen 5: Tueste del café. https://acortar.link/qdtmN1 INEN 285. (2006). Norma"
+        }
+      ]
+    },
+    {
+      "case_id": "N5",
+      "kind": "negative",
+      "first_relevant_rank": null,
+      "latency_ms": 468.2,
+      "returned_in_top_k": 4,
+      "repeated_texts_in_top_k": 0,
+      "retrieved": [
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 4,
+          "score": 0.769059,
+          "preview": "de azúcar) y secado, para obtener el café lavado. Implica la recolección de café cereza, despulpado con o sin fermenta- "
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 8,
+          "score": 0.755629,
+          "preview": "es contribuye a la vivacidad del café, al dulzor y al carácter de la bebida. Los tipos de ácidos que se encuentran en el"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 3,
+          "score": 0.753556,
+          "preview": "cidez, el sabor residual y el cuerpo del café. El tueste del café es una fase vital dentro de la cadena de elaboración. "
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 4,
+          "score": 0.734407,
+          "preview": "a calidad del café (Osorio et al. 2022). El control adecuado del tueste es esencial para evitar defectos que alteran la "
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 10,
+          "score": 0.734319,
+          "preview": "arse. Superﬁcie Características del café según el grado de tueste y estilo"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 11,
+          "score": 0.733012,
+          "preview": "resultado sea bueno (conﬁrmado por otras personas o clientes). • Con café verde malo NO se puede tostar café bueno. • El"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 6,
+          "score": 0.728733,
+          "preview": "otro ciclo de se - cado al café de alta calidad para reducir la hu - medad hasta llegar a un 15% de humedad. e) Segundo "
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 6,
+          "score": 0.727416,
+          "preview": "del café que se tuesta y la forma en que se desarrolla el proceso. Los atributos sensoriales y la calidad sensorial fina"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 7,
+          "score": 0.725418,
+          "preview": "ferible que el café sea de cosecha actual. o dañar equipos o provocar su disminución de calidad. 5.2. El tostado de café"
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 1,
+          "score": 0.723047,
+          "preview": "café: lípidos, ácidos grasos, ácidos carboxílicos alifáticos, alcaloides, ácidos clorogénicos totales y azúcares. La int"
+        }
+      ]
+    },
+    {
+      "case_id": "S-raw",
+      "kind": "session",
+      "first_relevant_rank": null,
+      "latency_ms": 726.72,
+      "returned_in_top_k": 4,
+      "repeated_texts_in_top_k": 0,
+      "retrieved": [
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 5,
+          "score": 0.777225,
+          "preview": "pág. 8897 El aroma y el sabor son características sensoriales fundamentales que determinan la aceptación y el reconocimi"
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 2,
+          "score": 0.771894,
+          "preview": "n esta fase se inicia la percepción de los olores característicos del café debido a la crepitación o estallido del grano"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 6,
+          "score": 0.764019,
+          "preview": "as Controlar temperatura (airear o sombrear) a menos de 50°C Fermentación Durante inicio del se cado Sec ado (% Húmedad)"
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 10,
+          "score": 0.758163,
+          "preview": "mor), porcentaje de húmedad (12%), peso inicial de 100 gramos por batch y número de grado de tueste en escala Agtron.gg "
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 4,
+          "score": 0.757037,
+          "preview": "epresentado una disminución del 90% de la producción en la última década (Sabando, 2024). La falta de control en variabl"
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 2,
+          "score": 0.755307,
+          "preview": "torino et al., 2001), la cual depende de la variedad, el origen, el clima y los procesos poscosecha. El café almendra no"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 4,
+          "score": 0.751204,
+          "preview": "170 °C (D-30). Se contó con un solo grado de tueste definido por el color del grano 55- 65 AGTRON/SCA para todas las var"
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 4,
+          "score": 0.748254,
+          "preview": "peratura de la curva base de tostación a 185°C (D-15) y 170°C (D-30). El café fue procesado en una tostadora Probatone 5"
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 11,
+          "score": 0.74805,
+          "preview": "ior, la no variación de los atributos sensoriales se debe a que el café empleado en esta investigación estuvo por debajo"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 11,
+          "score": 0.74505,
+          "preview": "o por las diversas combinaciones de temperatura y tiempo que genera la curva de tueste, como también por el grado final "
+        }
+      ]
+    },
+    {
+      "case_id": "S-perfect",
+      "kind": "session",
+      "first_relevant_rank": null,
+      "latency_ms": 555.63,
+      "returned_in_top_k": 4,
+      "repeated_texts_in_top_k": 0,
+      "retrieved": [
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 2,
+          "score": 0.746757,
+          "preview": "tación y la liberación del aroma del café. Por último, con una caramelización óptima, se logra la fase de tostado comple"
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 10,
+          "score": 0.743873,
+          "preview": "mor), porcentaje de húmedad (12%), peso inicial de 100 gramos por batch y número de grado de tueste en escala Agtron.gg "
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 12,
+          "score": 0.740857,
+          "preview": "020). Manual básico del catador de café. Volumen 5: Tueste del café. https://acortar.link/qdtmN1 INEN 285. (2006). Norma"
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 4,
+          "score": 0.739993,
+          "preview": "acciones: caramelización y la reacción de Maillard. En la caramelización, el calor descompone los carbohidratos formando"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 4,
+          "score": 0.732887,
+          "preview": "e humedad entre el 10,0% y el 11,5%. Se realizó la trilla de café y una selección de la almendra sana, eliminando los de"
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 5,
+          "score": 0.728826,
+          "preview": "pág. 8897 El aroma y el sabor son características sensoriales fundamentales que determinan la aceptación y el reconocimi"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 7,
+          "score": 0.727417,
+          "preview": "na de las materias primas para las reacciones de Maillard. Impacto general del beneﬁcio en el perﬁl de sabor Flujograma "
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 2,
+          "score": 0.723707,
+          "preview": "tes mencionados. Palabras clave: tueste de café, calidad sensorial, coffea arabica, taza de café 1 Autor principal. Corr"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 11,
+          "score": 0.723235,
+          "preview": "resultado sea bueno (conﬁrmado por otras personas o clientes). • Con café verde malo NO se puede tostar café bueno. • El"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 4,
+          "score": 0.721256,
+          "preview": "o, para obtener el café natural. implica la recolección de café cereza, el boyado (clasiﬁcación por ﬂota - ción de grano"
+        }
+      ]
+    },
+    {
+      "case_id": "S-baked",
+      "kind": "session",
+      "first_relevant_rank": null,
+      "latency_ms": 853.71,
+      "returned_in_top_k": 4,
+      "repeated_texts_in_top_k": 0,
+      "retrieved": [
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 6,
+          "score": 0.787666,
+          "preview": "as Controlar temperatura (airear o sombrear) a menos de 50°C Fermentación Durante inicio del se cado Sec ado (% Húmedad)"
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 4,
+          "score": 0.786984,
+          "preview": "peratura de la curva base de tostación a 185°C (D-15) y 170°C (D-30). El café fue procesado en una tostadora Probatone 5"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 11,
+          "score": 0.784866,
+          "preview": "o por las diversas combinaciones de temperatura y tiempo que genera la curva de tueste, como también por el grado final "
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 2,
+          "score": 0.782677,
+          "preview": "n esta fase se inicia la percepción de los olores característicos del café debido a la crepitación o estallido del grano"
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 5,
+          "score": 0.78182,
+          "preview": "Avances Técnicos 573 5 Figura 4. Promedio del tiempo del proceso tostado para seis variedades de café y cinco curvas de "
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 5,
+          "score": 0.775234,
+          "preview": "pág. 8897 El aroma y el sabor son características sensoriales fundamentales que determinan la aceptación y el reconocimi"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 5,
+          "score": 0.770969,
+          "preview": "minutos. En la Figura 1 se presentan los valores promedios por variedad y temperatura. La temperatura de tueste inicial "
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 10,
+          "score": 0.770012,
+          "preview": "mor), porcentaje de húmedad (12%), peso inicial de 100 gramos por batch y número de grado de tueste en escala Agtron.gg "
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 2,
+          "score": 0.768993,
+          "preview": "torino et al., 2001), la cual depende de la variedad, el origen, el clima y los procesos poscosecha. El café almendra no"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 2,
+          "score": 0.766963,
+          "preview": "de tueste. Así, el café puede sufrir una pérdida de peso del 18% o más, mientras que, para un tueste muy ligero dicha pé"
+        }
+      ]
+    },
+    {
+      "case_id": "S-burned",
+      "kind": "session",
+      "first_relevant_rank": null,
+      "latency_ms": 956.38,
+      "returned_in_top_k": 4,
+      "repeated_texts_in_top_k": 0,
+      "retrieved": [
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 10,
+          "score": 0.774968,
+          "preview": "como resultado el ruido caracteristico de crack , para este estudio se consideraron datos relevantes como: origen (Jama)"
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 5,
+          "score": 0.762841,
+          "preview": "Avances Técnicos 573 5 Figura 4. Promedio del tiempo del proceso tostado para seis variedades de café y cinco curvas de "
+        },
+        {
+          "file_name": "admin,+e72103.pdf",
+          "page_number": 2,
+          "score": 0.759765,
+          "preview": "torino et al., 2001), la cual depende de la variedad, el origen, el clima y los procesos poscosecha. El café almendra no"
+        },
+        {
+          "file_name": "cafe-manual-de-tostado_1.pdf",
+          "page_number": 6,
+          "score": 0.757238,
+          "preview": "as Controlar temperatura (airear o sombrear) a menos de 50°C Fermentación Durante inicio del se cado Sec ado (% Húmedad)"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 4,
+          "score": 0.753119,
+          "preview": "170 °C (D-30). Se contó con un solo grado de tueste definido por el color del grano 55- 65 AGTRON/SCA para todas las var"
+        },
+        {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 2,
+          "score": 0.751282,
+          "preview": "rólisis; sin embargo, valores mayores a 300°C pueden generar daños estructurales irreversibles en el grano. La generació"
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 2,
+          "score": 0.747784,
+          "preview": "n esta fase se inicia la percepción de los olores característicos del café debido a la crepitación o estallido del grano"
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 5,
+          "score": 0.745603,
+          "preview": "pág. 8897 El aroma y el sabor son características sensoriales fundamentales que determinan la aceptación y el reconocimi"
+        },
+        {
+          "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page_number": 11,
+          "score": 0.743775,
+          "preview": "ior, la no variación de los atributos sensoriales se debe a que el café empleado en esta investigación estuvo por debajo"
+        },
+        {
+          "file_name": "avt0573.pdf",
+          "page_number": 8,
+          "score": 0.743745,
+          "preview": "8141/10778/72103 Osorio, V., & Pabón, J. (2022). Efecto de las temperaturas y tiempos de tueste en la calidad sensorial "
+        }
+      ]
+    }
+  ]
+}

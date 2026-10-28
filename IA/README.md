@@ -66,6 +66,66 @@ Todo sale de variables de entorno o de `IA/.env` (ver `IA/.env.example`): direcc
 
 Para usar el modelo más rápido de Groq pongo `GROQ_MODEL=openai/gpt-oss-20b`; para no usar Groq, `FEEDBACK_PROVIDERS=ollama`.
 
+Del RAG también configuro los filtros sobre lo recuperado (`RAG_DEDUPLICATE_CHUNKS`, `RAG_MAX_CHUNKS_PER_PAGE`, `RAG_CANDIDATE_POOL`) y la partición del texto al indexar (`RAG_TEXT_SPLITTER`, `RAG_MIN_CHUNK_CHARS`, `RAG_REPEATED_LINE_PAGE_RATIO`). Los títulos legibles de cada PDF, que uso en las citas, están en `rag-docs/document_titles.json`: cuando agrego un PDF le agrego su título ahí (un test revisa que no falte ninguno).
+
+## Evaluación del RAG
+
+Para saber si los fragmentos que llegan al prompt son relevantes, mido la recuperación con un set de preguntas en `eval/rag_questions.json`:
+
+- 25 preguntas de jugador (`player`), cada una con el PDF y la página donde está la respuesta. La página es la del PDF, no la impresa.
+- 5 preguntas de café que no tienen respuesta en los PDFs (`negative`).
+- Las 4 búsquedas reales de la retroalimentación (`session`), sin etiquetas, que reporto aparte.
+
+Para ampliarlo con PDFs nuevos solo agrego casos al JSON; si una página esperada no existe en `rag-docs/`, la carga falla y lo avisa.
+
+```bash
+.venv/Scripts/python -m app.rag.diagnostics                       # fragmentos por archivo, archivos fallidos, PDFs sin texto
+.venv/Scripts/python -m app.rag.evaluation --label mi-medicion    # hit@k y MRR@10, en eval/results/mi-medicion.json
+.venv/Scripts/python -m app.rag.evaluation.compare                # tabla comparativa de todas las mediciones
+.venv/Scripts/python -m app.rag.index_builder_cli --table <tabla>  # reindexa en una tabla aparte (solo en bases *_test o *_e2e)
+```
+
+La evaluación y el diagnóstico abren la base en solo lectura. Todas las mediciones las hice sobre una copia desechable de las tablas del RAG, nunca sobre la base real. Una mejora solo se quedaba si subía el MRR@10 sin bajar el hit@4; con 25 preguntas, una pregunta mueve 0,04, así que una diferencia de una sola pregunta la tomo como empate.
+
+| Variante | hit@1 | hit@3 | hit@4 | hit@5 | MRR@10 | Δ MRR | neg. con contexto | repetidos | p50 ms |
+|---|---|---|---|---|---|---|---|---|---|
+| 01-linea-base | 0.32 | 0.44 | 0.52 | 0.60 | 0.409 | +0.000 | 5/5 | 2 | 891 |
+| 02-hibrida-rrf | 0.12 | 0.52 | 0.52 | 0.52 | 0.307 | -0.102 | 5/5 | 2 | 1075 |
+| 03-hibrida-rrf-filtro-frecuencia | 0.24 | 0.56 | 0.60 | 0.60 | 0.402 | -0.007 | 5/5 | 2 | 533 |
+| 04-umbral-0.70 | 0.32 | 0.40 | 0.44 | 0.52 | 0.386 | -0.023 | 5/5 | 2 | 476 |
+| 05-sin-repetidos | 0.32 | 0.44 | 0.52 | 0.60 | 0.409 | +0.000 | 5/5 | 0 | 453 |
+| 06-sin-repetidos-1-por-pagina | 0.32 | 0.48 | 0.56 | 0.60 | 0.437 | +0.028 | 5/5 | 0 | 465 |
+| 07-prefijo-consulta | 0.28 | 0.52 | 0.56 | 0.56 | 0.397 | -0.013 | 5/5 | 3 | 482 |
+| 08-prefijo-con-filtros | 0.28 | 0.56 | 0.56 | 0.56 | 0.422 | +0.013 | 5/5 | 0 | 464 |
+| 09-traduccion-con-filtros | 0.28 | 0.44 | 0.52 | 0.68 | 0.421 | +0.012 | 5/5 | 0 | 1996 |
+| 10-reingesta-python | 0.20 | 0.44 | 0.48 | 0.52 | 0.335 | -0.074 | 5/5 | 0 | 459 |
+| 11-reingesta-python-prefijos | 0.24 | 0.36 | 0.40 | 0.56 | 0.359 | -0.050 | 5/5 | 0 | 468 |
+| 12-caracteres-250 | 0.12 | 0.40 | 0.52 | 0.56 | 0.293 | -0.116 | 5/5 | 0 | 550 |
+| 13-frases-300 | 0.20 | 0.44 | 0.48 | 0.56 | 0.359 | -0.050 | 5/5 | 0 | 483 |
+| 14-frases-500 | 0.40 | 0.52 | 0.52 | 0.56 | 0.482 | +0.073 | 5/5 | 0 | 475 |
+| 15-frases-700 | 0.16 | 0.48 | 0.56 | 0.60 | 0.336 | -0.073 | 5/5 | 0 | 404 |
+| 16-bge-m3-frases-500 | 0.16 | 0.36 | 0.56 | 0.64 | 0.342 | -0.067 | 5/5 | 0 | 464 |
+| 17-frases-500-prefijos | 0.28 | 0.52 | 0.52 | 0.64 | 0.422 | +0.013 | 5/5 | 0 | 424 |
+| 18-configuracion-final | 0.32 | 0.48 | 0.56 | 0.60 | 0.437 | +0.028 | 5/5 | 0 | 416 |
+
+La latencia de la línea base (891 ms) incluye cargar el modelo en frío; con el modelo ya cargado la misma búsqueda tarda unos 450 ms, así que los filtros no agregan tiempo.
+
+Lo que se quedó:
+
+- **Quitar fragmentos repetidos y tomar uno por página** (05 y 06, activos por defecto): el prompt deja de recibir textos repetidos y el MRR sube de 0,409 a 0,437. No exige reindexar.
+- **Citas validadas** (archivo, página y título): `RagContextRetriever.find_relevant_passages` devuelve cada fragmento con su cita solo si el PDF existe y la página está dentro de él. El prompt de la retroalimentación sigue recibiendo exactamente los mismos textos.
+- **Partición por frases de 500 caracteres** (14), lista pero sin aplicar al índice real: limpia el PDF (une palabras cortadas, quita encabezados repetidos y la bibliografía) y junta frases completas. Es la mejor variante medida (MRR 0,482, hit@1 0,40), pero exige reingestar.
+
+Lo que revertí, con sus mediciones guardadas como evidencia:
+
+- **Búsqueda híbrida con RRF** (02 y 03): la búsqueda de texto en español la dominan palabras como "café" o "tueste", que aparecen en más del 19 % de los fragmentos. Quitándolas mejora, pero aun así no supera a la línea base.
+- **Umbral de relevancia** (04): con nomic-embed-text la similitud de los fragmentos correctos (mediana 0,71) y la del mejor fragmento de las preguntas sin respuesta (0,71–0,76) se solapan, así que cualquier umbral quita aciertos antes que ruido. Por eso las 5 negativas siempre reciben contexto.
+- **Prefijos `search_query:` / `search_document:` de nomic** (07, 08, 11 y 17): no mejoraron en ningún índice.
+- **Traducir la consulta con Groq** (09 y `09b-traduccion-union-por-posicion.txt`): sube mucho las preguntas cuya respuesta está en los PDFs en inglés (MRR 0,20 → 0,65), pero desplaza a los españoles; ninguna forma de unir los resultados supera a 06 y cada consulta tarda ~1,5 s más.
+- **Modelo multilingüe bge-m3** (16): con la misma partición queda por debajo de nomic (0,342 contra 0,482). Revisándolo, varias de sus respuestas son páginas relevantes que no están entre las esperadas: es una limitación de etiquetar por página.
+
+Un hallazgo importante: el índice actual (1243 fragmentos) lo armó la versión en Java, cuyo lector de PDF dejaba el texto con muchos espacios. Reingestar los mismos PDFs con el lector de Python, sin ningún otro cambio, deja 390 fragmentos y baja el MRR a 0,335 (10). Por eso, cuando reingeste, lo hago con la partición por frases de 500 y no con la de caracteres.
+
 ## Servidor Ubuntu
 
 `AI_SERVER_ADDRESS` define en qué interfaz escucha el servicio (por defecto `127.0.0.1`). En Docker Desktop (Windows) eso basta, porque `host.docker.internal` llega al localhost del host. En un servidor Linux no: el contenedor del backend llega al host por la IP del gateway de la red de Docker, y en Linux `host.docker.internal` no existe salvo que se declare en el compose. Ahí hago esto:
@@ -87,3 +147,5 @@ Los tests de `tests/integration/` usan un PostgreSQL real y solo corren si defin
 ```bash
 AI_TEST_DB_URL=jdbc:postgresql://localhost:5433/toasted_vr_ai_test .venv/Scripts/python -m pytest -q tests/integration
 ```
+
+En Windows uso `127.0.0.1` en vez de `localhost` en `OLLAMA_BASE_URL` y en las URLs de la base cuando mido: con `localhost` cada embedding tardaba ~3 s en lugar de ~0,7 s (probablemente porque prueba IPv6 primero).

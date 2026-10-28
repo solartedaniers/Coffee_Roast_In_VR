@@ -1,0 +1,10 @@
+Prueba exploratoria (solo jugador, n=25), misma configuración que 09 (sin repetidos, 1 por página),
+uniendo la búsqueda original y la traducida por posición en vez de por similitud.
+
+Unión por similitud (09):  MRR 0.421 | hit@4 0.52 | MRR EN(n=6) 0.650 | MRR ES(n=19) 0.349
+Unión RRF (k=60):          MRR 0.438 | hit@4 0.52 | MRR EN(n=6) 0.424 | MRR ES(n=19) 0.443
+Unión intercalada:         MRR 0.441 | hit@4 0.52 | MRR EN(n=6) 0.424 | MRR ES(n=19) 0.447
+Sin traducción (06):       MRR 0.437 | hit@4 0.56 | MRR EN(n=6) 0.200 | MRR ES(n=19) 0.512
+
+Conclusión: la traducción ayuda a los PDFs en inglés pero desplaza a los españoles; ninguna forma
+de unir supera a 06 en conjunto, y agrega ~1.5 s y una llamada a Groq por consulta. Se revierte.

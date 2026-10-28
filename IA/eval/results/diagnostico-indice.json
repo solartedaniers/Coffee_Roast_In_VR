@@ -1,0 +1,176 @@
+{
+  "thresholds": {
+    "short_chunk_chars": 120,
+    "min_page_chars": 50
+  },
+  "totals": {
+    "files": 7,
+    "chunks": 1243,
+    "duplicated_chunks": 17,
+    "short_chunks": 58,
+    "files_not_ok": []
+  },
+  "files": [
+    {
+      "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+      "status": "ok",
+      "registered_chunks": 144,
+      "stored": {
+        "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+        "chunks": 144,
+        "average_chars": 579,
+        "short_chunks": 2,
+        "chunks_without_page": 0,
+        "pages_with_chunks": 14
+      },
+      "text": {
+        "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+        "pages": 14,
+        "characters": 26848,
+        "pages_without_text": [],
+        "replacement_characters": 0,
+        "extraction_warnings": 0,
+        "language": "es",
+        "references_start_page": 12
+      }
+    },
+    {
+      "file_name": "Modeling_and_simulation_of_coffee_bean_heating_dur.pdf",
+      "status": "ok",
+      "registered_chunks": 119,
+      "stored": {
+        "file_name": "Modeling_and_simulation_of_coffee_bean_heating_dur.pdf",
+        "chunks": 119,
+        "average_chars": 598,
+        "short_chunks": 2,
+        "chunks_without_page": 0,
+        "pages_with_chunks": 7
+      },
+      "text": {
+        "file_name": "Modeling_and_simulation_of_coffee_bean_heating_dur.pdf",
+        "pages": 7,
+        "characters": 30635,
+        "pages_without_text": [],
+        "replacement_characters": 0,
+        "extraction_warnings": 45,
+        "language": "en",
+        "references_start_page": 7
+      }
+    },
+    {
+      "file_name": "admin,+arc073(01)e73102.pdf",
+      "status": "ok",
+      "registered_chunks": 186,
+      "stored": {
+        "file_name": "admin,+arc073(01)e73102.pdf",
+        "chunks": 186,
+        "average_chars": 609,
+        "short_chunks": 4,
+        "chunks_without_page": 0,
+        "pages_with_chunks": 14
+      },
+      "text": {
+        "file_name": "admin,+arc073(01)e73102.pdf",
+        "pages": 14,
+        "characters": 40103,
+        "pages_without_text": [],
+        "replacement_characters": 0,
+        "extraction_warnings": 0,
+        "language": "es",
+        "references_start_page": 14
+      }
+    },
+    {
+      "file_name": "admin,+e72103.pdf",
+      "status": "ok",
+      "registered_chunks": 202,
+      "stored": {
+        "file_name": "admin,+e72103.pdf",
+        "chunks": 202,
+        "average_chars": 599,
+        "short_chunks": 6,
+        "chunks_without_page": 0,
+        "pages_with_chunks": 17
+      },
+      "text": {
+        "file_name": "admin,+e72103.pdf",
+        "pages": 17,
+        "characters": 40472,
+        "pages_without_text": [],
+        "replacement_characters": 0,
+        "extraction_warnings": 0,
+        "language": "es",
+        "references_start_page": 16
+      }
+    },
+    {
+      "file_name": "avt0573.pdf",
+      "status": "ok",
+      "registered_chunks": 81,
+      "stored": {
+        "file_name": "avt0573.pdf",
+        "chunks": 81,
+        "average_chars": 582,
+        "short_chunks": 1,
+        "chunks_without_page": 0,
+        "pages_with_chunks": 8
+      },
+      "text": {
+        "file_name": "avt0573.pdf",
+        "pages": 8,
+        "characters": 14460,
+        "pages_without_text": [],
+        "replacement_characters": 0,
+        "extraction_warnings": 0,
+        "language": "es",
+        "references_start_page": 8
+      }
+    },
+    {
+      "file_name": "cafe-manual-de-tostado_1.pdf",
+      "status": "ok",
+      "registered_chunks": 358,
+      "stored": {
+        "file_name": "cafe-manual-de-tostado_1.pdf",
+        "chunks": 358,
+        "average_chars": 424,
+        "short_chunks": 41,
+        "chunks_without_page": 0,
+        "pages_with_chunks": 13
+      },
+      "text": {
+        "file_name": "cafe-manual-de-tostado_1.pdf",
+        "pages": 13,
+        "characters": 31440,
+        "pages_without_text": [],
+        "replacement_characters": 0,
+        "extraction_warnings": 42,
+        "language": "es",
+        "references_start_page": null
+      }
+    },
+    {
+      "file_name": "cjfs_cjf-202006-0006.pdf",
+      "status": "ok",
+      "registered_chunks": 153,
+      "stored": {
+        "file_name": "cjfs_cjf-202006-0006.pdf",
+        "chunks": 153,
+        "average_chars": 595,
+        "short_chunks": 2,
+        "chunks_without_page": 0,
+        "pages_with_chunks": 9
+      },
+      "text": {
+        "file_name": "cjfs_cjf-202006-0006.pdf",
+        "pages": 9,
+        "characters": 31256,
+        "pages_without_text": [],
+        "replacement_characters": 0,
+        "extraction_warnings": 0,
+        "language": "en",
+        "references_start_page": 8
+      }
+    }
+  ]
+}

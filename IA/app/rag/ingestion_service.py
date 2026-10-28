@@ -10,10 +10,11 @@ from pathlib import Path
 from app.contracts import FileResult, IngestionStatus, RagIngestionSummaryResponse
 from app.rag.database import Database
 from app.rag.document import Document
+from app.rag.document_embedder import DocumentEmbedder
 from app.rag.embeddings import OllamaEmbeddings
 from app.rag.ingested_document_repository import IngestedDocument, IngestedDocumentRepository
 from app.rag.pdf_reader import FILE_NAME_KEY, PdfPageReader
-from app.rag.text_splitter import CharacterTextSplitter
+from app.rag.text_splitter import TextSplitter
 from app.rag.vector_store import PgVectorStore
 
 log = logging.getLogger(__name__)
@@ -23,14 +24,13 @@ PDF_PATTERN = "*.pdf"
 
 class RagIngestionService:
     def __init__(self, database: Database, vector_table: str, docs_dir: Path, reader: PdfPageReader,
-                 splitter: CharacterTextSplitter, embeddings: OllamaEmbeddings, embedding_batch_size: int):
+                 splitter: TextSplitter, embeddings: OllamaEmbeddings, embedding_batch_size: int):
         self.database = database
         self.vector_table = vector_table
         self.docs_dir = docs_dir
         self.reader = reader
         self.splitter = splitter
-        self.embeddings = embeddings
-        self.embedding_batch_size = embedding_batch_size
+        self.embedder = DocumentEmbedder(embeddings, embedding_batch_size)
 
     def ingest_all(self) -> RagIngestionSummaryResponse:
         paths = sorted(self.docs_dir.glob(PDF_PATTERN)) if self.docs_dir.is_dir() else []
@@ -63,7 +63,7 @@ class RagIngestionService:
         pages = [Document(page.text, page.metadata | {FILE_NAME_KEY: path.name, CONTENT_HASH_KEY: content_hash})
                  for page in self.reader.read(path)]
         chunks = self.splitter.split_documents(pages)
-        vectors = self._embed([chunk.text for chunk in chunks])
+        vectors = self.embedder.embed([chunk.text for chunk in chunks])
 
         # Todo en una transacción: si algo falla no se pierden los fragmentos anteriores ni queda
         # registrado un archivo sin fragmentos (que se saltaría para siempre).
@@ -80,9 +80,3 @@ class RagIngestionService:
 
         status = IngestionStatus.REINGESTED if existing else IngestionStatus.INGESTED
         return FileResult(file_name=path.name, status=status, chunk_count=len(chunks))
-
-    def _embed(self, texts: list[str]) -> list[list[float]]:
-        vectors = []
-        for start in range(0, len(texts), self.embedding_batch_size):
-            vectors.extend(self.embeddings.embed(texts[start:start + self.embedding_batch_size]))
-        return vectors

@@ -30,6 +30,12 @@ class IngestedDocumentRepository:
         ).fetchone()
         return IngestedDocument(*row) if row else None
 
+    def find_all(self) -> list[IngestedDocument]:
+        rows = self.connection.execute(
+            sql.SQL("SELECT id, file_name, content_hash, chunk_count FROM {} ORDER BY file_name").format(self.table),
+        ).fetchall()
+        return [IngestedDocument(*row) for row in rows]
+
     def save_new(self, file_name: str, content_hash: str, chunk_count: int) -> None:
         self.connection.execute(
             sql.SQL("INSERT INTO {} (file_name, content_hash, chunk_count, ingested_at) "

@@ -1,0 +1,438 @@
+{
+  "description": "Set de evaluación del RAG. Páginas = número de página del PDF (desde 1), no la impresa. player: preguntas de jugador validadas; negative: café sin respuesta en los PDFs; session: búsquedas reales de la retroalimentación (tests/snapshots), sin etiquetas.",
+  "cases": [
+    {
+      "id": "P01",
+      "kind": "player",
+      "question": "¿Qué significa que mi café salió horneado?",
+      "expected": [
+        {
+          "file": "admin,+arc073(01)e73102.pdf",
+          "page": 3
+        },
+        {
+          "file": "admin,+arc073(01)e73102.pdf",
+          "page": 5
+        },
+        {
+          "file": "cafe-manual-de-tostado_1.pdf",
+          "page": 8
+        }
+      ]
+    },
+    {
+      "id": "P02",
+      "kind": "player",
+      "question": "¿Por qué mi café sabe a pan o a cereal?",
+      "expected": [
+        {
+          "file": "cafe-manual-de-tostado_1.pdf",
+          "page": 8
+        }
+      ]
+    },
+    {
+      "id": "P03",
+      "kind": "player",
+      "question": "¿Qué pasa si el tueste queda arrebatado o quemado?",
+      "expected": [
+        {
+          "file": "admin,+arc073(01)e73102.pdf",
+          "page": 3
+        },
+        {
+          "file": "admin,+arc073(01)e73102.pdf",
+          "page": 5
+        }
+      ]
+    },
+    {
+      "id": "P04",
+      "kind": "player",
+      "question": "¿Qué es un grano subdesarrollado?",
+      "expected": [
+        {
+          "file": "cafe-manual-de-tostado_1.pdf",
+          "page": 9
+        }
+      ]
+    },
+    {
+      "id": "P05",
+      "kind": "player",
+      "question": "¿Qué es el primer crack y cuándo ocurre?",
+      "expected": [
+        {
+          "file": "cafe-manual-de-tostado_1.pdf",
+          "page": 8
+        },
+        {
+          "file": "cafe-manual-de-tostado_1.pdf",
+          "page": 10
+        },
+        {
+          "file": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page": 10
+        }
+      ]
+    },
+    {
+      "id": "P06",
+      "kind": "player",
+      "question": "¿Qué es el segundo crack?",
+      "expected": [
+        {
+          "file": "cafe-manual-de-tostado_1.pdf",
+          "page": 8
+        },
+        {
+          "file": "cafe-manual-de-tostado_1.pdf",
+          "page": 10
+        }
+      ]
+    },
+    {
+      "id": "P07",
+      "kind": "player",
+      "question": "¿Cuáles son los niveles de tueste claro, medio y oscuro?",
+      "expected": [
+        {
+          "file": "cafe-manual-de-tostado_1.pdf",
+          "page": 9
+        },
+        {
+          "file": "cafe-manual-de-tostado_1.pdf",
+          "page": 10
+        }
+      ]
+    },
+    {
+      "id": "P08",
+      "kind": "player",
+      "question": "¿Qué es el tiempo de desarrollo después del crack?",
+      "expected": [
+        {
+          "file": "cafe-manual-de-tostado_1.pdf",
+          "page": 8
+        },
+        {
+          "file": "cafe-manual-de-tostado_1.pdf",
+          "page": 9
+        }
+      ]
+    },
+    {
+      "id": "P09",
+      "kind": "player",
+      "question": "¿Qué mide la escala Agtron?",
+      "expected": [
+        {
+          "file": "cafe-manual-de-tostado_1.pdf",
+          "page": 10
+        },
+        {
+          "file": "admin,+arc073(01)e73102.pdf",
+          "page": 2
+        },
+        {
+          "file": "avt0573.pdf",
+          "page": 4
+        }
+      ]
+    },
+    {
+      "id": "P10",
+      "kind": "player",
+      "question": "¿Cuánto peso pierde el grano al tostarse?",
+      "expected": [
+        {
+          "file": "cafe-manual-de-tostado_1.pdf",
+          "page": 8
+        },
+        {
+          "file": "avt0573.pdf",
+          "page": 4
+        }
+      ]
+    },
+    {
+      "id": "P11",
+      "kind": "player",
+      "question": "¿Cuánto aumenta el volumen del grano al tostarse?",
+      "expected": [
+        {
+          "file": "cafe-manual-de-tostado_1.pdf",
+          "page": 8
+        }
+      ]
+    },
+    {
+      "id": "P12",
+      "kind": "player",
+      "question": "¿Cómo debe hacerse el enfriamiento al terminar el tueste?",
+      "expected": [
+        {
+          "file": "cafe-manual-de-tostado_1.pdf",
+          "page": 8
+        }
+      ]
+    },
+    {
+      "id": "P13",
+      "kind": "player",
+      "question": "¿Cuánto tiempo debe durar un tueste?",
+      "expected": [
+        {
+          "file": "cafe-manual-de-tostado_1.pdf",
+          "page": 11
+        },
+        {
+          "file": "admin,+arc073(01)e73102.pdf",
+          "page": 5
+        }
+      ]
+    },
+    {
+      "id": "P14",
+      "kind": "player",
+      "question": "¿A qué temperatura debo cargar la tostadora?",
+      "expected": [
+        {
+          "file": "cafe-manual-de-tostado_1.pdf",
+          "page": 10
+        },
+        {
+          "file": "admin,+arc073(01)e73102.pdf",
+          "page": 5
+        }
+      ]
+    },
+    {
+      "id": "P15",
+      "kind": "player",
+      "question": "¿Cómo influye la densidad del grano en el tueste?",
+      "expected": [
+        {
+          "file": "cafe-manual-de-tostado_1.pdf",
+          "page": 10
+        }
+      ]
+    },
+    {
+      "id": "P16",
+      "kind": "player",
+      "question": "¿Qué es la reacción de Maillard?",
+      "expected": [
+        {
+          "file": "avt0573.pdf",
+          "page": 4
+        },
+        {
+          "file": "cjfs_cjf-202006-0006.pdf",
+          "page": 5
+        },
+        {
+          "file": "cafe-manual-de-tostado_1.pdf",
+          "page": 7
+        }
+      ]
+    },
+    {
+      "id": "P17",
+      "kind": "player",
+      "question": "¿Cómo cambia la acidez según el nivel de tueste?",
+      "expected": [
+        {
+          "file": "admin,+arc073(01)e73102.pdf",
+          "page": 9
+        }
+      ]
+    },
+    {
+      "id": "P18",
+      "kind": "player",
+      "question": "¿Por qué el café me sale amargo?",
+      "expected": [
+        {
+          "file": "admin,+e72103.pdf",
+          "page": 10
+        },
+        {
+          "file": "admin,+e72103.pdf",
+          "page": 11
+        }
+      ]
+    },
+    {
+      "id": "P19",
+      "kind": "player",
+      "question": "¿Qué le pasa a la cafeína durante el tueste?",
+      "expected": [
+        {
+          "file": "admin,+e72103.pdf",
+          "page": 10
+        },
+        {
+          "file": "cjfs_cjf-202006-0006.pdf",
+          "page": 6
+        }
+      ]
+    },
+    {
+      "id": "P20",
+      "kind": "player",
+      "question": "¿Qué pasa con los ácidos clorogénicos al tostar el café?",
+      "expected": [
+        {
+          "file": "admin,+e72103.pdf",
+          "page": 3
+        },
+        {
+          "file": "admin,+e72103.pdf",
+          "page": 8
+        },
+        {
+          "file": "cjfs_cjf-202006-0006.pdf",
+          "page": 6
+        }
+      ]
+    },
+    {
+      "id": "P21",
+      "kind": "player",
+      "question": "¿Qué es una curva de tueste y cómo afecta la calidad?",
+      "expected": [
+        {
+          "file": "avt0573.pdf",
+          "page": 1
+        },
+        {
+          "file": "avt0573.pdf",
+          "page": 2
+        },
+        {
+          "file": "avt0573.pdf",
+          "page": 3
+        }
+      ]
+    },
+    {
+      "id": "P22",
+      "kind": "player",
+      "question": "¿El grano genera calor propio durante el tueste?",
+      "expected": [
+        {
+          "file": "Modeling_and_simulation_of_coffee_bean_heating_dur.pdf",
+          "page": 1
+        },
+        {
+          "file": "Modeling_and_simulation_of_coffee_bean_heating_dur.pdf",
+          "page": 2
+        },
+        {
+          "file": "cafe-manual-de-tostado_1.pdf",
+          "page": 10
+        }
+      ]
+    },
+    {
+      "id": "P23",
+      "kind": "player",
+      "question": "¿Cómo cambia la humedad del grano mientras se tuesta?",
+      "expected": [
+        {
+          "file": "Modeling_and_simulation_of_coffee_bean_heating_dur.pdf",
+          "page": 5
+        },
+        {
+          "file": "Modeling_and_simulation_of_coffee_bean_heating_dur.pdf",
+          "page": 6
+        }
+      ]
+    },
+    {
+      "id": "P24",
+      "kind": "player",
+      "question": "¿Cómo cambia el color del grano con el tiempo de tueste?",
+      "expected": [
+        {
+          "file": "cjfs_cjf-202006-0006.pdf",
+          "page": 5
+        }
+      ]
+    },
+    {
+      "id": "P25",
+      "kind": "player",
+      "question": "¿Qué combinación de temperatura y tiempo de tueste da el mejor perfil de sabor?",
+      "expected": [
+        {
+          "file": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page": 10
+        },
+        {
+          "file": "19458-Texto del artículo-88894-1-10-20250919.pdf",
+          "page": 11
+        },
+        {
+          "file": "admin,+arc073(01)e73102.pdf",
+          "page": 9
+        }
+      ]
+    },
+    {
+      "id": "N1",
+      "kind": "negative",
+      "question": "¿A cuánto se vende hoy la libra de café en la bolsa?",
+      "expected": []
+    },
+    {
+      "id": "N2",
+      "kind": "negative",
+      "question": "¿Cómo y cada cuánto se fertiliza un cafetal?",
+      "expected": []
+    },
+    {
+      "id": "N3",
+      "kind": "negative",
+      "question": "¿Cómo preparo café en prensa francesa?",
+      "expected": []
+    },
+    {
+      "id": "N4",
+      "kind": "negative",
+      "question": "¿Cuántos gramos de café molido uso por taza en casa?",
+      "expected": []
+    },
+    {
+      "id": "N5",
+      "kind": "negative",
+      "question": "¿Cómo se hace el café descafeinado?",
+      "expected": []
+    },
+    {
+      "id": "S-raw",
+      "kind": "session",
+      "question": "Tueste de café. Resultado: RAW. Puntaje: 20/100. Fase alcanzada: Caramelización (reacción de Maillard). Nivel del usuario: INTERMEDIATE. Temperatura final por debajo del objetivo (180.0°C vs 210.0°C, faltaron 30.0°C).",
+      "expected": []
+    },
+    {
+      "id": "S-perfect",
+      "kind": "session",
+      "question": "Tueste de café. Resultado: PERFECT. Puntaje: 92/100. Fase alcanzada: Caramelización (reacción de Maillard). Nivel del usuario: BEGINNER.",
+      "expected": []
+    },
+    {
+      "id": "S-baked",
+      "kind": "session",
+      "question": "Tueste de café. Resultado: BAKED. Puntaje: 15/100. Fase alcanzada: Secado. Nivel del usuario: INTERMEDIATE. Temperatura final por debajo del objetivo (150.0°C vs 215.0°C, faltaron 65.0°C). Tiempo de desarrollo prolongado tras el first crack, riesgo de sobre-tueste. Posible horneado. Temperatura de carga fuera del rango ideal (150.0°C).",
+      "expected": []
+    },
+    {
+      "id": "S-burned",
+      "kind": "session",
+      "question": "Tueste de café. Resultado: BURNED. Puntaje: 30/100. Fase alcanzada: Segundo Crack. Nivel del usuario: ADVANCED. Temperatura final por encima del objetivo (228.0°C vs 205.0°C, 23.0°C de exceso). Tiempo de desarrollo corto tras el first crack, riesgo de subdesarrollo. Posible quemado. Temperatura de carga fuera del rango ideal (230.0°C).",
+      "expected": []
+    }
+  ]
+}

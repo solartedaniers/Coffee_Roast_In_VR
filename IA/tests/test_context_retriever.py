@@ -3,7 +3,6 @@ from contextlib import contextmanager
 
 import pytest
 
-from app.container import build_chunk_search
 from app.rag import chunk_search as chunk_search_module
 from app.rag.chunk_search import SemanticChunkSearch
 from app.rag.citations import Citation, CitationResolver, RetrievedPassage
@@ -83,22 +82,6 @@ def test_returns_no_chunks_when_retrieval_fails(retriever_with):
     chunks = retriever_with(FakeEmbeddings(EmbeddingError("down"))).find_relevant_chunks(ALL[0].request, None)
 
     assert chunks == []
-
-
-def test_adds_the_query_prefix_only_to_the_embedded_text(monkeypatch):
-    monkeypatch.setattr(chunk_search_module, "PgVectorStore", FakeStore)
-    embeddings = FakeEmbeddings()
-
-    SemanticChunkSearch(FakeDatabase(), "table", embeddings, "search_query: ").search("¿Qué es el crack?", 4)
-
-    assert embeddings.queries == ["search_query: ¿Qué es el crack?"]
-
-
-def test_the_container_passes_the_configured_query_prefix(settings):
-    configured = settings.model_copy(update={"rag_query_prefix": "search_query: "})
-
-    assert build_chunk_search(settings, object(), object()).query_prefix == ""
-    assert build_chunk_search(configured, object(), object()).query_prefix == "search_query: "
 
 
 def test_returns_each_passage_with_its_validated_citation(monkeypatch, settings, tmp_path):

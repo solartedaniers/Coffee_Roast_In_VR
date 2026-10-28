@@ -101,7 +101,7 @@ def build_text_splitter(settings: Settings) -> TextSplitter:
 
 def build_chunk_search(settings: Settings, database: Database, embeddings: OllamaEmbeddings) -> ChunkSearch:
     """La misma búsqueda la usan la retroalimentación y la evaluación del RAG."""
-    search = SemanticChunkSearch(database, settings.rag_vector_table, embeddings, settings.rag_query_prefix)
+    search = SemanticChunkSearch(database, settings.rag_vector_table, embeddings)
     filters = build_chunk_filters(settings)
     return FilteredChunkSearch(search, filters, settings.rag_candidate_pool) if filters else search
 

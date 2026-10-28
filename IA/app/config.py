@@ -54,8 +54,6 @@ class Settings(BaseSettings):
     rag_embedding_model: str = "nomic-embed-text"
     rag_embedding_dimensions: int = Field(default=768, gt=0)
     rag_embedding_batch_size: int = Field(default=32, gt=0)
-    # Prefijo de tarea para las búsquedas (nomic-embed-text: "search_query: "). Vacío = sin prefijo.
-    rag_query_prefix: str = ""
     # Prefijo de tarea para los fragmentos al indexar (nomic-embed-text: "search_document: ").
     # Cambiarlo exige reindexar: búsquedas e índice deben usar el mismo par de prefijos.
     rag_document_prefix: str = ""

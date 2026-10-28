@@ -39,3 +39,9 @@ def test_rejects_an_impossible_roast_state(change):
 def test_rejects_an_invalid_context(change):
     with pytest.raises(ValidationError):
         VoiceQuestionContext.model_validate(CONTEXT | change)
+
+
+def test_accepts_a_user_without_a_chosen_level():
+    context = VoiceQuestionContext.model_validate(CONTEXT | {"knowledgeLevel": None})
+
+    assert context.knowledge_level is None

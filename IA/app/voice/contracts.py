@@ -30,7 +30,8 @@ class VoiceQuestionContext(CamelCaseModel):
     model_config = ConfigDict(frozen=True)
 
     user_id: int = Field(gt=0)
-    knowledge_level: KnowledgeLevel
+    # None si el usuario todavía no eligió nivel; se responde como INTERMEDIATE, igual que la retroalimentación.
+    knowledge_level: KnowledgeLevel | None = None
     roast_attempt_id: UUID
     roast_state: RoastState
 

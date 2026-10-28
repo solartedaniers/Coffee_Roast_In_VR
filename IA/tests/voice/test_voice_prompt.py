@@ -73,3 +73,7 @@ def test_adds_recent_turns_only_as_context():
 def test_formats_durations_for_listening():
     assert duration_text(59.6) == "1 min 0 s"
     assert duration_text(0) == "0 min 0 s"
+
+
+def test_answers_as_intermediate_when_the_user_has_not_chosen_a_level():
+    assert "nivel intermedio" in build(level=None).system

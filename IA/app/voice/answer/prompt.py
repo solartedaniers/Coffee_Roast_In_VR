@@ -57,8 +57,9 @@ class VoiceAnswerPromptBuilder:
     def __init__(self, max_sentences: int):
         self.max_sentences = max_sentences
 
-    def build(self, question: str, state: RoastState, level: KnowledgeLevel,
+    def build(self, question: str, state: RoastState, level: KnowledgeLevel | None,
               passages: list[RetrievedPassage], history: list[ConversationTurn]) -> AnswerPrompt:
+        level = level or KnowledgeLevel.INTERMEDIATE
         identified = {f"{SOURCE_ID_PREFIX}{index}": passage for index, passage in enumerate(passages, start=1)}
         user = "\n\n".join([
             f"ESTADO DEL TUESTE [{ROAST_SOURCE_ID}]:\n" + "\n".join(f"- {line}" for line in self._state_lines(state)),

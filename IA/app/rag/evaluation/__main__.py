@@ -19,7 +19,7 @@ DEFAULT_RESULTS_DIR = SERVICE_ROOT / "eval" / "results"
 DEFAULT_DEPTH = 10
 RAG_SETTING_PREFIX = "rag_"
 # La ruta absoluta depende de cada equipo; no aporta a la medición.
-EXCLUDED_SETTINGS = {"rag_docs_dir"}
+EXCLUDED_SETTINGS = {"rag_docs_dir", "rag_document_titles_file"}
 
 
 def rag_configuration(settings: Settings) -> dict:

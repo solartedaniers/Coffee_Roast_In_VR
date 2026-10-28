@@ -19,10 +19,12 @@ from app.rag.chunk_filters import (
     PageQuotaFilter,
 )
 from app.rag.chunk_search import ChunkSearch, SemanticChunkSearch
+from app.rag.citations import CitationResolver, load_document_titles
 from app.rag.context_retriever import RagContextRetriever
 from app.rag.database import Database
 from app.rag.embeddings import OllamaEmbeddings
 from app.rag.ingestion_service import RagIngestionService
+from app.rag.pdf_catalog import PdfCatalog
 from app.rag.pdf_reader import PdfPageReader
 from app.rag.query_builder import RagQueryBuilder
 from app.rag.schema import RagSchema
@@ -84,6 +86,10 @@ def build_embeddings(settings: Settings, http: BoundedHttpClient) -> OllamaEmbed
                                         seconds(settings.ollama_read_timeout_millis)))
 
 
+def build_citations(settings: Settings) -> CitationResolver:
+    return CitationResolver(PdfCatalog(settings.rag_docs_dir), load_document_titles(settings.rag_document_titles_file))
+
+
 def build_text_splitter(settings: Settings) -> TextSplitter:
     if settings.rag_text_splitter == "sentences":
         return CleaningTextSplitter(
@@ -120,7 +126,7 @@ def build_services(settings: Settings) -> Services:
     cache = FeedbackCache(settings.feedback_cache_ttl_seconds, settings.feedback_cache_max_entries)
     feedback = FeedbackService(
         RagContextRetriever(build_chunk_search(settings, database, embeddings),
-                            RagQueryBuilder(development_range), settings.rag_top_k),
+                            RagQueryBuilder(development_range), settings.rag_top_k, build_citations(settings)),
         FeedbackPromptBuilder(development_range),
         ProviderChain([providers[name] for name in settings.feedback_provider_chain], FeedbackTextCleaner(),
                       seconds(settings.feedback_total_timeout_millis)),

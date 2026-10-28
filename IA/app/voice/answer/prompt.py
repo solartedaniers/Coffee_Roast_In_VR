@@ -20,7 +20,11 @@ SYSTEM_TEMPLATE = (
     "realidad virtual. Tu respuesta se va a escuchar, no a leer: escribe como máximo {max_sentences} frases "
     "cortas en español, en texto plano, sin listas, sin markdown y sin mencionar las fuentes ni sus nombres.\n"
     "Solo puedes afirmar lo que respaldan las FUENTES o el ESTADO DEL TUESTE que te doy. La conversación "
-    "reciente es solo contexto, no evidencia. No inventes cifras, objetos ni pasos.\n"
+    "reciente es solo contexto, no evidencia. No inventes objetos ni pasos.\n"
+    "Cifras: solo puedes dar un número (temperatura, porcentaje de gas, tiempo) si aparece tal cual en las "
+    "FUENTES que uses, en el ESTADO DEL TUESTE o en la pregunta, y siempre escrito con dígitos. Si no tienes "
+    "una cifra con respaldo, da solo la dirección, por ejemplo \"baja un poco el gas\" o \"espera a que suba "
+    "la temperatura\". Nunca calcules ni estimes cifras nuevas.\n"
     "Si con eso no alcanza para responder la pregunta, pon sufficient en false y deja answer vacío.\n"
     "En sourceIds pon los identificadores exactos (por ejemplo S1 o ROAST) de lo que usaste para responder.\n"
     "El jugador es de nivel {level}."
@@ -42,6 +46,8 @@ class AnswerPrompt:
     user: str
     # Identificador de cada fuente del prompt; ROAST no tiene cita porque no es un PDF.
     passages: dict[str, RetrievedPassage]
+    question: str = ""
+    state_text: str = ""
 
     @property
     def evidence_ids(self) -> set[str]:
@@ -61,15 +67,16 @@ class VoiceAnswerPromptBuilder:
               passages: list[RetrievedPassage], history: list[ConversationTurn]) -> AnswerPrompt:
         level = level or KnowledgeLevel.INTERMEDIATE
         identified = {f"{SOURCE_ID_PREFIX}{index}": passage for index, passage in enumerate(passages, start=1)}
+        state_text = "\n".join(f"- {line}" for line in self._state_lines(state))
         user = "\n\n".join([
-            f"ESTADO DEL TUESTE [{ROAST_SOURCE_ID}]:\n" + "\n".join(f"- {line}" for line in self._state_lines(state)),
+            f"ESTADO DEL TUESTE [{ROAST_SOURCE_ID}]:\n" + state_text,
             "FUENTES:\n" + ("\n".join(self._source_line(source_id, passage)
                                       for source_id, passage in identified.items()) or NO_SOURCES),
             *([self._history_block(history)] if history else []),
             f"PREGUNTA DEL JUGADOR: {question}",
         ])
         system = SYSTEM_TEMPLATE.format(max_sentences=self.max_sentences, level=LEVEL_LABELS[level])
-        return AnswerPrompt(system, user, identified)
+        return AnswerPrompt(system, user, identified, question, state_text)
 
     @staticmethod
     def _state_lines(state: RoastState) -> list[str]:

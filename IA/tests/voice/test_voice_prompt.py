@@ -77,3 +77,19 @@ def test_formats_durations_for_listening():
 
 def test_answers_as_intermediate_when_the_user_has_not_chosen_a_level():
     assert "nivel intermedio" in build(level=None).system
+
+
+def test_forbids_unbacked_figures_and_asks_for_the_direction_instead():
+    system = build().system
+
+    assert "solo puedes dar un número" in system
+    assert "da solo la dirección" in system
+    assert "Nunca calcules ni estimes cifras nuevas" in system
+
+
+def test_keeps_the_question_and_roast_state_to_check_the_figures():
+    prompt = build()
+
+    assert prompt.question == "¿Cuándo llega el primer crack?"
+    assert "Temperatura objetivo: 205.0 °C (faltan 17.6 °C)." in prompt.state_text
+    assert prompt.state_text in prompt.user

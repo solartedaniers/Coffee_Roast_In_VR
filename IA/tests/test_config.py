@@ -27,6 +27,12 @@ def test_keeps_the_rag_defaults(settings):
     assert settings.rag_docs_dir == SERVICE_ROOT / "rag-docs"
 
 
+def test_removes_repeated_chunks_and_takes_one_per_page_by_default(settings):
+    assert settings.rag_deduplicate_chunks is True
+    assert settings.rag_max_chunks_per_page == 1
+    assert settings.rag_text_splitter == "characters"
+
+
 def test_keeps_the_same_pgvector_table(settings):
     assert settings.rag_vector_table == "rag_document_chunks"
     assert settings.rag_embedding_model == "nomic-embed-text"

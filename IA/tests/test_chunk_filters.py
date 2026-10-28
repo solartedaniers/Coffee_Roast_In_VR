@@ -34,9 +34,10 @@ def test_asks_for_more_candidates_and_cuts_after_filtering():
 
 
 def test_the_container_only_wraps_the_search_when_a_filter_is_on(settings):
-    assert isinstance(build_chunk_search(settings, object(), object()), SemanticChunkSearch)
+    off = settings.model_copy(update={"rag_deduplicate_chunks": False, "rag_max_chunks_per_page": 0})
+    assert isinstance(build_chunk_search(off, object(), object()), SemanticChunkSearch)
 
-    filtered = build_chunk_search(settings.model_copy(update={"rag_deduplicate_chunks": True}), object(), object())
+    filtered = build_chunk_search(off.model_copy(update={"rag_deduplicate_chunks": True}), object(), object())
 
     assert isinstance(filtered, FilteredChunkSearch)
     assert [type(item) for item in filtered.filters] == [DuplicateTextFilter]

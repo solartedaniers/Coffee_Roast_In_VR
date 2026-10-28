@@ -67,9 +67,9 @@ class Settings(BaseSettings):
     rag_min_chunk_chars: int = Field(default=80, ge=0)
     # Una línea que aparece en esta fracción de las páginas de un PDF se trata como encabezado.
     rag_repeated_line_page_ratio: float = Field(default=0.5, gt=0, le=1)
-    # Filtros sobre lo recuperado. 0 (o false) los deja apagados.
-    rag_deduplicate_chunks: bool = False
-    rag_max_chunks_per_page: int = Field(default=0, ge=0)
+    # Filtros sobre lo recuperado (medidos en IA/eval/results/06). 0 o false los apaga.
+    rag_deduplicate_chunks: bool = True
+    rag_max_chunks_per_page: int = Field(default=1, ge=0)
     # Candidatos que se piden antes de filtrar, para que queden top_k después de los filtros.
     rag_candidate_pool: int = Field(default=20, gt=0)
     # Development Time Ratio óptimo para cafés de altura de Nariño. Solo describe la

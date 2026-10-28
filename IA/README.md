@@ -134,7 +134,7 @@ Cada pregunta pasa por cuatro pasos, cada uno con respaldo:
 
 1. **Voz a texto:** Groq Whisper (`whisper-large-v3-turbo`); si falla, Azure Speech. Las frases que Whisper inventa con el silencio ("Gracias por ver el video"…) se filtran con `config/whisper_silence_phrases.json` y responden 422.
 2. **Fragmentos del RAG:** los 3 más cercanos a la pregunta, con su cita validada.
-3. **Respuesta:** Groq `openai/gpt-oss-20b` con salida JSON estricta, máximo 3 frases, adaptada al nivel del jugador y con las 2 últimas respuestas del mismo intento como contexto. El modelo tiene que decir qué fuentes usó (PDFs o el estado del tueste); si no usa ninguna o cita una que no se le dio, el asistente se abstiene en vez de inventar. No hay respaldo en Ollama a propósito: phi4-mini tarda demasiado para una respuesta hablada.
+3. **Respuesta:** Groq `openai/gpt-oss-20b` con salida JSON estricta, máximo 3 frases, adaptada al nivel del jugador y con las 2 últimas respuestas del mismo intento como contexto. El modelo tiene que decir qué fuentes usó (PDFs o el estado del tueste); si no usa ninguna o cita una que no se le dio, el asistente se abstiene en vez de inventar. Además, cada cifra de la respuesta (temperatura, porcentaje de gas, tiempo) tiene que aparecer en los fragmentos que citó, en el estado del tueste (si lo citó) o en la pregunta, con un margen de redondeo de `VOICE_FIGURE_TOLERANCE`. Las frases con cifras sin respaldo se quitan y, si no queda ninguna, se abstiene: es un simulador para enseñar y una cifra inventada enseña algo falso. El prompt le pide al modelo dar solo la dirección ("baja un poco el gas") cuando no tiene una cifra con respaldo. Solo reviso cifras escritas con dígitos, que es como el prompt le pide escribirlas. No hay respaldo en Ollama a propósito: phi4-mini tarda demasiado para una respuesta hablada.
 4. **Texto a voz:** Azure (`es-CO-SalomeNeural`); si falla o se llega al límite mensual, Piper local con `es_MX-claude-high`.
 
 Si Groq no responde, el jugador oye una frase fija ("No puedo responder en este momento…"). Esa frase y la de abstención están en `config/voice_messages.json` y su audio se genera al arrancar y queda guardado en `voice-cache/`, así que se oyen al instante y sin gastar cuota.
@@ -178,6 +178,18 @@ Medí con el servicio real (Groq, Azure y Piper de verdad) desde mi equipo con W
 | ¿Y cuánto tiempo falta para eso? | ABSTAINED | 1,1 s | 0,8 s | 1,1 s | caché 0 s | 3,0 s | 3,7 s |
 | Audio sin voz | 422 SILENT_AUDIO | — | — | — | — | — | 1,2 s |
 | ¿Qué pasa con el grano en el primer crack? (solo Piper) | ANSWERED | 1,3 s | 0,8 s | 1,7 s | Piper 4,5 s | 8,3 s | 9,1 s |
+
+Después lo medí por la ruta completa, como lo hará Unity: backend local con un usuario de prueba de nivel principiante (creado solo en la copia de la base), servicio IA de la rama y el mismo script con `--backend` y su JWT:
+
+| Pregunta | Resultado | Voz a texto | RAG | Respuesta | Voz | Total servidor IA | Total cliente |
+|---|---|---|---|---|---|---|---|
+| Sin token | 401 | — | — | — | — | — | 0,02 s |
+| Audio de 1,28 MB | 413 AUDIO_TOO_LARGE | — | — | — | — | — | 0,9 s |
+| ¿Debería bajar el gas ahora? (primera, modelo de embeddings en frío) | ANSWERED | 1,2 s | 2,2 s | 2,2 s | Azure 3,9 s | 9,4 s | 10,4 s |
+| ¿Qué pasa con el grano en el primer crack? | ANSWERED | 1,1 s | 0,7 s | 1,9 s | Azure 2,2 s | 5,9 s | 6,7 s |
+| ¿Y cuánto tiempo falta para eso? | ABSTAINED | 1,2 s | 0,9 s | 1,6 s | caché 0 s | 3,8 s | 4,6 s |
+
+El backend agrega menos de 0,2 s frente a llamar directo al servicio IA; el resto de la diferencia entre el cliente y el servidor es mandar el audio y recibir el WAV en base64. En la segunda y la tercera el filtro de cifras quitó frases: una temperatura que el modelo no sacó del PDF que citó y un tiempo que calculó por su cuenta.
 
 El paso más lento es generar la voz, porque espera el audio completo antes de responder.
 

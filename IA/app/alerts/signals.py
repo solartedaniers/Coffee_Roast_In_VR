@@ -84,10 +84,14 @@ class SignalTracker:
         self.first_crack_roast_seconds: int | None = None
 
     def update(self, sample: RoastSample) -> RoastSignals:
+        charged = sample.phase in CHARGED_PHASES
+        if charged and (self.previous is None or self.previous.phase not in CHARGED_PHASES):
+            # Al cargar, el termómetro pasa del aire al grano: con lecturas del aire en la ventana la
+            # subida marcaría una caída falsa durante los primeros segundos del tueste.
+            self.window.clear()
         self.window.append(sample.temperature)
         same_phase = self.previous is not None and self.previous.phase is sample.phase
         self.phase_seconds = self.phase_seconds + 1 if same_phase else 1
-        charged = sample.phase in CHARGED_PHASES
         if charged:
             self._track_charged(sample)
         self.stagnation = self._next_stagnation(sample)

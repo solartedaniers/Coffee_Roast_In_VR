@@ -35,6 +35,13 @@ def test_rise_starts_from_the_first_sample_while_the_window_fills():
     assert signals[3].rise_per_minute == 60
 
 
+def test_rise_starts_again_when_the_beans_are_charged():
+    tracker, ready = feed([190, 191, 192], phase=READY, start_seconds=0)
+    _, signals = feed([108, 108.5, 109], phase=DIP, tracker=tracker)
+    assert ready[2].rise_per_minute == 60
+    assert [s.rise_per_minute for s in signals] == [0, 30, 30]
+
+
 def test_stagnation_compares_with_two_seconds_before_inside_maillard():
     _, signals = feed([170, 171, 171, 171, 171, 172, 173])
     assert [s.stagnation_seconds for s in signals] == [1, 0, 0, 1, 2, 0, 0]

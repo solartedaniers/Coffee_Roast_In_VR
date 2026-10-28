@@ -788,14 +788,8 @@
    "expected": {
     "BEGINNER": [
      {
-      "second": 32,
-      "roastSeconds": 13,
-      "alertId": "TEMP_STALL_DRYING",
-      "mode": "VOICE"
-     },
-     {
-      "second": 109,
-      "roastSeconds": 90,
+      "second": 82,
+      "roastSeconds": 63,
       "alertId": "ON_TRACK_DRYING",
       "mode": "VOICE"
      },
@@ -826,14 +820,8 @@
     ],
     "INTERMEDIATE": [
      {
-      "second": 32,
-      "roastSeconds": 13,
-      "alertId": "TEMP_STALL_DRYING",
-      "mode": "VOICE"
-     },
-     {
-      "second": 109,
-      "roastSeconds": 90,
+      "second": 82,
+      "roastSeconds": 63,
       "alertId": "ON_TRACK_DRYING",
       "mode": "VOICE"
      },
@@ -863,12 +851,6 @@
      }
     ],
     "ADVANCED": [
-     {
-      "second": 32,
-      "roastSeconds": 13,
-      "alertId": "TEMP_STALL_DRYING",
-      "mode": "VOICE"
-     },
      {
       "second": 624,
       "roastSeconds": 605,
@@ -1741,14 +1723,8 @@
    "expected": {
     "BEGINNER": [
      {
-      "second": 32,
-      "roastSeconds": 13,
-      "alertId": "TEMP_STALL_DRYING",
-      "mode": "VOICE"
-     },
-     {
-      "second": 109,
-      "roastSeconds": 90,
+      "second": 82,
+      "roastSeconds": 63,
       "alertId": "ON_TRACK_DRYING",
       "mode": "VOICE"
      },
@@ -1815,14 +1791,8 @@
     ],
     "INTERMEDIATE": [
      {
-      "second": 32,
-      "roastSeconds": 13,
-      "alertId": "TEMP_STALL_DRYING",
-      "mode": "VOICE"
-     },
-     {
-      "second": 109,
-      "roastSeconds": 90,
+      "second": 82,
+      "roastSeconds": 63,
       "alertId": "ON_TRACK_DRYING",
       "mode": "VOICE"
      },
@@ -1888,12 +1858,6 @@
      }
     ],
     "ADVANCED": [
-     {
-      "second": 32,
-      "roastSeconds": 13,
-      "alertId": "TEMP_STALL_DRYING",
-      "mode": "VOICE"
-     },
      {
       "second": 624,
       "roastSeconds": 605,
@@ -3028,14 +2992,8 @@
    "expected": {
     "BEGINNER": [
      {
-      "second": 32,
-      "roastSeconds": 13,
-      "alertId": "TEMP_STALL_DRYING",
-      "mode": "VOICE"
-     },
-     {
-      "second": 109,
-      "roastSeconds": 90,
+      "second": 82,
+      "roastSeconds": 63,
       "alertId": "ON_TRACK_DRYING",
       "mode": "VOICE"
      },
@@ -3084,14 +3042,8 @@
     ],
     "INTERMEDIATE": [
      {
-      "second": 32,
-      "roastSeconds": 13,
-      "alertId": "TEMP_STALL_DRYING",
-      "mode": "VOICE"
-     },
-     {
-      "second": 109,
-      "roastSeconds": 90,
+      "second": 82,
+      "roastSeconds": 63,
       "alertId": "ON_TRACK_DRYING",
       "mode": "VOICE"
      },
@@ -3139,12 +3091,6 @@
      }
     ],
     "ADVANCED": [
-     {
-      "second": 32,
-      "roastSeconds": 13,
-      "alertId": "TEMP_STALL_DRYING",
-      "mode": "VOICE"
-     },
      {
       "second": 411,
       "roastSeconds": 392,
@@ -3506,40 +3452,21 @@
    "expected": {
     "BEGINNER": [
      {
-      "second": 32,
-      "roastSeconds": 13,
-      "alertId": "TEMP_STALL_DRYING",
-      "mode": "VOICE"
-     },
-     {
-      "second": 109,
-      "roastSeconds": 90,
+      "second": 82,
+      "roastSeconds": 63,
       "alertId": "ON_TRACK_DRYING",
       "mode": "VOICE"
      }
     ],
     "INTERMEDIATE": [
      {
-      "second": 32,
-      "roastSeconds": 13,
-      "alertId": "TEMP_STALL_DRYING",
-      "mode": "VOICE"
-     },
-     {
-      "second": 109,
-      "roastSeconds": 90,
+      "second": 82,
+      "roastSeconds": 63,
       "alertId": "ON_TRACK_DRYING",
       "mode": "VOICE"
      }
     ],
-    "ADVANCED": [
-     {
-      "second": 32,
-      "roastSeconds": 13,
-      "alertId": "TEMP_STALL_DRYING",
-      "mode": "VOICE"
-     }
-    ]
+    "ADVANCED": []
    }
   },
   {
@@ -4447,14 +4374,8 @@
    "expected": {
     "BEGINNER": [
      {
-      "second": 32,
-      "roastSeconds": 13,
-      "alertId": "TEMP_STALL_DRYING",
-      "mode": "VOICE"
-     },
-     {
-      "second": 109,
-      "roastSeconds": 90,
+      "second": 82,
+      "roastSeconds": 63,
       "alertId": "ON_TRACK_DRYING",
       "mode": "VOICE"
      },
@@ -4491,14 +4412,8 @@
     ],
     "INTERMEDIATE": [
      {
-      "second": 32,
-      "roastSeconds": 13,
-      "alertId": "TEMP_STALL_DRYING",
-      "mode": "VOICE"
-     },
-     {
-      "second": 109,
-      "roastSeconds": 90,
+      "second": 82,
+      "roastSeconds": 63,
       "alertId": "ON_TRACK_DRYING",
       "mode": "VOICE"
      },
@@ -4534,12 +4449,6 @@
      }
     ],
     "ADVANCED": [
-     {
-      "second": 32,
-      "roastSeconds": 13,
-      "alertId": "TEMP_STALL_DRYING",
-      "mode": "VOICE"
-     },
      {
       "second": 192,
       "roastSeconds": 173,
@@ -5414,14 +5323,8 @@
       "mode": "VOICE"
      },
      {
-      "second": 32,
-      "roastSeconds": 13,
-      "alertId": "TEMP_STALL_DRYING",
-      "mode": "VOICE"
-     },
-     {
-      "second": 109,
-      "roastSeconds": 90,
+      "second": 82,
+      "roastSeconds": 63,
       "alertId": "ON_TRACK_DRYING",
       "mode": "VOICE"
      },
@@ -5458,14 +5361,8 @@
       "mode": "VOICE"
      },
      {
-      "second": 32,
-      "roastSeconds": 13,
-      "alertId": "TEMP_STALL_DRYING",
-      "mode": "VOICE"
-     },
-     {
-      "second": 109,
-      "roastSeconds": 90,
+      "second": 82,
+      "roastSeconds": 63,
       "alertId": "ON_TRACK_DRYING",
       "mode": "VOICE"
      },
@@ -5499,12 +5396,6 @@
       "second": 2,
       "roastSeconds": 0,
       "alertId": "CHARGE_TEMP_LOW",
-      "mode": "VOICE"
-     },
-     {
-      "second": 32,
-      "roastSeconds": 13,
-      "alertId": "TEMP_STALL_DRYING",
       "mode": "VOICE"
      },
      {
@@ -6415,14 +6306,8 @@
    "expected": {
     "BEGINNER": [
      {
-      "second": 32,
-      "roastSeconds": 13,
-      "alertId": "TEMP_STALL_DRYING",
-      "mode": "VOICE"
-     },
-     {
-      "second": 109,
-      "roastSeconds": 90,
+      "second": 82,
+      "roastSeconds": 63,
       "alertId": "ON_TRACK_DRYING",
       "mode": "VOICE"
      },
@@ -6471,14 +6356,8 @@
     ],
     "INTERMEDIATE": [
      {
-      "second": 32,
-      "roastSeconds": 13,
-      "alertId": "TEMP_STALL_DRYING",
-      "mode": "VOICE"
-     },
-     {
-      "second": 109,
-      "roastSeconds": 90,
+      "second": 82,
+      "roastSeconds": 63,
       "alertId": "ON_TRACK_DRYING",
       "mode": "VOICE"
      },
@@ -6526,12 +6405,6 @@
      }
     ],
     "ADVANCED": [
-     {
-      "second": 32,
-      "roastSeconds": 13,
-      "alertId": "TEMP_STALL_DRYING",
-      "mode": "VOICE"
-     },
      {
       "second": 624,
       "roastSeconds": 605,

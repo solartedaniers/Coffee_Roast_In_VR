@@ -251,6 +251,10 @@ export const BURN_THRESHOLD_TEMP_C = 200;
 // crack más temprano posible (224°C - 4°C por densidad).
 export const BURN_ABSOLUTE_CEILING_TEMP_C = 220;
 
+// Desde aquí se avisa que el grano se acerca al techo. Parámetro de
+// diseño del simulador.
+export const BURN_WARNING_TEMP_C = 215;
+
 // Más de estos segundos seguidos sobre el techo describen el quemado
 // como severo. Parámetro de diseño del simulador.
 export const BURN_SEVERE_SECONDS_ABOVE_CEILING = 15;

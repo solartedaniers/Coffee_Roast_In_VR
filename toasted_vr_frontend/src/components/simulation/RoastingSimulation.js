@@ -23,7 +23,7 @@ import {
   TARGET_TEMP_MAX_C,
   TARGET_TEMP_DEFAULT_C,
   FLAME_POWER_DEFAULT_PCT,
-  BURN_THRESHOLD_TEMP_C,
+  BURN_WARNING_TEMP_C,
   CRACK_SOUND_PATH,
   SENSOR_CALIBRATION_DEFAULT_C,
   ALARM_LIMIT_DEFAULT_C,
@@ -393,7 +393,7 @@ export default function RoastingSimulation({
 
   // Alarma de seguridad del equipo: se dispara cada vez que la temperatura
   // cruza el límite configurado por el operador, independiente de la
-  // regla fija de café quemado (BURN_THRESHOLD_TEMP_C, que nunca cambia).
+  // regla de café quemado (BURN_ABSOLUTE_CEILING_TEMP_C).
   useEffect(() => {
     // Durante PREHEAT/READY el grano todavía no está en el tambor (su
     // temperatura queda congelada en ambiente bajo el modelo nuevo), así
@@ -777,7 +777,7 @@ export default function RoastingSimulation({
           {texts.labels.alarmNotice}
         </div>
       )}
-      {s.phase === PHASES.ROASTING && s.temperature >= BURN_THRESHOLD_TEMP_C && !s.burnedFlag && (
+      {s.phase === PHASES.ROASTING && s.temperature >= BURN_WARNING_TEMP_C && !s.burnedFlag && (
         <div className="sim-burn-alert" role="alert" aria-live="polite">
           {texts.labels.burnAlert}
         </div>

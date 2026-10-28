@@ -365,11 +365,13 @@ export const PERFECT_SCORE_MIN = 0;
 export const PERFECT_SCORE_MAX = 100;
 
 // Ratio de Desarrollo (DTR — Development Time Ratio): proporción del
-// tueste transcurrida después del first crack, estándar de la
-// industria del tueste. Dentro del rango ideal no hay penalización;
-// fuera de él, se penaliza proporcionalmente a cuánto se desvía.
-export const DTR_IDEAL_MIN_RATIO = 0.15;
-export const DTR_IDEAL_MAX_RATIO = 0.25;
+// tueste transcurrida después del first crack. El rango ideal 18-22 % es
+// el de la tesis para cafés de altura de Nariño (el mismo que usa el
+// servicio IA) y es igual para todos los niveles. Cada nivel suma su
+// tolerancia (KnowledgeLevelRules.dtrToleranceRatio) antes de penalizar;
+// fuera de esa franja se penaliza proporcionalmente a cuánto se desvía.
+export const DTR_IDEAL_MIN_RATIO = 0.18;
+export const DTR_IDEAL_MAX_RATIO = 0.22;
 export const DTR_PENALTY_PER_RATIO_POINT = 100;
 
 export const CRACK_SOUND_PATH = `${process.env.PUBLIC_URL}/assets/sounds/crack.mp3`;

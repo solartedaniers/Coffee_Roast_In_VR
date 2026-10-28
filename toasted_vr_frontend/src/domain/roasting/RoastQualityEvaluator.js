@@ -67,7 +67,7 @@ export default class RoastQualityEvaluator {
       finalTemperature,
       roastingElapsedSeconds,
       developmentSeconds,
-      rules.penaltyMultiplier
+      rules
     );
     const score = Math.max(
       PERFECT_SCORE_MIN,

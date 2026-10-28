@@ -53,11 +53,11 @@
       },
       "INTERMEDIATE": {
         "result": "PERFECT",
-        "score": 75
+        "score": 74
       },
       "ADVANCED": {
         "result": "PERFECT",
-        "score": 68
+        "score": 65
       }
     }
   },
@@ -84,11 +84,11 @@
       },
       "INTERMEDIATE": {
         "result": "PERFECT",
-        "score": 45
+        "score": 44
       },
       "ADVANCED": {
         "result": "PERFECT",
-        "score": 38
+        "score": 35
       }
     }
   },
@@ -615,7 +615,7 @@
       },
       "ADVANCED": {
         "result": "PERFECT",
-        "score": 47
+        "score": 46
       }
     }
   },

@@ -1,0 +1,14 @@
+{
+  "abstention": "No tengo información sobre eso en mi material. Pregúntame algo sobre el tueste que estás haciendo.",
+  "unavailable": "No puedo responder en este momento, sigue con tu tueste.",
+  "errors": {
+    "AUDIO_INVALID": "El audio no tiene el formato esperado: WAV PCM de 16 bits, mono y de 16 kHz.",
+    "AUDIO_TOO_SHORT": "La pregunta quedó muy corta. Mantén el botón presionado mientras hablas.",
+    "AUDIO_TOO_LONG": "La pregunta es muy larga. Hazla un poco más corta.",
+    "AUDIO_TOO_LARGE": "El audio pesa más de lo permitido.",
+    "SILENT_AUDIO": "No te escuché. Vuelve a hacer la pregunta.",
+    "CONTEXT_INVALID": "Faltan datos del tueste para responder la pregunta.",
+    "ASSISTANT_BUSY": "Todavía estoy respondiendo tu pregunta anterior.",
+    "RATE_LIMITED": "Hiciste muchas preguntas seguidas. Espera un momento y vuelve a intentarlo."
+  }
+}

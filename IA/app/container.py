@@ -119,7 +119,7 @@ def build_services(settings: Settings) -> Services:
     ingestion = RagIngestionService(
         database, settings.rag_vector_table, settings.rag_docs_dir, PdfPageReader(),
         CharacterTextSplitter(settings.rag_chunk_size_chars, settings.rag_chunk_overlap_chars), embeddings,
-        settings.rag_embedding_batch_size,
+        settings.rag_embedding_batch_size, settings.rag_document_prefix,
     )
     schema = RagSchema(database, settings.rag_vector_table, settings.rag_embedding_dimensions)
     return Services(feedback, ingestion, cache, schema)

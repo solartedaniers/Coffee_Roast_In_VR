@@ -43,7 +43,7 @@ app:
     target-temperature-max: 230
     final-temperature-max: 250
     raw-temperature-ceiling: 186
-    burned-temperature-ceiling: 217
+    burned-temperature-ceiling: 220
     defect-score-min: 5
     defect-score-max: 50
     perfect-score-min: 0

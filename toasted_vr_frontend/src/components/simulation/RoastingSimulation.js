@@ -268,8 +268,6 @@ export default function RoastingSimulation({
       const scorchedByRateAndMoisture =
         prev.phase === PHASES.ROASTING &&
         BurnRiskMonitor.isScorchedByRateAndMoisture(rateOfRisePerMinute, newMoisturePct);
-      const newBurnedFlag =
-        prev.burnedFlag || BurnRiskMonitor.isBurned(newConsecutiveBurn) || scorchedByRateAndMoisture;
 
       let newStagnationSecs = prev.maillardStagnationSeconds;
       let newStagnationFlag = prev.maillardStagnationFlag;
@@ -296,6 +294,10 @@ export default function RoastingSimulation({
         !prev.secondCrackReached &&
         prev.secondCrackThresholdTemp != null &&
         SecondCrackDetector.hasReachedSecondCrack(newTemp, prev.secondCrackThresholdTemp);
+      const newSecondCrackReached = prev.secondCrackReached || hitSecondCrack;
+
+      const newBurnedFlag =
+        prev.burnedFlag || BurnRiskMonitor.isBurned(newTemp, newSecondCrackReached) || scorchedByRateAndMoisture;
 
       const nextFlamePowerPercent =
         prev.operationMode === OPERATION_MODES.AUTO
@@ -335,7 +337,7 @@ export default function RoastingSimulation({
         maillardStagnationFlag: newStagnationFlag,
         firstCrackReached: prev.firstCrackReached || hitFirstCrack,
         firstCrackTimeSeconds: hitFirstCrack ? newRoastingElapsed : prev.firstCrackTimeSeconds,
-        secondCrackReached: prev.secondCrackReached || hitSecondCrack,
+        secondCrackReached: newSecondCrackReached,
         secondCrackTimeSeconds: hitSecondCrack ? newRoastingElapsed : prev.secondCrackTimeSeconds,
       };
     });
@@ -384,7 +386,7 @@ export default function RoastingSimulation({
     }
   }, [simState.secondCrackReached]);
 
-  // Quemado: aviso único al confirmarse la racha de 30 s sobre 200°C
+  // Quemado: aviso único al pasar del techo, llegar al segundo crack o subir agresivo con el grano seco
   useEffect(() => {
     if (simState.burnedFlag && !burnedFiredRef.current) {
       burnedFiredRef.current = true;

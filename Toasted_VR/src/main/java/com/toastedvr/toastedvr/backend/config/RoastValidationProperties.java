@@ -16,7 +16,7 @@ public class RoastValidationProperties {
     private double targetTemperatureMax = 230;
     private double finalTemperatureMax = 250;
     private double rawTemperatureCeiling = 186;
-    private double burnedTemperatureCeiling = 217;
+    private double burnedTemperatureCeiling = 220;
     private int defectScoreMin = 5;
     private int defectScoreMax = 50;
     private int perfectScoreMin = 0;

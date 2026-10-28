@@ -3,7 +3,7 @@
     "name": "evaluator-overheated-perfect",
     "source": "RoastQualityEvaluator.test.js",
     "sim": {
-      "maxConsecutiveBurnSeconds": 10,
+      "maxConsecutiveBurnSeconds": 0,
       "burnedFlag": false,
       "maillardStagnationSeconds": 0,
       "maillardStagnationFlag": false,
@@ -155,15 +155,15 @@
     }
   },
   {
-    "name": "pipeline-charge-100-burned-by-time",
+    "name": "pipeline-charge-100-dtr-20",
     "source": "simulación real (ChargeAndRoastPipeline), DTR 20 %",
     "sim": {
       "chargeTemperature": 100,
       "targetTemperature": 200,
       "finalTemperature": 205.43,
       "peakTemperature": 205.43,
-      "maxConsecutiveBurnSeconds": 168,
-      "burnedFlag": true,
+      "maxConsecutiveBurnSeconds": 0,
+      "burnedFlag": false,
       "firstCrackReached": true,
       "firstCrackTimeSeconds": 653,
       "roastingElapsedSeconds": 816,
@@ -172,16 +172,16 @@
     },
     "expected": {
       "BEGINNER": {
-        "result": "BURNED",
-        "score": 5
+        "result": "PERFECT",
+        "score": 0
       },
       "INTERMEDIATE": {
-        "result": "BURNED",
-        "score": 5
+        "result": "PERFECT",
+        "score": 0
       },
       "ADVANCED": {
-        "result": "BURNED",
-        "score": 5
+        "result": "PERFECT",
+        "score": 0
       }
     }
   },
@@ -193,7 +193,7 @@
       "targetTemperature": 200,
       "finalTemperature": 200.92,
       "peakTemperature": 200.92,
-      "maxConsecutiveBurnSeconds": 8,
+      "maxConsecutiveBurnSeconds": 0,
       "burnedFlag": false,
       "firstCrackReached": true,
       "firstCrackTimeSeconds": 653,
@@ -217,15 +217,15 @@
     }
   },
   {
-    "name": "pipeline-charge-264-burned-by-time",
+    "name": "pipeline-charge-264-dtr-20",
     "source": "simulación real (ChargeAndRoastPipeline), DTR 20 %",
     "sim": {
       "chargeTemperature": 264,
       "targetTemperature": 200,
       "finalTemperature": 204.27,
       "peakTemperature": 204.27,
-      "maxConsecutiveBurnSeconds": 110,
-      "burnedFlag": true,
+      "maxConsecutiveBurnSeconds": 0,
+      "burnedFlag": false,
       "firstCrackReached": true,
       "firstCrackTimeSeconds": 417,
       "roastingElapsedSeconds": 521,
@@ -234,16 +234,16 @@
     },
     "expected": {
       "BEGINNER": {
-        "result": "BURNED",
-        "score": 5
+        "result": "PERFECT",
+        "score": 0
       },
       "INTERMEDIATE": {
-        "result": "BURNED",
-        "score": 5
+        "result": "PERFECT",
+        "score": 0
       },
       "ADVANCED": {
-        "result": "BURNED",
-        "score": 5
+        "result": "PERFECT",
+        "score": 0
       }
     }
   },
@@ -255,7 +255,7 @@
       "targetTemperature": 200,
       "finalTemperature": 200.95,
       "peakTemperature": 200.95,
-      "maxConsecutiveBurnSeconds": 9,
+      "maxConsecutiveBurnSeconds": 0,
       "burnedFlag": false,
       "firstCrackReached": true,
       "firstCrackTimeSeconds": 417,
@@ -279,15 +279,15 @@
     }
   },
   {
-    "name": "pipeline-charge-300-burned-by-time",
+    "name": "pipeline-charge-300-dtr-20",
     "source": "simulación real (ChargeAndRoastPipeline), DTR 20 %",
     "sim": {
       "chargeTemperature": 300,
       "targetTemperature": 200,
       "finalTemperature": 203.82,
       "peakTemperature": 203.82,
-      "maxConsecutiveBurnSeconds": 94,
-      "burnedFlag": true,
+      "maxConsecutiveBurnSeconds": 0,
+      "burnedFlag": false,
       "firstCrackReached": true,
       "firstCrackTimeSeconds": 355,
       "roastingElapsedSeconds": 444,
@@ -296,16 +296,16 @@
     },
     "expected": {
       "BEGINNER": {
-        "result": "BURNED",
-        "score": 5
+        "result": "PERFECT",
+        "score": 0
       },
       "INTERMEDIATE": {
-        "result": "BURNED",
-        "score": 5
+        "result": "PERFECT",
+        "score": 0
       },
       "ADVANCED": {
-        "result": "BURNED",
-        "score": 5
+        "result": "PERFECT",
+        "score": 0
       }
     }
   },
@@ -317,7 +317,7 @@
       "targetTemperature": 200,
       "finalTemperature": 200.89,
       "peakTemperature": 200.89,
-      "maxConsecutiveBurnSeconds": 8,
+      "maxConsecutiveBurnSeconds": 0,
       "burnedFlag": false,
       "firstCrackReached": true,
       "firstCrackTimeSeconds": 355,
@@ -348,7 +348,7 @@
       "targetTemperature": 200,
       "finalTemperature": 184.55,
       "peakTemperature": 200.54,
-      "maxConsecutiveBurnSeconds": 9,
+      "maxConsecutiveBurnSeconds": 0,
       "burnedFlag": false,
       "firstCrackReached": true,
       "firstCrackTimeSeconds": 537,
@@ -379,7 +379,7 @@
       "targetTemperature": 150,
       "finalTemperature": 202.64,
       "peakTemperature": 202.64,
-      "maxConsecutiveBurnSeconds": 12,
+      "maxConsecutiveBurnSeconds": 0,
       "burnedFlag": false,
       "firstCrackReached": true,
       "firstCrackTimeSeconds": 532,
@@ -466,10 +466,10 @@
   },
   {
     "name": "burned-by-absolute-ceiling",
-    "source": "límite: final sobre el techo de quemado",
+    "source": "límite: pico sobre el techo de quemado",
     "sim": {
-      "maxConsecutiveBurnSeconds": 60,
-      "burnedFlag": true,
+      "maxConsecutiveBurnSeconds": 3,
+      "burnedFlag": false,
       "maillardStagnationSeconds": 0,
       "maillardStagnationFlag": false,
       "targetTemperature": 230,
@@ -483,15 +483,15 @@
     "expected": {
       "BEGINNER": {
         "result": "BURNED",
-        "score": 13
+        "score": 25
       },
       "INTERMEDIATE": {
         "result": "BURNED",
-        "score": 5
+        "score": 17
       },
       "ADVANCED": {
         "result": "BURNED",
-        "score": 5
+        "score": 9
       }
     }
   },
@@ -590,15 +590,15 @@
   },
   {
     "name": "perfect-at-burn-ceiling",
-    "source": "límite: final exactamente en BURN_ABSOLUTE_CEILING_TEMP_C",
+    "source": "límite: pico exactamente en BURN_ABSOLUTE_CEILING_TEMP_C",
     "sim": {
-      "maxConsecutiveBurnSeconds": 14,
+      "maxConsecutiveBurnSeconds": 0,
       "burnedFlag": false,
       "maillardStagnationSeconds": 0,
       "maillardStagnationFlag": false,
       "targetTemperature": 200,
-      "finalTemperature": 217,
-      "peakTemperature": 217,
+      "finalTemperature": 220,
+      "peakTemperature": 220,
       "firstCrackReached": true,
       "firstCrackTimeSeconds": 600,
       "roastingElapsedSeconds": 780,
@@ -607,15 +607,15 @@
     "expected": {
       "BEGINNER": {
         "result": "PERFECT",
-        "score": 68
+        "score": 62
       },
       "INTERMEDIATE": {
         "result": "PERFECT",
-        "score": 59
+        "score": 51
       },
       "ADVANCED": {
         "result": "PERFECT",
-        "score": 46
+        "score": 36
       }
     }
   },
@@ -647,6 +647,69 @@
       "ADVANCED": {
         "result": "PERFECT",
         "score": 0
+      }
+    }
+  },
+  {
+    "name": "burned-by-second-crack-at-ceiling",
+    "source": "límite: segundo crack a 220 °C (grano poco denso) sin pasar el techo",
+    "sim": {
+      "maxConsecutiveBurnSeconds": 0,
+      "burnedFlag": true,
+      "maillardStagnationSeconds": 0,
+      "maillardStagnationFlag": false,
+      "targetTemperature": 200,
+      "finalTemperature": 218,
+      "peakTemperature": 220,
+      "firstCrackReached": true,
+      "firstCrackTimeSeconds": 600,
+      "roastingElapsedSeconds": 900,
+      "chargeTemperature": 190,
+      "secondCrackReached": true
+    },
+    "expected": {
+      "BEGINNER": {
+        "result": "BURNED",
+        "score": 26
+      },
+      "INTERMEDIATE": {
+        "result": "BURNED",
+        "score": 18
+      },
+      "ADVANCED": {
+        "result": "BURNED",
+        "score": 10
+      }
+    }
+  },
+  {
+    "name": "perfect-overdeveloped-above-200",
+    "source": "sobredesarrollo: DTR 33 % sobre 200 °C sin llegar al techo",
+    "sim": {
+      "maxConsecutiveBurnSeconds": 0,
+      "burnedFlag": false,
+      "maillardStagnationSeconds": 0,
+      "maillardStagnationFlag": false,
+      "targetTemperature": 200,
+      "finalTemperature": 214,
+      "peakTemperature": 214,
+      "firstCrackReached": true,
+      "firstCrackTimeSeconds": 600,
+      "roastingElapsedSeconds": 900,
+      "chargeTemperature": 190
+    },
+    "expected": {
+      "BEGINNER": {
+        "result": "PERFECT",
+        "score": 61
+      },
+      "INTERMEDIATE": {
+        "result": "PERFECT",
+        "score": 49
+      },
+      "ADVANCED": {
+        "result": "PERFECT",
+        "score": 32
       }
     }
   }

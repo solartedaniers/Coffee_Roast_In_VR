@@ -114,7 +114,7 @@
       target-temperature-max: ${ROAST_TARGET_TEMPERATURE_MAX:230}
       final-temperature-max: ${ROAST_FINAL_TEMPERATURE_MAX:250}
       raw-temperature-ceiling: ${ROAST_RAW_TEMPERATURE_CEILING:186}
-      burned-temperature-ceiling: ${ROAST_BURNED_TEMPERATURE_CEILING:217}
+      burned-temperature-ceiling: ${ROAST_BURNED_TEMPERATURE_CEILING:220}
       defect-score-min: ${ROAST_DEFECT_SCORE_MIN:5}
       defect-score-max: ${ROAST_DEFECT_SCORE_MAX:50}
       perfect-score-min: ${ROAST_PERFECT_SCORE_MIN:0}

@@ -2,7 +2,7 @@ import {
   RESULTS,
   DTR_IDEAL_MIN_RATIO,
   DTR_IDEAL_MAX_RATIO,
-  BURN_CONSECUTIVE_LIMIT_SEC,
+  BURN_SEVERE_SECONDS_ABOVE_CEILING,
   MAILLARD_STAGNATION_LIMIT_SEC,
   RAW_TEMP_CEILING_C,
   SECOND_CRACK_TEMP_MIN_C,
@@ -45,7 +45,7 @@ export default class RoastFlavorProfileDescriber {
         // de SECOND_CRACK_TEMP_MIN_C a propósito, así que este resultado
         // sigue siendo BURNED, pero la causa es otra y merece otro texto.
         if (finalTemperature >= SECOND_CRACK_TEMP_MIN_C) return 'BURNED_SECOND_CRACK_ZONE';
-        return maxConsecutiveBurnSeconds - BURN_CONSECUTIVE_LIMIT_SEC > BURN_CONSECUTIVE_LIMIT_SEC
+        return maxConsecutiveBurnSeconds > BURN_SEVERE_SECONDS_ABOVE_CEILING
           ? 'BURNED_SEVERE'
           : 'BURNED_MILD';
 

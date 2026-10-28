@@ -28,6 +28,7 @@ export default class RoastQualityEvaluator {
     const rules = KnowledgeLevelRules.forLevel(knowledgeLevel);
     const {
       finalTemperature,
+      peakTemperature,
       maxConsecutiveBurnSeconds,
       burnedFlag,
       firstCrackReached,
@@ -50,7 +51,7 @@ export default class RoastQualityEvaluator {
       return { score, result: RESULTS.RAW };
     }
 
-    if (BurnedRoastEvaluator.isBurned(burnedFlag, finalTemperature)) {
+    if (BurnedRoastEvaluator.isBurned(burnedFlag, peakTemperature)) {
       const baseScore = BurnedRoastEvaluator.computeBaseScore(maxConsecutiveBurnSeconds);
       const score = clampDefectScore(baseScore, rules.defectScoreAdjustment - chargeTempPenalty);
       return { score, result: RESULTS.BURNED };

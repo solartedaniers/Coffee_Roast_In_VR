@@ -1,7 +1,7 @@
 {
   "description": "Catálogo de alertas proactivas del tueste. Unity lo recibe por nivel y lo evalúa una vez por segundo simulado (ver docs/unity-proactive-alerts-contract.md). Cada regla dice en 'source' de dónde sale cada valor: Fuente (PDFs o tesis), Parámetro de diseño (reglas del simulador sin respaldo en los PDFs) o Propuesto (se afina con scripts/alert_simulator.py).",
   "schemaVersion": 1,
-  "catalogRevision": 1,
+  "catalogRevision": 2,
   "defaultLevel": "INTERMEDIATE",
   "signals": {
     "riseWindowSeconds": 30,
@@ -64,14 +64,14 @@
       "when": [
         {"signal": "turningPointReached", "op": "eq", "value": true},
         {"signal": "temperature", "op": "lt", "value": 160},
-        {"signal": "risePerMinute", "op": "ge", "value": 30}
+        {"signal": "risePerMinute", "op": "ge", "value": 25}
       ],
       "sustainSeconds": 10,
-      "rearmWhen": [{"signal": "risePerMinute", "op": "le", "value": 26}],
+      "rearmWhen": [{"signal": "risePerMinute", "op": "le", "value": 22}],
       "cooldownSeconds": 45,
       "maxRepeats": 2,
       "requiresQuietSeconds": 0,
-      "source": "Parámetro de diseño: pico de subida calibrado de ~30 °C/min (comentario de MAX_AIR_TEMP_C). Fuente: manual de tostado p.11 (puntas oscuras por tueste muy rápido). Propuesto: re-arme a 26 y 10 s de sostén.",
+      "source": "Fuente: manual de tostado p.11 (puntas oscuras por tueste muy rápido). Propuesto: 25 °C/min, re-arme a 22 y 10 s de sostén; con el simulador, un tueste normal sube como máximo 21 °C/min en el secado y uno con el gas al 40 % llega a 24-30.",
       "phrases": {
         "BEGINNER": "La temperatura está subiendo muy rápido. Baja un poco el gas para que el grano se seque parejo.",
         "INTERMEDIATE": "Subida muy rápida en el secado; baja un poco el gas."
@@ -313,10 +313,10 @@
       ],
       "sustainSeconds": 1,
       "rearmWhen": [],
-      "cooldownSeconds": 15,
-      "maxRepeats": 3,
+      "cooldownSeconds": 20,
+      "maxRepeats": 2,
       "requiresQuietSeconds": 0,
-      "source": "Fuente: DTR ideal 18-22 % para cafés de altura de Nariño (tesis). Propuesto: repetir cada 15 s, hasta 3 veces.",
+      "source": "Fuente: DTR ideal 18-22 % para cafés de altura de Nariño (tesis). Propuesto: repetir una vez a los 20 s.",
       "phrases": {
         "BEGINNER": "Es momento de descargar. Si esperas más, el desarrollo pasa del rango ideal.",
         "INTERMEDIATE": "Descarga ya; el desarrollo está por pasarse.",

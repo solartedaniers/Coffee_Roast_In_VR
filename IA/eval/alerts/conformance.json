@@ -1,6 +1,6 @@
 {
  "schemaVersion": 1,
- "catalogRevision": 1,
+ "catalogRevision": 2,
  "sampleFields": ["phase", "temperature", "roastSeconds", "firstCrackReached", "moisturePct", "recording", "assistantBusy"],
  "vectors": [
   {
@@ -1771,14 +1771,8 @@
       "mode": "VOICE"
      },
      {
-      "second": 812,
-      "roastSeconds": 793,
-      "alertId": "DISCHARGE_WINDOW_CLOSING",
-      "mode": "VOICE"
-     },
-     {
-      "second": 825,
-      "roastSeconds": 806,
+      "second": 815,
+      "roastSeconds": 796,
       "alertId": "DISCHARGE_WINDOW_CLOSING",
       "mode": "VOICE"
      },
@@ -1839,14 +1833,8 @@
       "mode": "VOICE"
      },
      {
-      "second": 812,
-      "roastSeconds": 793,
-      "alertId": "DISCHARGE_WINDOW_CLOSING",
-      "mode": "VOICE"
-     },
-     {
-      "second": 825,
-      "roastSeconds": 806,
+      "second": 815,
+      "roastSeconds": 796,
       "alertId": "DISCHARGE_WINDOW_CLOSING",
       "mode": "VOICE"
      },
@@ -1889,14 +1877,8 @@
       "mode": "VOICE"
      },
      {
-      "second": 812,
-      "roastSeconds": 793,
-      "alertId": "DISCHARGE_WINDOW_CLOSING",
-      "mode": "VOICE"
-     },
-     {
-      "second": 825,
-      "roastSeconds": 806,
+      "second": 815,
+      "roastSeconds": 796,
       "alertId": "DISCHARGE_WINDOW_CLOSING",
       "mode": "VOICE"
      },
@@ -6342,14 +6324,8 @@
       "mode": "VOICE"
      },
      {
-      "second": 810,
-      "roastSeconds": 791,
-      "alertId": "DISCHARGE_WINDOW_CLOSING",
-      "mode": "VOICE"
-     },
-     {
-      "second": 825,
-      "roastSeconds": 806,
+      "second": 815,
+      "roastSeconds": 796,
       "alertId": "DISCHARGE_WINDOW_CLOSING",
       "mode": "VOICE"
      }
@@ -6392,14 +6368,8 @@
       "mode": "VOICE"
      },
      {
-      "second": 810,
-      "roastSeconds": 791,
-      "alertId": "DISCHARGE_WINDOW_CLOSING",
-      "mode": "VOICE"
-     },
-     {
-      "second": 825,
-      "roastSeconds": 806,
+      "second": 815,
+      "roastSeconds": 796,
       "alertId": "DISCHARGE_WINDOW_CLOSING",
       "mode": "VOICE"
      }
@@ -6424,14 +6394,8 @@
       "mode": "VOICE"
      },
      {
-      "second": 810,
-      "roastSeconds": 791,
-      "alertId": "DISCHARGE_WINDOW_CLOSING",
-      "mode": "VOICE"
-     },
-     {
-      "second": 825,
-      "roastSeconds": 806,
+      "second": 815,
+      "roastSeconds": 796,
       "alertId": "DISCHARGE_WINDOW_CLOSING",
       "mode": "VOICE"
      }

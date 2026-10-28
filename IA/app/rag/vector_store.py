@@ -40,6 +40,9 @@ class PgVectorStore:
                 for document, vector in zip(documents, vectors, strict=True)
             ])
 
+    def delete_all(self) -> None:
+        self.connection.execute(sql.SQL("DELETE FROM {}").format(self.table))
+
     def delete_by_file_name(self, file_name: str) -> None:
         self.connection.execute(
             sql.SQL("DELETE FROM {} WHERE metadata->>%s = %s").format(self.table),

@@ -82,6 +82,10 @@ def build_embeddings(settings: Settings, http: BoundedHttpClient) -> OllamaEmbed
                                         seconds(settings.ollama_read_timeout_millis)))
 
 
+def build_text_splitter(settings: Settings) -> CharacterTextSplitter:
+    return CharacterTextSplitter(settings.rag_chunk_size_chars, settings.rag_chunk_overlap_chars)
+
+
 def build_chunk_search(settings: Settings, database: Database, embeddings: OllamaEmbeddings) -> ChunkSearch:
     """La misma búsqueda la usan la retroalimentación y la evaluación del RAG."""
     search = SemanticChunkSearch(database, settings.rag_vector_table, embeddings, settings.rag_query_prefix)
@@ -118,7 +122,7 @@ def build_services(settings: Settings) -> Services:
     )
     ingestion = RagIngestionService(
         database, settings.rag_vector_table, settings.rag_docs_dir, PdfPageReader(),
-        CharacterTextSplitter(settings.rag_chunk_size_chars, settings.rag_chunk_overlap_chars), embeddings,
+        build_text_splitter(settings), embeddings,
         settings.rag_embedding_batch_size, settings.rag_document_prefix,
     )
     schema = RagSchema(database, settings.rag_vector_table, settings.rag_embedding_dimensions)

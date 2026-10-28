@@ -55,9 +55,6 @@ class Settings(BaseSettings):
     rag_embedding_batch_size: int = Field(default=32, gt=0)
     # Prefijo de tarea para las búsquedas (nomic-embed-text: "search_query: "). Vacío = sin prefijo.
     rag_query_prefix: str = ""
-    # Traduce la búsqueda con Groq para encontrar también los PDFs en ese idioma.
-    rag_query_translation_enabled: bool = False
-    rag_query_translation_language: str = "English"
     rag_vector_table: str = "rag_document_chunks"
     rag_docs_dir: Path = SERVICE_ROOT / "rag-docs"
     rag_top_k: int = Field(default=4, gt=0)

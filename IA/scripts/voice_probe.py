@@ -64,6 +64,8 @@ def play(wav: bytes) -> None:
 
 def main() -> int:
     args = parse_args()
+    # La consola de Windows usa cp1252 y no puede mostrar todo lo que escribe el modelo.
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     url = (args.backend.rstrip("/") + BACKEND_PATH) if args.backend else (args.ia.rstrip("/") + IA_PATH)
     headers = {"Authorization": f"Bearer {args.token}"} if args.token else {}
     started = time.monotonic()

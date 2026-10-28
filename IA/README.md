@@ -200,7 +200,7 @@ Durante el tueste el asistente también habla por su cuenta, como un profesor al
 
 - **Catálogo:** `config/proactive_alerts.json`. Cada regla dice de dónde sale cada umbral: *Fuente* (PDFs o tesis), *Parámetro de diseño* (reglas del simulador sin respaldo en los PDFs) o *Propuesto* (valores míos, afinados con el simulador). Se valida al arrancar: señales, operadores, niveles y una frase por nivel.
 - **Reglas de quemado:** aviso a 215 °C, segundo crack inminente a 218 °C y techo superado por encima de 220 °C. El estancamiento de Maillard solo cuenta antes del primer crack y el desarrollo avisa con el DTR en 18 % y 22 %.
-- **Niveles:** el backend entrega solo el paquete del nivel del jugador (INTERMEDIATE si no tiene). ADVANCED no recibe las alertas de ánimo ni la guía suave.
+- **Niveles:** el backend entrega solo el paquete del nivel del jugador (INTERMEDIATE si no tiene). BEGINNER e INTERMEDIATE reciben las 17 reglas con frases distintas; ADVANCED recibe 12, sin la guía de subida del secado, el aviso de primer crack cercano ni los refuerzos LOW.
 - **Canal de voz:** una sola voz con prioridades CRITICAL > HIGH > NORMAL > LOW, cola de 5 s, LOW nunca espera y mínimo 8 s entre alertas que no son CRITICAL. Mientras el jugador graba una pregunta solo se muestra el subtítulo.
 - **Audio:** se genera al arrancar, en segundo plano, con la misma voz y el mismo `voice-cache/` del asistente. Las 46 frases de los tres niveles gastan 2 775 caracteres de Azure una sola vez, contados en `tts_monthly_usage` (0,6 % del límite mensual). Si una frase no se pudo sintetizar va con audio `null` y se reintenta en el siguiente pedido.
 - **ETag:** el backend reenvía `If-None-Match` y responde 304 si Unity ya tiene esa versión. Tiempo para sintetizar lo que falte en un pedido: `ALERTS_PACKAGE_TIMEOUT_MILLIS` (20 s), menor que los 30 s de `AI_SERVICE_ALERTS_READ_TIMEOUT_MILLIS` en el backend.
@@ -221,17 +221,19 @@ Con `scripts/alert_simulator.py` veo qué alerta suena en cada curva, en qué se
 
 Las curvas de prueba (`eval/alerts/curves.json`) salen del simulador del frontend, sin modificar su física. Con ellas genero los vectores de conformidad (`eval/alerts/conformance.json`, con `python -m app.alerts.conformance`) que Unity usa para comprobar su evaluador en C#; un test falla si el catálogo cambia y no los regenero.
 
-Afiné los umbrales con 80 curvas reales (10 granos distintos por escenario). Alertas por tueste en la revisión 2:
+Alertas por tueste en la revisión 2, con las curvas de prueba del repositorio:
 
 | Curva | BEGINNER | INTERMEDIATE | ADVANCED |
 |---|---|---|---|
 | Buena | 5 | 5 | 2 |
-| Quemada | 8–10 | 8–10 | 5–7 |
-| Horneada | 7–8 | 7–8 | 4–5 |
+| Quemada | 10 | 10 | 7 |
+| Horneada | 8 | 8 | 5 |
 | Cruda | 1 | 1 | 0 |
 | Con caída | 6 | 6 | 3 |
 | Carga baja | 6 | 6 | 3 |
 | Sobredesarrollada | 7 | 7 | 4 |
+
+Afiné los umbrales además con 10 semillas por escenario del simulador real; en BEGINNER la buena queda en 5, la quemada entre 8 y 10 y la horneada entre 7 y 8.
 
 Dos ajustes salieron de esas curvas: en el simulador la pantalla salta del aire al grano al cargar, así que la subida de las alertas empieza de nuevo en la carga (antes marcaba un estancamiento falso a los 13 s en todos los tuestes); y la subida rápida del secado avisa desde 25 °C/min, porque un tueste normal llega como máximo a 21.
 

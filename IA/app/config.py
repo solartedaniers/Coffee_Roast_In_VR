@@ -131,8 +131,9 @@ class Settings(BaseSettings):
     azure_tts_monthly_char_limit: int = Field(default=450_000, ge=0)
 
     voice_speech_providers: str = "azure,piper"
-    piper_executable: Path | None = None
-    piper_model: Path | None = None
+    # Rutas relativas a IA/; voice-runtime/ no se sube a git (ver README).
+    piper_executable: Path | None = Path("voice-runtime/piper/piper.exe")
+    piper_model: Path | None = Path("voice-runtime/voices/es_MX-claude-high.onnx")
     piper_length_scale: float = Field(default=1.0, gt=0)
     piper_timeout_millis: int = Field(default=8_000, gt=0)
 

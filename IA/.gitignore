@@ -42,3 +42,8 @@ build/
 __pycache__/
 .pytest_cache/
 *.egg-info/
+
+### Asistente de voz ###
+# Piper y su voz se descargan aparte (ver README); el audio de las frases fijas se genera solo.
+voice-runtime/
+voice-cache/

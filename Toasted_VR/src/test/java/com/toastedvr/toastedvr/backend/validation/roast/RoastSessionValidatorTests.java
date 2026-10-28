@@ -108,7 +108,7 @@ class RoastSessionValidatorTests {
                 s.peakTemperature = 222.0;
                 s.result = RoastingResult.BAKED;
                 s.qualityScore = 30;
-            }, "No se guardó la sesión: el resultado Horneado no es posible con una temperatura final de 221 °C (mayor que 220 °C)."),
+            }, "No se guardó la sesión: el resultado Horneado no es posible con una temperatura máxima de 222 °C (mayor que 220 °C)."),
             Arguments.of("puntaje fuera de rango", (Consumer<Session>) s -> {
                 s.result = RoastingResult.BURNED;
                 s.qualityScore = 90;
@@ -163,6 +163,10 @@ class RoastSessionValidatorTests {
             rejected("C3: PERFECT sobre el techo de quemado", s -> {
                 s.finalTemperature = 220.1;
                 s.peakTemperature = 221.0;
+            }, BurnedTemperatureResultRule.RULE),
+            rejected("C3: PERFECT con pico sobre el techo y final enfriada debajo", s -> {
+                s.finalTemperature = 212.0;
+                s.peakTemperature = 220.5;
             }, BurnedTemperatureResultRule.RULE),
             rejected("C3: BAKED sobre el techo de quemado", s -> {
                 s.finalTemperature = 221.0;

@@ -1,3 +1,5 @@
+import json
+
 import pytest
 from pydantic import ValidationError
 
@@ -112,3 +114,9 @@ def test_rejects_an_invalid_voice_configuration(settings, monkeypatch, variable,
 
     with pytest.raises(ValidationError):
         Settings(_env_file=None)
+
+
+def test_reads_the_alert_catalog_from_the_config_folder(settings):
+    assert settings.alerts_catalog_file == SERVICE_ROOT / "config" / "proactive_alerts.json"
+    catalog = json.loads(settings.alerts_catalog_file.read_text(encoding="utf-8"))
+    assert catalog["rules"]

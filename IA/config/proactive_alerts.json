@@ -1,0 +1,370 @@
+{
+  "description": "Catálogo de alertas proactivas del tueste. Unity lo recibe por nivel y lo evalúa una vez por segundo simulado (ver docs/unity-proactive-alerts-contract.md). Cada regla dice en 'source' de dónde sale cada valor: Fuente (PDFs o tesis), Parámetro de diseño (reglas del simulador sin respaldo en los PDFs) o Propuesto (se afina con scripts/alert_simulator.py).",
+  "schemaVersion": 1,
+  "catalogRevision": 1,
+  "defaultLevel": "INTERMEDIATE",
+  "signals": {
+    "riseWindowSeconds": 30,
+    "maillardStartTemperature": 160,
+    "maillardEndTemperature": 200,
+    "burnCeilingTemperature": 220,
+    "turningPointMinRise": 0.5
+  },
+  "channel": {
+    "queueMaxWaitSeconds": 5,
+    "minGapSeconds": 8,
+    "urgentPriorities": ["CRITICAL"],
+    "unqueuedPriorities": ["LOW"]
+  },
+  "rules": [
+    {
+      "id": "CHARGE_TEMP_LOW",
+      "priority": "NORMAL",
+      "levels": ["BEGINNER", "INTERMEDIATE", "ADVANCED"],
+      "when": [
+        {"signal": "phase", "op": "eq", "value": "READY"},
+        {"signal": "temperature", "op": "lt", "value": 180}
+      ],
+      "sustainSeconds": 3,
+      "rearmWhen": [{"signal": "temperature", "op": "ge", "value": 182}],
+      "cooldownSeconds": 0,
+      "maxRepeats": 1,
+      "requiresQuietSeconds": 0,
+      "source": "Fuente: CHARGE_TEMP_IDEAL_MIN_C = 180 y manual de tostado p.10 (tabla por densidad). Propuesto: 3 s de sostén y re-arme a 182.",
+      "phrases": {
+        "BEGINNER": "El tambor está por debajo de lo recomendado. Lo ideal es cargar entre 180 y 200 grados; sube un poco el gas antes de cargar.",
+        "INTERMEDIATE": "Temperatura de carga baja: lo recomendado es de 180 a 200 grados.",
+        "ADVANCED": "Carga por debajo de 180 grados."
+      }
+    },
+    {
+      "id": "CHARGE_TEMP_HIGH",
+      "priority": "NORMAL",
+      "levels": ["BEGINNER", "INTERMEDIATE", "ADVANCED"],
+      "when": [
+        {"signal": "phase", "op": "eq", "value": "READY"},
+        {"signal": "temperature", "op": "gt", "value": 200}
+      ],
+      "sustainSeconds": 3,
+      "rearmWhen": [{"signal": "temperature", "op": "le", "value": 198}],
+      "cooldownSeconds": 0,
+      "maxRepeats": 1,
+      "requiresQuietSeconds": 0,
+      "source": "Fuente: CHARGE_TEMP_IDEAL_MAX_C = 200 y manual de tostado p.10. Propuesto: 3 s de sostén y re-arme a 198.",
+      "phrases": {
+        "BEGINNER": "El tambor está más caliente de lo recomendado. Lo ideal es cargar entre 180 y 200 grados; espera o baja un poco el gas.",
+        "INTERMEDIATE": "Temperatura de carga alta: lo recomendado es de 180 a 200 grados.",
+        "ADVANCED": "Carga por encima de 200 grados."
+      }
+    },
+    {
+      "id": "DRYING_RISE_FAST",
+      "priority": "NORMAL",
+      "levels": ["BEGINNER", "INTERMEDIATE"],
+      "when": [
+        {"signal": "turningPointReached", "op": "eq", "value": true},
+        {"signal": "temperature", "op": "lt", "value": 160},
+        {"signal": "risePerMinute", "op": "ge", "value": 30}
+      ],
+      "sustainSeconds": 10,
+      "rearmWhen": [{"signal": "risePerMinute", "op": "le", "value": 26}],
+      "cooldownSeconds": 45,
+      "maxRepeats": 2,
+      "requiresQuietSeconds": 0,
+      "source": "Parámetro de diseño: pico de subida calibrado de ~30 °C/min (comentario de MAX_AIR_TEMP_C). Fuente: manual de tostado p.11 (puntas oscuras por tueste muy rápido). Propuesto: re-arme a 26 y 10 s de sostén.",
+      "phrases": {
+        "BEGINNER": "La temperatura está subiendo muy rápido. Baja un poco el gas para que el grano se seque parejo.",
+        "INTERMEDIATE": "Subida muy rápida en el secado; baja un poco el gas."
+      }
+    },
+    {
+      "id": "DRYING_RISE_SLOW",
+      "priority": "NORMAL",
+      "levels": ["BEGINNER", "INTERMEDIATE"],
+      "when": [
+        {"signal": "turningPointReached", "op": "eq", "value": true},
+        {"signal": "temperature", "op": "ge", "value": 100},
+        {"signal": "temperature", "op": "lt", "value": 160},
+        {"signal": "risePerMinute", "op": "gt", "value": 0},
+        {"signal": "risePerMinute", "op": "le", "value": 5}
+      ],
+      "sustainSeconds": 20,
+      "rearmWhen": [{"signal": "risePerMinute", "op": "ge", "value": 8}],
+      "cooldownSeconds": 60,
+      "maxRepeats": 2,
+      "requiresQuietSeconds": 0,
+      "source": "Fuente: artículo de Jama, tabla 2 (la curva aceptada más lenta sube ~6,5 °C/min) y manual de tostado p.11 (horneado por tueste muy lento). Propuesto: 5 °C/min, re-arme a 8 y 20 s de sostén.",
+      "phrases": {
+        "BEGINNER": "La temperatura está subiendo muy despacio. Sube un poco el gas para que el café no quede horneado.",
+        "INTERMEDIATE": "Subida muy lenta en el secado; sube un poco el gas."
+      }
+    },
+    {
+      "id": "TEMP_STALL_DRYING",
+      "priority": "HIGH",
+      "levels": ["BEGINNER", "INTERMEDIATE", "ADVANCED"],
+      "when": [
+        {"signal": "turningPointReached", "op": "eq", "value": true},
+        {"signal": "temperature", "op": "lt", "value": 160},
+        {"signal": "risePerMinute", "op": "le", "value": 0}
+      ],
+      "sustainSeconds": 10,
+      "rearmWhen": [{"signal": "risePerMinute", "op": "ge", "value": 3}],
+      "cooldownSeconds": 30,
+      "maxRepeats": 2,
+      "requiresQuietSeconds": 0,
+      "source": "Propuesto: el simulador no vigila el estancamiento antes de 160 °C.",
+      "phrases": {
+        "BEGINNER": "La temperatura dejó de subir. Sube el gas para que el tueste no se detenga.",
+        "INTERMEDIATE": "La temperatura se estancó; sube el gas.",
+        "ADVANCED": "Curva estancada en el secado."
+      }
+    },
+    {
+      "id": "TEMP_STALL_MAILLARD",
+      "priority": "HIGH",
+      "levels": ["BEGINNER", "INTERMEDIATE", "ADVANCED"],
+      "when": [
+        {"signal": "phase", "op": "eq", "value": "ROASTING"},
+        {"signal": "firstCrackReached", "op": "eq", "value": false},
+        {"signal": "temperature", "op": "ge", "value": 160},
+        {"signal": "temperature", "op": "le", "value": 200},
+        {"signal": "stagnationSeconds", "op": "ge", "value": 15}
+      ],
+      "sustainSeconds": 1,
+      "rearmWhen": [{"signal": "stagnationSeconds", "op": "eq", "value": 0}],
+      "cooldownSeconds": 20,
+      "maxRepeats": 2,
+      "requiresQuietSeconds": 0,
+      "source": "Fuente: Maillard 160-200 °C (Debona et al. 2022, Bustos-Vanegas et al. 2025). Parámetro de diseño: horneado a los 30 s estancado (MAILLARD_STAGNATION_LIMIT_SEC), solo antes del primer crack. Propuesto: avisar a los 15 s.",
+      "phrases": {
+        "BEGINNER": "Cuidado, la temperatura no sube en plena caramelización y todavía no llega el primer crack. Si sigue así, el café queda horneado; sube el gas.",
+        "INTERMEDIATE": "Temperatura estancada antes del primer crack: riesgo de horneado, sube el gas.",
+        "ADVANCED": "Estancamiento en Maillard."
+      }
+    },
+    {
+      "id": "FIRST_CRACK_NEAR",
+      "priority": "NORMAL",
+      "levels": ["BEGINNER", "INTERMEDIATE"],
+      "when": [
+        {"signal": "phase", "op": "eq", "value": "ROASTING"},
+        {"signal": "firstCrackReached", "op": "eq", "value": false},
+        {"signal": "temperature", "op": "ge", "value": 190}
+      ],
+      "sustainSeconds": 1,
+      "rearmWhen": null,
+      "cooldownSeconds": 0,
+      "maxRepeats": 1,
+      "requiresQuietSeconds": 0,
+      "source": "Fuente: primer crack 196-205 °C (Debona et al. 2022, Bustos-Vanegas et al. 2025). Parámetro de diseño: ±4 °C por densidad, mínimo 192 °C. Propuesto: avisar a 190 °C.",
+      "phrases": {
+        "BEGINNER": "Ya casi llega el primer crack. Escucha con atención: el grano va a empezar a crujir.",
+        "INTERMEDIATE": "Te acercas al primer crack, prepárate."
+      }
+    },
+    {
+      "id": "FIRST_CRACK",
+      "priority": "HIGH",
+      "levels": ["BEGINNER", "INTERMEDIATE", "ADVANCED"],
+      "when": [{"signal": "firstCrackReached", "op": "eq", "value": true}],
+      "sustainSeconds": 1,
+      "rearmWhen": null,
+      "cooldownSeconds": 0,
+      "maxRepeats": 1,
+      "requiresQuietSeconds": 0,
+      "source": "FirstCrackDetector del simulador. Parámetro de diseño: calor propio del grano después del primer crack (EXO_HEAT_RATE_C_PER_SEC).",
+      "phrases": {
+        "BEGINNER": "¡Primer crack! Desde ahora cuenta el tiempo de desarrollo. Baja un poco el gas: el grano ya genera su propio calor.",
+        "INTERMEDIATE": "Primer crack. Empieza el desarrollo; baja un poco el gas.",
+        "ADVANCED": "Primer crack."
+      }
+    },
+    {
+      "id": "ROAST_RUNNING_LONG",
+      "priority": "NORMAL",
+      "levels": ["BEGINNER", "INTERMEDIATE", "ADVANCED"],
+      "when": [
+        {"signal": "firstCrackReached", "op": "eq", "value": false},
+        {"signal": "roastSeconds", "op": "ge", "value": 780}
+      ],
+      "sustainSeconds": 1,
+      "rearmWhen": null,
+      "cooldownSeconds": 0,
+      "maxRepeats": 1,
+      "requiresQuietSeconds": 0,
+      "source": "Parámetro de diseño: IDEAL_TOTAL_ROAST_MINUTES = 13. Fuente: Avances Técnicos 573 (8-12 min hasta el primer crack).",
+      "phrases": {
+        "BEGINNER": "El tueste va muy largo y todavía no llega al primer crack. Sube el gas o el café puede quedar crudo.",
+        "INTERMEDIATE": "Tueste largo sin primer crack; sube el gas.",
+        "ADVANCED": "Tueste largo sin primer crack."
+      }
+    },
+    {
+      "id": "BURN_WARNING",
+      "priority": "HIGH",
+      "levels": ["BEGINNER", "INTERMEDIATE", "ADVANCED"],
+      "when": [
+        {"signal": "phase", "op": "eq", "value": "ROASTING"},
+        {"signal": "peakTemperature", "op": "le", "value": 220},
+        {"signal": "temperature", "op": "ge", "value": 215}
+      ],
+      "sustainSeconds": 1,
+      "rearmWhen": [{"signal": "temperature", "op": "lt", "value": 213}],
+      "cooldownSeconds": 20,
+      "maxRepeats": 2,
+      "requiresQuietSeconds": 0,
+      "source": "Parámetro de diseño: aviso a 215 °C (BURN_WARNING_TEMP_C, el mismo del aviso visual). Propuesto: re-arme a 213.",
+      "phrases": {
+        "BEGINNER": "Cuidado, el grano se acerca al límite de quemado de 220 grados. Baja el gas y prepárate para descargar.",
+        "INTERMEDIATE": "Cerca del límite de quemado; baja el gas y prepara la descarga.",
+        "ADVANCED": "Cerca del techo de 220 grados."
+      }
+    },
+    {
+      "id": "SECOND_CRACK_NEAR",
+      "priority": "CRITICAL",
+      "levels": ["BEGINNER", "INTERMEDIATE", "ADVANCED"],
+      "when": [
+        {"signal": "phase", "op": "eq", "value": "ROASTING"},
+        {"signal": "peakTemperature", "op": "le", "value": 220},
+        {"signal": "temperature", "op": "ge", "value": 218}
+      ],
+      "sustainSeconds": 1,
+      "rearmWhen": [{"signal": "temperature", "op": "lt", "value": 216}],
+      "cooldownSeconds": 8,
+      "maxRepeats": 3,
+      "requiresQuietSeconds": 0,
+      "source": "Fuente: techo del tueste medio 220 °C (manual de tostado p.10, artículo de Jama tabla 2) y segundo crack desde 224 °C, que con la densidad puede bajar a 220. Propuesto: avisar a 218 y re-armar a 216.",
+      "phrases": {
+        "BEGINNER": "¡Descarga ya! El grano está a punto de pasar los 220 grados y entrar al segundo crack.",
+        "INTERMEDIATE": "¡Descarga ya, el segundo crack está cerca!",
+        "ADVANCED": "Segundo crack inminente, descarga."
+      }
+    },
+    {
+      "id": "BURN_CEILING_EXCEEDED",
+      "priority": "CRITICAL",
+      "levels": ["BEGINNER", "INTERMEDIATE", "ADVANCED"],
+      "when": [
+        {"signal": "phase", "op": "eq", "value": "ROASTING"},
+        {"signal": "secondsAboveCeiling", "op": "ge", "value": 1}
+      ],
+      "sustainSeconds": 1,
+      "rearmWhen": null,
+      "cooldownSeconds": 0,
+      "maxRepeats": 1,
+      "requiresQuietSeconds": 0,
+      "source": "Fuente: techo del tueste medio 220 °C (manual de tostado p.10, artículo de Jama tabla 2). Parámetro de diseño: cada segundo sobre el techo resta 0,4 puntos.",
+      "phrases": {
+        "BEGINNER": "El grano pasó los 220 grados y el lote se quemó. Descarga ya para no empeorarlo.",
+        "INTERMEDIATE": "Pasaste el techo de quemado; descarga ya.",
+        "ADVANCED": "Techo superado, descarga."
+      }
+    },
+    {
+      "id": "SCORCH_RISK",
+      "priority": "CRITICAL",
+      "levels": ["BEGINNER", "INTERMEDIATE", "ADVANCED"],
+      "when": [
+        {"signal": "phase", "op": "eq", "value": "ROASTING"},
+        {"signal": "risePerMinute", "op": "ge", "value": 30},
+        {"signal": "moisturePct", "op": "le", "value": 3}
+      ],
+      "sustainSeconds": 1,
+      "rearmWhen": [{"signal": "risePerMinute", "op": "le", "value": 26}],
+      "cooldownSeconds": 10,
+      "maxRepeats": 3,
+      "requiresQuietSeconds": 0,
+      "source": "Parámetro de diseño: quemado por subida ≥ 35 °C/min con humedad ≤ 2 % (sección 5 del modelo). Propuesto: avisar con 5 °C/min y 1 % de margen. Solo suena si Unity envía la humedad.",
+      "phrases": {
+        "BEGINNER": "¡Baja el gas! La temperatura sube demasiado rápido y al grano ya casi no le queda humedad.",
+        "INTERMEDIATE": "Baja el gas: subida agresiva con el grano casi seco.",
+        "ADVANCED": "Subida agresiva con grano seco."
+      }
+    },
+    {
+      "id": "DEVELOPMENT_READY",
+      "priority": "HIGH",
+      "levels": ["BEGINNER", "INTERMEDIATE", "ADVANCED"],
+      "when": [
+        {"signal": "firstCrackReached", "op": "eq", "value": true},
+        {"signal": "developmentRatio", "op": "ge", "value": 0.18}
+      ],
+      "sustainSeconds": 1,
+      "rearmWhen": null,
+      "cooldownSeconds": 0,
+      "maxRepeats": 1,
+      "requiresQuietSeconds": 0,
+      "source": "Fuente: DTR ideal 18-22 % para cafés de altura de Nariño (tesis).",
+      "phrases": {
+        "BEGINNER": "Muy bien, el desarrollo ya está en el rango ideal. Desde ahora puedes descargar cuando veas el color que buscas.",
+        "INTERMEDIATE": "Desarrollo en rango ideal; puedes descargar.",
+        "ADVANCED": "Desarrollo en rango."
+      }
+    },
+    {
+      "id": "DISCHARGE_WINDOW_CLOSING",
+      "priority": "HIGH",
+      "levels": ["BEGINNER", "INTERMEDIATE", "ADVANCED"],
+      "when": [
+        {"signal": "firstCrackReached", "op": "eq", "value": true},
+        {"signal": "developmentRatio", "op": "ge", "value": 0.22}
+      ],
+      "sustainSeconds": 1,
+      "rearmWhen": [],
+      "cooldownSeconds": 15,
+      "maxRepeats": 3,
+      "requiresQuietSeconds": 0,
+      "source": "Fuente: DTR ideal 18-22 % para cafés de altura de Nariño (tesis). Propuesto: repetir cada 15 s, hasta 3 veces.",
+      "phrases": {
+        "BEGINNER": "Es momento de descargar. Si esperas más, el desarrollo pasa del rango ideal.",
+        "INTERMEDIATE": "Descarga ya; el desarrollo está por pasarse.",
+        "ADVANCED": "Desarrollo al límite, descarga."
+      }
+    },
+    {
+      "id": "ON_TRACK_DRYING",
+      "priority": "LOW",
+      "levels": ["BEGINNER", "INTERMEDIATE"],
+      "when": [
+        {"signal": "turningPointReached", "op": "eq", "value": true},
+        {"signal": "temperature", "op": "lt", "value": 160},
+        {"signal": "risePerMinute", "op": "ge", "value": 10},
+        {"signal": "risePerMinute", "op": "le", "value": 25}
+      ],
+      "sustainSeconds": 60,
+      "rearmWhen": null,
+      "cooldownSeconds": 0,
+      "maxRepeats": 1,
+      "requiresQuietSeconds": 60,
+      "source": "Propuesto: franja entre los umbrales de subida lenta y rápida.",
+      "phrases": {
+        "BEGINNER": "¡Vas muy bien! La temperatura sube a buen ritmo.",
+        "INTERMEDIATE": "Buen ritmo de subida."
+      }
+    },
+    {
+      "id": "ON_TRACK_MAILLARD",
+      "priority": "LOW",
+      "levels": ["BEGINNER", "INTERMEDIATE"],
+      "when": [
+        {"signal": "phase", "op": "eq", "value": "ROASTING"},
+        {"signal": "firstCrackReached", "op": "eq", "value": false},
+        {"signal": "temperature", "op": "ge", "value": 160},
+        {"signal": "risePerMinute", "op": "ge", "value": 5},
+        {"signal": "risePerMinute", "op": "le", "value": 20}
+      ],
+      "sustainSeconds": 60,
+      "rearmWhen": null,
+      "cooldownSeconds": 0,
+      "maxRepeats": 1,
+      "requiresQuietSeconds": 60,
+      "source": "Propuesto.",
+      "phrases": {
+        "BEGINNER": "Excelente, la caramelización avanza pareja hacia el primer crack. Sigue así.",
+        "INTERMEDIATE": "Maillard avanzando parejo."
+      }
+    }
+  ]
+}

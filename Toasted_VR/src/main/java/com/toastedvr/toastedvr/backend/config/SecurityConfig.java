@@ -71,6 +71,7 @@ public class SecurityConfig {
                 ).permitAll()
                 .requestMatchers("/api/v1/auth/logout").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/v1/roasting/sessions").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/v1/roasting/assistant/questions").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/v1/roasting/sessions/*/feedback").authenticated()
                 .requestMatchers(
                     HttpMethod.GET,

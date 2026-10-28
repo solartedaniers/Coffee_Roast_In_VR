@@ -50,6 +50,14 @@ def build_router(services: Services) -> APIRouter:
     return router
 
 
+def warm_up(services: Services) -> None:
+    """Primero las frases fijas del asistente y después las de las alertas."""
+    if services.voice is not None:
+        services.voice.warm_up(services.voice_warm_up_seconds)
+    if services.alerts is not None:
+        services.alerts.warm_up(services.voice_warm_up_seconds)
+
+
 def create_app(services: Services, ensure_schema: bool = True) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -64,10 +72,9 @@ def create_app(services: Services, ensure_schema: bool = True) -> FastAPI:
                     services.voice_schema.ensure()
                 except Exception as error:
                     log.warning("Could not prepare the voice assistant tables: %s", error)
-        if services.voice is not None:
+        if services.voice is not None or services.alerts is not None:
             # En segundo plano para no demorar el arranque si Azure tarda o no hay Internet.
-            threading.Thread(target=services.voice.warm_up, args=(services.voice_warm_up_seconds,),
-                             daemon=True).start()
+            threading.Thread(target=warm_up, args=(services,), daemon=True).start()
         yield
 
     app = FastAPI(title="Toasted VR AI", lifespan=lifespan)

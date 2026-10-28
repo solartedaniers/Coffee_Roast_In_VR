@@ -1,6 +1,8 @@
 """Arma los objetos del servicio a partir de la configuración (raíz de composición)."""
 from dataclasses import dataclass
 
+from app.alerts.catalog import AlertCatalog
+from app.alerts.package import AlertPackageBuilder
 from app.config import Settings
 from app.feedback.cache import FeedbackCache
 from app.feedback.prompt_builder import FeedbackPromptBuilder
@@ -51,6 +53,8 @@ class Services:
     voice_messages: VoiceMessages | None = None
     voice_max_audio_bytes: int = 0
     voice_warm_up_seconds: float = 0.0
+    # Paquete de alertas proactivas; usa la misma voz y el mismo caché de frases del asistente.
+    alerts: AlertPackageBuilder | None = None
 
 
 def seconds(millis: int) -> float:
@@ -149,6 +153,7 @@ def build_services(settings: Settings) -> Services:
     schema = RagSchema(database, settings.rag_vector_table, settings.rag_embedding_dimensions)
     voice = build_voice(settings, http, database, build_chunk_search(settings, database, embeddings),
                         build_citations(settings))
+    alerts = AlertPackageBuilder(AlertCatalog.from_file(settings.alerts_catalog_file), voice.pipeline.phrases)
     return Services(feedback, ingestion, cache, schema, voice=voice, voice_schema=VoiceSchema(database),
                     voice_messages=voice.messages, voice_max_audio_bytes=settings.voice_max_audio_bytes,
-                    voice_warm_up_seconds=seconds(settings.voice_total_timeout_millis))
+                    voice_warm_up_seconds=seconds(settings.voice_total_timeout_millis), alerts=alerts)

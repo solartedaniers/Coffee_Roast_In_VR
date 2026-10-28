@@ -99,3 +99,11 @@ def test_lists_every_phrase_once_for_the_warm_up(catalog):
     texts = AlertPackageBuilder(catalog, FakePhrases()).phrase_texts()
     expected = {rule.phrases[level] for rule in catalog.rules for level in rule.levels}
     assert len(texts) == len(set(texts)) and set(texts) == expected
+
+
+def test_warms_every_phrase_of_every_level(catalog):
+    phrases = FakePhrases()
+    phrases.warm = lambda texts, seconds: phrases.texts.extend(texts)
+    builder = AlertPackageBuilder(catalog, phrases)
+    builder.warm_up(5)
+    assert phrases.texts == builder.phrase_texts()

@@ -58,6 +58,10 @@ class AlertPackageBuilder:
                 self.complete[level] = package
         return package
 
+    def warm_up(self, seconds_per_phrase: float) -> None:
+        """Sintetiza de una vez las frases de todos los niveles: Azure se gasta una sola vez por texto."""
+        self.phrases.warm(self.phrase_texts(), seconds_per_phrase)
+
     def phrase_texts(self) -> list[str]:
         """Todas las frases de todos los niveles, sin repetir, para precalentar su audio."""
         texts = (rule.phrases[level] for rule in self.catalog.rules for level in rule.levels)

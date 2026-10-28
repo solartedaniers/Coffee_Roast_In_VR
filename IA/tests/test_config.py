@@ -74,3 +74,41 @@ def test_rejects_an_invalid_provider_chain(settings, monkeypatch, chain):
 
     with pytest.raises(ValidationError):
         Settings(_env_file=None)
+
+
+def test_keeps_the_voice_assistant_defaults(settings):
+    assert settings.voice_max_audio_seconds == 15
+    assert settings.voice_max_audio_bytes == 600_000
+    assert settings.voice_max_concurrent_per_user == 1
+    assert settings.voice_max_questions_per_minute == 6
+    assert settings.transcription_provider_chain == ["groq", "azure"]
+    assert settings.speech_provider_chain == ["azure", "piper"]
+    assert settings.voice_groq_model == "openai/gpt-oss-20b"
+    assert settings.azure_tts_voice == "es-CO-SalomeNeural"
+    assert settings.azure_tts_monthly_char_limit == 450_000
+    assert settings.azure_speech_key is None
+
+
+def test_builds_the_azure_urls_from_the_region(settings, monkeypatch):
+    monkeypatch.setenv("AZURE_SPEECH_REGION", "eastus")
+
+    configured = Settings(_env_file=None)
+
+    assert configured.azure_tts_url == "https://eastus.tts.speech.microsoft.com/cognitiveservices/v1"
+    assert configured.azure_stt_url.startswith("https://eastus.stt.speech.microsoft.com/")
+
+
+def test_ends_the_voice_question_before_the_backend_stops_waiting(settings):
+    backend_voice_read_timeout_millis = 30_000
+    assert settings.voice_total_timeout_millis < backend_voice_read_timeout_millis
+
+
+@pytest.mark.parametrize(("variable", "chain"), [
+    ("VOICE_TRANSCRIPTION_PROVIDERS", "whisper"), ("VOICE_SPEECH_PROVIDERS", "azure,azure"),
+    ("VOICE_SPEECH_PROVIDERS", ""), ("AZURE_SPEECH_REGION", "canada central"),
+])
+def test_rejects_an_invalid_voice_configuration(settings, monkeypatch, variable, chain):
+    monkeypatch.setenv(variable, chain)
+
+    with pytest.raises(ValidationError):
+        Settings(_env_file=None)

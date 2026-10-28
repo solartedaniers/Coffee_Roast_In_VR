@@ -24,9 +24,6 @@ import {
   TARGET_TEMP_DEFAULT_C,
   FLAME_POWER_DEFAULT_PCT,
   BURN_THRESHOLD_TEMP_C,
-  MAILLARD_TEMP_START_C,
-  MAILLARD_TEMP_END_C,
-  MAILLARD_STAGNATION_LIMIT_SEC,
   CRACK_SOUND_PATH,
   SENSOR_CALIBRATION_DEFAULT_C,
   ALARM_LIMIT_DEFAULT_C,
@@ -43,6 +40,7 @@ import RoastMetrics from '../../domain/roasting/RoastMetrics';
 import FirstCrackDetector from '../../domain/roasting/FirstCrackDetector';
 import SecondCrackDetector from '../../domain/roasting/SecondCrackDetector';
 import BurnRiskMonitor from '../../domain/roasting/BurnRiskMonitor';
+import MaillardStagnationMonitor from '../../domain/roasting/MaillardStagnationMonitor';
 import RoastQualityEvaluator from '../../domain/roasting/RoastQualityEvaluator';
 import GrainAppearanceModel from '../../domain/roasting/GrainAppearanceModel';
 import KnowledgeLevelRules from '../../domain/roasting/KnowledgeLevelRules';
@@ -269,18 +267,16 @@ export default function RoastingSimulation({
         prev.phase === PHASES.ROASTING &&
         BurnRiskMonitor.isScorchedByRateAndMoisture(rateOfRisePerMinute, newMoisturePct);
 
-      let newStagnationSecs = prev.maillardStagnationSeconds;
-      let newStagnationFlag = prev.maillardStagnationFlag;
-      if (prev.phase === PHASES.ROASTING) {
-        const inMaillard = newTemp >= MAILLARD_TEMP_START_C && newTemp <= MAILLARD_TEMP_END_C;
-        const tempDropped = newTemp <= prev.prevTemperature;
-        if (inMaillard && tempDropped) {
-          newStagnationSecs += 1;
-          if (newStagnationSecs >= MAILLARD_STAGNATION_LIMIT_SEC) newStagnationFlag = true;
-        } else if (inMaillard) {
-          newStagnationSecs = 0;
-        }
-      }
+      const newStagnationSecs =
+        prev.phase === PHASES.ROASTING
+          ? MaillardStagnationMonitor.computeNextSeconds(
+              prev.maillardStagnationSeconds,
+              newTemp,
+              prev.prevTemperature,
+              prev.firstCrackReached
+            )
+          : prev.maillardStagnationSeconds;
+      const newStagnationFlag = prev.maillardStagnationFlag || MaillardStagnationMonitor.isBaked(newStagnationSecs);
 
       const hitFirstCrack =
         prev.phase === PHASES.ROASTING &&

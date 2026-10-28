@@ -353,7 +353,7 @@
       "firstCrackReached": true,
       "firstCrackTimeSeconds": 537,
       "roastingElapsedSeconds": 575,
-      "maillardStagnationSeconds": 34,
+      "maillardStagnationSeconds": 0,
       "maillardStagnationFlag": true
     },
     "expected": {
@@ -434,8 +434,8 @@
     }
   },
   {
-    "name": "pipeline-low-first-crack-baked",
-    "source": "simulación real: first crack a 196 °C, DTR 20 %",
+    "name": "pipeline-low-first-crack-cooled",
+    "source": "simulación real: first crack a 196 °C y estancamiento solo después de él, DTR 20 %",
     "sim": {
       "chargeTemperature": 190,
       "targetTemperature": 200,
@@ -446,21 +446,21 @@
       "firstCrackReached": true,
       "firstCrackTimeSeconds": 501,
       "roastingElapsedSeconds": 626,
-      "maillardStagnationSeconds": 119,
-      "maillardStagnationFlag": true
+      "maillardStagnationSeconds": 0,
+      "maillardStagnationFlag": false
     },
     "expected": {
       "BEGINNER": {
-        "result": "BAKED",
-        "score": 18
+        "result": "PERFECT",
+        "score": 72
       },
       "INTERMEDIATE": {
-        "result": "BAKED",
-        "score": 10
+        "result": "PERFECT",
+        "score": 64
       },
       "ADVANCED": {
-        "result": "BAKED",
-        "score": 5
+        "result": "PERFECT",
+        "score": 54
       }
     }
   },

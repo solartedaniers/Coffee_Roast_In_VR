@@ -6,6 +6,8 @@ from pathlib import Path
 
 from pypdf import PdfReader
 
+from app.rag.pdf_text_cleaner import REFERENCES_HEADING
+
 PYPDF_LOGGER = "pypdf"
 REPLACEMENT_CHARACTER = "�"
 WORD_PATTERN = re.compile(r"[^\W\d_]+")
@@ -14,7 +16,6 @@ STOPWORDS = {
     "es": {"el", "la", "de", "que", "los", "las", "del", "en", "por", "con", "para", "una"},
     "en": {"the", "of", "and", "is", "with", "that", "in", "for", "to", "are", "was", "by"},
 }
-REFERENCES_HEADING = re.compile(r"(?im)^\s*(references|referencias|bibliograf[ií]a|literatura citada)\b")
 
 
 @dataclass(frozen=True)

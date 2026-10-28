@@ -1,4 +1,5 @@
 from functools import lru_cache
+from typing import Literal
 from pathlib import Path
 
 from pydantic import Field, SecretStr, field_validator
@@ -63,6 +64,12 @@ class Settings(BaseSettings):
     rag_top_k: int = Field(default=4, gt=0)
     rag_chunk_size_chars: int = Field(default=700, gt=0)
     rag_chunk_overlap_chars: int = Field(default=100, ge=0)
+    # "characters": ventana por caracteres de siempre. "sentences": limpia el PDF y junta frases
+    # completas. Cambiarlo exige reindexar.
+    rag_text_splitter: Literal["characters", "sentences"] = "characters"
+    rag_min_chunk_chars: int = Field(default=80, ge=0)
+    # Una línea que aparece en esta fracción de las páginas de un PDF se trata como encabezado.
+    rag_repeated_line_page_ratio: float = Field(default=0.5, gt=0, le=1)
     # Filtros sobre lo recuperado. 0 (o false) los deja apagados.
     rag_min_similarity: float = Field(default=0.0, ge=0, le=1)
     rag_deduplicate_chunks: bool = False

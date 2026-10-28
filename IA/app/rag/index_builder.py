@@ -11,7 +11,7 @@ from app.rag.document import Document
 from app.rag.document_embedder import DocumentEmbedder
 from app.rag.pdf_reader import PdfPageReader
 from app.rag.schema import RagSchema
-from app.rag.text_splitter import CharacterTextSplitter
+from app.rag.text_splitter import TextSplitter
 from app.rag.vector_store import PgVectorStore
 
 
@@ -22,7 +22,7 @@ class BuiltIndex:
 
 
 class RagIndexBuilder:
-    def __init__(self, database: Database, reader: PdfPageReader, splitter: CharacterTextSplitter,
+    def __init__(self, database: Database, reader: PdfPageReader, splitter: TextSplitter,
                  embedder: DocumentEmbedder, dimensions: int):
         self.database = database
         self.reader = reader

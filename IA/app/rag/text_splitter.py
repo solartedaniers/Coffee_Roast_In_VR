@@ -1,4 +1,5 @@
 import uuid
+from typing import Protocol
 
 from app.java_format import java_strip
 from app.rag.document import Document
@@ -7,6 +8,11 @@ from app.rag.document import Document
 PARENT_DOCUMENT_ID_KEY = "parent_document_id"
 CHUNK_INDEX_KEY = "chunk_index"
 TOTAL_CHUNKS_KEY = "total_chunks"
+
+
+class TextSplitter(Protocol):
+    def split_documents(self, documents: list[Document]) -> list[Document]: ...
+
 
 class CharacterTextSplitter:
     """Ventana deslizante por caracteres, con solapamiento, igual a la que usaba el servicio en Java."""

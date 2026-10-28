@@ -26,7 +26,9 @@ from app.rag.ingestion_service import RagIngestionService
 from app.rag.pdf_reader import PdfPageReader
 from app.rag.query_builder import RagQueryBuilder
 from app.rag.schema import RagSchema
-from app.rag.text_splitter import CharacterTextSplitter
+from app.rag.pdf_text_cleaner import PdfTextCleaner
+from app.rag.sentence_splitter import CleaningTextSplitter, SentenceTextSplitter
+from app.rag.text_splitter import CharacterTextSplitter, TextSplitter
 from app.roast_reference import DevelopmentTimeRange
 
 MILLIS_PER_SECOND = 1000
@@ -82,7 +84,12 @@ def build_embeddings(settings: Settings, http: BoundedHttpClient) -> OllamaEmbed
                                         seconds(settings.ollama_read_timeout_millis)))
 
 
-def build_text_splitter(settings: Settings) -> CharacterTextSplitter:
+def build_text_splitter(settings: Settings) -> TextSplitter:
+    if settings.rag_text_splitter == "sentences":
+        return CleaningTextSplitter(
+            PdfTextCleaner(settings.rag_repeated_line_page_ratio),
+            SentenceTextSplitter(settings.rag_chunk_size_chars, settings.rag_chunk_overlap_chars,
+                                 settings.rag_min_chunk_chars))
     return CharacterTextSplitter(settings.rag_chunk_size_chars, settings.rag_chunk_overlap_chars)
 
 

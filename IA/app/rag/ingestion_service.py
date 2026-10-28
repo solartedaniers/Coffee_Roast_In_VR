@@ -14,7 +14,7 @@ from app.rag.document_embedder import DocumentEmbedder
 from app.rag.embeddings import OllamaEmbeddings
 from app.rag.ingested_document_repository import IngestedDocument, IngestedDocumentRepository
 from app.rag.pdf_reader import FILE_NAME_KEY, PdfPageReader
-from app.rag.text_splitter import CharacterTextSplitter
+from app.rag.text_splitter import TextSplitter
 from app.rag.vector_store import PgVectorStore
 
 log = logging.getLogger(__name__)
@@ -24,7 +24,7 @@ PDF_PATTERN = "*.pdf"
 
 class RagIngestionService:
     def __init__(self, database: Database, vector_table: str, docs_dir: Path, reader: PdfPageReader,
-                 splitter: CharacterTextSplitter, embeddings: OllamaEmbeddings, embedding_batch_size: int,
+                 splitter: TextSplitter, embeddings: OllamaEmbeddings, embedding_batch_size: int,
                  document_prefix: str = ""):
         self.database = database
         self.vector_table = vector_table

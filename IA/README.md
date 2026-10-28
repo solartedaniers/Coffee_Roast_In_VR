@@ -49,6 +49,7 @@ Son internos, solo para el backend, y no tienen autenticación propia: la autent
 |---|---|---|
 | `POST` | `/api/v1/feedback` | Recibe los datos de la sesión y responde `{"feedback": "..."}` (`null` si ningún proveedor respondió) |
 | `POST` | `/api/v1/rag/ingest` | Ingesta los PDFs de `rag-docs/` que sean nuevos o hayan cambiado |
+| `GET` | `/api/v1/alerts/package` | Paquete de alertas proactivas de un nivel, con `ETag` (ver [Alertas proactivas](#alertas-proactivas)) |
 
 El contrato es exactamente el mismo que tenía la versión anterior en Java, así que el backend no cambió. Un cuerpo inválido responde 400.
 
@@ -192,6 +193,51 @@ Después lo medí por la ruta completa, como lo hará Unity: backend local con u
 El backend agrega menos de 0,2 s frente a llamar directo al servicio IA; el resto de la diferencia entre el cliente y el servidor es mandar el audio y recibir el WAV en base64. En la segunda y la tercera el filtro de cifras quitó frases: una temperatura que el modelo no sacó del PDF que citó y un tiempo que calculó por su cuenta.
 
 El paso más lento es generar la voz, porque espera el audio completo antes de responder.
+
+## Alertas proactivas
+
+Durante el tueste el asistente también habla por su cuenta, como un profesor al lado: carga fuera de rango, subida muy rápida o muy lenta, estancamiento, primer crack, desarrollo y riesgo de quemado. Las reglas no corren aquí: armo un paquete por nivel con las reglas como datos, la frase del nivel y su audio ya sintetizado, y Unity lo descarga al empezar el tueste y lo evalúa localmente cada segundo. Así no hay latencia de red, funciona sin WiFi y Azure se gasta una sola vez por frase. El contrato y la especificación del evaluador para Unity están en [docs/unity-proactive-alerts-contract.md](docs/unity-proactive-alerts-contract.md).
+
+- **Catálogo:** `config/proactive_alerts.json`. Cada regla dice de dónde sale cada umbral: *Fuente* (PDFs o tesis), *Parámetro de diseño* (reglas del simulador sin respaldo en los PDFs) o *Propuesto* (valores míos, afinados con el simulador). Se valida al arrancar: señales, operadores, niveles y una frase por nivel.
+- **Reglas de quemado:** aviso a 215 °C, segundo crack inminente a 218 °C y techo superado por encima de 220 °C. El estancamiento de Maillard solo cuenta antes del primer crack y el desarrollo avisa con el DTR en 18 % y 22 %.
+- **Niveles:** el backend entrega solo el paquete del nivel del jugador (INTERMEDIATE si no tiene). ADVANCED no recibe las alertas de ánimo ni la guía suave.
+- **Canal de voz:** una sola voz con prioridades CRITICAL > HIGH > NORMAL > LOW, cola de 5 s, LOW nunca espera y mínimo 8 s entre alertas que no son CRITICAL. Mientras el jugador graba una pregunta solo se muestra el subtítulo.
+- **Audio:** se genera al arrancar, en segundo plano, con la misma voz y el mismo `voice-cache/` del asistente. Las 46 frases de los tres niveles gastan 2 775 caracteres de Azure una sola vez, contados en `tts_monthly_usage` (0,6 % del límite mensual). Si una frase no se pudo sintetizar va con audio `null` y se reintenta en el siguiente pedido.
+- **ETag:** el backend reenvía `If-None-Match` y responde 304 si Unity ya tiene esa versión. Tiempo para sintetizar lo que falte en un pedido: `ALERTS_PACKAGE_TIMEOUT_MILLIS` (20 s), menor que los 30 s de `AI_SERVICE_ALERTS_READ_TIMEOUT_MILLIS` en el backend.
+
+| Método | Ruta | Uso |
+|---|---|---|
+| `GET` | `/api/v1/alerts/package?level=BEGINNER` | Paquete del nivel (sin `level`, el nivel por defecto del catálogo), con `ETag` y 304 |
+
+### Simulador de alertas
+
+Con `scripts/alert_simulator.py` veo qué alerta suena en cada curva, en qué segundo y cuántas por nivel, sin Unity:
+
+```bash
+.venv/Scripts/python scripts/alert_simulator.py --phrases          # curvas de prueba del repositorio
+.venv/Scripts/python scripts/alert_simulator.py --csv curva.csv    # curvas propias, una fila por segundo
+.venv/Scripts/python scripts/alert_simulator.py --catalog copia.json --summary   # probar umbrales
+```
+
+Las curvas de prueba (`eval/alerts/curves.json`) salen del simulador del frontend, sin modificar su física. Con ellas genero los vectores de conformidad (`eval/alerts/conformance.json`, con `python -m app.alerts.conformance`) que Unity usa para comprobar su evaluador en C#; un test falla si el catálogo cambia y no los regenero.
+
+Afiné los umbrales con 80 curvas reales (10 granos distintos por escenario). Alertas por tueste en la revisión 2:
+
+| Curva | BEGINNER | INTERMEDIATE | ADVANCED |
+|---|---|---|---|
+| Buena | 5 | 5 | 2 |
+| Quemada | 8–10 | 8–10 | 5–7 |
+| Horneada | 7–8 | 7–8 | 4–5 |
+| Cruda | 1 | 1 | 0 |
+| Con caída | 6 | 6 | 3 |
+| Carga baja | 6 | 6 | 3 |
+| Sobredesarrollada | 7 | 7 | 4 |
+
+Dos ajustes salieron de esas curvas: en el simulador la pantalla salta del aire al grano al cargar, así que la subida de las alertas empieza de nuevo en la carga (antes marcaba un estancamiento falso a los 13 s en todos los tuestes); y la subida rápida del secado avisa desde 25 °C/min, porque un tueste normal llega como máximo a 21.
+
+### Observación pendiente
+
+Después del primer crack el resultado es muy sensible al gas: con el 25 % el tueste sale bien, con el 30 % el grano llega a 216–220 °C y con el 15 % se enfría hasta quedar crudo. Lo anoto para revisarlo con la física del simulador; en esta fase no la cambié.
 
 ## Servidor Ubuntu
 

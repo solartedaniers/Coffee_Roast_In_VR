@@ -11,16 +11,6 @@ class ChunkFilter(Protocol):
     def apply(self, chunks: Sequence[ScoredChunk]) -> list[ScoredChunk]: ...
 
 
-class MinimumSimilarityFilter:
-    """Descarta los fragmentos con similitud coseno por debajo del umbral."""
-
-    def __init__(self, min_similarity: float):
-        self.min_similarity = min_similarity
-
-    def apply(self, chunks: Sequence[ScoredChunk]) -> list[ScoredChunk]:
-        return [chunk for chunk in chunks if chunk.score >= self.min_similarity]
-
-
 class DuplicateTextFilter:
     """Deja solo la primera aparición de cada texto, sin distinguir espacios ni mayúsculas."""
 

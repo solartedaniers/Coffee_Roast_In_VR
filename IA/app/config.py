@@ -68,7 +68,6 @@ class Settings(BaseSettings):
     # Una línea que aparece en esta fracción de las páginas de un PDF se trata como encabezado.
     rag_repeated_line_page_ratio: float = Field(default=0.5, gt=0, le=1)
     # Filtros sobre lo recuperado. 0 (o false) los deja apagados.
-    rag_min_similarity: float = Field(default=0.0, ge=0, le=1)
     rag_deduplicate_chunks: bool = False
     rag_max_chunks_per_page: int = Field(default=0, ge=0)
     # Candidatos que se piden antes de filtrar, para que queden top_k después de los filtros.

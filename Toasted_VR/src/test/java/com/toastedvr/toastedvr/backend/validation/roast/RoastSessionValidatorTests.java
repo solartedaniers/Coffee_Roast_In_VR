@@ -104,11 +104,11 @@ class RoastSessionValidatorTests {
             Arguments.of("bajo el techo de crudo", (Consumer<Session>) s -> s.finalTemperature = 170.0,
                 "No se guardó la sesión: el resultado Perfecto no es posible con una temperatura final de 170 °C (menor que 186 °C)."),
             Arguments.of("sobre el techo de quemado", (Consumer<Session>) s -> {
-                s.finalTemperature = 219.0;
-                s.peakTemperature = 220.0;
+                s.finalTemperature = 221.0;
+                s.peakTemperature = 222.0;
                 s.result = RoastingResult.BAKED;
                 s.qualityScore = 30;
-            }, "No se guardó la sesión: el resultado Horneado no es posible con una temperatura final de 219 °C (mayor que 217 °C)."),
+            }, "No se guardó la sesión: el resultado Horneado no es posible con una temperatura máxima de 222 °C (mayor que 220 °C)."),
             Arguments.of("puntaje fuera de rango", (Consumer<Session>) s -> {
                 s.result = RoastingResult.BURNED;
                 s.qualityScore = 90;
@@ -161,12 +161,16 @@ class RoastSessionValidatorTests {
                 s.qualityScore = 5;
             }, RawTemperatureResultRule.RULE),
             rejected("C3: PERFECT sobre el techo de quemado", s -> {
-                s.finalTemperature = 217.1;
-                s.peakTemperature = 218.0;
+                s.finalTemperature = 220.1;
+                s.peakTemperature = 221.0;
+            }, BurnedTemperatureResultRule.RULE),
+            rejected("C3: PERFECT con pico sobre el techo y final enfriada debajo", s -> {
+                s.finalTemperature = 212.0;
+                s.peakTemperature = 220.5;
             }, BurnedTemperatureResultRule.RULE),
             rejected("C3: BAKED sobre el techo de quemado", s -> {
-                s.finalTemperature = 220.0;
-                s.peakTemperature = 221.0;
+                s.finalTemperature = 221.0;
+                s.peakTemperature = 222.0;
                 s.result = RoastingResult.BAKED;
                 s.qualityScore = 30;
             }, BurnedTemperatureResultRule.RULE),
@@ -212,7 +216,7 @@ class RoastSessionValidatorTests {
                 s.result = RoastingResult.RAW;
                 s.qualityScore = 46;
             }),
-            accepted("quemado por tiempo con final bajo el techo", s -> {
+            accepted("quemado por subida agresiva con final bajo el techo", s -> {
                 s.finalTemperature = 201.31;
                 s.peakTemperature = 201.31;
                 s.result = RoastingResult.BURNED;
@@ -227,8 +231,8 @@ class RoastSessionValidatorTests {
             }),
             accepted("PERFECT justo en el techo de crudo", s -> s.finalTemperature = 186.0),
             accepted("PERFECT justo en el techo de quemado", s -> {
-                s.finalTemperature = 217.0;
-                s.peakTemperature = 217.0;
+                s.finalTemperature = 220.0;
+                s.peakTemperature = 220.0;
             }),
             accepted("defecto con el puntaje mínimo", s -> {
                 s.result = RoastingResult.BAKED;

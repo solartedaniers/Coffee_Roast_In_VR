@@ -57,11 +57,13 @@ describe('escenarios reales compartidos con el backend', () => {
     fs.readFileSync(path.join(BACKEND_DIR, 'src/test/resources/roast-session-scenarios.json'), 'utf8')
   );
 
-  test('incluye desarrollo interrumpido, quemado por tiempo, horneado y cargas a 100, 264 y 300 °C', () => {
+  test('incluye desarrollo interrumpido, DTR 20 % sobre 200 °C, segundo crack, horneado y cargas a 100, 264 y 300 °C', () => {
     const names = scenarios.map((scenario) => scenario.name);
     expect(names).toEqual(expect.arrayContaining([
       'pipeline-interrupted-development',
-      'pipeline-charge-100-burned-by-time',
+      'pipeline-charge-100-dtr-20',
+      'burned-by-second-crack-at-ceiling',
+      'perfect-overdeveloped-above-200',
       'pipeline-baked',
       'pipeline-charge-100-perfect',
       'pipeline-charge-264-perfect',

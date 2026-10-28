@@ -239,20 +239,25 @@ export const SECOND_CRACK_TEMP_MAX_C = 228;
 
 // ---- Riesgo de quemado ------------------------------------------------
 
-// Zona de riesgo: a partir de aquí se cuenta el tiempo consecutivo
-// expuesto (regla de tiempo excesivo, ver BurnRiskMonitor).
+// Zona de alta temperatura para los efectos visuales (humo y termómetro
+// del horno) y mínimo de la alarma del equipo. Ya no califica: después
+// del first crack, el tiempo sobre 200°C lo controla el DTR.
 export const BURN_THRESHOLD_TEMP_C = 200;
-export const BURN_CONSECUTIVE_LIMIT_SEC = 15;
 
-// Techo absoluto de temperatura final: superarlo quema el lote de
-// inmediato al momento de evaluar, sin importar cuánto tiempo estuvo
-// ahí. Queda por encima de BURN_THRESHOLD_TEMP_C a propósito, para
-// permitir tuestes medios y medios-altos que pasan por los 200°C
-// brevemente sin penalizarlos injustamente.
-// Subido de 213 a 217 junto con el rango de first crack (arriba), para
-// preservar el mismo margen de ~15°C entre el tope de first crack y el
-// techo de quemado que existía antes del cambio.
-export const BURN_ABSOLUTE_CEILING_TEMP_C = 217;
+// Techo del tueste medio: si el grano pasa de aquí en algún momento, el
+// lote queda quemado. Fuente: manual de tostado p.10 (temperatura final
+// más alta del tueste "medio alto", 200-220°C) y tabla 2 del artículo de
+// Jama (finales de 220-221°C con Agtron 55-65). Coincide con el segundo
+// crack más temprano posible (224°C - 4°C por densidad).
+export const BURN_ABSOLUTE_CEILING_TEMP_C = 220;
+
+// Desde aquí se avisa que el grano se acerca al techo. Parámetro de
+// diseño del simulador.
+export const BURN_WARNING_TEMP_C = 215;
+
+// Más de estos segundos seguidos sobre el techo describen el quemado
+// como severo. Parámetro de diseño del simulador.
+export const BURN_SEVERE_SECONDS_ABOVE_CEILING = 15;
 
 // Condición combinada (sección 5 del modelo): un incremento de temperatura
 // demasiado agresivo mientras casi no queda humedad para amortiguarlo
@@ -288,6 +293,13 @@ export const AUTO_MODE_BASE_POWER_PCT = 10;
 export const AUTO_MODE_GAIN_PCT_PER_C = 8;
 export const AUTO_MODE_DAMPING_PCT_PER_C_PER_MIN = 1.2;
 export const AUTO_MODE_MAX_POWER_PCT = 30;
+
+// ---- Apariencia del grano ------------------------------------------------
+
+// Hasta aquí el grano se ve "oscuro" y desde aquí "segundo crack". Es solo
+// visual: se dejó en el valor del techo de quemado anterior para no cambiar
+// cómo se ve el grano al mover la regla de quemado a 220°C.
+export const GRAIN_DARK_STATE_MAX_TEMP_C = 217;
 
 // ---- Eje vertical de la gráfica ------------------------------------------
 
@@ -333,6 +345,8 @@ export const RAW_SCORE_MAX = 38;
 
 // ---- Evaluación: Quemado --------------------------------------------------
 
+// Parte de BURN_SCORE_BASE y resta por cada segundo seguido sobre el
+// techo de quemado. Parámetro de diseño del simulador.
 export const BURN_SCORE_BASE = 18;
 export const BURN_SCORE_PENALTY_PER_EXTRA_SEC = 0.4;
 
@@ -365,11 +379,13 @@ export const PERFECT_SCORE_MIN = 0;
 export const PERFECT_SCORE_MAX = 100;
 
 // Ratio de Desarrollo (DTR — Development Time Ratio): proporción del
-// tueste transcurrida después del first crack, estándar de la
-// industria del tueste. Dentro del rango ideal no hay penalización;
-// fuera de él, se penaliza proporcionalmente a cuánto se desvía.
-export const DTR_IDEAL_MIN_RATIO = 0.15;
-export const DTR_IDEAL_MAX_RATIO = 0.25;
+// tueste transcurrida después del first crack. El rango ideal 18-22 % es
+// el de la tesis para cafés de altura de Nariño (el mismo que usa el
+// servicio IA) y es igual para todos los niveles. Cada nivel suma su
+// tolerancia (KnowledgeLevelRules.dtrToleranceRatio) antes de penalizar;
+// fuera de esa franja se penaliza proporcionalmente a cuánto se desvía.
+export const DTR_IDEAL_MIN_RATIO = 0.18;
+export const DTR_IDEAL_MAX_RATIO = 0.22;
 export const DTR_PENALTY_PER_RATIO_POINT = 100;
 
 export const CRACK_SOUND_PATH = `${process.env.PUBLIC_URL}/assets/sounds/crack.mp3`;

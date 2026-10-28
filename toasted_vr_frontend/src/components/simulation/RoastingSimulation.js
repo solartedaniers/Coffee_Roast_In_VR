@@ -23,10 +23,7 @@ import {
   TARGET_TEMP_MAX_C,
   TARGET_TEMP_DEFAULT_C,
   FLAME_POWER_DEFAULT_PCT,
-  BURN_THRESHOLD_TEMP_C,
-  MAILLARD_TEMP_START_C,
-  MAILLARD_TEMP_END_C,
-  MAILLARD_STAGNATION_LIMIT_SEC,
+  BURN_WARNING_TEMP_C,
   CRACK_SOUND_PATH,
   SENSOR_CALIBRATION_DEFAULT_C,
   ALARM_LIMIT_DEFAULT_C,
@@ -43,6 +40,7 @@ import RoastMetrics from '../../domain/roasting/RoastMetrics';
 import FirstCrackDetector from '../../domain/roasting/FirstCrackDetector';
 import SecondCrackDetector from '../../domain/roasting/SecondCrackDetector';
 import BurnRiskMonitor from '../../domain/roasting/BurnRiskMonitor';
+import MaillardStagnationMonitor from '../../domain/roasting/MaillardStagnationMonitor';
 import RoastQualityEvaluator from '../../domain/roasting/RoastQualityEvaluator';
 import GrainAppearanceModel from '../../domain/roasting/GrainAppearanceModel';
 import KnowledgeLevelRules from '../../domain/roasting/KnowledgeLevelRules';
@@ -268,21 +266,17 @@ export default function RoastingSimulation({
       const scorchedByRateAndMoisture =
         prev.phase === PHASES.ROASTING &&
         BurnRiskMonitor.isScorchedByRateAndMoisture(rateOfRisePerMinute, newMoisturePct);
-      const newBurnedFlag =
-        prev.burnedFlag || BurnRiskMonitor.isBurned(newConsecutiveBurn) || scorchedByRateAndMoisture;
 
-      let newStagnationSecs = prev.maillardStagnationSeconds;
-      let newStagnationFlag = prev.maillardStagnationFlag;
-      if (prev.phase === PHASES.ROASTING) {
-        const inMaillard = newTemp >= MAILLARD_TEMP_START_C && newTemp <= MAILLARD_TEMP_END_C;
-        const tempDropped = newTemp <= prev.prevTemperature;
-        if (inMaillard && tempDropped) {
-          newStagnationSecs += 1;
-          if (newStagnationSecs >= MAILLARD_STAGNATION_LIMIT_SEC) newStagnationFlag = true;
-        } else if (inMaillard) {
-          newStagnationSecs = 0;
-        }
-      }
+      const newStagnationSecs =
+        prev.phase === PHASES.ROASTING
+          ? MaillardStagnationMonitor.computeNextSeconds(
+              prev.maillardStagnationSeconds,
+              newTemp,
+              prev.prevTemperature,
+              prev.firstCrackReached
+            )
+          : prev.maillardStagnationSeconds;
+      const newStagnationFlag = prev.maillardStagnationFlag || MaillardStagnationMonitor.isBaked(newStagnationSecs);
 
       const hitFirstCrack =
         prev.phase === PHASES.ROASTING &&
@@ -296,6 +290,10 @@ export default function RoastingSimulation({
         !prev.secondCrackReached &&
         prev.secondCrackThresholdTemp != null &&
         SecondCrackDetector.hasReachedSecondCrack(newTemp, prev.secondCrackThresholdTemp);
+      const newSecondCrackReached = prev.secondCrackReached || hitSecondCrack;
+
+      const newBurnedFlag =
+        prev.burnedFlag || BurnRiskMonitor.isBurned(newTemp, newSecondCrackReached) || scorchedByRateAndMoisture;
 
       const nextFlamePowerPercent =
         prev.operationMode === OPERATION_MODES.AUTO
@@ -335,7 +333,7 @@ export default function RoastingSimulation({
         maillardStagnationFlag: newStagnationFlag,
         firstCrackReached: prev.firstCrackReached || hitFirstCrack,
         firstCrackTimeSeconds: hitFirstCrack ? newRoastingElapsed : prev.firstCrackTimeSeconds,
-        secondCrackReached: prev.secondCrackReached || hitSecondCrack,
+        secondCrackReached: newSecondCrackReached,
         secondCrackTimeSeconds: hitSecondCrack ? newRoastingElapsed : prev.secondCrackTimeSeconds,
       };
     });
@@ -384,7 +382,7 @@ export default function RoastingSimulation({
     }
   }, [simState.secondCrackReached]);
 
-  // Quemado: aviso único al confirmarse la racha de 30 s sobre 200°C
+  // Quemado: aviso único al pasar del techo, llegar al segundo crack o subir agresivo con el grano seco
   useEffect(() => {
     if (simState.burnedFlag && !burnedFiredRef.current) {
       burnedFiredRef.current = true;
@@ -395,7 +393,7 @@ export default function RoastingSimulation({
 
   // Alarma de seguridad del equipo: se dispara cada vez que la temperatura
   // cruza el límite configurado por el operador, independiente de la
-  // regla fija de café quemado (BURN_THRESHOLD_TEMP_C, que nunca cambia).
+  // regla de café quemado (BURN_ABSOLUTE_CEILING_TEMP_C).
   useEffect(() => {
     // Durante PREHEAT/READY el grano todavía no está en el tambor (su
     // temperatura queda congelada en ambiente bajo el modelo nuevo), así
@@ -779,7 +777,7 @@ export default function RoastingSimulation({
           {texts.labels.alarmNotice}
         </div>
       )}
-      {s.phase === PHASES.ROASTING && s.temperature >= BURN_THRESHOLD_TEMP_C && !s.burnedFlag && (
+      {s.phase === PHASES.ROASTING && s.temperature >= BURN_WARNING_TEMP_C && !s.burnedFlag && (
         <div className="sim-burn-alert" role="alert" aria-live="polite">
           {texts.labels.burnAlert}
         </div>

@@ -4,7 +4,7 @@ import {
   FIRST_CRACK_TEMP_MIN_C,
   FIRST_CRACK_TEMP_MAX_C,
   SECOND_CRACK_TEMP_MAX_C,
-  BURN_ABSOLUTE_CEILING_TEMP_C,
+  GRAIN_DARK_STATE_MAX_TEMP_C,
   BURN_THRESHOLD_TEMP_C,
 } from './RoastConstants';
 
@@ -93,7 +93,7 @@ export default class GrainAppearanceModel {
     if (temperature <= MAILLARD_TEMP_START_C) return GRAIN_STATES.DRYING;
     if (!firstCrackReached) return GRAIN_STATES.MAILLARD;
     if (temperature <= FIRST_CRACK_TEMP_MAX_C) return GRAIN_STATES.FIRST_CRACK;
-    if (temperature <= BURN_ABSOLUTE_CEILING_TEMP_C) return GRAIN_STATES.DARK;
+    if (temperature <= GRAIN_DARK_STATE_MAX_TEMP_C) return GRAIN_STATES.DARK;
     if (temperature <= SECOND_CRACK_TEMP_MAX_C) return GRAIN_STATES.SECOND_CRACK;
     return GRAIN_STATES.BURNED;
   }

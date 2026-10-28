@@ -8,9 +8,10 @@ import java.util.Optional;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-// C3: por encima del techo de quemado, un grano que no quedó crudo está
-// quemado. Solo en esta dirección: se puede quemar por tiempo con una
-// temperatura final menor.
+// C3: si la temperatura máxima pasó del techo del tueste medio, un grano
+// que no quedó crudo está quemado, aunque después se haya enfriado. Solo en
+// esta dirección: el segundo crack o la subida agresiva con el grano seco
+// queman con una temperatura máxima menor.
 @Component
 @Order(8)
 public class BurnedTemperatureResultRule implements RoastSessionRule {
@@ -28,7 +29,7 @@ public class BurnedTemperatureResultRule implements RoastSessionRule {
     @Override
     public Optional<RoastSessionViolation> findViolation(SaveSessionRequest request) {
         RoastingResult result = request.result();
-        if (request.finalTemperature() <= properties.getBurnedTemperatureCeiling()
+        if (request.peakTemperature() <= properties.getBurnedTemperatureCeiling()
             || result == RoastingResult.RAW
             || result == RoastingResult.BURNED) {
             return Optional.empty();
@@ -36,7 +37,7 @@ public class BurnedTemperatureResultRule implements RoastSessionRule {
         return Optional.of(new RoastSessionViolation(RULE, messages.get(
             "roasting.session.rejected.aboveBurnedCeiling",
             RoastResultLabel.of(result, messages),
-            request.finalTemperature(),
+            request.peakTemperature(),
             properties.getBurnedTemperatureCeiling()
         )));
     }

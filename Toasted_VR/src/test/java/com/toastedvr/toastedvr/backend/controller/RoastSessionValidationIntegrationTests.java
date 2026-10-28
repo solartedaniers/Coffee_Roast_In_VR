@@ -202,7 +202,7 @@ class RoastSessionValidationIntegrationTests {
             Arguments.of("DEVELOPMENT_TIME_EXCEEDS_TOTAL", Map.of("developmentTimeSeconds", 900)),
             Arguments.of("RESULT_WITHOUT_FIRST_CRACK", Map.of("firstCrackReached", false)),
             Arguments.of("RESULT_BELOW_RAW_CEILING", Map.of("finalTemperature", 170.0)),
-            Arguments.of("RESULT_ABOVE_BURNED_CEILING", Map.of("finalTemperature", 219.0, "peakTemperature", 220.0)),
+            Arguments.of("RESULT_ABOVE_BURNED_CEILING", Map.of("finalTemperature", 215.0, "peakTemperature", 222.0)),
             Arguments.of("SCORE_OUT_OF_RANGE_FOR_RESULT", Map.of("result", "RAW", "qualityScore", 95))
         );
     }

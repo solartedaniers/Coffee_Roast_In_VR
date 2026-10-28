@@ -20,6 +20,10 @@ def test_keeps_the_ollama_generation_defaults(settings):
     assert settings.ollama_num_predict == 240
 
 
+def test_answers_the_alert_package_before_the_backend_stops_waiting(settings):
+    assert settings.alerts_package_timeout_millis == 20_000
+
+
 def test_keeps_the_rag_defaults(settings):
     assert settings.rag_top_k == 4
     assert settings.rag_chunk_size_chars == 700

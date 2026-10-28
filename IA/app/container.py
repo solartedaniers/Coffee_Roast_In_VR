@@ -55,6 +55,7 @@ class Services:
     voice_warm_up_seconds: float = 0.0
     # Paquete de alertas proactivas; usa la misma voz y el mismo caché de frases del asistente.
     alerts: AlertPackageBuilder | None = None
+    alerts_package_timeout_seconds: float = 0.0
 
 
 def seconds(millis: int) -> float:
@@ -156,4 +157,5 @@ def build_services(settings: Settings) -> Services:
     alerts = AlertPackageBuilder(AlertCatalog.from_file(settings.alerts_catalog_file), voice.pipeline.phrases)
     return Services(feedback, ingestion, cache, schema, voice=voice, voice_schema=VoiceSchema(database),
                     voice_messages=voice.messages, voice_max_audio_bytes=settings.voice_max_audio_bytes,
-                    voice_warm_up_seconds=seconds(settings.voice_total_timeout_millis), alerts=alerts)
+                    voice_warm_up_seconds=seconds(settings.voice_total_timeout_millis), alerts=alerts,
+                    alerts_package_timeout_seconds=seconds(settings.alerts_package_timeout_millis))

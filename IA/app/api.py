@@ -3,12 +3,15 @@ import logging
 import threading
 from contextlib import asynccontextmanager
 
-from fastapi import APIRouter, FastAPI, File, Form, Request, UploadFile, status
+from fastapi import APIRouter, FastAPI, File, Form, Header, Request, Response, UploadFile, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 
+from app.alerts.package import etag_matches
 from app.container import Services
+from app.domain import KnowledgeLevel
+from app.voice.deadline import Deadline
 from app.contracts import FeedbackResponse, RagIngestionSummaryResponse, RoastFeedbackRequest
 from app.voice.contracts import VoiceAnswerResponse, VoiceErrorResponse, VoiceQuestionContext
 from app.voice.errors import VoiceErrorCode, VoiceRequestError
@@ -46,6 +49,19 @@ def build_router(services: Services) -> APIRouter:
             # Se lee un byte de más para saber si se pasó del límite sin cargar archivos enormes.
             wav = audio.file.read(max_audio_bytes + 1)
             return to_response(voice.ask(question_context, wav))
+
+    if services.alerts is not None:
+        alerts, package_seconds = services.alerts, services.alerts_package_timeout_seconds
+
+        # Lo llama el backend desde GET /api/v1/roasting/assistant/alerts con el nivel del jugador.
+        @router.get("/alerts/package")
+        def alert_package(level: KnowledgeLevel | None = None,
+                          if_none_match: str | None = Header(default=None)) -> Response:
+            package = alerts.build(level, Deadline(package_seconds))
+            headers = {"ETag": package.etag}
+            if etag_matches(if_none_match, package.etag):
+                return Response(status_code=status.HTTP_304_NOT_MODIFIED, headers=headers)
+            return Response(content=package.body, media_type="application/json", headers=headers)
 
     return router
 

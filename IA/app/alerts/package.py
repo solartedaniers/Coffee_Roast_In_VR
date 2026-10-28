@@ -15,6 +15,18 @@ RULE_FIELDS = {"id", "priority", "when", "sustain_seconds", "rearm_when", "coold
                "requires_quiet_seconds"}
 
 
+ANY_ETAG = "*"
+WEAK_PREFIX = "W/"
+
+
+def etag_matches(if_none_match: str | None, etag: str) -> bool:
+    """If-None-Match puede traer varias etiquetas separadas por comas, débiles (W/) o un asterisco."""
+    if not if_none_match:
+        return False
+    candidates = {tag.strip().removeprefix(WEAK_PREFIX) for tag in if_none_match.split(",")}
+    return ANY_ETAG in candidates or etag in candidates
+
+
 @dataclass(frozen=True)
 class AlertPackage:
     body: bytes

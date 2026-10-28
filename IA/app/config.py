@@ -54,9 +54,6 @@ class Settings(BaseSettings):
     rag_embedding_model: str = "nomic-embed-text"
     rag_embedding_dimensions: int = Field(default=768, gt=0)
     rag_embedding_batch_size: int = Field(default=32, gt=0)
-    # Prefijo de tarea para los fragmentos al indexar (nomic-embed-text: "search_document: ").
-    # Cambiarlo exige reindexar: búsquedas e índice deben usar el mismo par de prefijos.
-    rag_document_prefix: str = ""
     rag_vector_table: str = "rag_document_chunks"
     rag_docs_dir: Path = SERVICE_ROOT / "rag-docs"
     # Título legible de cada PDF para las citas: {"archivo.pdf": "Título"}.

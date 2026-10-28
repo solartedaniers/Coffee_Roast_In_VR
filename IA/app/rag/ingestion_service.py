@@ -24,14 +24,13 @@ PDF_PATTERN = "*.pdf"
 
 class RagIngestionService:
     def __init__(self, database: Database, vector_table: str, docs_dir: Path, reader: PdfPageReader,
-                 splitter: TextSplitter, embeddings: OllamaEmbeddings, embedding_batch_size: int,
-                 document_prefix: str = ""):
+                 splitter: TextSplitter, embeddings: OllamaEmbeddings, embedding_batch_size: int):
         self.database = database
         self.vector_table = vector_table
         self.docs_dir = docs_dir
         self.reader = reader
         self.splitter = splitter
-        self.embedder = DocumentEmbedder(embeddings, embedding_batch_size, document_prefix)
+        self.embedder = DocumentEmbedder(embeddings, embedding_batch_size)
 
     def ingest_all(self) -> RagIngestionSummaryResponse:
         paths = sorted(self.docs_dir.glob(PDF_PATTERN)) if self.docs_dir.is_dir() else []

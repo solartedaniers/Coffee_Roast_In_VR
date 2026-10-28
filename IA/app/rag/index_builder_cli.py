@@ -1,7 +1,7 @@
 """Reindexa rag-docs/ en una tabla aparte de una base desechable, para medir variantes del RAG.
 
 Uso: python -m app.rag.index_builder_cli --table rag_chunks_bge_m3
-Toma el modelo, las dimensiones, el prefijo y la partición de la configuración (IA/.env y
+Toma el modelo, las dimensiones y la partición de la configuración (IA/.env y
 variables de entorno). Se niega a correr sobre una base que no termine en _test o _e2e y sobre la
 tabla que usa el servicio, para no tocar nunca el índice real.
 """
@@ -40,8 +40,7 @@ def main() -> None:
     except UnsafeTarget as error:
         sys.exit(str(error))
 
-    embedder = DocumentEmbedder(build_embeddings(settings, build_http(settings)), settings.rag_embedding_batch_size,
-                                settings.rag_document_prefix)
+    embedder = DocumentEmbedder(build_embeddings(settings, build_http(settings)), settings.rag_embedding_batch_size)
     builder = RagIndexBuilder(build_database(settings), PdfPageReader(), build_text_splitter(settings), embedder,
                               settings.rag_embedding_dimensions)
     catalog = PdfCatalog(settings.rag_docs_dir)

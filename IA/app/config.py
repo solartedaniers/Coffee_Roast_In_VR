@@ -7,6 +7,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 SERVICE_ROOT = Path(__file__).resolve().parents[1]
 SUPPORTED_FEEDBACK_PROVIDERS = frozenset({"groq", "ollama"})
+SUPPORTED_TRANSCRIPTION_PROVIDERS = frozenset({"groq", "azure"})
+SUPPORTED_SPEECH_PROVIDERS = frozenset({"azure", "piper"})
 
 
 class Settings(BaseSettings):
@@ -79,18 +81,107 @@ class Settings(BaseSettings):
 
     http_max_response_bytes: int = Field(default=1_048_576, gt=0)
 
+    # Asistente de voz. El audio de entrada es WAV PCM16 mono a esta frecuencia.
+    voice_input_sample_rate_hz: int = Field(default=16_000, gt=0)
+    voice_min_audio_millis: int = Field(default=300, gt=0)
+    voice_max_audio_seconds: int = Field(default=15, gt=0)
+    voice_max_audio_bytes: int = Field(default=600_000, gt=0)
+    voice_max_output_audio_bytes: int = Field(default=3_000_000, gt=0)
+    voice_max_concurrent_per_user: int = Field(default=1, gt=0)
+    voice_max_questions_per_minute: int = Field(default=6, gt=0)
+    # Debe ser menor que AI_SERVICE_VOICE_READ_TIMEOUT_MILLIS del backend.
+    voice_total_timeout_millis: int = Field(default=25_000, gt=0)
+    voice_messages_file: Path = SERVICE_ROOT / "config" / "voice_messages.json"
+    voice_silence_phrases_file: Path = SERVICE_ROOT / "config" / "whisper_silence_phrases.json"
+    voice_audio_cache_dir: Path = SERVICE_ROOT / "voice-cache"
+
+    voice_transcription_providers: str = "groq,azure"
+    groq_transcription_model: str = "whisper-large-v3-turbo"
+    groq_transcription_language: str = "es"
+    # Vocabulario para que Whisper escriba bien los términos del tueste (máximo 224 tokens).
+    groq_transcription_prompt: str = (
+        "Preguntas sobre el tueste de café: primer crack, first crack, temperatura de carga, "
+        "tiempo de desarrollo, reacción de Maillard, secado, tambor, gas.")
+    groq_transcription_read_timeout_millis: int = Field(default=8_000, gt=0)
+    voice_max_transcript_chars: int = Field(default=500, gt=0)
+
+    # Groq redacta la respuesta hablada; sin respaldo local para no esperar a phi4-mini.
+    voice_groq_model: str = "openai/gpt-oss-20b"
+    voice_groq_temperature: float = Field(default=0.2, ge=0)
+    voice_groq_max_completion_tokens: int = Field(default=700, gt=0)
+    voice_groq_reasoning_effort: str = "low"
+    voice_groq_read_timeout_millis: int = Field(default=10_000, gt=0)
+    voice_rag_top_k: int = Field(default=3, gt=0)
+    voice_history_turns: int = Field(default=2, ge=0)
+    voice_answer_max_sentences: int = Field(default=3, gt=0)
+    voice_answer_max_chars: int = Field(default=450, gt=0)
+    # Diferencia máxima entre una cifra de la respuesta y la de la evidencia (redondeos como 198.4 → 198).
+    voice_figure_tolerance: float = Field(default=0.5, ge=0)
+
+    azure_speech_key: SecretStr | None = None
+    azure_speech_region: str = Field(default="canadacentral", pattern=r"^[a-z0-9]+$")
+    azure_stt_url_template: str = (
+        "https://{region}.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1")
+    azure_stt_language: str = "es-CO"
+    azure_tts_url_template: str = "https://{region}.tts.speech.microsoft.com/cognitiveservices/v1"
+    azure_tts_voice: str = "es-CO-SalomeNeural"
+    azure_tts_language: str = "es-CO"
+    azure_tts_output_format: str = "riff-22050hz-16bit-mono-pcm"
+    azure_connect_timeout_millis: int = Field(default=3_000, gt=0)
+    azure_read_timeout_millis: int = Field(default=8_000, gt=0)
+    # La capa F0 trae 500 000 caracteres al mes; al llegar a este límite se usa Piper.
+    azure_tts_monthly_char_limit: int = Field(default=450_000, ge=0)
+
+    voice_speech_providers: str = "azure,piper"
+    # Rutas relativas a IA/; voice-runtime/ no se sube a git (ver README).
+    piper_executable: Path | None = Path("voice-runtime/piper/piper.exe")
+    piper_model: Path | None = Path("voice-runtime/voices/es_MX-claude-high.onnx")
+    piper_length_scale: float = Field(default=1.0, gt=0)
+    piper_timeout_millis: int = Field(default=8_000, gt=0)
+
     @field_validator("feedback_providers")
     @classmethod
     def known_providers(cls, value: str) -> str:
-        names = [name.strip().lower() for name in value.split(",") if name.strip()]
-        unknown = [name for name in names if name not in SUPPORTED_FEEDBACK_PROVIDERS]
-        if not names or unknown or len(set(names)) != len(names):
-            raise ValueError(f"Invalid feedback provider chain: {value!r}")
-        return ",".join(names)
+        return provider_chain(value, SUPPORTED_FEEDBACK_PROVIDERS)
+
+    @field_validator("voice_transcription_providers")
+    @classmethod
+    def known_transcription_providers(cls, value: str) -> str:
+        return provider_chain(value, SUPPORTED_TRANSCRIPTION_PROVIDERS)
+
+    @field_validator("voice_speech_providers")
+    @classmethod
+    def known_speech_providers(cls, value: str) -> str:
+        return provider_chain(value, SUPPORTED_SPEECH_PROVIDERS)
 
     @property
     def feedback_provider_chain(self) -> list[str]:
         return self.feedback_providers.split(",")
+
+    @property
+    def transcription_provider_chain(self) -> list[str]:
+        return self.voice_transcription_providers.split(",")
+
+    @property
+    def speech_provider_chain(self) -> list[str]:
+        return self.voice_speech_providers.split(",")
+
+    @property
+    def azure_stt_url(self) -> str:
+        return self.azure_stt_url_template.format(region=self.azure_speech_region)
+
+    @property
+    def azure_tts_url(self) -> str:
+        return self.azure_tts_url_template.format(region=self.azure_speech_region)
+
+
+def provider_chain(value: str, supported: frozenset[str]) -> str:
+    """Normaliza una lista de proveedores separada por comas: sin vacíos, desconocidos ni repetidos."""
+    names = [name.strip().lower() for name in value.split(",") if name.strip()]
+    unknown = [name for name in names if name not in supported]
+    if not names or unknown or len(set(names)) != len(names):
+        raise ValueError(f"Invalid provider chain: {value!r}")
+    return ",".join(names)
 
 
 @lru_cache

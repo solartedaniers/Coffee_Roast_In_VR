@@ -1,0 +1,14 @@
+{
+  "description": "Frases que Whisper escribe cuando el audio es silencio o ruido. Se comparan sin mayúsculas, tildes ni puntuación y deben ocupar toda la transcripción.",
+  "patterns": [
+    "gracias por (ver|tu|su|vuestro) (el |este )?video",
+    "gracias por ver",
+    "gracias por su atencion",
+    "subtitulos? (realizados? )?por .*",
+    "subtitulado por .*",
+    "suscribete( al canal)?",
+    "amara ?org.*",
+    "musica",
+    "gracias"
+  ]
+}

@@ -10,6 +10,16 @@ public class AiServiceProperties {
     private int connectTimeoutMillis = 5_000;
     private int feedbackReadTimeoutMillis = 130_000;
     private int ingestionReadTimeoutMillis = 1_800_000;
+    // Mayor que VOICE_TOTAL_TIMEOUT_MILLIS del servicio IA (25 s), que corta antes.
+    private int voiceReadTimeoutMillis = 30_000;
+
+    public int getVoiceReadTimeoutMillis() {
+        return voiceReadTimeoutMillis;
+    }
+
+    public void setVoiceReadTimeoutMillis(int voiceReadTimeoutMillis) {
+        this.voiceReadTimeoutMillis = voiceReadTimeoutMillis;
+    }
 
     public String getBaseUrl() {
         return baseUrl;

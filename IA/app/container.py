@@ -31,6 +31,10 @@ from app.rag.pdf_text_cleaner import PdfTextCleaner
 from app.rag.sentence_splitter import CleaningTextSplitter, SentenceTextSplitter
 from app.rag.text_splitter import CharacterTextSplitter, TextSplitter
 from app.roast_reference import DevelopmentTimeRange
+from app.voice.assembly import build_voice, voice_base_urls
+from app.voice.messages import VoiceMessages
+from app.voice.schema import VoiceSchema
+from app.voice.service import VoiceAssistantService
 
 MILLIS_PER_SECOND = 1000
 
@@ -41,6 +45,12 @@ class Services:
     ingestion: RagIngestionService
     feedback_cache: FeedbackCache
     schema: RagSchema
+    # Asistente de voz; None en los tests que solo prueban la retroalimentación y la ingesta.
+    voice: VoiceAssistantService | None = None
+    voice_schema: VoiceSchema | None = None
+    voice_messages: VoiceMessages | None = None
+    voice_max_audio_bytes: int = 0
+    voice_warm_up_seconds: float = 0.0
 
 
 def seconds(millis: int) -> float:
@@ -70,7 +80,8 @@ def provider_configuration(settings: Settings) -> str:
 
 
 def build_http(settings: Settings) -> BoundedHttpClient:
-    return BoundedHttpClient([settings.groq_base_url, settings.ollama_base_url], settings.http_max_response_bytes)
+    return BoundedHttpClient([settings.groq_base_url, settings.ollama_base_url, *voice_base_urls(settings)],
+                             settings.http_max_response_bytes)
 
 
 def build_database(settings: Settings, read_only: bool = False) -> Database:
@@ -136,4 +147,8 @@ def build_services(settings: Settings) -> Services:
         settings.rag_embedding_batch_size,
     )
     schema = RagSchema(database, settings.rag_vector_table, settings.rag_embedding_dimensions)
-    return Services(feedback, ingestion, cache, schema)
+    voice = build_voice(settings, http, database, build_chunk_search(settings, database, embeddings),
+                        build_citations(settings))
+    return Services(feedback, ingestion, cache, schema, voice=voice, voice_schema=VoiceSchema(database),
+                    voice_messages=voice.messages, voice_max_audio_bytes=settings.voice_max_audio_bytes,
+                    voice_warm_up_seconds=seconds(settings.voice_total_timeout_millis))

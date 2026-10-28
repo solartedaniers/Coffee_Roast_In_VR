@@ -36,6 +36,14 @@
             starttls:
               enable: ${MAIL_SMTP_STARTTLS_ENABLE:true}
 
+    # Solo el asistente de voz recibe archivos (WAV de hasta 15 s, unos 480 KB). Se lee al
+    # entrar al controlador para que un archivo muy grande responda 413 y no un error genérico.
+    servlet:
+      multipart:
+        max-file-size: ${VOICE_UPLOAD_MAX_FILE_SIZE:1MB}
+        max-request-size: ${VOICE_UPLOAD_MAX_REQUEST_SIZE:2MB}
+        resolve-lazily: true
+
   app:
     cors:
       allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:3000}
@@ -47,6 +55,8 @@
       connect-timeout-millis: ${AI_SERVICE_CONNECT_TIMEOUT_MILLIS:5000}
       feedback-read-timeout-millis: ${AI_SERVICE_FEEDBACK_READ_TIMEOUT_MILLIS:130000}
       ingestion-read-timeout-millis: ${AI_SERVICE_INGESTION_READ_TIMEOUT_MILLIS:1800000}
+      # Pregunta por voz del asistente; debe ser mayor que VOICE_TOTAL_TIMEOUT_MILLIS del servicio IA.
+      voice-read-timeout-millis: ${AI_SERVICE_VOICE_READ_TIMEOUT_MILLIS:30000}
     jwt:
       # Sin valor por defecto: la aplicación no arranca si falta APP_JWT_SECRET.
       secret: ${APP_JWT_SECRET}

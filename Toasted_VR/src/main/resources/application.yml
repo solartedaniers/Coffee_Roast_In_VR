@@ -47,6 +47,8 @@
       connect-timeout-millis: ${AI_SERVICE_CONNECT_TIMEOUT_MILLIS:5000}
       feedback-read-timeout-millis: ${AI_SERVICE_FEEDBACK_READ_TIMEOUT_MILLIS:130000}
       ingestion-read-timeout-millis: ${AI_SERVICE_INGESTION_READ_TIMEOUT_MILLIS:1800000}
+      # Pregunta por voz del asistente; debe ser mayor que VOICE_TOTAL_TIMEOUT_MILLIS del servicio IA.
+      voice-read-timeout-millis: ${AI_SERVICE_VOICE_READ_TIMEOUT_MILLIS:30000}
     jwt:
       # Sin valor por defecto: la aplicación no arranca si falta APP_JWT_SECRET.
       secret: ${APP_JWT_SECRET}

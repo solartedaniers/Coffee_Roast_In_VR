@@ -21,6 +21,11 @@ public class AiServiceClientConfig {
         return buildRestClient(properties, properties.getIngestionReadTimeoutMillis());
     }
 
+    @Bean
+    public RestClient aiVoiceRestClient(AiServiceProperties properties) {
+        return buildRestClient(properties, properties.getVoiceReadTimeoutMillis());
+    }
+
     @SuppressWarnings("null")
     private static RestClient buildRestClient(AiServiceProperties properties, int readTimeoutMillis) {
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();

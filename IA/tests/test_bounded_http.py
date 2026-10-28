@@ -84,3 +84,46 @@ def test_reports_connection_failures():
 def test_normalizes_default_ports():
     assert origin_of("https://API.example.com/v1") == "https://api.example.com:443"
     assert origin_of("http://localhost:11434/") == "http://localhost:11434"
+
+
+def test_posts_a_multipart_file_and_reads_json():
+    seen = {}
+
+    def handler(request):
+        seen["type"] = request.headers["content-type"]
+        seen["body"] = request.content
+        return httpx.Response(200, json={"text": "hola"})
+
+    result = client_with(handler).post_multipart_json(
+        "https://api.example.com/v1/audio", {"language": "es"}, ("q.wav", b"RIFFdata", "audio/wav"),
+        {"Authorization": "Bearer x"}, TIMEOUT)
+
+    assert result == {"text": "hola"}
+    assert seen["type"].startswith("multipart/form-data")
+    assert b'name="language"' in seen["body"] and b"RIFFdata" in seen["body"]
+
+
+def test_posts_bytes_and_reads_bytes_with_their_own_limit():
+    def handler(request):
+        assert request.content == b"<speak/>"
+        return httpx.Response(200, content=b"x" * 2000)
+
+    data = client_with(handler, max_bytes=10).post_bytes(
+        "https://api.example.com/v1/tts", b"<speak/>", {}, TIMEOUT, max_response_bytes=5000)
+
+    assert data == b"x" * 2000
+
+
+def test_rejects_binary_responses_over_their_limit():
+    with pytest.raises(RemoteServiceError, match="too large"):
+        client_with(lambda request: httpx.Response(200, content=b"x" * 2000)).post_bytes(
+            "https://api.example.com/v1/tts", b"", {}, TIMEOUT, max_response_bytes=100)
+
+
+def test_applies_the_same_host_rules_to_every_kind_of_post():
+    client = client_with(lambda request: httpx.Response(200, content=b"{}"))
+
+    with pytest.raises(RemoteServiceError, match="not allowed"):
+        client.post_bytes("https://evil.example.com/tts", b"", {}, TIMEOUT, 100)
+    with pytest.raises(RemoteServiceError, match="not allowed"):
+        client.post_multipart_json("https://evil.example.com/a", {}, ("a", b"", "audio/wav"), {}, TIMEOUT)

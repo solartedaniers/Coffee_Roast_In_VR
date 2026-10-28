@@ -1,11 +1,18 @@
 from datetime import UTC, datetime
+from uuid import uuid4
 
 import pytest
 
+from app.rag.citations import Citation
+from app.voice.answer.prompt import ConversationTurn
+from app.voice.contracts import AnswerStatus
+from app.voice.history import VOICE_EXCHANGES_TABLE, VoiceExchange, VoiceExchangeRepository
 from app.voice.schema import VoiceSchema
 from app.voice.speech.quota import TTS_USAGE_TABLE, MonthlyCharacterQuota
 
 TEST_PROVIDER = "it-azure"
+# Ids que no existen en users, para borrar solo lo que crean estos tests.
+TEST_USER_ID = 990_001
 
 
 @pytest.fixture
@@ -14,6 +21,7 @@ def voice_schema(database):
     yield
     with database.transaction() as connection:
         connection.execute(f"DELETE FROM {TTS_USAGE_TABLE} WHERE provider = %s", (TEST_PROVIDER,))
+        connection.execute(f"DELETE FROM {VOICE_EXCHANGES_TABLE} WHERE user_id = %s", (TEST_USER_ID,))
 
 
 def quota(database, limit=100, month=1) -> MonthlyCharacterQuota:
@@ -49,3 +57,32 @@ def test_creating_the_tables_twice_changes_nothing(database, voice_schema):
     VoiceSchema(database).ensure()
 
     assert quota(database).used() == 10
+
+
+def exchange(attempt, question, answer, status=AnswerStatus.ANSWERED, user_id=TEST_USER_ID) -> VoiceExchange:
+    return VoiceExchange(user_id, attempt, question, answer, status, [Citation("a.pdf", 2, "Manual")],
+                         "groq", "groq", "azure", 1800)
+
+
+def test_keeps_the_latest_answered_turns_of_the_same_attempt_in_order(database, voice_schema):
+    repository = VoiceExchangeRepository(database)
+    attempt, other_attempt = uuid4(), uuid4()
+    for number in range(1, 4):
+        repository.save(exchange(attempt, f"pregunta {number}", f"respuesta {number}"))
+    repository.save(exchange(attempt, "sin evidencia", "No tengo esa información.", AnswerStatus.ABSTAINED))
+    repository.save(exchange(other_attempt, "otro tueste", "otra respuesta"))
+
+    turns = repository.recent_answered(TEST_USER_ID, attempt, 2)
+
+    assert turns == [ConversationTurn("pregunta 2", "respuesta 2"), ConversationTurn("pregunta 3", "respuesta 3")]
+
+
+def test_stores_the_citations_as_json(database, voice_schema):
+    attempt = uuid4()
+    VoiceExchangeRepository(database).save(exchange(attempt, "q", "a"))
+
+    with database.transaction() as connection:
+        row = connection.execute(f"SELECT citations::text, status FROM {VOICE_EXCHANGES_TABLE} "
+                                 "WHERE roast_attempt_id = %s", (attempt,)).fetchone()
+
+    assert row == ('[{"fileName": "a.pdf", "pageNumber": 2, "title": "Manual"}]', "ANSWERED")

@@ -18,13 +18,14 @@ from app.rag.chunk_filters import (
     MinimumSimilarityFilter,
     PageQuotaFilter,
 )
-from app.rag.chunk_search import ChunkSearch, SemanticChunkSearch
+from app.rag.chunk_search import ChunkSearch, SemanticChunkSearch, TranslatedChunkSearch
 from app.rag.context_retriever import RagContextRetriever
 from app.rag.database import Database
 from app.rag.embeddings import OllamaEmbeddings
 from app.rag.ingestion_service import RagIngestionService
 from app.rag.pdf_reader import PdfPageReader
 from app.rag.query_builder import RagQueryBuilder
+from app.rag.query_translator import QueryTranslator
 from app.rag.schema import RagSchema
 from app.rag.text_splitter import CharacterTextSplitter
 from app.roast_reference import DevelopmentTimeRange
@@ -84,9 +85,17 @@ def build_embeddings(settings: Settings, http: BoundedHttpClient) -> OllamaEmbed
 
 def build_chunk_search(settings: Settings, database: Database, embeddings: OllamaEmbeddings) -> ChunkSearch:
     """La misma búsqueda la usan la retroalimentación y la evaluación del RAG."""
-    search = SemanticChunkSearch(database, settings.rag_vector_table, embeddings, settings.rag_query_prefix)
+    search: ChunkSearch = SemanticChunkSearch(database, settings.rag_vector_table, embeddings,
+                                              settings.rag_query_prefix)
+    if settings.rag_query_translation_enabled:
+        search = TranslatedChunkSearch(search, build_query_translator(settings, build_http(settings)))
     filters = build_chunk_filters(settings)
     return FilteredChunkSearch(search, filters, settings.rag_candidate_pool) if filters else search
+
+
+def build_query_translator(settings: Settings, http: BoundedHttpClient) -> QueryTranslator:
+    return QueryTranslator(build_providers(settings, http)["groq"], settings.rag_query_translation_language,
+                           seconds(settings.groq_read_timeout_millis))
 
 
 def build_chunk_filters(settings: Settings) -> list[ChunkFilter]:

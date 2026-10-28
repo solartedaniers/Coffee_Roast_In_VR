@@ -6,6 +6,7 @@ from app.config import SERVICE_ROOT
 from app.domain import KnowledgeLevel
 from app.rag.citations import Citation, RetrievedPassage
 from app.voice.answer.groq import AnswerUnavailable, ModelAnswer
+from app.voice.answer.figures import SupportedFigures
 from app.voice.answer.grounding import AnswerGrounding, SpokenTextLimiter
 from app.voice.answer.prompt import ConversationTurn, VoiceAnswerPromptBuilder
 from app.voice.audio import WaveLimits, WaveValidator
@@ -97,7 +98,7 @@ def service(tmp_path, transcriber=None, answerer=None, history=None, retriever=N
         retriever=retriever or FakeRetriever(),
         prompt_builder=VoiceAnswerPromptBuilder(3),
         answerer=answerer or FakeAnswerer(),
-        grounding=AnswerGrounding(MESSAGES.abstention, SpokenTextLimiter(3, 450)),
+        grounding=AnswerGrounding(MESSAGES.abstention, SpokenTextLimiter(3, 450), SupportedFigures(0.5)),
         speech=speech,
         phrases=PhraseAudioCache(speech, tmp_path, "test-voice"),
         history=history if history is not None else FakeHistory(),

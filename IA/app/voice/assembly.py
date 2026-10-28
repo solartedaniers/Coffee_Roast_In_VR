@@ -7,6 +7,7 @@ from app.rag.chunk_search import ChunkSearch
 from app.rag.citations import CitationResolver
 from app.rag.database import Database
 from app.voice.answer.groq import GroqAnswerOptions, GroqVoiceAnswerer
+from app.voice.answer.figures import SupportedFigures
 from app.voice.answer.grounding import AnswerGrounding, SpokenTextLimiter
 from app.voice.answer.prompt import VoiceAnswerPromptBuilder
 from app.voice.answer.retriever import QuestionPassageRetriever
@@ -113,7 +114,8 @@ def build_voice(settings: Settings, http: BoundedHttpClient, database: Database,
             connect_timeout_seconds=seconds(settings.groq_connect_timeout_millis),
             read_timeout_seconds=seconds(settings.voice_groq_read_timeout_millis))),
         grounding=AnswerGrounding(messages.abstention, SpokenTextLimiter(settings.voice_answer_max_sentences,
-                                                                         settings.voice_answer_max_chars)),
+                                                                         settings.voice_answer_max_chars),
+                                  SupportedFigures(settings.voice_figure_tolerance)),
         speech=speech,
         phrases=PhraseAudioCache(speech, settings.voice_audio_cache_dir, voice_signature(settings)),
         history=VoiceExchangeRepository(database),

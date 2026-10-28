@@ -9,7 +9,8 @@ from dataclasses import dataclass
 
 from app.rag.citations import Citation
 from app.voice.answer.groq import ModelAnswer
-from app.voice.answer.prompt import AnswerPrompt
+from app.voice.answer.figures import SupportedFigures
+from app.voice.answer.prompt import ROAST_SOURCE_ID, AnswerPrompt
 from app.voice.contracts import AnswerStatus
 
 log = logging.getLogger(__name__)
@@ -56,9 +57,10 @@ class SpokenTextLimiter:
 
 
 class AnswerGrounding:
-    def __init__(self, abstention_text: str, limiter: SpokenTextLimiter):
+    def __init__(self, abstention_text: str, limiter: SpokenTextLimiter, figures: SupportedFigures):
         self.abstention_text = abstention_text
         self.limiter = limiter
+        self.figures = figures
 
     def ground(self, answer: ModelAnswer, prompt: AnswerPrompt) -> GroundedAnswer:
         if not answer.sufficient:
@@ -68,13 +70,21 @@ class AnswerGrounding:
         if not used or unknown:
             log.warning("Abstaining: the model cited %s, offered %s", used, sorted(prompt.evidence_ids))
             return self.abstain()
-        text = self.limiter.limit(answer.answer)
+        text = self.limiter.limit(self.figures.keep_supported(answer.answer, self._evidence(used, prompt)))
         if not text:
             return self.abstain()
         citations = list(dict.fromkeys(
             prompt.passages[source_id].citation for source_id in used
             if source_id in prompt.passages and prompt.passages[source_id].citation))
         return GroundedAnswer(AnswerStatus.ANSWERED, text, citations)
+
+    @staticmethod
+    def _evidence(used: list[str], prompt: AnswerPrompt) -> str:
+        """Texto del que pueden salir las cifras: lo citado y la pregunta del jugador."""
+        texts = [prompt.question, *(prompt.passages[source_id].text for source_id in used if source_id in prompt.passages)]
+        if ROAST_SOURCE_ID in used:
+            texts.append(prompt.state_text)
+        return "\n".join(texts)
 
     def abstain(self) -> GroundedAnswer:
         return GroundedAnswer(AnswerStatus.ABSTAINED, self.abstention_text, [])

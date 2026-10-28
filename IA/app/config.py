@@ -115,6 +115,8 @@ class Settings(BaseSettings):
     voice_history_turns: int = Field(default=2, ge=0)
     voice_answer_max_sentences: int = Field(default=3, gt=0)
     voice_answer_max_chars: int = Field(default=450, gt=0)
+    # Diferencia máxima entre una cifra de la respuesta y la de la evidencia (redondeos como 198.4 → 198).
+    voice_figure_tolerance: float = Field(default=0.5, ge=0)
 
     azure_speech_key: SecretStr | None = None
     azure_speech_region: str = Field(default="canadacentral", pattern=r"^[a-z0-9]+$")

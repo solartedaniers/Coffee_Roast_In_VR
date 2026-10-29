@@ -1,42 +1,42 @@
-# Toasted VR backend
+# Backend de Toasted VR
 
-## Docker and local LAN testing
+## Docker y pruebas en la red local
 
-The backend Compose file is an override for the repository's existing PostgreSQL Compose service. Run the commands below from `Toasted_VR`; they reuse the `toasted_vr_postgres` container, its Compose network, and its existing named volume. Never add `-v` to the `down` command because that option deletes Compose volumes.
+El archivo Compose del backend es un override del servicio de PostgreSQL que ya tiene el Compose del repositorio. Corro los comandos de abajo desde `Toasted_VR`; reutilizan el contenedor `toasted_vr_postgres`, su red de Compose y su volumen con nombre que ya existe. Nunca le agrego `-v` al comando `down`, porque esa opción borra los volúmenes de Compose.
 
-Copy `.env.example` to `.env` if needed, then set private values for `POSTGRES_PASSWORD`, `APP_JWT_SECRET`, `UNITY_CODE_HMAC_PEPPER`, and `UNITY_CODE_ENCRYPTION_KEY`. `POSTGRES_PASSWORD` must match the password used when the existing PostgreSQL volume was initialized.
+Si hace falta, copio `.env.example` a `.env` y pongo valores privados en `POSTGRES_PASSWORD`, `APP_JWT_SECRET`, `UNITY_CODE_HMAC_PEPPER` y `UNITY_CODE_ENCRYPTION_KEY`. `POSTGRES_PASSWORD` tiene que coincidir con la contraseña con la que se inicializó el volumen de PostgreSQL que ya existe.
 
-Start or rebuild the stack:
+Para levantar o reconstruir el stack:
 
 ```powershell
 docker compose --env-file .\.env -f ..\docker-compose.yml -f .\docker-compose.backend.yml up --build -d
 ```
 
-Follow backend logs:
+Para seguir los logs del backend:
 
 ```powershell
 docker compose --env-file .\.env -f ..\docker-compose.yml -f .\docker-compose.backend.yml logs -f backend
 ```
 
-Verify the public API documentation endpoint from the PC:
+Para verificar desde el PC el endpoint público de la documentación de la API:
 
 ```powershell
 Invoke-WebRequest -UseBasicParsing http://localhost:8081/v3/api-docs | Select-Object StatusCode
 ```
 
-Stop the stack without deleting database data:
+Para detener el stack sin borrar los datos de la base:
 
 ```powershell
 docker compose --env-file .\.env -f ..\docker-compose.yml -f .\docker-compose.backend.yml down
 ```
 
-Discover the PC's LAN IPv4 address:
+Para saber la dirección IPv4 del PC en la red local:
 
 ```powershell
 Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.IPAddress -notlike '127.*' -and $_.PrefixOrigin -ne 'WellKnown' } | Select-Object InterfaceAlias,IPAddress
 ```
 
-From another PowerShell-capable device on the same LAN, replace the placeholders with the PC address and a real Unity access code. PowerShell keeps the code in memory for this request and the command does not print it separately:
+Desde otro dispositivo de la misma red local que tenga PowerShell, reemplazo los marcadores por la dirección del PC y un código de acceso de Unity real. PowerShell guarda el código en memoria solo para esta petición y el comando no lo imprime aparte:
 
 ```powershell
 $pcAddress = '<PC_IPV4_ADDRESS>'
@@ -47,35 +47,35 @@ Write-Output "Unity login succeeded for $($loginResponse.user.username)."
 Remove-Variable unityCode,body,loginResponse
 ```
 
-Configure the Meta Quest Unity client to call:
+Configuro el cliente de Unity del Meta Quest para que llame a:
 
 ```text
 http://<PC_IPV4_ADDRESS>:8081/api/v1/auth/unity-login
 ```
 
-If Windows Firewall blocks LAN traffic, run this once from an elevated PowerShell prompt:
+Si el Firewall de Windows bloquea el tráfico de la red local, corro esto una vez desde un PowerShell con permisos de administrador:
 
 ```powershell
 New-NetFirewallRule -DisplayName 'Toasted VR backend 8081' -Direction Inbound -Protocol TCP -LocalPort 8081 -Action Allow
 ```
 
-## Full stack (database + backend + frontend) with one command
+## Stack completo (base de datos + backend + frontend) con un solo comando
 
-The frontend has its own Compose override (`toasted_vr_frontend/docker-compose.frontend.yml`) that builds and serves it with nginx. The AI service (`IA/`, feedback + RAG) and Ollama intentionally stay outside all containers and keep running on the host; the backend reaches the AI service through `host.docker.internal` (`DOCKER_AI_SERVICE_BASE_URL`), unaffected by the frontend addition.
+El frontend tiene su propio override de Compose (`toasted_vr_frontend/docker-compose.frontend.yml`) que lo construye y lo sirve con nginx. El servicio IA (`IA/`, retroalimentación + RAG) y Ollama se quedan a propósito fuera de todos los contenedores y siguen corriendo en el host; el backend llega al servicio IA por `host.docker.internal` (`DOCKER_AI_SERVICE_BASE_URL`), y agregar el frontend no cambia eso.
 
-Run this from the repository root (not from `Toasted_VR`):
+Esto lo corro desde la raíz del repositorio (no desde `Toasted_VR`):
 
 ```powershell
 docker compose --env-file .\Toasted_VR\.env -f .\docker-compose.yml -f .\Toasted_VR\docker-compose.backend.yml -f .\toasted_vr_frontend\docker-compose.frontend.yml up --build -d
 ```
 
-Stop the full stack without deleting database data:
+Para detener el stack completo sin borrar los datos de la base:
 
 ```powershell
 docker compose --env-file .\Toasted_VR\.env -f .\docker-compose.yml -f .\Toasted_VR\docker-compose.backend.yml -f .\toasted_vr_frontend\docker-compose.frontend.yml down
 ```
 
-The frontend is served on `http://localhost:3000`. Its `REACT_APP_API_BASE_URL` is resolved at container startup, not baked in at build time: the image is built once with a placeholder, and `toasted_vr_frontend/entrypoint.sh` substitutes it for the real value on every container start. To point the frontend at a different backend URL (e.g. the PC's LAN IPv4 address for a Meta Quest build), set `REACT_APP_API_BASE_URL` before bringing the stack up and recreate only the frontend container — no rebuild needed:
+El frontend queda en `http://localhost:3000`. Su `REACT_APP_API_BASE_URL` se resuelve al arrancar el contenedor, no queda fijo en el build: la imagen se construye una sola vez con un marcador y `toasted_vr_frontend/entrypoint.sh` lo reemplaza por el valor real cada vez que arranca el contenedor. Para apuntar el frontend a otra URL del backend (por ejemplo, la IPv4 del PC en la red local para un build del Meta Quest), defino `REACT_APP_API_BASE_URL` antes de levantar el stack y recreo solo el contenedor del frontend, sin reconstruir nada:
 
 ```powershell
 $env:REACT_APP_API_BASE_URL = 'http://<PC_IPV4_ADDRESS>:8081/api/v1'

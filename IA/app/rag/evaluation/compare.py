@@ -9,7 +9,6 @@ from pathlib import Path
 
 from app.rag.evaluation.__main__ import DEFAULT_RESULTS_DIR
 
-DIAGNOSIS_FILE = "diagnostico-indice.json"
 COLUMNS = ("hit@1", "hit@3", "hit@4", "hit@5", "MRR@10", "Δ MRR", "neg. con contexto", "repetidos", "p50 ms")
 GROUP_COLUMNS = ("preguntas", "hit@1", "hit@3", "hit@4", "hit@5", "MRR@10")
 GROUP_LABELS = {
@@ -61,14 +60,16 @@ def group_table(reports: list[dict]) -> str:
 
 
 def load_reports(paths: list[Path]) -> list[dict]:
-    return [json.loads(path.read_text(encoding="utf-8")) for path in paths]
+    # En eval/results/ también están el diagnóstico y la validación de la rúbrica: solo cuentan las mediciones del RAG.
+    reports = [json.loads(path.read_text(encoding="utf-8")) for path in paths]
+    return [report for report in reports if "player" in report.get("summary", {})]
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Compare saved RAG measurements")
     parser.add_argument("paths", nargs="*", type=Path)
     args = parser.parse_args()
-    paths = args.paths or sorted(path for path in DEFAULT_RESULTS_DIR.glob("*.json") if path.name != DIAGNOSIS_FILE)
+    paths = args.paths or sorted(DEFAULT_RESULTS_DIR.glob("*.json"))
     reports = load_reports(paths)
     print(markdown_table(reports))
     groups = group_table(reports)

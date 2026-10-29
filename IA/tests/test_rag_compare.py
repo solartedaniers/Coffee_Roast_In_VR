@@ -1,4 +1,6 @@
-from app.rag.evaluation.compare import group_table, markdown_table
+import json
+
+from app.rag.evaluation.compare import group_table, load_reports, markdown_table
 
 
 def report(label, mrr, negatives_with_context):
@@ -38,3 +40,11 @@ def test_separates_validated_and_draft_groups_only_for_measurements_that_have_th
         "validadas", "validadas + páginas en borrador", "preguntas en borrador", "total"]
     assert table[2] == "| frases | validadas | 25 | 0.20 | 0.40 | 0.50 | 0.60 | 0.400 |"
     assert group_table([report("vieja", 0.4, 5)]) == ""
+
+
+def test_skips_saved_files_that_are_not_rag_measurements(tmp_path):
+    measurement, rubric = tmp_path / "a.json", tmp_path / "evaluation.json"
+    measurement.write_text(json.dumps(report("base", 0.4, 5)), encoding="utf-8")
+    rubric.write_text(json.dumps({"summary": {"exact_agreement": 0.99}}), encoding="utf-8")
+
+    assert [r["label"] for r in load_reports([measurement, rubric])] == ["base"]

@@ -110,6 +110,11 @@ def build_citations(settings: Settings) -> CitationResolver:
                             settings.rag_citation_format)
 
 
+def build_ingestion(settings: Settings, database: Database, embeddings: OllamaEmbeddings) -> RagIngestionService:
+    return RagIngestionService(database, settings.rag_vector_table, settings.rag_docs_dir, PdfPageReader(),
+                               build_text_splitter(settings), embeddings, settings.rag_embedding_batch_size)
+
+
 def build_text_splitter(settings: Settings) -> TextSplitter:
     if settings.rag_text_splitter == "sentences":
         return CleaningTextSplitter(
@@ -162,11 +167,7 @@ def build_services(settings: Settings) -> Services:
         cache,
         provider_configuration(settings),
     )
-    ingestion = RagIngestionService(
-        database, settings.rag_vector_table, settings.rag_docs_dir, PdfPageReader(),
-        build_text_splitter(settings), embeddings,
-        settings.rag_embedding_batch_size,
-    )
+    ingestion = build_ingestion(settings, database, embeddings)
     schema = RagSchema(database, settings.rag_vector_table, settings.rag_embedding_dimensions)
     voice = build_voice(settings, http, database, build_chunk_search(settings, database, embeddings),
                         build_citations(settings))

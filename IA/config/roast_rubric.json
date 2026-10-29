@@ -29,7 +29,8 @@
     "alertReactedHigh": 90,
     "alertReactedMedium": 60,
     "alertReactedLow": 30,
-    "justificationMaxChars": 300
+    "justificationMaxChars": 300,
+    "justificationMinChars": 20
   },
   "alertReactions": {
     "DRYING_RISE_FAST": "LOWER_GAS",

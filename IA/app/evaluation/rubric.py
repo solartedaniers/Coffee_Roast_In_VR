@@ -62,6 +62,7 @@ class RubricParameters(RubricModel):
     alert_reacted_medium: float = Field(ge=0, le=100)
     alert_reacted_low: float = Field(ge=0, le=100)
     justification_max_chars: int = Field(gt=0)
+    justification_min_chars: int = Field(gt=0)
 
     @model_validator(mode="after")
     def ranges_are_ordered(self) -> "RubricParameters":
@@ -73,6 +74,7 @@ class RubricParameters(RubricModel):
             and self.first_crack_min_minutes < self.first_crack_max_minutes
             and self.gas_drop_quick_seconds <= self.gas_drop_late_seconds
             and self.alert_reacted_low <= self.alert_reacted_medium <= self.alert_reacted_high
+            and self.justification_min_chars < self.justification_max_chars
         )
         if not ordered:
             raise ValueError("Rubric parameters must keep their ranges in order")

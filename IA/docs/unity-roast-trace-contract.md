@@ -82,7 +82,7 @@ La respuesta del `POST` y de `GET /api/v1/roasting/sessions/{id}` trae tres camp
     "rulesWeight": 0.7,
     "aiWeight": 0.3,
     "defectCapApplied": false,
-    "rubricVersion": "draft-2026-10-29",
+    "rubricVersion": "draft-2026-10-30",
     "model": "openai/gpt-oss-120b",
     "criteria": [
       { "id": "DRYING_GAS", "level": 3, "maxLevel": 3, "justification": "..." }

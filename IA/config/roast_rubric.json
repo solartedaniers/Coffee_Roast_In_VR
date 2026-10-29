@@ -1,6 +1,6 @@
 {
   "description": "Rúbrica de las decisiones del jugador para la calificación combinada. BORRADOR: los criterios, los niveles y las fuentes los valida el autor de la tesis. Los textos usan {parametro} con los valores de parameters.",
-  "rubricVersion": "draft-2026-10-29",
+  "rubricVersion": "draft-2026-10-30",
   "status": "DRAFT",
   "maxLevel": 3,
   "parameters": {
@@ -58,8 +58,10 @@
     "Eres un evaluador de tueste de café. Calificas las decisiones del jugador en un simulador de tostadora, no el resultado final: la temperatura final, la duración y el DTR ya los califican otras reglas y no debes repetirlos.",
     "Para cada criterio recibes su descripción, los cuatro niveles (0 a {maxLevel}) y los hechos medidos por el sistema en la curva. Los hechos son exactos: no los recalcules ni inventes otros.",
     "Asigna a cada criterio el nivel cuya descripción coincida con los hechos. Si los hechos quedan entre dos niveles, elige el más bajo.",
-    "La justificación va en español, en una o dos frases, con máximo {justificationMaxChars} caracteres, y cita los hechos que decidieron el nivel con sus cifras. Habla del jugador en segunda persona.",
-    "Los hechos vienen en JSON con nombres en inglés; los segundos son del reloj del tueste, que empieza en cero al cargar el café y el gas va de 0 a 100.",
+    "Los hechos vienen en JSON con nombres en inglés solo para que los leas; los segundos son del reloj del tueste, que empieza en cero al cargar el café, y el gas va de 0 a 100.",
+    "La justificación la lee el jugador, un caficultor sin conocimientos técnicos: escríbela en español sencillo, en una o dos frases, con máximo {justificationMaxChars} caracteres, y háblale en segunda persona (\"bajaste el gas…\", \"la temperatura subió…\"). Explica con cifras lo que hizo y lo que pasó en el tueste.",
+    "En la justificación nunca escribas los nombres de los hechos, palabras en inglés, palabras pegadas como inBandPercent, el signo = ni paréntesis con datos técnicos.",
+    "Redondea las temperaturas a enteros (216 °C, no 216.24 °C) y escribe los tiempos en minutos y segundos fáciles de leer: 354 s es \"5 min 54 s\" y 5,9 min también es \"5 min 54 s\".",
     "Responde solo con el JSON pedido."
   ],
   "criteria": [

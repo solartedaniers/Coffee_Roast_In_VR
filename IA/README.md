@@ -130,51 +130,42 @@ Un hallazgo importante: el índice actual (1243 fragmentos) lo armó la versión
 
 ### Re-ingesta con los PDFs nuevos
 
-Con los 9 PDFs nuevos (16 en total) repetí la comparación sobre una copia desechable de la base, con el set ampliado: las 25 preguntas validadas, 18 preguntas nuevas en borrador (N01–N18) y 2 negativas en borrador. A 7 preguntas validadas les agregué en borrador páginas de los PDFs nuevos que también las responden.
+Con los 9 PDFs nuevos (16 en total) repetí la comparación sobre una copia desechable de la base, con el set ampliado a 43 preguntas de jugador y 7 negativas. A 7 de las preguntas de antes (P01, P02, P03, P05, P08, P22 y P25) les agregué páginas de los PDFs nuevos que también las responden.
 
-| Variante | hit@1 | hit@3 | hit@4 | hit@5 | MRR@10 | Δ MRR | neg. con contexto | repetidos | p50 ms |
-|---|---|---|---|---|---|---|---|---|---|
-| 19-control-indice-java-set-nuevo | 0.32 | 0.48 | 0.56 | 0.60 | 0.437 | +0.000 | 5/5 | 0 | 385 |
-| 20-reingesta-16-caracteres-700 | 0.16 | 0.32 | 0.36 | 0.36 | 0.280 | -0.157 | 5/5 | 0 | 379 |
-| 21-reingesta-16-frases-500 | 0.36 | 0.52 | 0.52 | 0.52 | 0.457 | +0.020 | 5/5 | 0 | 381 |
-| 22-indice-java-mas-9-nuevos-frases-500 | 0.32 | 0.48 | 0.56 | 0.56 | 0.433 | -0.004 | 5/5 | 0 | 400 |
+| Variante | hit@1 | hit@3 | hit@4 | hit@5 | MRR@10 | neg. con contexto | p50 ms |
+|---|---|---|---|---|---|---|---|
+| 19-control-indice-java-set-nuevo | 0.19 | 0.28 | 0.33 | 0.35 | 0.254 | 7/7 | 378 |
+| 20-reingesta-16-caracteres-700 | 0.12 | 0.26 | 0.30 | 0.30 | 0.219 | 7/7 | 381 |
+| 21-reingesta-16-frases-500 | 0.26 | 0.40 | 0.42 | 0.42 | 0.344 | 7/7 | 382 |
+| 22-indice-java-mas-9-nuevos-frases-500 | 0.23 | 0.40 | 0.44 | 0.44 | 0.329 | 7/7 | 403 |
 
-- **19:** el índice actual (Java, 7 PDFs) con el set nuevo. Da el mismo 0,437 de antes, así que el set ampliado no cambió la medición de las validadas.
-- **20:** los 16 PDFs con la partición actual por caracteres de 700 (1014 fragmentos).
+- **19:** el índice de Java de siempre (7 PDFs), sin los nuevos.
+- **20:** los 16 PDFs con la partición por caracteres de 700 (1014 fragmentos).
 - **21:** los 16 PDFs con la partición por frases de 500 (1231 fragmentos), limpiando además los nombres de glifo sueltos y los números de línea del manuscrito de Giacalone.
-- **22:** lo que haría la ingesta normal sin forzar: deja el índice de Java de los 7 PDFs viejos y agrega solo los 9 nuevos con frases de 500. Las validadas quedan en 0,433, las nuevas en 0,184 y el total en 0,329, por debajo de 21 en los tres.
+- **22:** lo que haría la ingesta normal sin forzar: deja el índice de Java de los 7 PDFs viejos y agrega solo los 9 nuevos con frases de 500.
 
-Por grupo de preguntas (las validadas son las de los 7 PDFs de antes; las nuevas, las de los 9 PDFs nuevos):
+Por grupo de PDFs de cada pregunta:
 
-| Variante | Grupo | preguntas | hit@1 | hit@3 | hit@4 | hit@5 | MRR@10 |
-|---|---|---|---|---|---|---|---|
-| 19 | validadas | 25 | 0.32 | 0.48 | 0.56 | 0.60 | 0.437 |
-| 19 | validadas + páginas en borrador | 25 | 0.32 | 0.48 | 0.56 | 0.60 | 0.437 |
-| 19 | nuevas en borrador | 18 | 0.00 | 0.00 | 0.00 | 0.00 | 0.000 |
-| 19 | total | 43 | 0.19 | 0.28 | 0.33 | 0.35 | 0.254 |
-| 20 | validadas | 25 | 0.16 | 0.32 | 0.36 | 0.36 | 0.280 |
-| 20 | validadas + páginas en borrador | 25 | 0.16 | 0.32 | 0.36 | 0.36 | 0.280 |
-| 20 | nuevas en borrador | 18 | 0.06 | 0.17 | 0.22 | 0.22 | 0.133 |
-| 20 | total | 43 | 0.12 | 0.26 | 0.30 | 0.30 | 0.219 |
-| 21 | validadas | 25 | 0.36 | 0.52 | 0.52 | 0.52 | 0.457 |
-| 21 | validadas + páginas en borrador | 25 | 0.36 | 0.52 | 0.52 | 0.52 | 0.457 |
-| 21 | nuevas en borrador | 18 | 0.11 | 0.22 | 0.28 | 0.28 | 0.188 |
-| 21 | total | 43 | 0.26 | 0.40 | 0.42 | 0.42 | 0.344 |
+| Variante | PDFs de antes (P01–P25) | PDFs nuevos en español (N12–N18) | PDFs nuevos en inglés (N01–N11) | Total (43) |
+|---|---|---|---|---|
+| 19 | 0.437 (hit@4 0.56) | 0.000 (hit@4 0.00) | 0.000 (hit@4 0.00) | 0.254 (hit@4 0.33) |
+| 20 | 0.280 (hit@4 0.36) | 0.342 (hit@4 0.57) | 0.000 (hit@4 0.00) | 0.219 (hit@4 0.30) |
+| 21 | 0.457 (hit@4 0.52) | 0.482 (hit@4 0.71) | 0.000 (hit@4 0.00) | 0.344 (hit@4 0.42) |
+| 22 | 0.433 (hit@4 0.56) | 0.473 (hit@4 0.71) | 0.000 (hit@4 0.00) | 0.329 (hit@4 0.44) |
 
-Las preguntas nuevas, separadas por el idioma del PDF que las responde:
+Las cifras son MRR@10. Me quedé con la 21, que es la que uso ahora por defecto (`RAG_TEXT_SPLITTER=sentences`, `RAG_CHUNK_SIZE_CHARS=500`): es la mejor en el total y en los dos grupos que se pueden recuperar. En los PDFs de antes sube de 0,437 a 0,457; en el hit@4 baja de 0,56 a 0,52, que es una sola pregunta y lo tomo como empate. La 22 es más barata de aplicar, pero queda por debajo de la 21 en los tres grupos, así que reingesté todo con `--force`.
 
-| Variante | Grupo | preguntas | hit@1 | hit@3 | hit@4 | hit@5 | MRR@10 |
-|---|---|---|---|---|---|---|---|
-| 20 | PDF en inglés (N01–N11) | 11 | 0.00 | 0.00 | 0.00 | 0.00 | 0.000 |
-| 20 | PDF en español (N12–N18) | 7 | 0.14 | 0.43 | 0.57 | 0.57 | 0.342 |
-| 21 | PDF en inglés (N01–N11) | 11 | 0.00 | 0.00 | 0.00 | 0.00 | 0.000 |
-| 21 | PDF en español (N12–N18) | 7 | 0.29 | 0.57 | 0.71 | 0.71 | 0.482 |
+### Limitación: los PDFs en inglés
 
-Lo que muestran:
+El buscador casi no encuentra los PDFs en inglés cuando la pregunta es en español. En la variante 21 las 11 preguntas que se responden con Münchow, Yang, Vakaryk, Giacalone o Campo-Ceballos sacan 0,000 de MRR, mientras que las 7 de los PDFs nuevos en español sacan 0,482. De los 540 fragmentos que devolvieron las 54 búsquedas, solo 6 son de los PDFs en inglés. Tampoco cuentan las páginas en inglés que les agregué a las preguntas de antes: el grupo P01–P25 da lo mismo con ellas o sin ellas.
 
-- La partición por frases de 500 sigue siendo la mejor con los 16 PDFs: sube las validadas de 0,437 a 0,457 y es la única que recupera bien las preguntas de los PDFs nuevos en español (0,482). La de caracteres baja a 0,280, igual que pasó en la fase 2 al reingestar con el lector de Python.
-- Ninguna pregunta en español llega a un PDF en inglés: en las 54 búsquedas, de 540 fragmentos recuperados solo 6 son de los PDFs en inglés. No es un problema del índice: las mismas preguntas hechas en inglés llegan a la página correcta de Yang, Münchow, Vakaryk y Campo-Ceballos. Es la limitación de `nomic-embed-text` entre idiomas que ya había medido con la traducción de la consulta (09). Por eso las páginas en borrador de las preguntas validadas, todas de PDFs en inglés, no cambian su nota.
-- En el hit@4 las validadas pasan de 0,56 a 0,52: es una sola pregunta, así que lo tomo como empate.
+No es un problema del índice. Las mismas preguntas hechas en inglés sí llegan a la página correcta de cada uno de esos PDFs. Es el límite de `nomic-embed-text` para relacionar textos de dos idiomas, que ya había medido al traducir la consulta (09).
+
+En la práctica:
+
+- **El asistente de voz y la retroalimentación se apoyan sobre todo en los PDFs en español** (los 7 de antes y los de Cenicafé, Ramos y Criollo y Gamboa). Ahí está casi todo lo que necesita un jugador.
+- **La rúbrica cita los PDFs en inglés de forma directa**, en el texto de cada criterio de `config/roast_rubric.json`, sin pasar por el buscador. Por ejemplo, el criterio del gas después del primer crack se apoya en Münchow et al. (2020).
+- Los PDFs en inglés quedan indexados igual, así que se aprovechan si el jugador pregunta en inglés o si más adelante cambio el modelo de embeddings.
 
 ## Asistente de voz
 

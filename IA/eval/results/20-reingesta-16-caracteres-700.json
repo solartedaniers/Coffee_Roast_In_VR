@@ -1,6 +1,6 @@
 {
   "label": "20-reingesta-16-caracteres-700",
-  "measured_at": "2026-10-29T15:06:48+00:00",
+  "measured_at": "2026-10-29T15:31:32+00:00",
   "configuration": {
     "rag_embedding_model": "nomic-embed-text",
     "rag_embedding_dimensions": 768,
@@ -21,12 +21,12 @@
   },
   "summary": {
     "player": {
-      "cases": 25,
-      "mrr_at_10": 0.2804,
-      "hit_at_1": 0.16,
-      "hit_at_3": 0.32,
-      "hit_at_4": 0.36,
-      "hit_at_5": 0.36,
+      "cases": 43,
+      "mrr_at_10": 0.2187,
+      "hit_at_1": 0.1163,
+      "hit_at_3": 0.2558,
+      "hit_at_4": 0.3023,
+      "hit_at_5": 0.3023,
       "misses_at_top_k": [
         "P01",
         "P02",
@@ -43,17 +43,31 @@
         "P22",
         "P23",
         "P24",
-        "P25"
+        "P25",
+        "N01",
+        "N02",
+        "N03",
+        "N04",
+        "N05",
+        "N06",
+        "N07",
+        "N08",
+        "N09",
+        "N10",
+        "N11",
+        "N12",
+        "N13",
+        "N17"
       ]
     },
     "groups": {
       "confirmed_with_draft_pages": {
-        "cases": 25,
-        "mrr_at_10": 0.2804,
-        "hit_at_1": 0.16,
-        "hit_at_3": 0.32,
-        "hit_at_4": 0.36,
-        "hit_at_5": 0.36,
+        "cases": 43,
+        "mrr_at_10": 0.2187,
+        "hit_at_1": 0.1163,
+        "hit_at_3": 0.2558,
+        "hit_at_4": 0.3023,
+        "hit_at_5": 0.3023,
         "misses_at_top_k": [
           "P01",
           "P02",
@@ -70,17 +84,7 @@
           "P22",
           "P23",
           "P24",
-          "P25"
-        ]
-      },
-      "draft_questions": {
-        "cases": 18,
-        "mrr_at_10": 0.1329,
-        "hit_at_1": 0.0556,
-        "hit_at_3": 0.1667,
-        "hit_at_4": 0.2222,
-        "hit_at_5": 0.2222,
-        "misses_at_top_k": [
+          "P25",
           "N01",
           "N02",
           "N03",
@@ -96,6 +100,15 @@
           "N13",
           "N17"
         ]
+      },
+      "draft_questions": {
+        "cases": 0,
+        "mrr_at_10": 0.0,
+        "hit_at_1": 0.0,
+        "hit_at_3": 0.0,
+        "hit_at_4": 0.0,
+        "hit_at_5": 0.0,
+        "misses_at_top_k": []
       },
       "total": {
         "cases": 43,
@@ -138,15 +151,77 @@
         ]
       }
     },
+    "by_group": {
+      "PDFs de antes (P01–P25)": {
+        "cases": 25,
+        "mrr_at_10": 0.2804,
+        "hit_at_1": 0.16,
+        "hit_at_3": 0.32,
+        "hit_at_4": 0.36,
+        "hit_at_5": 0.36,
+        "misses_at_top_k": [
+          "P01",
+          "P02",
+          "P03",
+          "P04",
+          "P09",
+          "P12",
+          "P14",
+          "P15",
+          "P17",
+          "P18",
+          "P19",
+          "P20",
+          "P22",
+          "P23",
+          "P24",
+          "P25"
+        ]
+      },
+      "PDFs nuevos en español (N12–N18)": {
+        "cases": 7,
+        "mrr_at_10": 0.3418,
+        "hit_at_1": 0.1429,
+        "hit_at_3": 0.4286,
+        "hit_at_4": 0.5714,
+        "hit_at_5": 0.5714,
+        "misses_at_top_k": [
+          "N12",
+          "N13",
+          "N17"
+        ]
+      },
+      "PDFs nuevos en inglés (N01–N11)": {
+        "cases": 11,
+        "mrr_at_10": 0.0,
+        "hit_at_1": 0.0,
+        "hit_at_3": 0.0,
+        "hit_at_4": 0.0,
+        "hit_at_5": 0.0,
+        "misses_at_top_k": [
+          "N01",
+          "N02",
+          "N03",
+          "N04",
+          "N05",
+          "N06",
+          "N07",
+          "N08",
+          "N09",
+          "N10",
+          "N11"
+        ]
+      }
+    },
     "negative": {
-      "cases": 5,
-      "cases_with_context": 5,
+      "cases": 7,
+      "cases_with_context": 7,
       "mean_returned": 4
     },
     "negative_draft": {
-      "cases": 2,
-      "cases_with_context": 2,
-      "mean_returned": 4
+      "cases": 0,
+      "cases_with_context": 0,
+      "mean_returned": 0.0
     },
     "session": {
       "cases": 4,
@@ -155,8 +230,8 @@
     },
     "repeated_texts_in_top_k": 0,
     "latency_ms": {
-      "p50": 379.4,
-      "max": 610.0
+      "p50": 380.6,
+      "max": 641.2
     }
   },
   "cases": [
@@ -164,7 +239,7 @@
       "case_id": "P01",
       "kind": "player",
       "first_relevant_rank": 8,
-      "latency_ms": 506.16,
+      "latency_ms": 641.23,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -194,7 +269,7 @@
         },
         {
           "file_name": "cafe-manual-de-tostado_1.pdf",
-          "page_number": 13,
+          "page_number": 3,
           "score": 0.700059,
           "preview": "calidad de una taza de café, que la bondad de la mezcla escogida. Este último punto es el más interesante des- de una óp"
         },
@@ -230,19 +305,20 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": 8
+      "first_relevant_rank_with_drafts": 8,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P02",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 362.89,
+      "latency_ms": 394.91,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
         {
           "file_name": "cafe-manual-de-tostado_1.pdf",
-          "page_number": 13,
+          "page_number": 3,
           "score": 0.70577,
           "preview": "calidad de una taza de café, que la bondad de la mezcla escogida. Este último punto es el más interesante des- de una óp"
         },
@@ -302,13 +378,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": null
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P03",
       "kind": "player",
       "first_relevant_rank": 10,
-      "latency_ms": 372.02,
+      "latency_ms": 389.79,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -374,13 +451,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": 10
+      "first_relevant_rank_with_drafts": 10,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P04",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 361.54,
+      "latency_ms": 379.64,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -446,13 +524,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": null
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P05",
       "kind": "player",
       "first_relevant_rank": 1,
-      "latency_ms": 364.23,
+      "latency_ms": 373.07,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -512,19 +591,20 @@
         },
         {
           "file_name": "admin,+arc073(01)e73102.pdf",
-          "page_number": 2,
-          "score": 0.602413,
-          "preview": "rrelacionado con el amargor, menores contenidos de estos compuestos se encuentran en tuestes más oscuros (Barbosa et al."
+          "page_number": 13,
+          "score": 0.60505,
+          "preview": "ésar Osorio. Al panel de catación de Cenicafé. De la Disciplina de Calidad a Paola Calderón y Wilson Vargas y el persona"
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": 1
+      "first_relevant_rank_with_drafts": 1,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P06",
       "kind": "player",
       "first_relevant_rank": 3,
-      "latency_ms": 359.11,
+      "latency_ms": 365.17,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -559,6 +639,12 @@
           "preview": "brio): Como todos los diferentes aspectos del sabor: sabor residual, la acidez y el cuerpo de la muestra trabajan juntos"
         },
         {
+          "file_name": "admin,+arc073(01)e73102.pdf",
+          "page_number": 13,
+          "score": 0.601051,
+          "preview": "ésar Osorio. Al panel de catación de Cenicafé. De la Disciplina de Calidad a Paola Calderón y Wilson Vargas y el persona"
+        },
+        {
           "file_name": "19458-Texto del artículo-88894-1-10-20250919.pdf",
           "page_number": 7,
           "score": 0.600457,
@@ -581,22 +667,17 @@
           "page_number": 5,
           "score": 0.593367,
           "preview": "ar su formación completa. GRUPO 1 GRUPO 2 Según la Resolución No.2 del Comité Nacional de Cafeteros 25/ IV/2016, los def"
-        },
-        {
-          "file_name": "local-puerta-2011-composicion-quimica-taza-cafe.pdf",
-          "page_number": 4,
-          "score": 0.592146,
-          "preview": "El café Arábica contiene menos ácidos grasos libres que el café Robusta, y en los granos almacenados hay más ácidos gras"
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": 3
+      "first_relevant_rank_with_drafts": 3,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P07",
       "kind": "player",
       "first_relevant_rank": 2,
-      "latency_ms": 448.72,
+      "latency_ms": 399.02,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -662,13 +743,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": 2
+      "first_relevant_rank_with_drafts": 2,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P08",
       "kind": "player",
       "first_relevant_rank": 3,
-      "latency_ms": 381.11,
+      "latency_ms": 525.54,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -734,13 +816,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": 3
+      "first_relevant_rank_with_drafts": 3,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P09",
       "kind": "player",
       "first_relevant_rank": 6,
-      "latency_ms": 361.11,
+      "latency_ms": 461.21,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -806,13 +889,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": 6
+      "first_relevant_rank_with_drafts": 6,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P10",
       "kind": "player",
       "first_relevant_rank": 1,
-      "latency_ms": 369.86,
+      "latency_ms": 397.96,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -878,13 +962,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": 1
+      "first_relevant_rank_with_drafts": 1,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P11",
       "kind": "player",
       "first_relevant_rank": 4,
-      "latency_ms": 358.15,
+      "latency_ms": 381.16,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -950,13 +1035,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": 4
+      "first_relevant_rank_with_drafts": 4,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P12",
       "kind": "player",
       "first_relevant_rank": 6,
-      "latency_ms": 399.91,
+      "latency_ms": 395.84,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -1022,13 +1108,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": 6
+      "first_relevant_rank_with_drafts": 6,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P13",
       "kind": "player",
       "first_relevant_rank": 1,
-      "latency_ms": 357.71,
+      "latency_ms": 376.97,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -1094,13 +1181,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": 1
+      "first_relevant_rank_with_drafts": 1,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P14",
       "kind": "player",
       "first_relevant_rank": 8,
-      "latency_ms": 372.68,
+      "latency_ms": 368.92,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -1166,13 +1254,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": 8
+      "first_relevant_rank_with_drafts": 8,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P15",
       "kind": "player",
       "first_relevant_rank": 6,
-      "latency_ms": 375.17,
+      "latency_ms": 375.47,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -1238,13 +1327,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": 6
+      "first_relevant_rank_with_drafts": 6,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P16",
       "kind": "player",
       "first_relevant_rank": 2,
-      "latency_ms": 417.11,
+      "latency_ms": 352.93,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -1310,13 +1400,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": 2
+      "first_relevant_rank_with_drafts": 2,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P17",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 371.73,
+      "latency_ms": 445.22,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -1382,13 +1473,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": null
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P18",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 372.16,
+      "latency_ms": 387.31,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -1400,7 +1492,7 @@
         },
         {
           "file_name": "cafe-manual-de-tostado_1.pdf",
-          "page_number": 13,
+          "page_number": 3,
           "score": 0.698482,
           "preview": "calidad de una taza de café, que la bondad de la mezcla escogida. Este último punto es el más interesante des- de una óp"
         },
@@ -1454,13 +1546,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": null
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P19",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 379.67,
+      "latency_ms": 363.64,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -1484,7 +1577,7 @@
         },
         {
           "file_name": "cafe-manual-de-tostado_1.pdf",
-          "page_number": 13,
+          "page_number": 3,
           "score": 0.698853,
           "preview": "calidad de una taza de café, que la bondad de la mezcla escogida. Este último punto es el más interesante des- de una óp"
         },
@@ -1526,13 +1619,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": null
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P20",
       "kind": "player",
       "first_relevant_rank": 7,
-      "latency_ms": 386.5,
+      "latency_ms": 379.7,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -1598,13 +1692,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": 7
+      "first_relevant_rank_with_drafts": 7,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P21",
       "kind": "player",
       "first_relevant_rank": 1,
-      "latency_ms": 383.23,
+      "latency_ms": 379.1,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -1670,13 +1765,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": 1
+      "first_relevant_rank_with_drafts": 1,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P22",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 375.44,
+      "latency_ms": 387.16,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -1742,13 +1838,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": null
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P23",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 378.69,
+      "latency_ms": 358.86,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -1814,13 +1911,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": null
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P24",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 363.98,
+      "latency_ms": 357.3,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -1880,13 +1978,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": null
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P25",
       "kind": "player",
       "first_relevant_rank": 10,
-      "latency_ms": 469.34,
+      "latency_ms": 373.36,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -1952,13 +2051,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": 10
+      "first_relevant_rank_with_drafts": 10,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "N01",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 404.78,
+      "latency_ms": 396.78,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -2023,14 +2123,15 @@
           "preview": "s químicas que desarrollan aromas, los cuales inician en los cereales y maní, hasta desarrollarse en un tueste medio los"
         }
       ],
-      "draft": true,
-      "first_relevant_rank_with_drafts": null
+      "draft": false,
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs nuevos en inglés (N01–N11)"
     },
     {
       "case_id": "N02",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 382.88,
+      "latency_ms": 427.57,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -2095,14 +2196,15 @@
           "preview": ". Los menores tiempos de tueste estuvieron en el tratamiento I-30 (230°C) con un promedio de 8,39 minutos y la variedad "
         }
       ],
-      "draft": true,
-      "first_relevant_rank_with_drafts": null
+      "draft": false,
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs nuevos en inglés (N01–N11)"
     },
     {
       "case_id": "N03",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 377.4,
+      "latency_ms": 371.35,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -2167,14 +2269,15 @@
           "preview": "de sabor, que imparten las cualidades sensoriales que se aprecian en la bebida (Figura 3). La tostación del café se real"
         }
       ],
-      "draft": true,
-      "first_relevant_rank_with_drafts": null
+      "draft": false,
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs nuevos en inglés (N01–N11)"
     },
     {
       "case_id": "N04",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 381.49,
+      "latency_ms": 375.69,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -2227,26 +2330,27 @@
           "preview": "maduros mientras el 33,0% reco- lectan granos maduros y sobre-maduros; para retirar la pulpa del grano, el 72,2% lo hace"
         },
         {
+          "file_name": "local-osorio-2021-calidad-del-cafe.pdf",
+          "page_number": 11,
+          "score": 0.632844,
+          "preview": "brio): Como todos los diferentes aspectos del sabor: sabor residual, la acidez y el cuerpo de la muestra trabajan juntos"
+        },
+        {
           "file_name": "local-ramos-criollo-2017-calidad-fisica-sensorial.pdf",
           "page_number": 4,
           "score": 0.630095,
           "preview": "por siembra), distancias de siembra, edad del cultivo, densidad de siembra, fertiliza - ción, presencia de plagas y enfe"
-        },
-        {
-          "file_name": "admin,+arc073(01)e73102.pdf",
-          "page_number": 4,
-          "score": 0.629491,
-          "preview": "o y fue definido por el color del grano 55-65 en la escala AGTRON/SCA, para garantizar el desarrollo completo del grano "
         }
       ],
-      "draft": true,
-      "first_relevant_rank_with_drafts": null
+      "draft": false,
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs nuevos en inglés (N01–N11)"
     },
     {
       "case_id": "N05",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 415.55,
+      "latency_ms": 407.29,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -2311,14 +2415,15 @@
           "preview": "Avances Técnicos 573 3 Figura 1. Curva de tueste. Figura 2. Defectos del proceso de tueste."
         }
       ],
-      "draft": true,
-      "first_relevant_rank_with_drafts": null
+      "draft": false,
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs nuevos en inglés (N01–N11)"
     },
     {
       "case_id": "N06",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 349.07,
+      "latency_ms": 377.91,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -2383,14 +2488,15 @@
           "preview": "Avances Técnicos 573 5 Figura 4. Promedio del tiempo del proceso tostado para seis variedades de café y cinco curvas de "
         }
       ],
-      "draft": true,
-      "first_relevant_rank_with_drafts": null
+      "draft": false,
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs nuevos en inglés (N01–N11)"
     },
     {
       "case_id": "N07",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 379.06,
+      "latency_ms": 437.37,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -2455,14 +2561,15 @@
           "preview": "las cualidades intrínsecas del café, generando los elementos necesarios para lograr su posicionamiento en el mercado de "
         }
       ],
-      "draft": true,
-      "first_relevant_rank_with_drafts": null
+      "draft": false,
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs nuevos en inglés (N01–N11)"
     },
     {
       "case_id": "N08",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 352.96,
+      "latency_ms": 392.98,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -2498,7 +2605,7 @@
         },
         {
           "file_name": "cafe-manual-de-tostado_1.pdf",
-          "page_number": 13,
+          "page_number": 3,
           "score": 0.717489,
           "preview": "calidad de una taza de café, que la bondad de la mezcla escogida. Este último punto es el más interesante des- de una óp"
         },
@@ -2527,14 +2634,15 @@
           "preview": "te en la calidad sensorial de seis variedades mejoradas de café: Cenicafé 1, Castillo® General, Castillo® Naranjal, Cast"
         }
       ],
-      "draft": true,
-      "first_relevant_rank_with_drafts": null
+      "draft": false,
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs nuevos en inglés (N01–N11)"
     },
     {
       "case_id": "N09",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 383.87,
+      "latency_ms": 409.96,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -2599,14 +2707,15 @@
           "preview": "tos de calidad y se genera en cierta medida por los ácidos carboxílicos alifáticos. El café verde de la especie arábica "
         }
       ],
-      "draft": true,
-      "first_relevant_rank_with_drafts": null
+      "draft": false,
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs nuevos en inglés (N01–N11)"
     },
     {
       "case_id": "N10",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 369.84,
+      "latency_ms": 383.06,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -2671,14 +2780,15 @@
           "preview": "e humedad entre el 10,0% y el 11,5%. Se realizó la trilla de café y una selección de la almendra sana, eliminando los de"
         }
       ],
-      "draft": true,
-      "first_relevant_rank_with_drafts": null
+      "draft": false,
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs nuevos en inglés (N01–N11)"
     },
     {
       "case_id": "N11",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 411.65,
+      "latency_ms": 379.2,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -2743,14 +2853,15 @@
           "preview": "mitent e Maduro óptimo Se guarda el café en la noche después de 35% Durante el secado y tiempos de reposo (noche) 50-35%"
         }
       ],
-      "draft": true,
-      "first_relevant_rank_with_drafts": null
+      "draft": false,
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs nuevos en inglés (N01–N11)"
     },
     {
       "case_id": "N12",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 425.17,
+      "latency_ms": 363.37,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -2815,14 +2926,15 @@
           "preview": "rvas de tueste por variedad, la curva base tuvo como temperatura inicial 200°C (CB), dos curvas con incrementos de tempe"
         }
       ],
-      "draft": true,
-      "first_relevant_rank_with_drafts": null
+      "draft": false,
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs nuevos en español (N12–N18)"
     },
     {
       "case_id": "N13",
       "kind": "player",
       "first_relevant_rank": 7,
-      "latency_ms": 383.79,
+      "latency_ms": 399.18,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -2887,14 +2999,15 @@
           "preview": "Cenicafé, 72(1) 2021 54 amargo del café con su contenido de cafeína, pero con poco éxito (Clarke & Macrae, 1985). De hec"
         }
       ],
-      "draft": true,
-      "first_relevant_rank_with_drafts": 7
+      "draft": false,
+      "first_relevant_rank_with_drafts": 7,
+      "group": "PDFs nuevos en español (N12–N18)"
     },
     {
       "case_id": "N14",
       "kind": "player",
       "first_relevant_rank": 2,
-      "latency_ms": 384.34,
+      "latency_ms": 383.93,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -2959,14 +3072,15 @@
           "preview": "]. Dadas estas condiciones, la Cooperativa de Caficultores del Occidente de Nariño Ltda (Cooccidente Ltda.) compra y com"
         }
       ],
-      "draft": true,
-      "first_relevant_rank_with_drafts": 2
+      "draft": false,
+      "first_relevant_rank_with_drafts": 2,
+      "group": "PDFs nuevos en español (N12–N18)"
     },
     {
       "case_id": "N15",
       "kind": "player",
       "first_relevant_rank": 1,
-      "latency_ms": 375.03,
+      "latency_ms": 376.04,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -3031,14 +3145,15 @@
           "preview": "Avances Técnicos 573 3 Figura 1. Curva de tueste. Figura 2. Defectos del proceso de tueste."
         }
       ],
-      "draft": true,
-      "first_relevant_rank_with_drafts": 1
+      "draft": false,
+      "first_relevant_rank_with_drafts": 1,
+      "group": "PDFs nuevos en español (N12–N18)"
     },
     {
       "case_id": "N16",
       "kind": "player",
       "first_relevant_rank": 2,
-      "latency_ms": 377.48,
+      "latency_ms": 372.63,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -3103,14 +3218,15 @@
           "preview": "stado. Se analizó el perfil sensorial del café tostado mediante catadores entrenados, siguiendo el protocolo de la Speci"
         }
       ],
-      "draft": true,
-      "first_relevant_rank_with_drafts": 2
+      "draft": false,
+      "first_relevant_rank_with_drafts": 2,
+      "group": "PDFs nuevos en español (N12–N18)"
     },
     {
       "case_id": "N17",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 391.66,
+      "latency_ms": 357.09,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -3175,14 +3291,15 @@
           "preview": "stado. Se analizó el perfil sensorial del café tostado mediante catadores entrenados, siguiendo el protocolo de la Speci"
         }
       ],
-      "draft": true,
-      "first_relevant_rank_with_drafts": null
+      "draft": false,
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs nuevos en español (N12–N18)"
     },
     {
       "case_id": "N18",
       "kind": "player",
       "first_relevant_rank": 4,
-      "latency_ms": 415.69,
+      "latency_ms": 380.0,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -3247,14 +3364,15 @@
           "preview": "Avances Técnicos 573 7 Figura 5. Efecto de variables del proceso de tueste en diferentes compuestos químicos. Familias c"
         }
       ],
-      "draft": true,
-      "first_relevant_rank_with_drafts": 4
+      "draft": false,
+      "first_relevant_rank_with_drafts": 4,
+      "group": "PDFs nuevos en español (N12–N18)"
     },
     {
       "case_id": "N1",
       "kind": "negative",
       "first_relevant_rank": null,
-      "latency_ms": 373.68,
+      "latency_ms": 378.72,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -3320,13 +3438,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": null
+      "first_relevant_rank_with_drafts": null,
+      "group": null
     },
     {
       "case_id": "N2",
       "kind": "negative",
       "first_relevant_rank": null,
-      "latency_ms": 385.87,
+      "latency_ms": 373.25,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -3392,13 +3511,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": null
+      "first_relevant_rank_with_drafts": null,
+      "group": null
     },
     {
       "case_id": "N3",
       "kind": "negative",
       "first_relevant_rank": null,
-      "latency_ms": 390.65,
+      "latency_ms": 367.72,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -3464,13 +3584,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": null
+      "first_relevant_rank_with_drafts": null,
+      "group": null
     },
     {
       "case_id": "N4",
       "kind": "negative",
       "first_relevant_rank": null,
-      "latency_ms": 374.43,
+      "latency_ms": 393.7,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -3536,13 +3657,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": null
+      "first_relevant_rank_with_drafts": null,
+      "group": null
     },
     {
       "case_id": "N5",
       "kind": "negative",
       "first_relevant_rank": null,
-      "latency_ms": 389.84,
+      "latency_ms": 341.46,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -3608,13 +3730,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": null
+      "first_relevant_rank_with_drafts": null,
+      "group": null
     },
     {
       "case_id": "NN1",
       "kind": "negative",
       "first_relevant_rank": null,
-      "latency_ms": 361.97,
+      "latency_ms": 359.52,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -3679,14 +3802,15 @@
           "preview": "a calidad del café (Osorio et al. 2022). El control adecuado del tueste es esencial para evitar defectos que alteran la "
         }
       ],
-      "draft": true,
-      "first_relevant_rank_with_drafts": null
+      "draft": false,
+      "first_relevant_rank_with_drafts": null,
+      "group": null
     },
     {
       "case_id": "NN2",
       "kind": "negative",
       "first_relevant_rank": null,
-      "latency_ms": 377.1,
+      "latency_ms": 394.05,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -3751,14 +3875,15 @@
           "preview": "LA CALIDAD DEL CAFÉ 233 Carbohidratos: Sacarosa Azúcares reductores (fructuosa, glucosa) Compuestos nitrogenados: Alcalo"
         }
       ],
-      "draft": true,
-      "first_relevant_rank_with_drafts": null
+      "draft": false,
+      "first_relevant_rank_with_drafts": null,
+      "group": null
     },
     {
       "case_id": "S-raw",
       "kind": "session",
       "first_relevant_rank": null,
-      "latency_ms": 500.13,
+      "latency_ms": 488.86,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -3824,13 +3949,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": null
+      "first_relevant_rank_with_drafts": null,
+      "group": null
     },
     {
       "case_id": "S-perfect",
       "kind": "session",
       "first_relevant_rank": null,
-      "latency_ms": 435.86,
+      "latency_ms": 425.21,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -3884,7 +4010,7 @@
         },
         {
           "file_name": "cafe-manual-de-tostado_1.pdf",
-          "page_number": 13,
+          "page_number": 3,
           "score": 0.713563,
           "preview": "Manual básico de buenas prácticas para el tostado del café 6 Manual básico de buenas prácticas para el tostado del café "
         },
@@ -3896,13 +4022,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": null
+      "first_relevant_rank_with_drafts": null,
+      "group": null
     },
     {
       "case_id": "S-baked",
       "kind": "session",
       "first_relevant_rank": null,
-      "latency_ms": 610.03,
+      "latency_ms": 609.43,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -3968,13 +4095,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": null
+      "first_relevant_rank_with_drafts": null,
+      "group": null
     },
     {
       "case_id": "S-burned",
       "kind": "session",
       "first_relevant_rank": null,
-      "latency_ms": 590.1,
+      "latency_ms": 628.65,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -4040,7 +4168,8 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": null
+      "first_relevant_rank_with_drafts": null,
+      "group": null
     }
   ]
 }

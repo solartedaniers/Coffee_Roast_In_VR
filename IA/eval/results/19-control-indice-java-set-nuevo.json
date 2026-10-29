@@ -1,6 +1,6 @@
 {
   "label": "19-control-indice-java-set-nuevo",
-  "measured_at": "2026-10-29T14:57:59+00:00",
+  "measured_at": "2026-10-29T15:32:44+00:00",
   "configuration": {
     "rag_embedding_model": "nomic-embed-text",
     "rag_embedding_dimensions": 768,
@@ -21,12 +21,12 @@
   },
   "summary": {
     "player": {
-      "cases": 25,
-      "mrr_at_10": 0.437,
-      "hit_at_1": 0.32,
-      "hit_at_3": 0.48,
-      "hit_at_4": 0.56,
-      "hit_at_5": 0.6,
+      "cases": 43,
+      "mrr_at_10": 0.2541,
+      "hit_at_1": 0.186,
+      "hit_at_3": 0.2791,
+      "hit_at_4": 0.3256,
+      "hit_at_5": 0.3488,
       "misses_at_top_k": [
         "P02",
         "P03",
@@ -38,17 +38,35 @@
         "P22",
         "P23",
         "P24",
-        "P25"
+        "P25",
+        "N01",
+        "N02",
+        "N03",
+        "N04",
+        "N05",
+        "N06",
+        "N07",
+        "N08",
+        "N09",
+        "N10",
+        "N11",
+        "N12",
+        "N13",
+        "N14",
+        "N15",
+        "N16",
+        "N17",
+        "N18"
       ]
     },
     "groups": {
       "confirmed_with_draft_pages": {
-        "cases": 25,
-        "mrr_at_10": 0.437,
-        "hit_at_1": 0.32,
-        "hit_at_3": 0.48,
-        "hit_at_4": 0.56,
-        "hit_at_5": 0.6,
+        "cases": 43,
+        "mrr_at_10": 0.2541,
+        "hit_at_1": 0.186,
+        "hit_at_3": 0.2791,
+        "hit_at_4": 0.3256,
+        "hit_at_5": 0.3488,
         "misses_at_top_k": [
           "P02",
           "P03",
@@ -60,17 +78,7 @@
           "P22",
           "P23",
           "P24",
-          "P25"
-        ]
-      },
-      "draft_questions": {
-        "cases": 18,
-        "mrr_at_10": 0.0,
-        "hit_at_1": 0.0,
-        "hit_at_3": 0.0,
-        "hit_at_4": 0.0,
-        "hit_at_5": 0.0,
-        "misses_at_top_k": [
+          "P25",
           "N01",
           "N02",
           "N03",
@@ -90,6 +98,15 @@
           "N17",
           "N18"
         ]
+      },
+      "draft_questions": {
+        "cases": 0,
+        "mrr_at_10": 0.0,
+        "hit_at_1": 0.0,
+        "hit_at_3": 0.0,
+        "hit_at_4": 0.0,
+        "hit_at_5": 0.0,
+        "misses_at_top_k": []
       },
       "total": {
         "cases": 43,
@@ -131,15 +148,76 @@
         ]
       }
     },
+    "by_group": {
+      "PDFs de antes (P01–P25)": {
+        "cases": 25,
+        "mrr_at_10": 0.437,
+        "hit_at_1": 0.32,
+        "hit_at_3": 0.48,
+        "hit_at_4": 0.56,
+        "hit_at_5": 0.6,
+        "misses_at_top_k": [
+          "P02",
+          "P03",
+          "P04",
+          "P15",
+          "P17",
+          "P19",
+          "P20",
+          "P22",
+          "P23",
+          "P24",
+          "P25"
+        ]
+      },
+      "PDFs nuevos en español (N12–N18)": {
+        "cases": 7,
+        "mrr_at_10": 0.0,
+        "hit_at_1": 0.0,
+        "hit_at_3": 0.0,
+        "hit_at_4": 0.0,
+        "hit_at_5": 0.0,
+        "misses_at_top_k": [
+          "N12",
+          "N13",
+          "N14",
+          "N15",
+          "N16",
+          "N17",
+          "N18"
+        ]
+      },
+      "PDFs nuevos en inglés (N01–N11)": {
+        "cases": 11,
+        "mrr_at_10": 0.0,
+        "hit_at_1": 0.0,
+        "hit_at_3": 0.0,
+        "hit_at_4": 0.0,
+        "hit_at_5": 0.0,
+        "misses_at_top_k": [
+          "N01",
+          "N02",
+          "N03",
+          "N04",
+          "N05",
+          "N06",
+          "N07",
+          "N08",
+          "N09",
+          "N10",
+          "N11"
+        ]
+      }
+    },
     "negative": {
-      "cases": 5,
-      "cases_with_context": 5,
+      "cases": 7,
+      "cases_with_context": 7,
       "mean_returned": 4
     },
     "negative_draft": {
-      "cases": 2,
-      "cases_with_context": 2,
-      "mean_returned": 4
+      "cases": 0,
+      "cases_with_context": 0,
+      "mean_returned": 0.0
     },
     "session": {
       "cases": 4,
@@ -148,8 +226,8 @@
     },
     "repeated_texts_in_top_k": 0,
     "latency_ms": {
-      "p50": 384.6,
-      "max": 3404.8
+      "p50": 378.1,
+      "max": 617.6
     }
   },
   "cases": [
@@ -157,7 +235,7 @@
       "case_id": "P01",
       "kind": "player",
       "first_relevant_rank": 2,
-      "latency_ms": 3404.76,
+      "latency_ms": 443.37,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -223,13 +301,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": 2
+      "first_relevant_rank_with_drafts": 2,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P02",
       "kind": "player",
       "first_relevant_rank": 8,
-      "latency_ms": 396.18,
+      "latency_ms": 382.11,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -295,13 +374,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": 8
+      "first_relevant_rank_with_drafts": 8,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P03",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 452.1,
+      "latency_ms": 394.53,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -349,13 +429,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": null
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P04",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 385.99,
+      "latency_ms": 364.89,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -421,13 +502,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": null
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P05",
       "kind": "player",
       "first_relevant_rank": 1,
-      "latency_ms": 358.43,
+      "latency_ms": 365.25,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -493,13 +575,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": 1
+      "first_relevant_rank_with_drafts": 1,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P06",
       "kind": "player",
       "first_relevant_rank": 1,
-      "latency_ms": 384.8,
+      "latency_ms": 349.89,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -565,13 +648,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": 1
+      "first_relevant_rank_with_drafts": 1,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P07",
       "kind": "player",
       "first_relevant_rank": 1,
-      "latency_ms": 419.28,
+      "latency_ms": 399.47,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -637,13 +721,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": 1
+      "first_relevant_rank_with_drafts": 1,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P08",
       "kind": "player",
       "first_relevant_rank": 1,
-      "latency_ms": 384.39,
+      "latency_ms": 449.14,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -709,13 +794,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": 1
+      "first_relevant_rank_with_drafts": 1,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P09",
       "kind": "player",
       "first_relevant_rank": 2,
-      "latency_ms": 371.81,
+      "latency_ms": 378.15,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -781,13 +867,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": 2
+      "first_relevant_rank_with_drafts": 2,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P10",
       "kind": "player",
       "first_relevant_rank": 2,
-      "latency_ms": 357.33,
+      "latency_ms": 375.26,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -847,13 +934,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": 2
+      "first_relevant_rank_with_drafts": 2,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P11",
       "kind": "player",
       "first_relevant_rank": 1,
-      "latency_ms": 359.88,
+      "latency_ms": 378.11,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -919,13 +1007,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": 1
+      "first_relevant_rank_with_drafts": 1,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P12",
       "kind": "player",
       "first_relevant_rank": 2,
-      "latency_ms": 382.76,
+      "latency_ms": 385.66,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -979,13 +1068,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": 2
+      "first_relevant_rank_with_drafts": 2,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P13",
       "kind": "player",
       "first_relevant_rank": 1,
-      "latency_ms": 380.65,
+      "latency_ms": 359.79,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -1051,13 +1141,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": 1
+      "first_relevant_rank_with_drafts": 1,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P14",
       "kind": "player",
       "first_relevant_rank": 4,
-      "latency_ms": 370.61,
+      "latency_ms": 359.55,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -1123,13 +1214,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": 4
+      "first_relevant_rank_with_drafts": 4,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P15",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 413.15,
+      "latency_ms": 394.15,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -1195,13 +1287,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": null
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P16",
       "kind": "player",
       "first_relevant_rank": 1,
-      "latency_ms": 345.68,
+      "latency_ms": 350.53,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -1267,13 +1360,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": 1
+      "first_relevant_rank_with_drafts": 1,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P17",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 374.35,
+      "latency_ms": 354.73,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -1339,13 +1433,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": null
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P18",
       "kind": "player",
       "first_relevant_rank": 4,
-      "latency_ms": 389.36,
+      "latency_ms": 361.71,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -1411,13 +1506,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": 4
+      "first_relevant_rank_with_drafts": 4,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P19",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 369.16,
+      "latency_ms": 366.98,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -1483,13 +1579,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": null
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P20",
       "kind": "player",
       "first_relevant_rank": 5,
-      "latency_ms": 374.69,
+      "latency_ms": 395.71,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -1555,13 +1652,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": 5
+      "first_relevant_rank_with_drafts": 5,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P21",
       "kind": "player",
       "first_relevant_rank": 1,
-      "latency_ms": 357.47,
+      "latency_ms": 372.17,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -1627,13 +1725,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": 1
+      "first_relevant_rank_with_drafts": 1,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P22",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 388.59,
+      "latency_ms": 368.96,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -1699,13 +1798,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": null
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P23",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 380.97,
+      "latency_ms": 375.06,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -1771,13 +1871,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": null
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P24",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 383.7,
+      "latency_ms": 398.38,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -1843,13 +1944,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": null
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "P25",
       "kind": "player",
       "first_relevant_rank": 10,
-      "latency_ms": 425.35,
+      "latency_ms": 422.75,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -1915,13 +2017,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": 10
+      "first_relevant_rank_with_drafts": 10,
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "case_id": "N01",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 378.69,
+      "latency_ms": 397.46,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -1986,14 +2089,15 @@
           "preview": "temperatura inicial de tueste para la fracción de grasos generados por el proceso de tostado. En ácidos grasos palmítico"
         }
       ],
-      "draft": true,
-      "first_relevant_rank_with_drafts": null
+      "draft": false,
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs nuevos en inglés (N01–N11)"
     },
     {
       "case_id": "N02",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 386.21,
+      "latency_ms": 389.28,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -2040,14 +2144,15 @@
           "preview": "tas diferencias han dado origen a la preferencia de ciertos grados o niveles de tueste, basados en el color o en ciertos"
         }
       ],
-      "draft": true,
-      "first_relevant_rank_with_drafts": null
+      "draft": false,
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs nuevos en inglés (N01–N11)"
     },
     {
       "case_id": "N03",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 400.78,
+      "latency_ms": 416.16,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -2112,14 +2217,15 @@
           "preview": "tueste, refeja la calidad del café que se originó"
         }
       ],
-      "draft": true,
-      "first_relevant_rank_with_drafts": null
+      "draft": false,
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs nuevos en inglés (N01–N11)"
     },
     {
       "case_id": "N04",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 367.69,
+      "latency_ms": 446.7,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -2172,14 +2278,15 @@
           "preview": "• Tener conocimiento de la materia prima o el café a tostar. Evaluación física (densidad). Dulzura XXX XX XX X X X"
         }
       ],
-      "draft": true,
-      "first_relevant_rank_with_drafts": null
+      "draft": false,
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs nuevos en inglés (N01–N11)"
     },
     {
       "case_id": "N05",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 383.86,
+      "latency_ms": 396.81,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -2232,14 +2339,15 @@
           "preview": "ligero dicha pérdida podría tener un valor del correlacionado con el amargor, menores 12% (Clarke & Macrae, 1985). En cu"
         }
       ],
-      "draft": true,
-      "first_relevant_rank_with_drafts": null
+      "draft": false,
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs nuevos en inglés (N01–N11)"
     },
     {
       "case_id": "N06",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 458.36,
+      "latency_ms": 392.12,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -2304,14 +2412,15 @@
           "preview": "de temperatura a 215°C (I-15) y 230°C (I-30), (Waters 600E); en el caso de los alcaloides y y dos curvas con disminución"
         }
       ],
-      "draft": true,
-      "first_relevant_rank_with_drafts": null
+      "draft": false,
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs nuevos en inglés (N01–N11)"
     },
     {
       "case_id": "N07",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 387.92,
+      "latency_ms": 380.24,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -2376,14 +2485,15 @@
           "preview": "de tueste permite la máxima expresión de la calidad del café, pero también puede ser Con el fin de verificar las relacio"
         }
       ],
-      "draft": true,
-      "first_relevant_rank_with_drafts": null
+      "draft": false,
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs nuevos en inglés (N01–N11)"
     },
     {
       "case_id": "N08",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 393.46,
+      "latency_ms": 377.52,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -2448,14 +2558,15 @@
           "preview": "tipo de café, el tueste debe ser especíﬁco para El tostado de café es una actividad antigua, cada uno de ellos."
         }
       ],
-      "draft": true,
-      "first_relevant_rank_with_drafts": null
+      "draft": false,
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs nuevos en inglés (N01–N11)"
     },
     {
       "case_id": "N09",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 371.34,
+      "latency_ms": 356.78,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -2520,14 +2631,15 @@
           "preview": "Secado a alta Maduro Durante inicio 50-20% en capa media Altas temperaturas; rastrilleo temperatura óptimo del se cado 2"
         }
       ],
-      "draft": true,
-      "first_relevant_rank_with_drafts": null
+      "draft": false,
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs nuevos en inglés (N01–N11)"
     },
     {
       "case_id": "N10",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 385.9,
+      "latency_ms": 404.02,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -2592,14 +2704,15 @@
           "preview": "al aumentar la temperatura inicial disminuyó se generaron diferentes curvas, el grado de la cantidad de lípidos con un v"
         }
       ],
-      "draft": true,
-      "first_relevant_rank_with_drafts": null
+      "draft": false,
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs nuevos en inglés (N01–N11)"
     },
     {
       "case_id": "N11",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 389.23,
+      "latency_ms": 378.06,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -2664,14 +2777,15 @@
           "preview": "quien generalmente se guía por el color de (Badui, 1990). los granos tostados (Clarke & Macrae, 1985). Las variables más"
         }
       ],
-      "draft": true,
-      "first_relevant_rank_with_drafts": null
+      "draft": false,
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs nuevos en inglés (N01–N11)"
     },
     {
       "case_id": "N12",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 386.07,
+      "latency_ms": 376.98,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -2736,14 +2850,15 @@
           "preview": "• Además, una vez tostado el café, éste tiene un alto contenido de gases, que hace difícil"
         }
       ],
-      "draft": true,
-      "first_relevant_rank_with_drafts": null
+      "draft": false,
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs nuevos en español (N12–N18)"
     },
     {
       "case_id": "N13",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 377.26,
+      "latency_ms": 399.99,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -2808,14 +2923,15 @@
           "preview": "evidenciaron que el aumento de la concentración temperatura y tiempo a la cual el café almendra de compuestos aromáticos"
         }
       ],
-      "draft": true,
-      "first_relevant_rank_with_drafts": null
+      "draft": false,
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs nuevos en español (N12–N18)"
     },
     {
       "case_id": "N14",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 387.47,
+      "latency_ms": 372.47,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -2880,14 +2996,15 @@
           "preview": "ede generar defectos que afectan la los compuestos químicos que son la base para la calidad sensorial y limitan su poten"
         }
       ],
-      "draft": true,
-      "first_relevant_rank_with_drafts": null
+      "draft": false,
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs nuevos en español (N12–N18)"
     },
     {
       "case_id": "N15",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 422.23,
+      "latency_ms": 363.0,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -2952,14 +3069,15 @@
           "preview": "Nivel de Densidad Temp. Temp. Nivel de tostado recomendado"
         }
       ],
-      "draft": true,
-      "first_relevant_rank_with_drafts": null
+      "draft": false,
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs nuevos en español (N12–N18)"
     },
     {
       "case_id": "N16",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 374.78,
+      "latency_ms": 360.75,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -3024,14 +3142,15 @@
           "preview": "quienes poseen certificación Q-Grader como catadores de café. Los panelistas contaban con amplia experiencia y entrenami"
         }
       ],
-      "draft": true,
-      "first_relevant_rank_with_drafts": null
+      "draft": false,
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs nuevos en español (N12–N18)"
     },
     {
       "case_id": "N17",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 381.08,
+      "latency_ms": 363.95,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -3090,14 +3209,15 @@
           "preview": "ición química del café"
         }
       ],
-      "draft": true,
-      "first_relevant_rank_with_drafts": null
+      "draft": false,
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs nuevos en español (N12–N18)"
     },
     {
       "case_id": "N18",
       "kind": "player",
       "first_relevant_rank": null,
-      "latency_ms": 405.06,
+      "latency_ms": 388.77,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -3144,14 +3264,15 @@
           "preview": "• Limpieza y ausencia de olores ajenos al café. Tipo Recolección Fermentación Secado (% Húmedad) Notas • Formación corre"
         }
       ],
-      "draft": true,
-      "first_relevant_rank_with_drafts": null
+      "draft": false,
+      "first_relevant_rank_with_drafts": null,
+      "group": "PDFs nuevos en español (N12–N18)"
     },
     {
       "case_id": "N1",
       "kind": "negative",
       "first_relevant_rank": null,
-      "latency_ms": 392.47,
+      "latency_ms": 375.15,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -3217,13 +3338,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": null
+      "first_relevant_rank_with_drafts": null,
+      "group": null
     },
     {
       "case_id": "N2",
       "kind": "negative",
       "first_relevant_rank": null,
-      "latency_ms": 436.15,
+      "latency_ms": 368.04,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -3289,13 +3411,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": null
+      "first_relevant_rank_with_drafts": null,
+      "group": null
     },
     {
       "case_id": "N3",
       "kind": "negative",
       "first_relevant_rank": null,
-      "latency_ms": 358.35,
+      "latency_ms": 359.78,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -3355,13 +3478,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": null
+      "first_relevant_rank_with_drafts": null,
+      "group": null
     },
     {
       "case_id": "N4",
       "kind": "negative",
       "first_relevant_rank": null,
-      "latency_ms": 374.84,
+      "latency_ms": 439.56,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -3427,13 +3551,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": null
+      "first_relevant_rank_with_drafts": null,
+      "group": null
     },
     {
       "case_id": "N5",
       "kind": "negative",
       "first_relevant_rank": null,
-      "latency_ms": 381.69,
+      "latency_ms": 370.79,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -3493,13 +3618,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": null
+      "first_relevant_rank_with_drafts": null,
+      "group": null
     },
     {
       "case_id": "NN1",
       "kind": "negative",
       "first_relevant_rank": null,
-      "latency_ms": 365.72,
+      "latency_ms": 361.31,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -3558,14 +3684,15 @@
           "preview": "(larga y lenta durante 20-13% capa gruesa gamino en el caso del café lavado o despulpado natural, y la cereza seca en el"
         }
       ],
-      "draft": true,
-      "first_relevant_rank_with_drafts": null
+      "draft": false,
+      "first_relevant_rank_with_drafts": null,
+      "group": null
     },
     {
       "case_id": "NN2",
       "kind": "negative",
       "first_relevant_rank": null,
-      "latency_ms": 376.19,
+      "latency_ms": 378.37,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -3630,14 +3757,15 @@
           "preview": "Tabla de usos de café según el grado de tueste Nivel de tostado según la densidad Tipo de bebida Estra tegia de mezcla N"
         }
       ],
-      "draft": true,
-      "first_relevant_rank_with_drafts": null
+      "draft": false,
+      "first_relevant_rank_with_drafts": null,
+      "group": null
     },
     {
       "case_id": "S-raw",
       "kind": "session",
       "first_relevant_rank": null,
-      "latency_ms": 500.77,
+      "latency_ms": 495.5,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -3703,13 +3831,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": null
+      "first_relevant_rank_with_drafts": null,
+      "group": null
     },
     {
       "case_id": "S-perfect",
       "kind": "session",
       "first_relevant_rank": null,
-      "latency_ms": 439.1,
+      "latency_ms": 418.05,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -3775,13 +3904,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": null
+      "first_relevant_rank_with_drafts": null,
+      "group": null
     },
     {
       "case_id": "S-baked",
       "kind": "session",
       "first_relevant_rank": null,
-      "latency_ms": 607.07,
+      "latency_ms": 557.9,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -3847,13 +3977,14 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": null
+      "first_relevant_rank_with_drafts": null,
+      "group": null
     },
     {
       "case_id": "S-burned",
       "kind": "session",
       "first_relevant_rank": null,
-      "latency_ms": 627.33,
+      "latency_ms": 617.58,
       "returned_in_top_k": 4,
       "repeated_texts_in_top_k": 0,
       "retrieved": [
@@ -3919,7 +4050,8 @@
         }
       ],
       "draft": false,
-      "first_relevant_rank_with_drafts": null
+      "first_relevant_rank_with_drafts": null,
+      "group": null
     }
   ]
 }

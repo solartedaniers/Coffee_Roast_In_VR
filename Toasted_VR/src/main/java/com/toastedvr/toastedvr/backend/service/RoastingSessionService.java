@@ -1,6 +1,7 @@
 package com.toastedvr.toastedvr.backend.service;
 
 import com.toastedvr.toastedvr.backend.config.MessageResolver;
+import com.toastedvr.toastedvr.backend.domain.RoastEvaluation;
 import com.toastedvr.toastedvr.backend.domain.RoastingResult;
 import com.toastedvr.toastedvr.backend.domain.RoastingSession;
 import com.toastedvr.toastedvr.backend.domain.User;
@@ -10,11 +11,16 @@ import com.toastedvr.toastedvr.backend.dto.SessionHistoryItemResponse;
 import com.toastedvr.toastedvr.backend.dto.SessionHistorySummaryResponse;
 import com.toastedvr.toastedvr.backend.dto.SessionResultResponse;
 import com.toastedvr.toastedvr.backend.exception.ResourceNotFoundException;
+import com.toastedvr.toastedvr.backend.repository.RoastEvaluationRepository;
 import com.toastedvr.toastedvr.backend.repository.RoastingSessionRepository;
 import com.toastedvr.toastedvr.backend.repository.UserRepository;
 import com.toastedvr.toastedvr.backend.validation.roast.RoastSessionValidator;
 import jakarta.transaction.Transactional;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -29,6 +35,9 @@ public class RoastingSessionService {
     private final UserRepository userRepository;
     private final MessageResolver messages;
     private final RoastSessionValidator roastSessionValidator;
+    private final RoastEvaluationRegistrar evaluationRegistrar;
+    private final RoastEvaluationRepository evaluationRepository;
+    private final RoastEvaluationView evaluationView;
     private final int historyPageSize;
 
     public RoastingSessionService(
@@ -36,12 +45,18 @@ public class RoastingSessionService {
         UserRepository userRepository,
         MessageResolver messages,
         RoastSessionValidator roastSessionValidator,
+        RoastEvaluationRegistrar evaluationRegistrar,
+        RoastEvaluationRepository evaluationRepository,
+        RoastEvaluationView evaluationView,
         @Value("${app.roasting.history-page-size:10}") int historyPageSize
     ) {
         this.roastingSessionRepository = roastingSessionRepository;
         this.userRepository = userRepository;
         this.messages = messages;
         this.roastSessionValidator = roastSessionValidator;
+        this.evaluationRegistrar = evaluationRegistrar;
+        this.evaluationRepository = evaluationRepository;
+        this.evaluationView = evaluationView;
         this.historyPageSize = historyPageSize;
     }
 
@@ -68,7 +83,8 @@ public class RoastingSessionService {
         );
 
         RoastingSession saved = roastingSessionRepository.save(session);
-        return toResponse(saved);
+        RoastEvaluation evaluation = evaluationRegistrar.register(userId, saved, request);
+        return toResponse(saved, evaluation);
     }
 
     @Transactional
@@ -103,7 +119,10 @@ public class RoastingSessionService {
         Page<RoastingSession> sessions = result == null
             ? roastingSessionRepository.findByUserId(userId, pageable)
             : roastingSessionRepository.findByUserIdAndResult(userId, result, pageable);
-        return sessions.map(this::toHistoryItem);
+        List<Long> ids = sessions.map(session -> session.getId()).getContent();
+        Map<Long, RoastEvaluation> evaluations = evaluationRepository.findBySessionIdIn(ids).stream()
+            .collect(Collectors.toMap(evaluation -> evaluation.getSession().getId(), Function.identity()));
+        return sessions.map(session -> toHistoryItem(session, evaluations.get(session.getId())));
     }
 
     /** Mejor puntaje, promedio (un decimal) y total de sesiones del jugador. */
@@ -116,10 +135,11 @@ public class RoastingSessionService {
 
     @Transactional
     public SessionResultResponse getSessionDetail(Long userId, Long sessionId) {
-        return toResponse(getOwnedSession(userId, sessionId));
+        RoastingSession session = getOwnedSession(userId, sessionId);
+        return toResponse(session, evaluationRepository.findBySessionId(session.getId()).orElse(null));
     }
 
-    private SessionHistoryItemResponse toHistoryItem(RoastingSession session) {
+    private SessionHistoryItemResponse toHistoryItem(RoastingSession session, RoastEvaluation evaluation) {
         return new SessionHistoryItemResponse(
             session.getId(),
             ApiInstants.from(session.getCreatedAt()),
@@ -128,7 +148,10 @@ public class RoastingSessionService {
             session.getQualityScore(),
             session.getFinalTemperature(),
             session.getTotalDurationSeconds(),
-            developmentTimeRatio(session)
+            developmentTimeRatio(session),
+            evaluationView.scoreOf(session, evaluation),
+            evaluationView.gradeOf(session, evaluation),
+            evaluation == null ? null : evaluation.getStatus().name()
         );
     }
 
@@ -143,7 +166,7 @@ public class RoastingSessionService {
         return Math.round(development * 1000.0 / total) / 1000.0;
     }
 
-    private SessionResultResponse toResponse(RoastingSession session) {
+    private SessionResultResponse toResponse(RoastingSession session, RoastEvaluation evaluation) {
         return new SessionResultResponse(
             session.getId(),
             session.getResult().name(),
@@ -157,7 +180,10 @@ public class RoastingSessionService {
             session.getDevelopmentTimeSeconds(),
             developmentTimeRatio(session),
             session.getKnowledgeLevel(),
-            ApiInstants.from(session.getCreatedAt())
+            ApiInstants.from(session.getCreatedAt()),
+            evaluationView.scoreOf(session, evaluation),
+            evaluationView.gradeOf(session, evaluation),
+            evaluationView.toResponse(session, evaluation)
         );
     }
 }

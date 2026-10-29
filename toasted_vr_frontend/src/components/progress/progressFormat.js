@@ -8,6 +8,11 @@ export const RESULT_PILL_CLASSES = Object.freeze({
   BAKED: 'result-pill-baked',
 });
 
+// La nota que vale: la final (reglas e IA) si ya existe; si no, la de las reglas.
+export const scoreOf = (session) => session.finalScore ?? session.qualityScore;
+
+export const formatGrade = (grade, texts) => texts.grades[grade] || texts.noValue;
+
 // Las sesiones anteriores a RF009 no tienen nivel guardado.
 export const formatLevel = (level, texts) => texts.levels[level] || texts.noValue;
 

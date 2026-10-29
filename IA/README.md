@@ -50,6 +50,7 @@ Son internos, solo para el backend, y no tienen autenticación propia: la autent
 | `POST` | `/api/v1/feedback` | Recibe los datos de la sesión y responde `{"feedback": "..."}` (`null` si ningún proveedor respondió) |
 | `POST` | `/api/v1/rag/ingest` | Ingesta los PDFs de `rag-docs/` que sean nuevos o hayan cambiado |
 | `GET` | `/api/v1/alerts/package` | Paquete de alertas proactivas de un nivel, con `ETag` (ver [Alertas proactivas](#alertas-proactivas)) |
+| `POST` | `/api/v1/evaluation` | Califica las decisiones de una sesión con la rúbrica (ver [Calificación del tueste](#calificación-del-tueste)); 503 si Groq no responde |
 
 El contrato es exactamente el mismo que tenía la versión anterior en Java, así que el backend no cambió. Un cuerpo inválido responde 400.
 
@@ -240,6 +241,39 @@ Dos ajustes salieron de esas curvas: en el simulador la pantalla salta del aire 
 ### Observación pendiente
 
 Después del primer crack el resultado es muy sensible al gas: con el 25 % el tueste sale bien, con el 30 % el grano llega a 216–220 °C y con el 15 % se enfría hasta quedar crudo. Lo anoto para revisarlo con la física del simulador; en esta fase no la cambié.
+
+## Calificación del tueste
+
+Cada sesión tiene una nota final que combina las reglas del simulador con una calificación de las decisiones del jugador: `0.7 × qualityScore + 0.3 × nota de la rúbrica`, con un tope de 50 si el resultado tiene un defecto (crudo, quemado u horneado). Los pesos, el tope y los rangos de la calificación (Excelente 85, Bueno 70, Regular 50) están en `app.roast-evaluation` del backend.
+
+- **Rúbrica:** `config/roast_rubric.json`, en estado *DRAFT*. Tiene cuatro criterios: gas en el secado, subida hasta el primer crack, gas después del primer crack y reacción a las alertas. Cada uno dice de dónde sale: *Fuente*, *Inferencia* o *Parámetro de diseño*. El criterio del gas después del primer crack lo marqué como inferencia, apoyada en el calor que genera el grano según el PDF de modelado, no como algo que digan las fuentes. Las fuentes y los umbrales se cambian en ese archivo sin tocar código.
+- **Quién calcula qué:** el código mide los hechos sobre la traza (porcentaje en la franja, demoras de corrección, estancamientos, minuto del primer crack, bajada del gas, reacción a cada alerta). El modelo solo elige un nivel de 0 a 3 por criterio y escribe una justificación corta, con un esquema JSON estricto. La nota de la rúbrica la calculo yo: `100 × suma de niveles / (3 × criterios que aplican)`. Los criterios que no aplican quedan fuera del denominador.
+- **Modelo:** Groq `openai/gpt-oss-120b`, temperatura 0, semilla fija y razonamiento `low` (`EVALUATION_GROQ_*`). No uso respaldo con Ollama: otro modelo podría darle otra nota a la misma sesión. Si Groq no responde, el backend reintenta con espera creciente y, al final, deja la nota de las reglas.
+- **Modo automático:** no se califica (`NOT_APPLICABLE`), porque el gas no lo maneja el jugador. Esas sesiones no entran al ranking.
+- **Traza:** el contrato de lo que Unity debe enviar está en [docs/unity-roast-trace-contract.md](docs/unity-roast-trace-contract.md).
+
+### Validación con Groq
+
+`scripts/evaluation_validation.py` corre la rúbrica con Groq real sobre los casos de `eval/evaluation/cases.json`. Son 17 trazas con el nivel que le corresponde a cada criterio, que fijé leyendo la rúbrica y no las respuestas del modelo. Mide el acuerdo con el nivel esperado y la repetibilidad corriendo cada caso varias veces:
+
+```bash
+.venv/Scripts/python scripts/evaluation_validation.py --runs 5 --pause 8
+```
+
+Resultado con la rúbrica `draft-2026-10-28` y 5 corridas por caso (`eval/results/evaluation-draft-2026-10-28.json`):
+
+| Medida | Valor |
+|---|---|
+| Niveles calificados | 240 |
+| Acuerdo exacto | 99,6 % (239 de 240) |
+| Acuerdo a un nivel | 100 % |
+| Criterios con el mismo nivel en las 5 corridas | 97,9 % (47 de 48) |
+| Casos calificados con la misma nota en las 5 corridas | 15 de 16 |
+| Criterios aplicados y estado (AUTO) | Sin diferencias |
+
+Por criterio, el acuerdo exacto fue 98,8 % en el secado y 100 % en los otros tres. El único desacuerdo fue en `drying_slow_late_fix`: el jugador corrigió el gas a los 80 s y en 1 de las 5 corridas el modelo puso 0 en vez de 1, porque entendió que la corrección tenía que llegar en 60 s o menos. Es una ambigüedad del texto del nivel 1, que no dice nada del tiempo; la anoto para revisarla cuando ajuste la rúbrica con los PDFs nuevos. Hubo 2 intentos con timeout de conexión que se recuperaron solos con el reintento.
+
+Los tests de `tests/test_evaluation_validation.py` revisan sin Groq que cada caso aplique exactamente los criterios que espera y que los casos cubran todos los niveles.
 
 ## Servidor Ubuntu
 

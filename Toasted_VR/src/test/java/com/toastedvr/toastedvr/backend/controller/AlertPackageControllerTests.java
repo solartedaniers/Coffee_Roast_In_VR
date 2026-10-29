@@ -10,6 +10,7 @@ import com.toastedvr.toastedvr.backend.dto.VoiceAssistantErrorResponse;
 import com.toastedvr.toastedvr.backend.security.UserPrincipal;
 import com.toastedvr.toastedvr.backend.service.AlertPackageService;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -70,6 +71,6 @@ class AlertPackageControllerTests {
         ResponseEntity<VoiceAssistantErrorResponse> response = controller.handleAiServiceDown();
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
-        assertThat(response.getBody().code()).isEqualTo("ALERTS_UNAVAILABLE");
+        assertThat(Objects.requireNonNull(response.getBody(), "La respuesta no trae cuerpo").code()).isEqualTo("ALERTS_UNAVAILABLE");
     }
 }

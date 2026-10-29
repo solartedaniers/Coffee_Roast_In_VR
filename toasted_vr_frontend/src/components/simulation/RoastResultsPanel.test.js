@@ -93,3 +93,42 @@ test('muestra el motivo cuando el servidor rechaza la sesión', () => {
   expect(screen.getByText(`${esTexts.simulation.results.saveError} (${serverMessage})`)).toBeInTheDocument();
   expect(screen.queryByText(esTexts.simulation.results.saved)).not.toBeInTheDocument();
 });
+
+// Fase 5: al guardar, el panel muestra la calificación combinada que devolvió el servidor.
+test('muestra la calificación de la sesión guardada y avisa mientras la IA califica', () => {
+  const finishedSim = {
+    finalTemperature: 150,
+    maxConsecutiveBurnSeconds: 0,
+    burnedFlag: false,
+    firstCrackReached: false,
+    firstCrackTimeSeconds: null,
+    roastingElapsedSeconds: 300,
+    chargeTemperature: 195,
+    maillardStagnationSeconds: 0,
+    maillardStagnationFlag: false,
+  };
+  const roastResult = RoastQualityEvaluator.evaluate(finishedSim, 'INTERMEDIATE');
+  const savedSession = {
+    id: 9,
+    qualityScore: roastResult.score,
+    finalScore: roastResult.score,
+    grade: 'POOR',
+    evaluation: { status: 'PENDING', criteria: [], notApplicable: [] },
+  };
+  const evaluationTexts = esTexts.simulation.dataHistory;
+
+  render(
+    <RoastResultsPanel
+      {...baseProps}
+      savingState="saved"
+      sim={finishedSim}
+      roastResult={roastResult}
+      savedSession={savedSession}
+      evaluationTexts={evaluationTexts}
+    />
+  );
+
+  expect(screen.getByText(evaluationTexts.evaluation.title)).toBeInTheDocument();
+  expect(screen.getByText(`${roastResult.score}% · Deficiente`)).toBeInTheDocument();
+  expect(screen.getByText(evaluationTexts.evaluation.pending)).toBeInTheDocument();
+});

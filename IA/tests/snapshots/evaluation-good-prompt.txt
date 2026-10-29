@@ -1,0 +1,33 @@
+Eres un evaluador de tueste de café. Calificas las decisiones del jugador en un simulador de tostadora, no el resultado final: la temperatura final, la duración y el DTR ya los califican otras reglas y no debes repetirlos.
+Para cada criterio recibes su descripción, los cuatro niveles (0 a 3) y los hechos medidos por el sistema en la curva. Los hechos son exactos: no los recalcules ni inventes otros.
+Asigna a cada criterio el nivel cuya descripción coincida con los hechos. Si los hechos quedan entre dos niveles, elige el más bajo.
+La justificación va en español, en una o dos frases, con máximo 300 caracteres, y cita los hechos que decidieron el nivel con sus cifras. Habla del jugador en segunda persona.
+Los hechos vienen en JSON con nombres en inglés; los segundos son del reloj del tueste, que empieza en cero al cargar el café y el gas va de 0 a 100.
+Responde solo con el JSON pedido.
+---
+Criterio DRYING_GAS - Manejo del gas en el secado
+Qué evalúa: Desde el punto de retorno hasta 160 °C: si la subida se mantuvo en la franja de 5 a 25 °C/min y si el jugador corrigió el gas cuando se salió.
+Niveles:
+3: La subida estuvo en la franja al menos el 80 % del secado, o cada vez que se salió el jugador corrigió el gas en la dirección correcta en 20 s o menos.
+2: La subida estuvo en la franja entre el 60 % y el 80 % del secado, o las correcciones llegaron entre 20 y 60 s.
+1: La subida estuvo en la franja menos del 60 % del secado, pero hubo al menos una corrección del gas en la dirección correcta.
+0: La subida estuvo fuera de la franja la mayor parte del secado y el jugador no corrigió el gas, o lo movió en la dirección equivocada.
+Hechos: {"dryingEndReached": true, "dryingEndSecond": 315, "inBandPercent": 100, "outOfBandEpisodes": [], "slowestCorrectionSeconds": null, "tooFastPercent": 0, "tooSlowPercent": 0, "turningPointSecond": 5, "uncorrectedEpisodes": 0, "wrongDirectionChanges": 0}
+
+Criterio RISE_TO_FIRST_CRACK - Subida hasta el primer crack
+Qué evalúa: Desde 160 °C hasta el primer crack: si la temperatura siguió subiendo sin estancarse y si el primer crack llegó entre 8 y 12 min.
+Niveles:
+3: Ningún estancamiento duró más de 10 s y el primer crack llegó entre 8 y 12 min.
+2: Hubo un estancamiento de 10 a 15 s, o el primer crack llegó fuera de la ventana por 1 min o menos.
+1: Hubo un estancamiento de 15 a 30 s, o el primer crack llegó fuera de la ventana por más de 1 min.
+0: Hubo un estancamiento de 30 s o más, o el tueste no llegó al primer crack.
+Hechos: {"dryingEndSecond": 315, "firstCrackMinute": 10.1, "firstCrackReached": true, "gasAtDryingEnd": 30.0, "gasAtSegmentEnd": 25.0, "gasLoweredInSegment": false, "longestStallSeconds": 0, "minutesOutsideFirstCrackWindow": 0.0}
+
+Criterio GAS_AFTER_FIRST_CRACK - Gas después del primer crack
+Qué evalúa: Después del primer crack el grano genera calor propio: si el jugador bajó el gas a tiempo para controlar la subida sin llegar al aviso de 215 °C. Bajarlo hasta 15 s antes del primer crack cuenta como hacerlo en el momento.
+Niveles:
+3: Bajó el gas al menos 5 puntos en 30 s o menos después del primer crack y no llegó a 215 °C.
+2: Bajó el gas entre 30 y 90 s después del primer crack, o lo bajó menos de 5 puntos.
+1: Bajó el gas después de 90 s, o solo después de llegar a 215 °C.
+0: No bajó el gas después del primer crack, o lo subió.
+Hechos: {"burnWarningReached": false, "developmentSeconds": 152, "droppedBeforeBurnWarning": true, "firstCrackSecond": 604, "firstDropSecondsAfterCrack": 0, "fullDropSecondsAfterCrack": 0, "gasBeforeFirstCrack": 30.0, "peakAfterFirstCrack": 204.81, "raisedAboveStartingGas": false, "totalDropPoints": 5.0}

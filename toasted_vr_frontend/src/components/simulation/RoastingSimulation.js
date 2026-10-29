@@ -49,6 +49,7 @@ import ChartSmoothingFilter from '../../domain/roasting/ChartSmoothingFilter';
 import RoastCurveProfile from '../../domain/roasting/RoastCurveProfile';
 import RoastPacingProfile from '../../domain/roasting/RoastPacingProfile';
 import ChargeDipCalculator from '../../domain/roasting/ChargeDipCalculator';
+import RoastTraceRecorder from '../../domain/roasting/RoastTraceRecorder';
 
 // Valores de ejemplo para las 3 curvas de "Programación de Curvas" —
 // reutilizan constantes de dominio ya existentes en vez de inventar
@@ -93,6 +94,9 @@ function createInitialSimState({ chargeTemperature, targetTemperature, operation
     moisturePct: beanProfile.moisture0Pct,
 
     flamePowerPercent: FLAME_POWER_DEFAULT_PCT,
+    // Si el control automático manejó el gas en algún momento del tueste,
+    // la IA no califica las decisiones (RoastTraceRecorder).
+    usedAutoMode: false,
 
     elapsedSeconds: 0,
     roastingElapsedSeconds: 0,
@@ -151,6 +155,7 @@ export default function RoastingSimulation({
   );
   const [roastResult, setRoastResult] = useState(null);
   const [savingState, setSavingState] = useState('idle');
+  const [savedSession, setSavedSession] = useState(null);
   const [saveErrorDetail, setSaveErrorDetail] = useState('');
   const [feedbackState, setFeedbackState] = useState('idle');
   const [feedbackText, setFeedbackText] = useState('');
@@ -255,7 +260,8 @@ export default function RoastingSimulation({
       // ChartSmoothingFilter se encarga de que el cambio de identidad en el
       // momento de la carga se vea como un descenso rápido, no un salto.
       const displayTemp = beanIsCharged ? newTemp : newAirTemp;
-      const newSamples = [...prev.samples, { time: newElapsed, temp: displayTemp }];
+      // gas: la potencia con la que corrió este segundo; la usa la traza del tueste.
+      const newSamples = [...prev.samples, { time: newElapsed, temp: displayTemp, gas: prev.flamePowerPercent }];
       const rateOfRisePerMinute = RoastMetrics.computeRateOfRisePerMinute(newSamples, newElapsed);
 
       const newConsecutiveBurn = BurnRiskMonitor.computeConsecutiveSecondsOverThreshold(
@@ -322,6 +328,7 @@ export default function RoastingSimulation({
         peakTemperature: Math.max(prev.peakTemperature, newTemp),
         moisturePct: newMoisturePct,
         flamePowerPercent: nextFlamePowerPercent,
+        usedAutoMode: prev.usedAutoMode || (beanIsCharged && prev.operationMode === OPERATION_MODES.AUTO),
         elapsedSeconds: newElapsed,
         roastingElapsedSeconds: newRoastingElapsed,
         samples: newSamples,
@@ -423,6 +430,7 @@ export default function RoastingSimulation({
     burnedFiredRef.current = false;
     setRoastResult(null);
     setSavingState('idle');
+    setSavedSession(null);
     setSimState({
       ...createInitialSimState({
         chargeTemperature: chargeTempSetup,
@@ -514,6 +522,7 @@ export default function RoastingSimulation({
     );
     setRoastResult(null);
     setSavingState('idle');
+    setSavedSession(null);
     setSaveErrorDetail('');
     setFeedbackState('idle');
     setFeedbackText('');
@@ -532,6 +541,7 @@ export default function RoastingSimulation({
     setSimState(finalSim);
     setRoastResult(scoreResult);
     setSavingState('saving');
+    setSavedSession(null);
     setSaveErrorDetail('');
 
     try {
@@ -547,8 +557,10 @@ export default function RoastingSimulation({
         developmentTimeSeconds: finalSim.firstCrackReached
           ? Math.max(0, Math.round(finalSim.roastingElapsedSeconds - (finalSim.firstCrackTimeSeconds || 0)))
           : 0,
+        roastTrace: RoastTraceRecorder.build(finalSim),
       });
       setSavingState('saved');
+      setSavedSession(saved);
 
       setFeedbackState('loading');
       try {
@@ -590,6 +602,7 @@ export default function RoastingSimulation({
     );
     setRoastResult(null);
     setSavingState('idle');
+    setSavedSession(null);
     setSaveErrorDetail('');
     setFeedbackState('idle');
     setFeedbackText('');
@@ -935,6 +948,8 @@ export default function RoastingSimulation({
           feedbackText={feedbackText}
           temperatureUnit={temperatureUnit}
           texts={texts.results}
+          savedSession={savedSession}
+          evaluationTexts={texts.dataHistory}
           onNewSimulation={handleNewSimulation}
         />
       )}

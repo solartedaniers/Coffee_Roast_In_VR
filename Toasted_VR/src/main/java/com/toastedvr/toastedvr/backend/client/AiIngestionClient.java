@@ -23,7 +23,6 @@ public class AiIngestionClient {
 
     // Si el servicio IA no responde, el backend no puede saber qué PDFs hay,
     // así que devuelve un resumen vacío (todo en 0) en vez de un error.
-    @SuppressWarnings("null")
     public RagIngestionSummaryResponse ingestAll() {
         try {
             RagIngestionSummaryResponse response = restClient.post()

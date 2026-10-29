@@ -13,6 +13,10 @@ import {
   DEFECT_SCORE_MAX,
   PERFECT_SCORE_MIN,
   PERFECT_SCORE_MAX,
+  ROAST_TRACE_VERSION,
+  ROAST_TRACE_MAX_SAMPLES,
+  ROAST_TRACE_MAX_GAS_CHANGES,
+  ROAST_TRACE_MAX_EVENTS,
 } from '../domain/roasting/RoastConstants';
 
 // RF015: el backend valida las sesiones con sus propios límites
@@ -25,7 +29,7 @@ const LEVELS = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'];
 const readBackendDefault = (property) => {
   const yaml = fs.readFileSync(path.join(BACKEND_DIR, 'src/main/resources/application.yml'), 'utf8');
   const match = yaml.match(new RegExp(`^\\s*${property}:\\s*\\$\\{[A-Z_]+:([-\\d.]+)\\}`, 'm'));
-  if (!match) throw new Error(`No se encontró app.roast-validation.${property} en application.yml`);
+  if (!match) throw new Error(`No se encontró ${property} en application.yml`);
   return Number(match[1]);
 };
 
@@ -49,6 +53,19 @@ describe('límites del servidor sincronizados con RoastConstants', () => {
   // el mínimo del servidor solo tiene que quedar por debajo.
   test('charge-temperature-min no rechaza ninguna temperatura del aire posible', () => {
     expect(readBackendDefault('charge-temperature-min')).toBeLessThanOrEqual(MIN_AIR_TEMP_C);
+  });
+});
+
+// La traza que arma RoastTraceRecorder no puede pasar los límites de app.roast-trace: si los pasa,
+// el backend la descarta y la sesión se queda sin calificación de la IA.
+describe('límites de la traza sincronizados con app.roast-trace', () => {
+  test.each([
+    ['supported-version', ROAST_TRACE_VERSION],
+    ['max-samples', ROAST_TRACE_MAX_SAMPLES],
+    ['max-gas-changes', ROAST_TRACE_MAX_GAS_CHANGES],
+    ['max-events', ROAST_TRACE_MAX_EVENTS],
+  ])('%s = %s', (property, simulatorValue) => {
+    expect(readBackendDefault(property)).toBe(simulatorValue);
   });
 });
 

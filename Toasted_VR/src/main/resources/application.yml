@@ -59,6 +59,8 @@
       voice-read-timeout-millis: ${AI_SERVICE_VOICE_READ_TIMEOUT_MILLIS:30000}
       # Paquete de alertas proactivas; debe ser mayor que ALERTS_PACKAGE_TIMEOUT_MILLIS del servicio IA.
       alerts-read-timeout-millis: ${AI_SERVICE_ALERTS_READ_TIMEOUT_MILLIS:30000}
+      # Calificación con la rúbrica, en segundo plano; mayor que EVALUATION_GROQ_READ_TIMEOUT_MILLIS del servicio IA.
+      evaluation-read-timeout-millis: ${AI_SERVICE_EVALUATION_READ_TIMEOUT_MILLIS:40000}
     jwt:
       # Sin valor por defecto: la aplicación no arranca si falta APP_JWT_SECRET.
       secret: ${APP_JWT_SECRET}
@@ -107,6 +109,40 @@
       history-page-size: ${ROAST_HISTORY_PAGE_SIZE:10}
       ranking-size: ${ROAST_RANKING_SIZE:10}
       ranking-poll-seconds: ${ROAST_RANKING_POLL_SECONDS:60}
+      # El ranking usa la nota combinada (reglas e IA) y solo cuenta las sesiones calificadas desde
+      # esta fecha (UTC). Cambiarla no da avisos falsos: las fotos vistas con otra fecha no se comparan.
+      ranking-combined-since: ${ROAST_RANKING_COMBINED_SINCE:2026-10-28T00:00:00}
+    # Traza opcional de la sesión (curva y decisiones) para la calificación de la IA. Si no cumple
+    # estos límites o no cuadra con la sesión se descarta, pero la sesión se guarda igual. Deben
+    # coincidir con RoastTraceRecorder.js del frontend.
+    roast-trace:
+      supported-version: ${ROAST_TRACE_SUPPORTED_VERSION:1}
+      max-samples: ${ROAST_TRACE_MAX_SAMPLES:400}
+      max-gas-changes: ${ROAST_TRACE_MAX_GAS_CHANGES:120}
+      max-events: ${ROAST_TRACE_MAX_EVENTS:10}
+      max-alerts: ${ROAST_TRACE_MAX_ALERTS:60}
+      max-alert-id-length: ${ROAST_TRACE_MAX_ALERT_ID_LENGTH:40}
+      time-tolerance-seconds: ${ROAST_TRACE_TIME_TOLERANCE_SECONDS:5}
+      temperature-tolerance: ${ROAST_TRACE_TEMPERATURE_TOLERANCE:1.0}
+    # Calificación combinada (fase 5): nota final = rules-weight × qualityScore + ai-weight × nota de
+    # la rúbrica de la IA. Los pesos deben sumar 1. Un resultado con defecto no pasa de defect-score-cap.
+    roast-evaluation:
+      rules-weight: ${ROAST_EVALUATION_RULES_WEIGHT:0.7}
+      ai-weight: ${ROAST_EVALUATION_AI_WEIGHT:0.3}
+      defect-score-cap: ${ROAST_EVALUATION_DEFECT_SCORE_CAP:50}
+      # Proceso en segundo plano: cada poll-millis califica hasta batch-size sesiones pendientes. Si
+      # el servicio IA o Groq fallan reintenta tras base-retry-seconds, duplicando la espera hasta
+      # max-retry-seconds, y a los max-attempts intentos la deja sin calificación de IA.
+      scheduler-enabled: ${ROAST_EVALUATION_SCHEDULER_ENABLED:true}
+      poll-millis: ${ROAST_EVALUATION_POLL_MILLIS:5000}
+      batch-size: ${ROAST_EVALUATION_BATCH_SIZE:5}
+      max-attempts: ${ROAST_EVALUATION_MAX_ATTEMPTS:8}
+      base-retry-seconds: ${ROAST_EVALUATION_BASE_RETRY_SECONDS:30}
+      max-retry-seconds: ${ROAST_EVALUATION_MAX_RETRY_SECONDS:3600}
+      # Calificación por rango de la nota final: excelente, bueno, regular y, por debajo, deficiente.
+      excellent-grade-min: ${ROAST_GRADE_EXCELLENT_MIN:85}
+      good-grade-min: ${ROAST_GRADE_GOOD_MIN:70}
+      fair-grade-min: ${ROAST_GRADE_FAIR_MIN:50}
     # Validación de sesiones de tueste en el servidor (RF015). Deben coincidir
     # con RoastConstants.js del frontend.
     roast-validation:

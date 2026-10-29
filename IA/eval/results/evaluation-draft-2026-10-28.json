@@ -1,0 +1,1321 @@
+{
+ "rubricVersion": "draft-2026-10-28",
+ "model": "openai/gpt-oss-120b",
+ "temperature": 0.0,
+ "seed": 1,
+ "reasoningEffort": "low",
+ "runs": 5,
+ "summary": {
+  "cases": 17,
+  "gradedLevels": 240,
+  "exactAgreementPercent": 99.6,
+  "withinOneAgreementPercent": 100.0,
+  "stableCriteriaPercent": 97.9,
+  "stableScoreCases": 16,
+  "statusMismatches": [],
+  "applicabilityMismatches": [],
+  "failedAttempts": 2,
+  "incompleteCases": [],
+  "byCriterion": {
+   "DRYING_GAS": {
+    "graded": 80,
+    "exact": 79,
+    "withinOne": 80,
+    "exactAgreementPercent": 98.8,
+    "withinOneAgreementPercent": 100.0
+   },
+   "RISE_TO_FIRST_CRACK": {
+    "graded": 75,
+    "exact": 75,
+    "withinOne": 75,
+    "exactAgreementPercent": 100.0,
+    "withinOneAgreementPercent": 100.0
+   },
+   "GAS_AFTER_FIRST_CRACK": {
+    "graded": 75,
+    "exact": 75,
+    "withinOne": 75,
+    "exactAgreementPercent": 100.0,
+    "withinOneAgreementPercent": 100.0
+   },
+   "ALERT_REACTION": {
+    "graded": 10,
+    "exact": 10,
+    "withinOne": 10,
+    "exactAgreementPercent": 100.0,
+    "withinOneAgreementPercent": 100.0
+   }
+  },
+  "disagreements": [
+   {
+    "case": "drying_slow_late_fix",
+    "criterion": "DRYING_GAS",
+    "expected": 1,
+    "levels": [
+     1,
+     0,
+     1,
+     1,
+     1
+    ]
+   }
+  ]
+ },
+ "cases": [
+  {
+   "id": "good",
+   "description": "Tueste correcto: gas al 30 % y al 25 % en el primer crack.",
+   "completedRuns": 5,
+   "failedAttempts": 0,
+   "errors": [],
+   "statusMatches": true,
+   "applicableCriteriaMatch": true,
+   "scores": [
+    100.0,
+    100.0,
+    100.0,
+    100.0,
+    100.0
+   ],
+   "criteria": [
+    {
+     "id": "DRYING_GAS",
+     "expected": 3,
+     "levels": [
+      3,
+      3,
+      3,
+      3,
+      3
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "El 100 % del secado estuvo dentro de la franja (inBandPercent=100), cumpliendo el requisito del 80 % para nivel 3.",
+      "El 100 % del secado estuvo dentro de la franja (inBandPercent=100), cumpliendo el requisito del nivel 3.",
+      "La subida estuvo dentro de la franja 5‑25 °C/min durante el 100 % del secado (inBandPercent=100), cumpliendo el requisito del 80 % para nivel 3."
+     ]
+    },
+    {
+     "id": "RISE_TO_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3,
+      3,
+      3,
+      3,
+      3
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "No hubo estancamiento (longestStallSeconds=0 <10 s) y el primer crack llegó a los 10.1 min, dentro de la ventana 8‑12 min.",
+      "No hubo estancamiento (longestStallSeconds=0) y el primer crack llegó a 10.1 min, dentro de la ventana 8‑12 min.",
+      "No hubo estancamiento (longestStallSeconds=0) y el primer crack llegó a los 10.1 min, dentro de la ventana 8‑12 min."
+     ]
+    },
+    {
+     "id": "GAS_AFTER_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3,
+      3,
+      3,
+      3,
+      3
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "Se bajó el gas 5 puntos (totalDropPoints=5.0) en 0 s después del crack (firstDropSecondsAfterCrack=0), cumpliendo el límite de 30 s y sin alcanzar 215 °C.",
+      "Se bajó el gas 5 puntos (totalDropPoints=5.0) en 0 s después del crack (firstDropSecondsAfterCrack=0), y no se alcanzó el aviso de 215 °C (burnWarningReached=false).",
+      "Se bajó el gas 5 puntos (totalDropPoints=5.0) inmediatamente después del primer crack (firstDropSecondsAfterCrack=0) y no se alcanzó el aviso de 215 °C (burnWarningReached=false).",
+      "Se bajó el gas 5 puntos en 0 s después del primer crack (firstDropSecondsAfterCrack=0, totalDropPoints=5.0) y no se alcanzó el aviso de 215 °C."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "drying_fast_quick_fix",
+   "description": "Secado muy rápido corregido bajando el gas a los 10 s.",
+   "completedRuns": 5,
+   "failedAttempts": 0,
+   "errors": [],
+   "statusMatches": true,
+   "applicableCriteriaMatch": true,
+   "scores": [
+    100.0,
+    100.0,
+    100.0,
+    100.0,
+    100.0
+   ],
+   "criteria": [
+    {
+     "id": "DRYING_GAS",
+     "expected": 3,
+     "levels": [
+      3,
+      3,
+      3,
+      3,
+      3
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "Aunque el 0 % estuvo en la franja, corregiste el gas en 10 s (≤20 s) y en la dirección correcta, cumpliendo el requisito de corrección rápida.",
+      "Aunque el 0 % estuvo en la franja, corregiste el gas en 10 s (≤20 s) y en la dirección correcta, cumpliendo la condición de corrección rápida.",
+      "Aunque el 0 % estuvo en la franja, corregiste el gas en 10 s (≤20 s) y sin errores de dirección, cumpliendo la condición de corrección rápida.",
+      "InBandPercent es 0, pero hubo una corrección de 10 s en dirección correcta (FAST) sin cambios erróneos, cumpliendo la condición de corrección ≤20 s."
+     ]
+    },
+    {
+     "id": "RISE_TO_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3,
+      3,
+      3,
+      3,
+      3
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "No hubo estancamiento (0 s) y el primer crack llegó a los 10.1 min, dentro de la ventana 8‑12 min.",
+      "No hubo estancamiento (longestStallSeconds = 0) y el primer crack llegó a 10.1 min, dentro del rango 8‑12 min."
+     ]
+    },
+    {
+     "id": "GAS_AFTER_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3,
+      3,
+      3,
+      3,
+      3
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "Bajaste 5 puntos de gas justo en el crack (0 s) y no alcanzaste los 215 °C, cumpliendo la caída de ≥5 puntos en ≤30 s.",
+      "Bajaste el gas 5 puntos justo al crack (0 s) y no alcanzaste los 215 °C, cumpliendo la reducción de ≥5 puntos en ≤30 s.",
+      "Bajaste el gas 5 puntos justo al primer crack (0 s) y no alcanzó los 215 °C, cumpliendo la reducción de ≥5 puntos en ≤30 s.",
+      "Bajaste el gas 5 puntos justo en el crack (0 s) y no alcanzaste los 215 °C, cumpliendo la reducción de ≥5 puntos en ≤30 s.",
+      "Se bajó el gas 5 puntos justo en el primer crack (firstDropSecondsAfterCrack = 0) y no se alcanzó el aviso de 215 °C."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "drying_fast_slow_fix",
+   "description": "Secado muy rápido corregido bajando el gas a los 45 s.",
+   "completedRuns": 5,
+   "failedAttempts": 0,
+   "errors": [],
+   "statusMatches": true,
+   "applicableCriteriaMatch": true,
+   "scores": [
+    88.9,
+    88.9,
+    88.9,
+    88.9,
+    88.9
+   ],
+   "criteria": [
+    {
+     "id": "DRYING_GAS",
+     "expected": 2,
+     "levels": [
+      2,
+      2,
+      2,
+      2,
+      2
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "La subida estuvo 0 % en la franja y hubo una corrección correcta de 45 s (entre 20 y 60 s).",
+      "La subida estuvo fuera de la franja (0 % inBand) pero hubo una corrección correcta en 45 s, dentro del rango 20‑60 s.",
+      "La subida estuvo fuera de la franja (0 % inBand) pero hubo una corrección correcta que tardó 45 s, dentro del rango 20‑60 s.",
+      "La subida estuvo fuera de la franja (inBandPercent 0) y la única corrección tardó 45 s, dentro del rango 20‑60 s.",
+      "No hubo subida en la franja (0 % inBand) pero corregiste el gas en 45 s, dentro del rango 20‑60 s."
+     ]
+    },
+    {
+     "id": "RISE_TO_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3,
+      3,
+      3,
+      3,
+      3
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "No hubo estancamiento (0 s) y el primer crack llegó a los 10.1 min, dentro de 8‑12 min.",
+      "No hubo estancamiento (0 s) y el primer crack llegó a los 10.1 min, dentro de la ventana 8‑12 min.",
+      "No hubo estancamiento (longestStallSeconds 0) y el primer crack llegó a los 10.1 min, dentro de la ventana 8‑12 min."
+     ]
+    },
+    {
+     "id": "GAS_AFTER_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3,
+      3,
+      3,
+      3,
+      3
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "Bajaste el gas 5 puntos en 0 s tras el crack (≤30 s) y no alcanzaste los 215 °C.",
+      "Bajó el gas 5 puntos en 0 s tras el primer crack (firstDropSecondsAfterCrack 0) y no alcanzó los 215 °C (burnWarningReached false).",
+      "Se bajó el gas 5 puntos en 0 s (antes del crack) y no se alcanzó los 215 °C.",
+      "Se bajó el gas 5 puntos en 0 s (≤30 s) tras el primer crack y no se alcanzó el aviso de 215 °C.",
+      "Se bajó el gas 5 puntos justo después del primer crack (0 s) y antes de alcanzar 215 °C."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "drying_fast_wrong_way",
+   "description": "Secado muy rápido y el jugador sube el gas en vez de bajarlo.",
+   "completedRuns": 5,
+   "failedAttempts": 0,
+   "errors": [],
+   "statusMatches": true,
+   "applicableCriteriaMatch": true,
+   "scores": [
+    66.7,
+    66.7,
+    66.7,
+    66.7,
+    66.7
+   ],
+   "criteria": [
+    {
+     "id": "DRYING_GAS",
+     "expected": 0,
+     "levels": [
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "La subida estuvo 0 % en la franja y hubo un cambio de gas en dirección equivocada (wrongDirectionChanges=1) sin corrección correcta.",
+      "La subida estuvo 0 % en la franja y la única corrección fue en dirección equivocada (wrongDirectionChanges=1).",
+      "La subida estuvo fuera de la franja 100 % y el jugador movió el gas en dirección equivocada (wrongDirectionChanges=1).",
+      "No estuviste en la franja (inBandPercent = 0) y hubo 1 cambio en dirección equivocada, sin correcciones correctas.",
+      "No estuviste en la franja (inBandPercent = 0) y hubo un cambio en dirección equivocada (wrongDirectionChanges = 1), sin corrección correcta."
+     ]
+    },
+    {
+     "id": "RISE_TO_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3,
+      3,
+      3,
+      3,
+      3
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "No hubo estancamiento (longestStallSeconds=0) y el primer crack llegó a 10.1 min, dentro de 8‑12 min.",
+      "No hubo estancamiento (longestStallSeconds=0) y el primer crack llegó a 10.1 min, dentro de la ventana 8‑12 min.",
+      "No hubo estancamiento (longestStallSeconds = 0) y el primer crack llegó a 10.1 min, dentro de la ventana 8‑12 min.",
+      "No hubo estancamiento (longestStallSeconds = 0) y el primer crack llegó a los 10.1 min, dentro de la ventana 8‑12 min."
+     ]
+    },
+    {
+     "id": "GAS_AFTER_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3,
+      3,
+      3,
+      3,
+      3
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "Bajaste el gas 5 puntos (totalDropPoints = 5.0) justo al crack (firstDropSecondsAfterCrack = 0) y sin alcanzar los 215 °C (burnWarningReached = false).",
+      "Bajaste el gas 5 puntos justo al crack (firstDropSecondsAfterCrack = 0) y no alcanzaste los 215 °C (burnWarningReached = false).",
+      "Bajó el gas 5 puntos justo al inicio del crack (firstDropSecondsAfterCrack=0) y no alcanzó 215 °C (peakAfterFirstCrack=205).",
+      "Se bajó el gas 5 puntos inmediatamente (firstDropSecondsAfterCrack=0) y no se alcanzó 215 °C (peakAfterFirstCrack=205).",
+      "Se bajó el gas 5 puntos inmediatamente (firstDropSecondsAfterCrack=0) y no se alcanzó los 215 °C (peakAfterFirstCrack=205)."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "drying_slow_late_fix",
+   "description": "Secado lento casi la mitad del tiempo; sube el gas tarde (85 s).",
+   "completedRuns": 5,
+   "failedAttempts": 2,
+   "errors": [
+    "Groq: Remote service unreachable (ConnectTimeout)"
+   ],
+   "statusMatches": true,
+   "applicableCriteriaMatch": true,
+   "scores": [
+    77.8,
+    66.7,
+    77.8,
+    77.8,
+    77.8
+   ],
+   "criteria": [
+    {
+     "id": "DRYING_GAS",
+     "expected": 1,
+     "levels": [
+      1,
+      0,
+      1,
+      1,
+      1
+     ],
+     "exact": 4,
+     "withinOne": 5,
+     "stable": false,
+     "justifications": [
+      "La subida estuvo en banda solo el 47 % (<60 %) y hubo una corrección correcta de gas (80 s, sin cambios de dirección).",
+      "La subida estuvo en banda solo el 47 % del secado (<60 %) y la única corrección tardó 80 s, fuera del rango rápido.",
+      "La subida estuvo en la franja solo el 47 % del secado (<60 %) pero hubo una corrección del gas en la dirección correcta (80 s).",
+      "La subida estuvo en la franja solo el 47 % del secado (<60 %) pero hubo una corrección del gas en la dirección correcta (correctionSeconds=80).",
+      "Solo el 47 % de la subida estuvo en la franja y la única corrección tardó 80 s, fuera del rango ≤60 s requerido."
+     ]
+    },
+    {
+     "id": "RISE_TO_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3,
+      3,
+      3,
+      3,
+      3
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "No hubo estancamiento (0 s) y el primer crack llegó a los 10.1 min, dentro de la ventana 8‑12 min.",
+      "No hubo estancamiento (longestStallSeconds=0) y el primer crack llegó a los 10.1 min, dentro de la ventana 8‑12 min."
+     ]
+    },
+    {
+     "id": "GAS_AFTER_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3,
+      3,
+      3,
+      3,
+      3
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "Se bajó el gas 5 puntos justo después del crack (0 s) y antes de alcanzar los 215 °C.",
+      "Se bajó el gas 5 puntos justo después del crack (0 s) y no se alcanzó el aviso de 215 °C.",
+      "Se bajó el gas 5 puntos justo después del crack (0 s) y no se alcanzó los 215 °C.",
+      "Se bajó el gas 5 puntos justo después del primer crack (firstDropSecondsAfterCrack=0) y no se alcanzó el aviso de 215 °C.",
+      "Se redujo el gas 5 puntos en 0 s tras el primer crack (≤30 s) y no se alcanzó los 215 °C."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "first_crack_slightly_late",
+   "description": "Primer crack a los 12,5 min: medio minuto fuera de la ventana.",
+   "completedRuns": 5,
+   "failedAttempts": 0,
+   "errors": [],
+   "statusMatches": true,
+   "applicableCriteriaMatch": true,
+   "scores": [
+    88.9,
+    88.9,
+    88.9,
+    88.9,
+    88.9
+   ],
+   "criteria": [
+    {
+     "id": "DRYING_GAS",
+     "expected": 3,
+     "levels": [
+      3,
+      3,
+      3,
+      3,
+      3
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "El 100 % del secado estuvo dentro de la franja (inBandPercent=100), cumpliendo el requisito del 80 % para nivel 3.",
+      "El 100 % del secado estuvo dentro de la franja (inBandPercent = 100), cumpliendo el requisito del 80 % para nivel 3.",
+      "La subida estuvo 100 % dentro de la franja (inBandPercent = 100), cumpliendo el requisito del 80 % para nivel 3.",
+      "La subida estuvo dentro de la franja el 100 % del secado (inBandPercent: 100), cumpliendo el requisito del nivel 3.",
+      "La subida estuvo en la franja el 100 % del secado (inBandPercent = 100), cumpliendo el requisito del nivel 3."
+     ]
+    },
+    {
+     "id": "RISE_TO_FIRST_CRACK",
+     "expected": 2,
+     "levels": [
+      2,
+      2,
+      2,
+      2,
+      2
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "No hubo estancamiento (longestStallSeconds: 0) y el primer crack llegó a 12.5 min, 0.5 min fuera de la ventana 8‑12 min, dentro del margen de 1 min del nivel 2.",
+      "No hubo estancamiento (longestStallSeconds=0) pero el primer crack llegó a los 12.5 min, 0.5 min fuera de la ventana 8‑12 min, lo que corresponde al nivel 2.",
+      "No hubo estancamiento (longestStallSeconds = 0) pero el primer crack llegó 0.5 min fuera de la ventana (minutesOutsideFirstCrackWindow = 0.5), dentro del margen de nivel 2.",
+      "No hubo estancamiento (longestStallSeconds = 0) pero el primer crack llegó a los 12.5 min, 0.5 min fuera de la ventana 8‑12 min, lo que corresponde al nivel 2."
+     ]
+    },
+    {
+     "id": "GAS_AFTER_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3,
+      3,
+      3,
+      3,
+      3
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "Se bajó el gas 5 puntos (totalDropPoints: 5.0) antes de la alerta de 215 °C (burnWarningReached: false) y en menos de 30 s (firstDropSecondsAfterCrack: 0), cumpliendo el nivel 3.",
+      "Se bajó el gas 5 puntos (totalDropPoints = 5.0) en 0 s después del crack (firstDropSecondsAfterCrack = 0) y no se alcanzó el aviso de 215 °C (burnWarningReached = false), cumpliendo el nivel 3.",
+      "Se bajó el gas 5 puntos (totalDropPoints = 5.0) inmediatamente después del crack (firstDropSecondsAfterCrack = 0), cumpliendo el límite de 30 s para nivel 3.",
+      "Se bajó el gas 5 puntos en 0 s después del primer crack (totalDropPoints = 5.0, firstDropSecondsAfterCrack = 0) y no se alcanzó el aviso de 215 °C (burnWarningReached = false), cumpliendo el nivel 3.",
+      "Se redujo el gas 5 puntos (totalDropPoints=5.0) inmediatamente tras el crack (firstDropSecondsAfterCrack=0) y no se alcanzó los 215 °C (peakAfterFirstCrack=205.0), cumpliendo nivel 3."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "first_crack_very_late",
+   "description": "Primer crack a los 14 min: dos minutos fuera de la ventana.",
+   "completedRuns": 5,
+   "failedAttempts": 0,
+   "errors": [],
+   "statusMatches": true,
+   "applicableCriteriaMatch": true,
+   "scores": [
+    77.8,
+    77.8,
+    77.8,
+    77.8,
+    77.8
+   ],
+   "criteria": [
+    {
+     "id": "DRYING_GAS",
+     "expected": 3,
+     "levels": [
+      3,
+      3,
+      3,
+      3,
+      3
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "La subida estuvo dentro de la franja el 100 % del secado (inBandPercent: 100), cumpliendo el requisito del nivel 3.",
+      "La subida estuvo dentro de la franja el 100 % del secado (inBandPercent = 100), cumpliendo el requisito del nivel 3."
+     ]
+    },
+    {
+     "id": "RISE_TO_FIRST_CRACK",
+     "expected": 1,
+     "levels": [
+      1,
+      1,
+      1,
+      1,
+      1
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "No hubo estancamiento (longestStallSeconds: 0) pero el primer crack llegó 2 min fuera de la ventana 8‑12 min (minutesOutsideFirstCrackWindow: 2.0), lo que corresponde al nivel 1.",
+      "No hubo estancamiento (longestStallSeconds = 0), pero el primer crack llegó 2 min fuera de la ventana 8‑12 min (minutesOutsideFirstCrackWindow = 2.0), lo que corresponde al nivel 1.",
+      "No hubo estancamiento (longestStallSeconds = 0), pero el primer crack llegó a los 14 min, 2 min fuera de la ventana 8‑12 min (minutesOutsideFirstCrackWindow = 2.0), lo que corresponde al nivel 1.",
+      "No hubo estancamiento (longestStallSeconds = 0 s) pero el primer crack llegó 2 min fuera de la ventana 8‑12 min (minutesOutsideFirstCrackWindow = 2.0), lo que corresponde al nivel 1.",
+      "No hubo estancamiento (longestStallSeconds = 0 s) pero el primer crack llegó a los 14 min, 2 min fuera de la ventana 8‑12 min (minutesOutsideFirstCrackWindow = 2.0), lo que corresponde al nivel 1."
+     ]
+    },
+    {
+     "id": "GAS_AFTER_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3,
+      3,
+      3,
+      3,
+      3
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "Se bajó el gas 5 puntos en 0 s después del primer crack (firstDropSecondsAfterCrack = 0, totalDropPoints = 5.0) y no se alcanzó el aviso de 215 °C (burnWarningReached = false), cumpliendo el nivel 3.",
+      "Se bajó el gas 5 puntos en 0 s después del primer crack (totalDropPoints: 5.0, firstDropSecondsAfterCrack: 0) y no se alcanzó el aviso de 215 °C (burnWarningReached: false), cumpliendo el nivel 3.",
+      "Se bajó el gas 5 puntos en 0 s después del primer crack (totalDropPoints = 5.0, firstDropSecondsAfterCrack = 0) y no se alcanzó el aviso de 215 °C (burnWarningReached = false), cumpliendo el nivel 3.",
+      "Se bajó el gas 5 puntos inmediatamente después del primer crack (firstDropSecondsAfterCrack = 0 s, totalDropPoints = 5.0) y no se alcanzó el aviso de 215 °C (burnWarningReached = false), cumpliendo el nivel 3.",
+      "Se bajó el gas 5 puntos justo después del primer crack (firstDropSecondsAfterCrack = 0, totalDropPoints = 5.0) y no se alcanzó el aviso de 215 °C (burnWarningReached = false), cumpliendo el nivel 3."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "stall_medium",
+   "description": "La temperatura se queda plana 20 s antes del primer crack.",
+   "completedRuns": 5,
+   "failedAttempts": 0,
+   "errors": [],
+   "statusMatches": true,
+   "applicableCriteriaMatch": true,
+   "scores": [
+    77.8,
+    77.8,
+    77.8,
+    77.8,
+    77.8
+   ],
+   "criteria": [
+    {
+     "id": "DRYING_GAS",
+     "expected": 3,
+     "levels": [
+      3,
+      3,
+      3,
+      3,
+      3
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "El 100 % del secado estuvo dentro de la franja (inBandPercent=100), cumpliendo el requisito del 80 % para nivel 3.",
+      "El 100 % del secado estuvo dentro de la franja (inBandPercent = 100), cumpliendo el requisito del nivel 3.",
+      "El 100 % del secado estuvo dentro de la franja (inBandPercent = 100), cumpliendo el requisito del nivel 3.",
+      "La subida estuvo dentro de la franja el 100 % del secado (inBandPercent = 100), cumpliendo el requisito del nivel 3."
+     ]
+    },
+    {
+     "id": "RISE_TO_FIRST_CRACK",
+     "expected": 1,
+     "levels": [
+      1,
+      1,
+      1,
+      1,
+      1
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "Se registró un estancamiento de 20 s (longestStallSeconds=20), que está entre 15 y 30 s, lo que corresponde al nivel 1.",
+      "Se registró un estancamiento de 20 s (longestStallSeconds = 20) y el primer crack llegó a 10.1 min, dentro de la ventana, lo que corresponde al nivel 1.",
+      "Se registró un estancamiento de 20 s (longestStallSeconds = 20) y el primer crack llegó a los 10.1 min, dentro de la ventana, lo que corresponde al nivel 1.",
+      "Se registró un estancamiento de 20 s (longestStallSeconds = 20), que corresponde al rango 15‑30 s del nivel 1.",
+      "Se registró un estancamiento de 20 s (longestStallSeconds = 20), que está entre 15 y 30 s, lo que corresponde al nivel 1."
+     ]
+    },
+    {
+     "id": "GAS_AFTER_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3,
+      3,
+      3,
+      3,
+      3
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "El gas se redujo 5 puntos inmediatamente tras el primer crack (firstDropSecondsAfterCrack = 0, totalDropPoints = 5) y no se alcanzó la alerta de 215 °C (burnWarningReached = false), cumpliendo el nivel 3.",
+      "Se bajó el gas 5 puntos (totalDropPoints = 5.0) en 0 s después del crack (firstDropSecondsAfterCrack = 0) y no se alcanzó el aviso de 215 °C (burnWarningReached = false), cumpliendo el nivel 3.",
+      "Se bajó el gas 5 puntos (totalDropPoints = 5.0) en 0 s después del primer crack (firstDropSecondsAfterCrack = 0), cumpliendo el nivel 3.",
+      "Se bajó el gas 5 puntos inmediatamente (firstDropSecondsAfterCrack=0) y no se alcanzó el aviso de 215 °C (burnWarningReached=false), cumpliendo el criterio de nivel 3.",
+      "Se bajó el gas 5 puntos inmediatamente tras el primer crack (firstDropSecondsAfterCrack = 0, totalDropPoints = 5.0) y no se alcanzó la alerta de 215 °C."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "baked_stall",
+   "description": "La temperatura se queda plana 40 s antes del primer crack (horneado).",
+   "completedRuns": 5,
+   "failedAttempts": 0,
+   "errors": [],
+   "statusMatches": true,
+   "applicableCriteriaMatch": true,
+   "scores": [
+    66.7,
+    66.7,
+    66.7,
+    66.7,
+    66.7
+   ],
+   "criteria": [
+    {
+     "id": "DRYING_GAS",
+     "expected": 3,
+     "levels": [
+      3,
+      3,
+      3,
+      3,
+      3
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "La subida estuvo dentro de la franja el 100 % del secado (inBandPercent: 100), cumpliendo el requisito del nivel 3.",
+      "La subida estuvo dentro de la franja el 100 % del secado (inBandPercent = 100), cumpliendo el requisito del nivel 3.",
+      "La subida estuvo en la franja el 100 % del secado (inBandPercent = 100), cumpliendo el requisito del nivel 3."
+     ]
+    },
+    {
+     "id": "RISE_TO_FIRST_CRACK",
+     "expected": 0,
+     "levels": [
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "Se registró un estancamiento de 40 s (longestStallSeconds: 40), superior a 30 s, lo que corresponde al nivel 0.",
+      "Se registró un estancamiento de 40 s (longestStallSeconds = 40), superior a 30 s, lo que corresponde al nivel 0.",
+      "Se registró un estancamiento de 40 s (longestStallSeconds = 40), superior a 30 s, lo que corresponde al nivel 0."
+     ]
+    },
+    {
+     "id": "GAS_AFTER_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3,
+      3,
+      3,
+      3,
+      3
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "Bajó el gas 5 puntos (totalDropPoints: 5.0) en 0 s después del crack (firstDropSecondsAfterCrack: 0) y no alcanzó los 215 °C (burnWarningReached: false), cumpliendo el nivel 3.",
+      "Bajó el gas 5 puntos (totalDropPoints = 5.0) en 0 s después del crack (firstDropSecondsAfterCrack = 0) y no alcanzó los 215 °C (burnWarningReached = false), cumpliendo el nivel 3.",
+      "El gas se bajó 5 puntos justo después del crack (firstDropSecondsAfterCrack = 0, totalDropPoints = 5.0) y no se alcanzó el aviso de 215 °C (burnWarningReached = false), cumpliendo el nivel 3.",
+      "Se bajó el gas 5 puntos (totalDropPoints = 5.0) en 0 s después del crack (firstDropSecondsAfterCrack = 0) y no se alcanzó el aviso de 215 °C (burnWarningReached = false), cumpliendo el nivel 3."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gas_drop_late",
+   "description": "Baja el gas 60 s después del primer crack.",
+   "completedRuns": 5,
+   "failedAttempts": 0,
+   "errors": [],
+   "statusMatches": true,
+   "applicableCriteriaMatch": true,
+   "scores": [
+    88.9,
+    88.9,
+    88.9,
+    88.9,
+    88.9
+   ],
+   "criteria": [
+    {
+     "id": "DRYING_GAS",
+     "expected": 3,
+     "levels": [
+      3,
+      3,
+      3,
+      3,
+      3
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "El 100 % del secado estuvo dentro de la franja (inBandPercent=100), cumpliendo el requisito del nivel 3.",
+      "El 100 % del secado estuvo dentro de la franja (inBandPercent = 100), cumpliendo el requisito del nivel 3.",
+      "La subida estuvo dentro de la franja el 100 % del secado (inBandPercent = 100), cumpliendo el requisito del nivel 3.",
+      "La subida estuvo en la franja el 100 % del secado (inBandPercent = 100), cumpliendo el requisito del nivel 3."
+     ]
+    },
+    {
+     "id": "RISE_TO_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3,
+      3,
+      3,
+      3,
+      3
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "No hubo estancamiento (longestStallSeconds=0) y el primer crack llegó a los 10.1 min, dentro de la ventana 8‑12 min.",
+      "No hubo estancamiento (longestStallSeconds = 0) y el primer crack llegó a los 10.1 min, dentro de la ventana 8‑12 min.",
+      "No hubo estancamiento (longestStallSeconds = 0 s) y el primer crack llegó a los 10.1 min, dentro de la ventana 8‑12 min."
+     ]
+    },
+    {
+     "id": "GAS_AFTER_FIRST_CRACK",
+     "expected": 2,
+     "levels": [
+      2,
+      2,
+      2,
+      2,
+      2
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "El gas se redujo 5 puntos en 60 s después del primer crack (firstDropSecondsAfterCrack = 60, totalDropPoints = 5.0), cumpliendo el rango 30‑90 s del nivel 2.",
+      "El gas se redujo 5 puntos en 60 s después del primer crack (firstDropSecondsAfterCrack = 60 s), dentro del rango 30‑90 s del nivel 2.",
+      "Se bajó el gas 5 puntos en 60 s después del primer crack (firstDropSecondsAfterCrack=60, totalDropPoints=5.0), dentro del rango 30‑90 s del nivel 2.",
+      "Se bajó el gas 5 puntos en 60 s después del primer crack (firstDropSecondsAfterCrack = 60, totalDropPoints = 5.0), cumpliendo el rango del nivel 2."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gas_drop_very_late",
+   "description": "Baja el gas 110 s después del primer crack.",
+   "completedRuns": 5,
+   "failedAttempts": 0,
+   "errors": [],
+   "statusMatches": true,
+   "applicableCriteriaMatch": true,
+   "scores": [
+    77.8,
+    77.8,
+    77.8,
+    77.8,
+    77.8
+   ],
+   "criteria": [
+    {
+     "id": "DRYING_GAS",
+     "expected": 3,
+     "levels": [
+      3,
+      3,
+      3,
+      3,
+      3
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "La subida estuvo dentro de la franja 5‑25 °C/min durante el 100 % del secado (inBandPercent=100), cumpliendo el requisito del nivel 3.",
+      "La subida estuvo dentro de la franja 5‑25 °C/min durante el 100 % del secado, cumpliendo el requisito del 80 % para nivel 3.",
+      "La subida estuvo dentro de la franja el 100 % del secado (inBandPercent = 100), cumpliendo el requisito del nivel 3."
+     ]
+    },
+    {
+     "id": "RISE_TO_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3,
+      3,
+      3,
+      3,
+      3
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "No hubo estancamiento (0 s) y el primer crack llegó a los 10.1 min, dentro de la ventana 8‑12 min requerida para nivel 3.",
+      "No hubo estancamiento (longestStallSeconds=0 <10 s) y el primer crack llegó a los 10.1 min, dentro de la ventana 8‑12 min.",
+      "No hubo estancamiento (longestStallSeconds = 0 s) y el primer crack llegó a los 10.1 min, dentro de la ventana 8‑12 min."
+     ]
+    },
+    {
+     "id": "GAS_AFTER_FIRST_CRACK",
+     "expected": 1,
+     "levels": [
+      1,
+      1,
+      1,
+      1,
+      1
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "El gas se bajó 5 puntos, pero lo hizo 110 s después del primer crack (firstDropSecondsAfterCrack=110), superando los 90 s requeridos para el nivel 1.",
+      "El gas se bajó 5 puntos, pero tardó 110 s después del primer crack (firstDropSecondsAfterCrack=110), superando los 90 s del nivel 2, por lo que corresponde al nivel 1.",
+      "El gas se redujo 5 puntos, pero la caída ocurrió 110 s después del primer crack, superando los 90 s del nivel 2, por lo que corresponde nivel 1.",
+      "El gas se redujo 5 puntos, pero tardó 110 s después del primer crack (firstDropSecondsAfterCrack=110), superando los 90 s del nivel 2.",
+      "El gas se redujo 5 puntos, pero tardó 110 s después del primer crack (firstDropSecondsAfterCrack = 110), superando los 90 s del nivel 2."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gas_small_drop",
+   "description": "En el primer crack baja el gas solo 2 puntos.",
+   "completedRuns": 5,
+   "failedAttempts": 0,
+   "errors": [],
+   "statusMatches": true,
+   "applicableCriteriaMatch": true,
+   "scores": [
+    88.9,
+    88.9,
+    88.9,
+    88.9,
+    88.9
+   ],
+   "criteria": [
+    {
+     "id": "DRYING_GAS",
+     "expected": 3,
+     "levels": [
+      3,
+      3,
+      3,
+      3,
+      3
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "El 100 % del secado estuvo dentro de la franja (inBandPercent=100), cumpliendo el requisito del 80 % para nivel 3.",
+      "El 100 % del secado estuvo dentro de la franja 5‑25 °C/min (inBandPercent=100), cumpliendo el requisito del nivel 3.",
+      "La subida estuvo dentro de la franja el 100 % del secado (inBandPercent = 100), cumpliendo el requisito del nivel 3."
+     ]
+    },
+    {
+     "id": "RISE_TO_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3,
+      3,
+      3,
+      3,
+      3
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "No hubo estancamiento (longestStallSeconds=0) y el primer crack llegó a 10.1 min, dentro de la ventana 8‑12 min.",
+      "No hubo estancamiento (longestStallSeconds = 0 s) y el primer crack llegó a los 10.1 min, dentro de la ventana 8‑12 min."
+     ]
+    },
+    {
+     "id": "GAS_AFTER_FIRST_CRACK",
+     "expected": 2,
+     "levels": [
+      2,
+      2,
+      2,
+      2,
+      2
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "El gas se bajó inmediatamente (firstDropSecondsAfterCrack = 0 s) pero solo 2 puntos (totalDropPoints = 2.0), cumpliendo el criterio de nivel 2 (bajada <5 puntos).",
+      "El gas se bajó inmediatamente (firstDropSecondsAfterCrack = 0 s) pero solo 2 puntos (totalDropPoints = 2.0), lo que corresponde al nivel 2.",
+      "Se bajó el gas antes de la alerta de quemado (droppedBeforeBurnWarning = true) pero solo 2 puntos (totalDropPoints = 2.0), menos de los 5 puntos requeridos para nivel 3.",
+      "Se bajó el gas inmediatamente (firstDropSecondsAfterCrack=0) pero solo 2 puntos (totalDropPoints=2.0), cumpliendo la condición de “menos de 5 puntos” para nivel 2.",
+      "Se redujo el gas menos de 5 puntos (totalDropPoints=2.0), lo que corresponde al nivel 2 aunque la reducción fue inmediata."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gas_raised_after_crack",
+   "description": "En el primer crack sube el gas en vez de bajarlo.",
+   "completedRuns": 5,
+   "failedAttempts": 0,
+   "errors": [],
+   "statusMatches": true,
+   "applicableCriteriaMatch": true,
+   "scores": [
+    66.7,
+    66.7,
+    66.7,
+    66.7,
+    66.7
+   ],
+   "criteria": [
+    {
+     "id": "DRYING_GAS",
+     "expected": 3,
+     "levels": [
+      3,
+      3,
+      3,
+      3,
+      3
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "La subida estuvo dentro de la franja el 100 % del secado (inBandPercent: 100), cumpliendo el requisito del nivel 3.",
+      "La subida estuvo dentro de la franja el 100 % del secado (inBandPercent = 100), cumpliendo el requisito del nivel 3."
+     ]
+    },
+    {
+     "id": "RISE_TO_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3,
+      3,
+      3,
+      3,
+      3
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "No hubo estancamiento (longestStallSeconds: 0) y el primer crack llegó a los 10.1 min, dentro de la ventana 8‑12 min.",
+      "No hubo estancamiento (longestStallSeconds = 0 s) y el primer crack llegó a los 10.1 min, dentro de la ventana 8‑12 min."
+     ]
+    },
+    {
+     "id": "GAS_AFTER_FIRST_CRACK",
+     "expected": 0,
+     "levels": [
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "No se bajó el gas después del primer crack (firstDropSecondsAfterCrack = null) y no hubo aumento, cumpliendo el criterio de nivel 0.",
+      "No se registró ninguna reducción de gas (totalDropPoints = 0) y no hubo bajada antes de la alerta de quemado.",
+      "No se registró ninguna reducción de gas después del primer crack (firstDropSecondsAfterCrack: null) y el gas no se bajó en los 30 s requeridos.",
+      "No se registró ninguna reducción de gas después del primer crack (firstDropSecondsAfterCrack: null) y el gas no se bajó, aunque la temperatura no alcanzó 215 °C.",
+      "No se registró ninguna reducción de gas después del primer crack (totalDropPoints = 0, droppedBeforeBurnWarning = false), por lo que no se cumple ningún criterio positivo."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "alerts_reacted",
+   "description": "Tueste correcto que además responde a las dos alertas que recibe (baja el gas y descarga).",
+   "completedRuns": 5,
+   "failedAttempts": 0,
+   "errors": [],
+   "statusMatches": true,
+   "applicableCriteriaMatch": true,
+   "scores": [
+    100.0,
+    100.0,
+    100.0,
+    100.0,
+    100.0
+   ],
+   "criteria": [
+    {
+     "id": "DRYING_GAS",
+     "expected": 3,
+     "levels": [
+      3,
+      3,
+      3,
+      3,
+      3
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "La subida estuvo dentro de la franja el 100 % del secado (inBandPercent=100), cumpliendo el requisito del nivel 3.",
+      "La subida estuvo dentro de la franja el 100 % del secado (inBandPercent = 100), cumpliendo el requisito del nivel 3.",
+      "La subida estuvo en la franja el 100 % del secado (inBandPercent = 100), cumpliendo el requisito del nivel 3."
+     ]
+    },
+    {
+     "id": "RISE_TO_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3,
+      3,
+      3,
+      3,
+      3
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "No hubo estancamiento (longestStallSeconds=0) y el primer crack llegó a 10.1 min, dentro de la ventana 8‑12 min.",
+      "No hubo estancamiento (longestStallSeconds = 0 s) y el primer crack llegó a los 10.1 min, dentro de la ventana 8‑12 min."
+     ]
+    },
+    {
+     "id": "GAS_AFTER_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3,
+      3,
+      3,
+      3,
+      3
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "Se bajó el gas 10 puntos (totalDropPoints=10) en menos de 30 s (firstDropSecondsAfterCrack=0) y no se alcanzó la alerta de 215 °C (burnWarningReached=false).",
+      "Se bajó el gas 10 puntos (totalDropPoints = 10) en menos de 30 s (firstDropSecondsAfterCrack = 0) y no se alcanzó la alerta de 215 °C (burnWarningReached = false).",
+      "Se bajó el gas 10 puntos (totalDropPoints = 10) inmediatamente después del crack (firstDropSecondsAfterCrack = 0 s) y no se alcanzó la alerta de 215 °C (burnWarningReached = false)."
+     ]
+    },
+    {
+     "id": "ALERT_REACTION",
+     "expected": 3,
+     "levels": [
+      3,
+      3,
+      3,
+      3,
+      3
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "Reaccionaste correctamente a ambas alertas (reactedPercent=100 %), superando el 90 % requerido para nivel 3.",
+      "Reaccionaste correctamente a ambas alertas (reactedPercent = 100 %), superando el 90 % requerido para nivel 3."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "alerts_ignored",
+   "description": "Tueste correcto que no responde a ninguna de las tres alertas que recibe.",
+   "completedRuns": 5,
+   "failedAttempts": 0,
+   "errors": [],
+   "statusMatches": true,
+   "applicableCriteriaMatch": true,
+   "scores": [
+    75.0,
+    75.0,
+    75.0,
+    75.0,
+    75.0
+   ],
+   "criteria": [
+    {
+     "id": "DRYING_GAS",
+     "expected": 3,
+     "levels": [
+      3,
+      3,
+      3,
+      3,
+      3
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "La subida estuvo dentro de la franja 5‑25 °C/min durante el 100 % del secado (inBandPercent=100), cumpliendo el requisito del 80 %.",
+      "La subida estuvo dentro de la franja 5‑25 °C/min durante el 100 % del secado, cumpliendo el requisito del 80 %.",
+      "La subida estuvo en la franja 100 % del secado (inBandPercent=100) y no hubo correcciones erróneas.",
+      "La subida estuvo en la franja 100 % del secado (inBandPercent=100), cumpliendo el requisito del 80 % para nivel 3."
+     ]
+    },
+    {
+     "id": "RISE_TO_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3,
+      3,
+      3,
+      3,
+      3
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "No hubo estancamiento (0 s) y el primer crack llegó a los 10.1 min, dentro del rango 8‑12 min.",
+      "No hubo estancamiento (longestStallSeconds=0 <10 s) y el primer crack llegó a los 10.1 min, dentro de la ventana 8‑12 min.",
+      "No hubo estancamiento (longestStallSeconds=0) y el primer crack llegó a 10.1 min, dentro de 8‑12 min.",
+      "No hubo estancamiento (longestStallSeconds=0) y el primer crack llegó a 10.1 min, dentro de la ventana 8‑12 min.",
+      "No hubo estancamiento (longestStallSeconds=0) y el primer crack llegó a los 10.1 min, dentro de la ventana 8‑12 min."
+     ]
+    },
+    {
+     "id": "GAS_AFTER_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3,
+      3,
+      3,
+      3,
+      3
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "Se bajó el gas 5 puntos (totalDropPoints=5) en 0 s tras el primer crack y no se alcanzó el aviso de 215 °C (burnWarningReached=false).",
+      "Se bajó el gas 5 puntos en 0 s tras el primer crack (firstDropSecondsAfterCrack=0) y no se alcanzó la alerta de 215 °C (burnWarningReached=false).",
+      "Se bajó el gas 5 puntos justo después del crack (firstDropSecondsAfterCrack=0) y no se alcanzó 215 °C (burnWarningReached=false).",
+      "Se bajó el gas 5 puntos justo después del primer crack (0 s) y no se alcanzó la alerta de 215 °C."
+     ]
+    },
+    {
+     "id": "ALERT_REACTION",
+     "expected": 0,
+     "levels": [
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "No reaccionaste a ninguna alerta (reactedPercent=0 %).",
+      "No reaccionaste a ninguna de las 3 alertas (0 % de reacciones).",
+      "No reaccionaste a ninguna de las 3 alertas (reactedPercent=0 %).",
+      "No se reaccionó a ninguna de las 3 alertas (reactedPercent=0 %), por debajo del 30 % requerido para nivel 1."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "raw",
+   "description": "Crudo: descarga a los 5 min sin llegar al fin del secado; solo aplica el secado.",
+   "completedRuns": 5,
+   "failedAttempts": 0,
+   "errors": [],
+   "statusMatches": true,
+   "applicableCriteriaMatch": true,
+   "scores": [
+    100.0,
+    100.0,
+    100.0,
+    100.0,
+    100.0
+   ],
+   "criteria": [
+    {
+     "id": "DRYING_GAS",
+     "expected": 3,
+     "levels": [
+      3,
+      3,
+      3,
+      3,
+      3
+     ],
+     "exact": 5,
+     "withinOne": 5,
+     "stable": true,
+     "justifications": [
+      "La subida estuvo dentro de la franja 5‑25 °C/min durante el 100 % del secado (inBandPercent = 100), cumpliendo el requisito del nivel 3.",
+      "La subida estuvo dentro de la franja 5‑25 °C/min durante el 100 % del secado, cumpliendo el requisito del 80 % para nivel 3."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "auto",
+   "description": "Tueste correcto en modo automático: no hay decisiones del jugador que calificar.",
+   "completedRuns": 5,
+   "failedAttempts": 0,
+   "errors": [],
+   "statusMatches": true,
+   "applicableCriteriaMatch": true,
+   "scores": [
+    null,
+    null,
+    null,
+    null,
+    null
+   ],
+   "criteria": []
+  }
+ ]
+}

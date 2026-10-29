@@ -2,13 +2,16 @@ package com.toastedvr.toastedvr.backend.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.toastedvr.toastedvr.backend.domain.CombinedScore;
 import com.toastedvr.toastedvr.backend.domain.KnowledgeLevel;
+import com.toastedvr.toastedvr.backend.domain.RoastEvaluation;
 import com.toastedvr.toastedvr.backend.domain.RoastingResult;
 import com.toastedvr.toastedvr.backend.domain.RoastingSession;
 import com.toastedvr.toastedvr.backend.domain.Role;
 import com.toastedvr.toastedvr.backend.domain.User;
 import com.toastedvr.toastedvr.backend.repository.BlacklistedTokenRepository;
 import com.toastedvr.toastedvr.backend.repository.RankingSnapshotRepository;
+import com.toastedvr.toastedvr.backend.repository.RoastEvaluationRepository;
 import com.toastedvr.toastedvr.backend.repository.RoastingSessionRepository;
 import com.toastedvr.toastedvr.backend.repository.UserRepository;
 import com.toastedvr.toastedvr.backend.security.JwtService;
@@ -58,6 +61,9 @@ class RankingChangesIntegrationTests {
 
     @Autowired
     private RoastingSessionRepository roastingSessionRepository;
+
+    @Autowired
+    private RoastEvaluationRepository evaluationRepository;
 
     @Autowired
     private RankingSnapshotRepository rankingSnapshotRepository;
@@ -110,6 +116,21 @@ class RankingChangesIntegrationTests {
             .andExpect(jsonPath("$.level").value("INTERMEDIATE"))
             .andExpect(jsonPath("$.hasChanges").value(false))
             .andExpect(jsonPath("$.pollIntervalSeconds").value(60));
+    }
+
+    // Una foto vista con otra base (las de antes de la nota combinada) no se compara: ni punto ni flechas.
+    @Test
+    void shouldIgnoreAPhotoSeenWithAnotherScoreBasis() throws Exception {
+        saveSession(saveUser("anaUser", Role.PLAYER, LEVEL), 90);
+        saveSession(viewer, 70);
+        viewAndMarkSeen(viewer);
+        jdbcTemplate.update("UPDATE ranking_snapshots SET score_basis = NULL");
+        saveSession(saveUser("carlaUser", Role.PLAYER, LEVEL), 95);
+
+        changes(viewer).andExpect(jsonPath("$.hasChanges").value(false));
+        JsonNode ranking = ranking(viewer, "");
+        assertThat(ranking.at("/top/0/movement").isNull()).isTrue();
+        assertThat(ranking.at("/me/movement").isNull()).isTrue();
     }
 
     @Test
@@ -324,6 +345,15 @@ class RankingChangesIntegrationTests {
             BASE_TIME.plusMinutes(minute++),
             session.getId()
         );
+        complete(session, score);
+    }
+
+    // El ranking solo cuenta la nota combinada: la sesión se guarda ya calificada con ese puntaje.
+    private void complete(RoastingSession session, int finalScore) {
+        RoastEvaluation evaluation = RoastEvaluation.pending(session, LocalDateTime.now());
+        evaluation.complete(new CombinedScore(50.0, finalScore, 0.7, 0.3, false), "draft-1", "openai/gpt-oss-120b",
+            "{\"criteria\":[],\"notApplicable\":[]}", LocalDateTime.now());
+        evaluationRepository.save(evaluation);
     }
 
     private String bearer(User user) {

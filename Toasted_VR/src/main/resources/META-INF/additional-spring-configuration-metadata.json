@@ -146,6 +146,12 @@
       "defaultValue": 60
     },
     {
+      "name": "app.roasting.ranking-combined-since",
+      "type": "java.time.LocalDateTime",
+      "description": "Desde cuando (UTC) cuentan para el ranking las sesiones con nota combinada; las fotos vistas con otra fecha no se comparan.",
+      "defaultValue": "2026-10-28T00:00:00"
+    },
+    {
       "name": "app.roast-validation.charge-temperature-min",
       "type": "java.lang.Double",
       "description": "Temperatura de carga minima aceptada (C); es la del aire al cargar.",

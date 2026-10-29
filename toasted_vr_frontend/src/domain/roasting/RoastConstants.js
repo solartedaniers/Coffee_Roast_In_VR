@@ -388,6 +388,17 @@ export const DTR_IDEAL_MIN_RATIO = 0.18;
 export const DTR_IDEAL_MAX_RATIO = 0.22;
 export const DTR_PENALTY_PER_RATIO_POINT = 100;
 
+// ---- Traza del tueste para la calificación de la IA (fase 5) ----
+// Lo que decidió el jugador, muestreado cada pocos segundos desde la carga.
+// Los máximos son los de app.roast-trace en application.yml
+// (roastValidationContract.test.js); una traza más grande no se envía y la
+// sesión queda calificada solo con las reglas.
+export const ROAST_TRACE_VERSION = 1;
+export const ROAST_TRACE_SAMPLE_INTERVAL_SECONDS = 5;
+export const ROAST_TRACE_MAX_SAMPLES = 400;
+export const ROAST_TRACE_MAX_GAS_CHANGES = 120;
+export const ROAST_TRACE_MAX_EVENTS = 10;
+
 export const CRACK_SOUND_PATH = `${process.env.PUBLIC_URL}/assets/sounds/crack.mp3`;
 
 // ---- Ajustes del equipo (persisten entre tuestes, viven en el menú

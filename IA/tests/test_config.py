@@ -124,3 +124,9 @@ def test_reads_the_alert_catalog_from_the_config_folder(settings):
     assert settings.alerts_catalog_file == SERVICE_ROOT / "config" / "proactive_alerts.json"
     catalog = json.loads(settings.alerts_catalog_file.read_text(encoding="utf-8"))
     assert catalog["rules"]
+
+
+def test_grades_the_rubric_with_gpt_oss_120b_deterministically(settings):
+    assert settings.evaluation_groq_model == "openai/gpt-oss-120b"
+    assert settings.evaluation_groq_temperature == 0
+    assert settings.evaluation_rubric_file.name == "roast_rubric.json"

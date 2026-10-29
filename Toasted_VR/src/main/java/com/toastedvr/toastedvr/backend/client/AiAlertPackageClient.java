@@ -21,7 +21,6 @@ public class AiAlertPackageClient {
     }
 
     // Sin nivel, el servicio IA usa el nivel por defecto de su catálogo.
-    @SuppressWarnings("null")
     public AiAlertPackageReply fetch(KnowledgeLevel level, String ifNoneMatch) {
         try {
             return restClient.get()

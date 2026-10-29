@@ -2,12 +2,23 @@ import React, { useEffect, useState } from 'react';
 import { getSessionDetail } from '../../services/progressService';
 import { getRoastingFeedback } from '../../services/simulationService';
 import { formatLocalDateTime } from '../../utils/dateFormat';
-import { RESULT_PILL_CLASSES, formatLevel, formatMinutes, formatRatio, formatTemperature } from './progressFormat';
+import RoastEvaluationBreakdown from './RoastEvaluationBreakdown';
+import useSessionEvaluation from './useSessionEvaluation';
+import {
+  RESULT_PILL_CLASSES,
+  formatGrade,
+  formatLevel,
+  formatMinutes,
+  formatRatio,
+  formatTemperature,
+  scoreOf,
+} from './progressFormat';
 
 // Detalle de una sesión del historial, con la opción de volver a pedir la
 // retroalimentación de IA (usa el mismo endpoint que la pantalla de resultados).
 export default function SessionDetailView({ texts, sessionId, onBack }) {
-  const [session, setSession] = useState(null);
+  const [loadedSession, setSession] = useState(null);
+  const { session, timedOut } = useSessionEvaluation(loadedSession);
   const [status, setStatus] = useState('loading');
   const [feedbackState, setFeedbackState] = useState('idle');
   const [feedbackText, setFeedbackText] = useState('');
@@ -51,7 +62,8 @@ export default function SessionDetailView({ texts, sessionId, onBack }) {
   const rows = [
     [texts.columns.date, formatLocalDateTime(session.createdAt)],
     [texts.columns.level, formatLevel(session.knowledgeLevel, texts)],
-    [texts.columns.score, `${session.qualityScore}%`],
+    [texts.columns.score, `${scoreOf(session)}%`],
+    [texts.columns.grade, formatGrade(session.grade, texts)],
     [texts.detail.chargeTemp, formatTemperature(session.chargeTemperature, texts)],
     [texts.detail.targetTemp, formatTemperature(session.targetTemperature, texts)],
     [texts.columns.finalTemp, formatTemperature(session.finalTemperature, texts)],
@@ -77,6 +89,8 @@ export default function SessionDetailView({ texts, sessionId, onBack }) {
           </div>
         ))}
       </div>
+
+      <RoastEvaluationBreakdown texts={texts} session={session} timedOut={timedOut} />
 
       {feedbackState === 'idle' && (
         <button type="button" className="primary-button" onClick={handleRequestFeedback}>

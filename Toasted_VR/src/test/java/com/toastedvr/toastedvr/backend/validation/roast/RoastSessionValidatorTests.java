@@ -304,7 +304,8 @@ class RoastSessionValidatorTests {
                 result,
                 qualityScore,
                 firstCrackReached,
-                developmentTimeSeconds
+                developmentTimeSeconds,
+                null
             );
         }
     }

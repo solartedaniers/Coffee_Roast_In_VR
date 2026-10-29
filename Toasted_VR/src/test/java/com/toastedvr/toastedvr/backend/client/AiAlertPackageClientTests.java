@@ -13,6 +13,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import com.toastedvr.toastedvr.backend.domain.KnowledgeLevel;
 import java.net.ConnectException;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
@@ -38,12 +39,11 @@ class AiAlertPackageClientTests {
     }
 
     @Test
-    @SuppressWarnings("null")
     void asksForThePackageOfTheLevelAndKeepsItsEtag() {
         HttpHeaders headers = new HttpHeaders();
         headers.setETag(ETAG);
         aiService.expect(requestTo(PACKAGE_URL + "?level=ADVANCED"))
-            .andExpect(method(HttpMethod.GET))
+            .andExpect(method(Objects.requireNonNull(HttpMethod.GET)))
             .andExpect(headerDoesNotExist(HttpHeaders.IF_NONE_MATCH))
             .andRespond(withSuccess("{\"level\":\"ADVANCED\"}", MediaType.APPLICATION_JSON).headers(headers));
 
@@ -56,7 +56,6 @@ class AiAlertPackageClientTests {
     }
 
     @Test
-    @SuppressWarnings("null")
     void forwardsIfNoneMatchAndReturnsNotModified() {
         HttpHeaders headers = new HttpHeaders();
         headers.setETag(ETAG);

@@ -28,7 +28,7 @@ def test_renders_parameters_without_trailing_zeros():
 
     text = rubric.render(rubric.criterion(CriterionId.DRYING_GAS).description)
 
-    assert "160 °C" in text and "10 a 25 °C/min" in text
+    assert "160 °C" in text and "5 a 25 °C/min" in text
 
 
 def test_rejects_an_unknown_placeholder():

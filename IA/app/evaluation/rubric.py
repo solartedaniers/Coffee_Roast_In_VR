@@ -54,6 +54,7 @@ class RubricParameters(RubricModel):
     gas_drop_min_points: float = Field(gt=0)
     gas_drop_quick_seconds: int = Field(gt=0)
     gas_drop_late_seconds: int = Field(gt=0)
+    gas_drop_anticipation_seconds: int = Field(ge=0)
     min_development_seconds: int = Field(ge=0)
     burn_warning_temperature: float
     alert_reaction_seconds: int = Field(gt=0)

@@ -7,7 +7,7 @@
     "riseWindowSeconds": 30,
     "turningPointMinRise": 0.5,
     "dryingEndTemperature": 160,
-    "dryingRiseMin": 10,
+    "dryingRiseMin": 5,
     "dryingRiseMax": 25,
     "dryingInBandHigh": 80,
     "dryingInBandLow": 60,
@@ -19,9 +19,10 @@
     "firstCrackMinMinutes": 8,
     "firstCrackMaxMinutes": 12,
     "firstCrackSlackMinutes": 1,
-    "gasDropMinPoints": 10,
+    "gasDropMinPoints": 5,
     "gasDropQuickSeconds": 30,
     "gasDropLateSeconds": 90,
+    "gasDropAnticipationSeconds": 15,
     "minDevelopmentSeconds": 30,
     "burnWarningTemperature": 215,
     "alertReactionSeconds": 20,
@@ -52,6 +53,7 @@
     "Para cada criterio recibes su descripción, los cuatro niveles (0 a {maxLevel}) y los hechos medidos por el sistema en la curva. Los hechos son exactos: no los recalcules ni inventes otros.",
     "Asigna a cada criterio el nivel cuya descripción coincida con los hechos. Si los hechos quedan entre dos niveles, elige el más bajo.",
     "La justificación va en español, en una o dos frases, con máximo {justificationMaxChars} caracteres, y cita los hechos que decidieron el nivel con sus cifras. Habla del jugador en segunda persona.",
+    "Los hechos vienen en JSON con nombres en inglés; los segundos son del reloj del tueste, que empieza en cero al cargar el café y el gas va de 0 a 100.",
     "Responde solo con el JSON pedido."
   ],
   "criteria": [
@@ -60,7 +62,7 @@
       "title": "Manejo del gas en el secado",
       "description": "Desde el punto de retorno hasta {dryingEndTemperature} °C: si la subida se mantuvo en la franja de {dryingRiseMin} a {dryingRiseMax} °C/min y si el jugador corrigió el gas cuando se salió.",
       "evidence": "SOURCED",
-      "source": "Manual básico de buenas prácticas para el tostado del café p.11 (muy rápido deja puntas oscuras, muy lento hornea) y Jama tabla 2 (la curva aceptada más lenta sube unos 6,5 °C/min). Parámetro de diseño: la franja de {dryingRiseMin} a {dryingRiseMax} °C/min es la del catálogo de alertas.",
+      "source": "Manual básico de buenas prácticas para el tostado del café p.11 (muy rápido deja puntas oscuras, muy lento hornea) y Jama tabla 2 (la curva aceptada más lenta sube unos 6,5 °C/min). Parámetro de diseño: {dryingRiseMin} y {dryingRiseMax} °C/min son los umbrales de las alertas de subida lenta y rápida; el tueste correcto del simulador sube unos 8 °C/min al final del secado.",
       "levels": {
         "3": "La subida estuvo en la franja al menos el {dryingInBandHigh} % del secado, o cada vez que se salió el jugador corrigió el gas en la dirección correcta en {dryingQuickCorrectionSeconds} s o menos.",
         "2": "La subida estuvo en la franja entre el {dryingInBandLow} % y el {dryingInBandHigh} % del secado, o las correcciones llegaron entre {dryingQuickCorrectionSeconds} y {dryingSlowCorrectionSeconds} s.",
@@ -84,9 +86,9 @@
     {
       "id": "GAS_AFTER_FIRST_CRACK",
       "title": "Gas después del primer crack",
-      "description": "Después del primer crack el grano genera calor propio: si el jugador bajó el gas a tiempo para controlar la subida sin llegar al aviso de {burnWarningTemperature} °C.",
+      "description": "Después del primer crack el grano genera calor propio: si el jugador bajó el gas a tiempo para controlar la subida sin llegar al aviso de {burnWarningTemperature} °C. Bajarlo hasta {gasDropAnticipationSeconds} s antes del primer crack cuenta como hacerlo en el momento.",
       "evidence": "INFERENCE",
-      "source": "Inferencia apoyada en la generación de calor del grano (Modeling and simulation of coffee bean heating during roasting: effect of heat generation); el artículo no indica bajar el gas. Parámetro de diseño: {gasDropMinPoints} puntos, {gasDropQuickSeconds} s y {gasDropLateSeconds} s.",
+      "source": "Inferencia apoyada en la generación de calor del grano (Modeling and simulation of coffee bean heating during roasting: effect of heat generation); el artículo no indica bajar el gas. Parámetro de diseño: {gasDropMinPoints} puntos (la curva correcta de referencia baja de 30 a 25), {gasDropQuickSeconds} s y {gasDropLateSeconds} s.",
       "levels": {
         "3": "Bajó el gas al menos {gasDropMinPoints} puntos en {gasDropQuickSeconds} s o menos después del primer crack y no llegó a {burnWarningTemperature} °C.",
         "2": "Bajó el gas entre {gasDropQuickSeconds} y {gasDropLateSeconds} s después del primer crack, o lo bajó menos de {gasDropMinPoints} puntos.",

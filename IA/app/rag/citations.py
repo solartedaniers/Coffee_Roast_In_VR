@@ -28,20 +28,43 @@ class RetrievedPassage:
     citation: Citation | None
 
 
-def load_document_titles(path: Path) -> dict[str, str]:
-    """Títulos legibles por archivo. Sin archivo de títulos se usa el nombre del PDF."""
+@dataclass(frozen=True)
+class DocumentSource:
+    """Datos bibliográficos de un PDF de rag-docs/. Autor y año son opcionales (un manual puede no tenerlos)."""
+    title: str
+    authors: str | None = None
+    year: int | None = None
+
+    def label(self, citation_format: str) -> str:
+        if not self.authors or self.year is None:
+            return self.title
+        return citation_format.format(authors=self.authors, year=self.year, title=self.title)
+
+
+def load_document_sources(path: Path) -> dict[str, DocumentSource]:
+    """Fuente de cada archivo. Sin archivo de títulos se usa el nombre del PDF."""
     if not path.is_file():
         return {}
-    titles = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(titles, dict) or not all(isinstance(v, str) for v in titles.values()):
-        raise ValueError(f"{path.name} must map each PDF file name to a title")
-    return titles
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(raw, dict) or not all(_is_source(entry) for entry in raw.values()):
+        raise ValueError(f"{path.name} must map each PDF file name to its title, authors and year")
+    return {file_name: DocumentSource(entry["title"], entry.get("authors"), entry.get("year"))
+            for file_name, entry in raw.items()}
+
+
+def _is_source(entry: object) -> bool:
+    return (isinstance(entry, dict) and isinstance(entry.get("title"), str) and entry["title"].strip() != ""
+            and isinstance(entry.get("authors"), str | None)
+            and (entry.get("year") is None or (isinstance(entry["year"], int) and not isinstance(entry["year"], bool))))
 
 
 class CitationResolver:
-    def __init__(self, catalog: PdfCatalog, titles: dict[str, str]):
+    def __init__(self, catalog: PdfCatalog, sources: dict[str, DocumentSource], citation_format: str):
+        # Falla al arrancar si el formato pide un dato que no existe, no en la primera cita.
+        DocumentSource("t", "a", 2000).label(citation_format)
         self.catalog = catalog
-        self.titles = titles
+        self.sources = sources
+        self.citation_format = citation_format
 
     def cite(self, chunk: ScoredChunk) -> Citation | None:
         file_name = chunk.metadata.get(FILE_NAME_KEY)
@@ -51,7 +74,9 @@ class CitationResolver:
         if not self.catalog.contains_page(file_name, page):
             log.warning("Dropping citation to a missing source: file=%s page=%s", file_name, page)
             return None
-        return Citation(file_name, page, self.titles.get(file_name, Path(file_name).stem))
+        source = self.sources.get(file_name)
+        title = source.label(self.citation_format) if source else Path(file_name).stem
+        return Citation(file_name, page, title)
 
     def passages(self, chunks: list[ScoredChunk]) -> list[RetrievedPassage]:
         return [RetrievedPassage(chunk.text, self.cite(chunk)) for chunk in chunks]

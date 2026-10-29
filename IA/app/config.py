@@ -58,8 +58,9 @@ class Settings(BaseSettings):
     rag_embedding_batch_size: int = Field(default=32, gt=0)
     rag_vector_table: str = "rag_document_chunks"
     rag_docs_dir: Path = SERVICE_ROOT / "rag-docs"
-    # Título legible de cada PDF para las citas: {"archivo.pdf": "Título"}.
+    # Autor, año y título de cada PDF para las citas: {"archivo.pdf": {"authors", "year", "title"}}.
     rag_document_titles_file: Path = SERVICE_ROOT / "rag-docs" / "document_titles.json"
+    rag_citation_format: str = "{authors} ({year}). {title}"
     rag_top_k: int = Field(default=4, gt=0)
     rag_chunk_size_chars: int = Field(default=700, gt=0)
     rag_chunk_overlap_chars: int = Field(default=100, ge=0)

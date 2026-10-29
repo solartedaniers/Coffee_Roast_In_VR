@@ -23,7 +23,7 @@ from app.rag.chunk_filters import (
     PageQuotaFilter,
 )
 from app.rag.chunk_search import ChunkSearch, SemanticChunkSearch
-from app.rag.citations import CitationResolver, load_document_titles
+from app.rag.citations import CitationResolver, load_document_sources
 from app.rag.context_retriever import RagContextRetriever
 from app.rag.database import Database
 from app.rag.embeddings import OllamaEmbeddings
@@ -106,7 +106,8 @@ def build_embeddings(settings: Settings, http: BoundedHttpClient) -> OllamaEmbed
 
 
 def build_citations(settings: Settings) -> CitationResolver:
-    return CitationResolver(PdfCatalog(settings.rag_docs_dir), load_document_titles(settings.rag_document_titles_file))
+    return CitationResolver(PdfCatalog(settings.rag_docs_dir), load_document_sources(settings.rag_document_titles_file),
+                            settings.rag_citation_format)
 
 
 def build_text_splitter(settings: Settings) -> TextSplitter:

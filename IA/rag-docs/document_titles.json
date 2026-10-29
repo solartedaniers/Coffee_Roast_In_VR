@@ -1,12 +1,50 @@
 {
-  "19458-Texto del artículo-88894-1-10-20250919.pdf": "Efectos de la combinaciones de temperaturas y tiempos de tueste del café (Coffea arabica) sobre su perfil sensorial en Jama",
-  "Modeling_and_simulation_of_coffee_bean_heating_dur.pdf": "Modeling and simulation of coffee bean heating during roasting: effect of heat generation",
-  "admin,+arc073(01)e73102.pdf": "Efecto de las temperaturas y tiempos de tueste en la calidad sensorial del café (Revista Cenicafé, 2022)",
-  "admin,+e72103.pdf": "Efecto de las temperaturas y tiempos de tueste en la composición química del café (Revista Cenicafé, 2021)",
-  "avt0573.pdf": "Curvas de tueste: efecto en la calidad y la composición química del café (Avances Técnicos 573)",
-  "cafe-manual-de-tostado_1.pdf": "Manual básico de buenas prácticas para el tostado del café",
-  "cjfs_cjf-202006-0006.pdf": "Computer vision techniques for modelling the roasting process of coffee (Coffea arabica L.) var. Castillo",
-  "munchow-2020-roasting-conditions-coffee-flavor.pdf": "Roasting Conditions and Coffee Flavor: A Multi-Study Empirical Investigation",
-  "vakaryk-2023-roasting-conditions-quality-coffee.pdf": "Roasting conditions and quality coffee: the empirically optimised process",
-  "yang-2016-volatile-markers-roast-defects.pdf": "Determination of volatile marker compounds of common coffee roast defects"
+  "19458-Texto del artículo-88894-1-10-20250919.pdf": {
+    "title": "Efectos de la combinaciones de temperaturas y tiempos de tueste del café (Coffea arabica) sobre su perfil sensorial en Jama",
+    "authors": "Morales Carrera, Casanova Coba y Demera Lucas",
+    "year": 2025
+  },
+  "Modeling_and_simulation_of_coffee_bean_heating_dur.pdf": {
+    "title": "Modeling and simulation of coffee bean heating during roasting: effect of heat generation",
+    "authors": "Bustos-Vanegas et al.",
+    "year": 2025
+  },
+  "admin,+arc073(01)e73102.pdf": {
+    "title": "Efecto de las temperaturas y tiempos de tueste en la calidad sensorial del café (Revista Cenicafé)",
+    "authors": "Osorio y Pabón",
+    "year": 2022
+  },
+  "admin,+e72103.pdf": {
+    "title": "Efecto de las temperaturas y tiempos de tueste en la composición química del café (Revista Cenicafé)",
+    "authors": "Osorio et al.",
+    "year": 2021
+  },
+  "avt0573.pdf": {
+    "title": "Curvas de tueste: efecto en la calidad y la composición química del café (Avances Técnicos 573)",
+    "authors": "Osorio, Pabón y Echeverri",
+    "year": 2025
+  },
+  "cafe-manual-de-tostado_1.pdf": {
+    "title": "Manual básico de buenas prácticas para el tostado del café"
+  },
+  "cjfs_cjf-202006-0006.pdf": {
+    "title": "Computer vision techniques for modelling the roasting process of coffee (Coffea arabica L.) var. Castillo",
+    "authors": "Ivorra, Sarria-González y Girón-Hernández",
+    "year": 2020
+  },
+  "munchow-2020-roasting-conditions-coffee-flavor.pdf": {
+    "title": "Roasting Conditions and Coffee Flavor: A Multi-Study Empirical Investigation",
+    "authors": "Münchow et al.",
+    "year": 2020
+  },
+  "vakaryk-2023-roasting-conditions-quality-coffee.pdf": {
+    "title": "Roasting conditions and quality coffee: the empirically optimised process",
+    "authors": "Vakaryk et al.",
+    "year": 2023
+  },
+  "yang-2016-volatile-markers-roast-defects.pdf": {
+    "title": "Determination of volatile marker compounds of common coffee roast defects",
+    "authors": "Yang et al.",
+    "year": 2016
+  }
 }

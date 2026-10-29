@@ -15,6 +15,34 @@ public class RoastEvaluationProperties {
     private int maxAttempts = 8;
     private int baseRetrySeconds = 30;
     private int maxRetrySeconds = 3_600;
+    // Nota mínima de cada calificación; por debajo de fairGradeMin es deficiente.
+    private int excellentGradeMin = 85;
+    private int goodGradeMin = 70;
+    private int fairGradeMin = 50;
+
+    public int getExcellentGradeMin() {
+        return excellentGradeMin;
+    }
+
+    public void setExcellentGradeMin(int excellentGradeMin) {
+        this.excellentGradeMin = excellentGradeMin;
+    }
+
+    public int getGoodGradeMin() {
+        return goodGradeMin;
+    }
+
+    public void setGoodGradeMin(int goodGradeMin) {
+        this.goodGradeMin = goodGradeMin;
+    }
+
+    public int getFairGradeMin() {
+        return fairGradeMin;
+    }
+
+    public void setFairGradeMin(int fairGradeMin) {
+        this.fairGradeMin = fairGradeMin;
+    }
 
     public int getBatchSize() {
         return batchSize;

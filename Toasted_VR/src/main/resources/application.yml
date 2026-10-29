@@ -136,6 +136,10 @@
       max-attempts: ${ROAST_EVALUATION_MAX_ATTEMPTS:8}
       base-retry-seconds: ${ROAST_EVALUATION_BASE_RETRY_SECONDS:30}
       max-retry-seconds: ${ROAST_EVALUATION_MAX_RETRY_SECONDS:3600}
+      # Calificación por rango de la nota final: excelente, bueno, regular y, por debajo, deficiente.
+      excellent-grade-min: ${ROAST_GRADE_EXCELLENT_MIN:85}
+      good-grade-min: ${ROAST_GRADE_GOOD_MIN:70}
+      fair-grade-min: ${ROAST_GRADE_FAIR_MIN:50}
     # Validación de sesiones de tueste en el servidor (RF015). Deben coincidir
     # con RoastConstants.js del frontend.
     roast-validation:

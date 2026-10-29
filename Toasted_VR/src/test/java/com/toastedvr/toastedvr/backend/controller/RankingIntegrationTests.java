@@ -222,11 +222,11 @@ class RankingIntegrationTests {
         // Cuenta la nota final (72), no la de las reglas (95).
         complete(saveRulesOnlySession(saveUser("combinedUser", Role.PLAYER, KnowledgeLevel.BEGINNER), 95, BASE_TIME), 72);
         saveRulesOnlySession(saveUser("legacyUser", Role.PLAYER, KnowledgeLevel.BEGINNER), 99, BASE_TIME);
-        evaluationRepository.save(RoastEvaluation.pending(
-            saveRulesOnlySession(saveUser("pendingUser", Role.PLAYER, KnowledgeLevel.BEGINNER), 98, BASE_TIME), LocalDateTime.now()));
-        evaluationRepository.save(RoastEvaluation.notApplicable(
+        evaluationRepository.save(Objects.requireNonNull(RoastEvaluation.pending(
+            saveRulesOnlySession(saveUser("pendingUser", Role.PLAYER, KnowledgeLevel.BEGINNER), 98, BASE_TIME), LocalDateTime.now())));
+        evaluationRepository.save(Objects.requireNonNull(RoastEvaluation.notApplicable(
             saveRulesOnlySession(saveUser("autoUser", Role.PLAYER, KnowledgeLevel.BEGINNER), 97, BASE_TIME),
-            RoastEvaluationSkipReason.AUTO_MODE, LocalDateTime.now()));
+            RoastEvaluationSkipReason.AUTO_MODE, LocalDateTime.now())));
         // application-test.yml empieza a contar el 2026-01-01.
         complete(saveRulesOnlySession(saveUser("oldUser", Role.PLAYER, KnowledgeLevel.BEGINNER), 96,
             LocalDateTime.of(2025, 12, 31, 23, 59)), 96);

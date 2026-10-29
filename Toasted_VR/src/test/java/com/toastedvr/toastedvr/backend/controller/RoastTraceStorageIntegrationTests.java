@@ -38,6 +38,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
+import org.springframework.lang.NonNull;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -228,6 +229,10 @@ class RoastTraceStorageIntegrationTests {
             .andExpect(jsonPath("$.evaluation.finalScore").value(75));
     }
 
+    private @NonNull MediaType jsonMediaType() {
+        return Objects.requireNonNull(MediaType.APPLICATION_JSON, "Media type must not be null.");
+    }
+
     private long savedId(ResultActions result) throws Exception {
         String body = result.andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
         return objectMapper.readTree(body).get("id").asLong();
@@ -237,7 +242,7 @@ class RoastTraceStorageIntegrationTests {
         return mockMvc.perform(
             post("/api/v1/roasting/sessions")
                 .header("Authorization", "Bearer " + jwtService.generateToken(new UserPrincipal(player)))
-                .contentType(MediaType.APPLICATION_JSON)
+                .contentType(jsonMediaType())
                 .content(Objects.requireNonNull(objectMapper.writeValueAsString(payload)))
         );
     }

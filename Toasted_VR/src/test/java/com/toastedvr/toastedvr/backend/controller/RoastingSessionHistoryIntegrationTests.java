@@ -254,7 +254,7 @@ class RoastingSessionHistoryIntegrationTests {
     @Test
     void shouldShowAPendingEvaluationWithTheRulesScoreMeanwhile() throws Exception {
         RoastingSession session = saveSession(player, RoastingResult.PERFECT, 86, KnowledgeLevel.INTERMEDIATE);
-        evaluationRepository.save(RoastEvaluation.pending(session, LocalDateTime.now()));
+        evaluationRepository.save(Objects.requireNonNull(RoastEvaluation.pending(session, LocalDateTime.now())));
 
         detail(player, session.getId())
             .andExpect(jsonPath("$.finalScore").value(86))
@@ -269,7 +269,8 @@ class RoastingSessionHistoryIntegrationTests {
         RoastingSession combined = saveSession(player, RoastingResult.PERFECT, 74, KnowledgeLevel.BEGINNER);
         saveCompletedEvaluation(combined, 26.7, 60, false);
         RoastingSession auto = saveSession(player, RoastingResult.PERFECT, 70, KnowledgeLevel.BEGINNER);
-        evaluationRepository.save(RoastEvaluation.notApplicable(auto, RoastEvaluationSkipReason.AUTO_MODE, LocalDateTime.now()));
+        evaluationRepository.save(Objects.requireNonNull(
+            RoastEvaluation.notApplicable(auto, RoastEvaluationSkipReason.AUTO_MODE, LocalDateTime.now())));
         saveSession(player, RoastingResult.RAW, 33, KnowledgeLevel.BEGINNER);
 
         JsonNode rows = readJson(history(player, "")).get("content");

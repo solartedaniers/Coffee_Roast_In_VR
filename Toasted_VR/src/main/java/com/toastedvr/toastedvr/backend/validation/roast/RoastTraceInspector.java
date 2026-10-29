@@ -58,7 +58,7 @@ public class RoastTraceInspector {
     }
 
     private Optional<RoastTraceProblem> findMismatch(SaveSessionRequest session, RoastTraceRequest trace) {
-        double hottest = trace.samples().stream().mapToDouble(RoastTraceRequest.Sample::bean).max().orElseThrow();
+        double hottest = trace.samples().stream().mapToDouble(sample -> sample.bean()).max().orElseThrow();
         if (hottest > session.peakTemperature() + properties.getTemperatureTolerance()) {
             return Optional.of(RoastTraceProblem.PEAK_MISMATCH);
         }
@@ -108,7 +108,7 @@ public class RoastTraceInspector {
 
     private boolean validEvents(List<RoastTraceRequest.Event> events, int lastSecond) {
         List<RoastTraceRequest.Event> list = listOrEmpty(events);
-        long distinctTypes = list.stream().filter(Objects::nonNull).map(RoastTraceRequest.Event::type).distinct().count();
+        long distinctTypes = list.stream().filter(Objects::nonNull).map(event -> event.type()).distinct().count();
         return distinctTypes == list.size() && list.stream()
             .allMatch(event -> event != null && EVENT_TYPES.contains(event.type()) && validSecond(event.t(), lastSecond));
     }
@@ -120,7 +120,7 @@ public class RoastTraceInspector {
 
     private static Optional<Integer> eventSecond(RoastTraceRequest trace, String type) {
         return listOrEmpty(trace.events()).stream().filter(event -> type.equals(event.type()))
-            .map(RoastTraceRequest.Event::t).findFirst();
+            .map(event -> event.t()).findFirst();
     }
 
     private static boolean validSecond(Integer second, int lastSecond) {

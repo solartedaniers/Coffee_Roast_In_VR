@@ -119,7 +119,7 @@ public class RoastingSessionService {
         Page<RoastingSession> sessions = result == null
             ? roastingSessionRepository.findByUserId(userId, pageable)
             : roastingSessionRepository.findByUserIdAndResult(userId, result, pageable);
-        List<Long> ids = sessions.map(RoastingSession::getId).getContent();
+        List<Long> ids = sessions.map(session -> session.getId()).getContent();
         Map<Long, RoastEvaluation> evaluations = evaluationRepository.findBySessionIdIn(ids).stream()
             .collect(Collectors.toMap(evaluation -> evaluation.getSession().getId(), Function.identity()));
         return sessions.map(session -> toHistoryItem(session, evaluations.get(session.getId())));

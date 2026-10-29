@@ -12,6 +12,7 @@ import com.toastedvr.toastedvr.backend.domain.KnowledgeLevel;
 import com.toastedvr.toastedvr.backend.domain.RoastingResult;
 import com.toastedvr.toastedvr.backend.domain.RoastingSession;
 import java.net.ConnectException;
+import java.util.Objects;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
@@ -38,10 +39,9 @@ class AiFeedbackClientTests {
     }
 
     @Test
-    @SuppressWarnings("null")
     void sendsTheSessionDataAndTheLevelToTheAiService() {
         aiService.expect(requestTo(FEEDBACK_URL))
-            .andExpect(method(HttpMethod.POST))
+            .andExpect(method(Objects.requireNonNull(HttpMethod.POST)))
             .andExpect(jsonPath("$.result").value("BURNED"))
             .andExpect(jsonPath("$.qualityScore").value(30))
             .andExpect(jsonPath("$.chargeTemperature").value(230.0))
@@ -60,7 +60,6 @@ class AiFeedbackClientTests {
     }
 
     @Test
-    @SuppressWarnings("null")
     void returnsNullWhenTheAiServiceHadNoFeedback() {
         aiService.expect(requestTo(FEEDBACK_URL))
             .andRespond(withSuccess("{\"feedback\":null}", MediaType.APPLICATION_JSON));

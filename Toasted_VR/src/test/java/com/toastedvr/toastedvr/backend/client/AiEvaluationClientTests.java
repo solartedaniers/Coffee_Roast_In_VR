@@ -11,6 +11,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.util.Objects;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
@@ -36,10 +37,9 @@ class AiEvaluationClientTests {
     }
 
     @Test
-    @SuppressWarnings("null")
     void sendsTheStoredTraceAndReadsTheGrade() {
         aiService.expect(requestTo(EVALUATION_URL))
-            .andExpect(method(HttpMethod.POST))
+            .andExpect(method(Objects.requireNonNull(HttpMethod.POST)))
             .andExpect(content().json("{\"trace\":" + TRACE + "}", JsonCompareMode.STRICT))
             .andRespond(withSuccess("""
                 {"status":"COMPLETED","rubricVersion":"draft","model":"openai/gpt-oss-120b","score":77.8,
@@ -57,7 +57,6 @@ class AiEvaluationClientTests {
     }
 
     @Test
-    @SuppressWarnings("null")
     void reportsANotApplicableGrade() {
         aiService.expect(requestTo(EVALUATION_URL)).andRespond(withSuccess(
             "{\"status\":\"NOT_APPLICABLE\",\"rubricVersion\":\"draft\",\"model\":null,\"score\":null,"
@@ -67,7 +66,6 @@ class AiEvaluationClientTests {
     }
 
     @Test
-    @SuppressWarnings("null")
     void aRejectedTraceIsNotWorthRetrying() {
         aiService.expect(requestTo(EVALUATION_URL)).andRespond(withStatus(HttpStatus.BAD_REQUEST));
 
@@ -75,7 +73,6 @@ class AiEvaluationClientTests {
     }
 
     @Test
-    @SuppressWarnings("null")
     void aGroqFailureOrAnUnreachableServiceIsWorthRetrying() {
         aiService.expect(requestTo(EVALUATION_URL)).andRespond(withStatus(HttpStatus.SERVICE_UNAVAILABLE));
         assertThatThrownBy(() -> client.evaluate(TRACE)).isInstanceOf(AiServiceUnavailableException.class);

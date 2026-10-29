@@ -59,11 +59,11 @@ public class RoastEvaluationRegistrar {
         if (AUTO_MODE.equals(request.roastTrace().operationMode())) {
             return skip(session, RoastEvaluationSkipReason.AUTO_MODE, now);
         }
-        return evaluationRepository.save(RoastEvaluation.pending(session, now));
+        return evaluationRepository.save(Objects.requireNonNull(RoastEvaluation.pending(session, now)));
     }
 
     private RoastEvaluation skip(RoastingSession session, RoastEvaluationSkipReason reason, LocalDateTime now) {
-        return evaluationRepository.save(RoastEvaluation.notApplicable(session, reason, now));
+        return evaluationRepository.save(Objects.requireNonNull(RoastEvaluation.notApplicable(session, reason, now)));
     }
 
     private String writeJson(SaveSessionRequest request) {

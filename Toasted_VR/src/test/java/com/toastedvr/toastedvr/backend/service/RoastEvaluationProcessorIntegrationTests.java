@@ -88,7 +88,7 @@ class RoastEvaluationProcessorIntegrationTests {
         RoastingSession session = sessionRepository.save(new RoastingSession(
             player, 190.0, 200.0, 780, 205.0, 206.0, result, qualityScore, true, 150, null));
         traceRepository.save(new RoastSessionTrace(session, TRACE));
-        return evaluationRepository.save(RoastEvaluation.pending(session, LocalDateTime.now().minusSeconds(1)));
+        return evaluationRepository.save(Objects.requireNonNull(RoastEvaluation.pending(session, LocalDateTime.now().minusSeconds(1))));
     }
 
     private RoastEvaluation reload(RoastEvaluation evaluation) {
@@ -206,7 +206,7 @@ class RoastEvaluationProcessorIntegrationTests {
     void skipsAPendingEvaluationWithoutTrace() {
         RoastingSession session = sessionRepository.save(new RoastingSession(
             player, 190.0, 200.0, 780, 205.0, 206.0, RoastingResult.PERFECT, 74, true, 150, null));
-        RoastEvaluation evaluation = evaluationRepository.save(RoastEvaluation.pending(session, LocalDateTime.now()));
+        RoastEvaluation evaluation = evaluationRepository.save(Objects.requireNonNull(RoastEvaluation.pending(session, LocalDateTime.now())));
 
         processor.processDue();
 

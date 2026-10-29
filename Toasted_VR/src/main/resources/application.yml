@@ -107,6 +107,18 @@
       history-page-size: ${ROAST_HISTORY_PAGE_SIZE:10}
       ranking-size: ${ROAST_RANKING_SIZE:10}
       ranking-poll-seconds: ${ROAST_RANKING_POLL_SECONDS:60}
+    # Traza opcional de la sesión (curva y decisiones) para la calificación de la IA. Si no cumple
+    # estos límites o no cuadra con la sesión se descarta, pero la sesión se guarda igual. Deben
+    # coincidir con RoastTraceRecorder.js del frontend.
+    roast-trace:
+      supported-version: ${ROAST_TRACE_SUPPORTED_VERSION:1}
+      max-samples: ${ROAST_TRACE_MAX_SAMPLES:400}
+      max-gas-changes: ${ROAST_TRACE_MAX_GAS_CHANGES:120}
+      max-events: ${ROAST_TRACE_MAX_EVENTS:10}
+      max-alerts: ${ROAST_TRACE_MAX_ALERTS:60}
+      max-alert-id-length: ${ROAST_TRACE_MAX_ALERT_ID_LENGTH:40}
+      time-tolerance-seconds: ${ROAST_TRACE_TIME_TOLERANCE_SECONDS:5}
+      temperature-tolerance: ${ROAST_TRACE_TEMPERATURE_TOLERANCE:1.0}
     # Validación de sesiones de tueste en el servidor (RF015). Deben coincidir
     # con RoastConstants.js del frontend.
     roast-validation:

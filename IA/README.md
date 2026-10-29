@@ -78,7 +78,7 @@ Para saber si los fragmentos que llegan al prompt son relevantes, mido la recupe
 - 5 preguntas de café que no tienen respuesta en los PDFs (`negative`).
 - Las 4 búsquedas reales de la retroalimentación (`session`), sin etiquetas, que reporto aparte.
 
-Para ampliarlo con PDFs nuevos solo agrego casos al JSON; si una página esperada no existe en `rag-docs/`, la carga falla y lo avisa.
+Para ampliarlo con PDFs nuevos solo agrego casos al JSON; si una página esperada no existe en `rag-docs/`, la carga falla y lo avisa. Lo que todavía no valido lo marco con `"draft": true`, en la pregunta completa o en una sola página esperada: se reporta en sus propios grupos y no cambia las cifras de las preguntas validadas, así que se pueden comparar con las mediciones anteriores.
 
 ```bash
 .venv/Scripts/python -m app.rag.diagnostics                       # fragmentos por archivo, archivos fallidos, PDFs sin texto
@@ -127,6 +127,52 @@ Lo que revertí, con sus mediciones guardadas como evidencia:
 - **Modelo multilingüe bge-m3** (16): con la misma partición queda por debajo de nomic (0,342 contra 0,482). Revisándolo, varias de sus respuestas son páginas relevantes que no están entre las esperadas: es una limitación de etiquetar por página.
 
 Un hallazgo importante: el índice actual (1243 fragmentos) lo armó la versión en Java, cuyo lector de PDF dejaba el texto con muchos espacios. Reingestar los mismos PDFs con el lector de Python, sin ningún otro cambio, deja 390 fragmentos y baja el MRR a 0,335 (10). Por eso, cuando reingeste, lo hago con la partición por frases de 500 y no con la de caracteres.
+
+### Re-ingesta con los PDFs nuevos
+
+Con los 9 PDFs nuevos (16 en total) repetí la comparación sobre una copia desechable de la base, con el set ampliado: las 25 preguntas validadas, 18 preguntas nuevas en borrador (N01–N18) y 2 negativas en borrador. A 7 preguntas validadas les agregué en borrador páginas de los PDFs nuevos que también las responden.
+
+| Variante | hit@1 | hit@3 | hit@4 | hit@5 | MRR@10 | Δ MRR | neg. con contexto | repetidos | p50 ms |
+|---|---|---|---|---|---|---|---|---|---|
+| 19-control-indice-java-set-nuevo | 0.32 | 0.48 | 0.56 | 0.60 | 0.437 | +0.000 | 5/5 | 0 | 385 |
+| 20-reingesta-16-caracteres-700 | 0.16 | 0.32 | 0.36 | 0.36 | 0.280 | -0.157 | 5/5 | 0 | 379 |
+| 21-reingesta-16-frases-500 | 0.36 | 0.52 | 0.52 | 0.52 | 0.457 | +0.020 | 5/5 | 0 | 381 |
+
+- **19:** el índice actual (Java, 7 PDFs) con el set nuevo. Da el mismo 0,437 de antes, así que el set ampliado no cambió la medición de las validadas.
+- **20:** los 16 PDFs con la partición actual por caracteres de 700 (1014 fragmentos).
+- **21:** los 16 PDFs con la partición por frases de 500 (1231 fragmentos), limpiando además los nombres de glifo sueltos y los números de línea del manuscrito de Giacalone.
+
+Por grupo de preguntas (las validadas son las de los 7 PDFs de antes; las nuevas, las de los 9 PDFs nuevos):
+
+| Variante | Grupo | preguntas | hit@1 | hit@3 | hit@4 | hit@5 | MRR@10 |
+|---|---|---|---|---|---|---|---|
+| 19 | validadas | 25 | 0.32 | 0.48 | 0.56 | 0.60 | 0.437 |
+| 19 | validadas + páginas en borrador | 25 | 0.32 | 0.48 | 0.56 | 0.60 | 0.437 |
+| 19 | nuevas en borrador | 18 | 0.00 | 0.00 | 0.00 | 0.00 | 0.000 |
+| 19 | total | 43 | 0.19 | 0.28 | 0.33 | 0.35 | 0.254 |
+| 20 | validadas | 25 | 0.16 | 0.32 | 0.36 | 0.36 | 0.280 |
+| 20 | validadas + páginas en borrador | 25 | 0.16 | 0.32 | 0.36 | 0.36 | 0.280 |
+| 20 | nuevas en borrador | 18 | 0.06 | 0.17 | 0.22 | 0.22 | 0.133 |
+| 20 | total | 43 | 0.12 | 0.26 | 0.30 | 0.30 | 0.219 |
+| 21 | validadas | 25 | 0.36 | 0.52 | 0.52 | 0.52 | 0.457 |
+| 21 | validadas + páginas en borrador | 25 | 0.36 | 0.52 | 0.52 | 0.52 | 0.457 |
+| 21 | nuevas en borrador | 18 | 0.11 | 0.22 | 0.28 | 0.28 | 0.188 |
+| 21 | total | 43 | 0.26 | 0.40 | 0.42 | 0.42 | 0.344 |
+
+Las preguntas nuevas, separadas por el idioma del PDF que las responde:
+
+| Variante | Grupo | preguntas | hit@1 | hit@3 | hit@4 | hit@5 | MRR@10 |
+|---|---|---|---|---|---|---|---|
+| 20 | PDF en inglés (N01–N11) | 11 | 0.00 | 0.00 | 0.00 | 0.00 | 0.000 |
+| 20 | PDF en español (N12–N18) | 7 | 0.14 | 0.43 | 0.57 | 0.57 | 0.342 |
+| 21 | PDF en inglés (N01–N11) | 11 | 0.00 | 0.00 | 0.00 | 0.00 | 0.000 |
+| 21 | PDF en español (N12–N18) | 7 | 0.29 | 0.57 | 0.71 | 0.71 | 0.482 |
+
+Lo que muestran:
+
+- La partición por frases de 500 sigue siendo la mejor con los 16 PDFs: sube las validadas de 0,437 a 0,457 y es la única que recupera bien las preguntas de los PDFs nuevos en español (0,482). La de caracteres baja a 0,280, igual que pasó en la fase 2 al reingestar con el lector de Python.
+- Ninguna pregunta en español llega a un PDF en inglés: en las 54 búsquedas, de 540 fragmentos recuperados solo 6 son de los PDFs en inglés. No es un problema del índice: las mismas preguntas hechas en inglés llegan a la página correcta de Yang, Münchow, Vakaryk y Campo-Ceballos. Es la limitación de `nomic-embed-text` entre idiomas que ya había medido con la traducción de la consulta (09). Por eso las páginas en borrador de las preguntas validadas, todas de PDFs en inglés, no cambian su nota.
+- En el hit@4 las validadas pasan de 0,56 a 0,52: es una sola pregunta, así que lo tomo como empate.
 
 ## Asistente de voz
 

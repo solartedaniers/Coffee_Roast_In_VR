@@ -317,7 +317,7 @@ Después del primer crack el resultado es muy sensible al gas: con el 25 % el tu
 
 Cada sesión tiene una nota final que combina las reglas del simulador con una calificación de las decisiones del jugador: `0.7 × qualityScore + 0.3 × nota de la rúbrica`, con un tope de 50 si el resultado tiene un defecto (crudo, quemado u horneado). Los pesos, el tope y los rangos de la calificación (Excelente 85, Bueno 70, Regular 50) están en `app.roast-evaluation` del backend.
 
-- **Rúbrica:** `config/roast_rubric.json`, en estado *DRAFT*. Tiene cuatro criterios: gas en el secado, subida hasta el primer crack, gas después del primer crack y reacción a las alertas. Cada uno dice de dónde sale: *Fuente*, *Inferencia* o *Parámetro de diseño*. El criterio del gas después del primer crack lo marqué como inferencia, apoyada en el calor que genera el grano según el PDF de modelado, no como algo que digan las fuentes. Las fuentes y los umbrales se cambian en ese archivo sin tocar código.
+- **Rúbrica:** `config/roast_rubric.json`, en estado *DRAFT*. Tiene cuatro criterios: gas en el secado, subida hasta el primer crack, gas después del primer crack y reacción a las alertas. Cada uno dice de dónde sale: *Fuente*, *Inferencia* o *Parámetro de diseño*. Con los PDFs nuevos, el criterio del gas después del primer crack pasó de inferencia a fuente: Münchow et al. (2020) dice que el tueste necesita menos energía al final, cuando se vuelve exotérmico. Lo complementa el calor que genera el grano según Bustos-Vanegas et al. (2025). Si el jugador descarga menos de 30 s después del primer crack, el criterio solo se califica si ya había bajado el gas. Las fuentes y los umbrales se cambian en ese archivo sin tocar código.
 - **Quién calcula qué:** el código mide los hechos sobre la traza (porcentaje en la franja, demoras de corrección, estancamientos, minuto del primer crack, bajada del gas, reacción a cada alerta). El modelo solo elige un nivel de 0 a 3 por criterio y escribe una justificación corta, con un esquema JSON estricto. La nota de la rúbrica la calculo yo: `100 × suma de niveles / (3 × criterios que aplican)`. Los criterios que no aplican quedan fuera del denominador.
 - **Modelo:** Groq `openai/gpt-oss-120b`, temperatura 0, semilla fija y razonamiento `low` (`EVALUATION_GROQ_*`). No uso respaldo con Ollama: otro modelo podría darle otra nota a la misma sesión. Si Groq no responde, el backend reintenta con espera creciente y, al final, deja la nota de las reglas.
 - **Modo automático:** no se califica (`NOT_APPLICABLE`), porque el gas no lo maneja el jugador. Esas sesiones no entran al ranking.
@@ -325,24 +325,24 @@ Cada sesión tiene una nota final que combina las reglas del simulador con una c
 
 ### Validación con Groq
 
-`scripts/evaluation_validation.py` corre la rúbrica con Groq real sobre los casos de `eval/evaluation/cases.json`. Son 17 trazas con el nivel que le corresponde a cada criterio, que fijé leyendo la rúbrica y no las respuestas del modelo. Mide el acuerdo con el nivel esperado y la repetibilidad corriendo cada caso varias veces:
+`scripts/evaluation_validation.py` corre la rúbrica con Groq real sobre los casos de `eval/evaluation/cases.json`. Son 18 trazas con el nivel que le corresponde a cada criterio, que fijé leyendo la rúbrica y no las respuestas del modelo. Mide el acuerdo con el nivel esperado y la repetibilidad corriendo cada caso varias veces:
 
 ```bash
 .venv/Scripts/python scripts/evaluation_validation.py --runs 5 --pause 8
 ```
 
-Resultado con la rúbrica `draft-2026-10-28` y 5 corridas por caso (`eval/results/evaluation-draft-2026-10-28.json`):
+Resultado con la rúbrica `draft-2026-10-29` y 5 corridas por caso (`eval/results/evaluation-draft-2026-10-29.json`):
 
 | Medida | Valor |
 |---|---|
-| Niveles calificados | 240 |
-| Acuerdo exacto | 99,6 % (239 de 240) |
+| Niveles calificados | 255 |
+| Acuerdo exacto | 100 % (255 de 255) |
 | Acuerdo a un nivel | 100 % |
-| Criterios con el mismo nivel en las 5 corridas | 97,9 % (47 de 48) |
-| Casos calificados con la misma nota en las 5 corridas | 15 de 16 |
+| Criterios con el mismo nivel en las 5 corridas | 100 % (51 de 51) |
+| Casos calificados con la misma nota en las 5 corridas | 17 de 17 |
 | Criterios aplicados y estado (AUTO) | Sin diferencias |
 
-Por criterio, el acuerdo exacto fue 98,8 % en el secado y 100 % en los otros tres. El único desacuerdo fue en `drying_slow_late_fix`: el jugador corrigió el gas a los 80 s y en 1 de las 5 corridas el modelo puso 0 en vez de 1, porque entendió que la corrección tenía que llegar en 60 s o menos. Es una ambigüedad del texto del nivel 1, que no dice nada del tiempo; la anoto para revisarla cuando ajuste la rúbrica con los PDFs nuevos. Hubo 2 intentos con timeout de conexión que se recuperaron solos con el reintento.
+Frente a la versión `draft-2026-10-28` (`eval/results/evaluation-draft-2026-10-28.json`, 99,6 % de acuerdo exacto), el cambio está en `drying_slow_late_fix`: el jugador corrige el gas a los 80 s y antes el modelo puso 0 en vez de 1 en una de las 5 corridas, porque el nivel 1 no decía nada del tiempo. Ahora el texto aclara que la corrección cuenta aunque llegue después de 60 s y antes de terminar el secado, y las 5 corridas dieron 1. El caso nuevo `short_development_gas_lowered` descarga 25 s después del primer crack con el gas ya bajado, y el modelo le dio 3 en el gas después del crack en las 5 corridas. Hubo 1 intento con timeout de conexión que se recuperó solo con el reintento.
 
 Los tests de `tests/test_evaluation_validation.py` revisan sin Groq que cada caso aplique exactamente los criterios que espera y que los casos cubran todos los niveles.
 

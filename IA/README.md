@@ -74,8 +74,8 @@ Del RAG también configuro los filtros sobre lo recuperado (`RAG_DEDUPLICATE_CHU
 
 Para saber si los fragmentos que llegan al prompt son relevantes, mido la recuperación con un set de preguntas en `eval/rag_questions.json`:
 
-- 25 preguntas de jugador (`player`), cada una con el PDF y la página donde está la respuesta. La página es la del PDF, no la impresa.
-- 5 preguntas de café que no tienen respuesta en los PDFs (`negative`).
+- 43 preguntas de jugador (`player`), cada una con el PDF y la página donde está la respuesta. La página es la del PDF, no la impresa. Las 25 primeras (P01–P25) son de los 7 PDFs de antes y las 18 nuevas (N01–N18), de los 9 PDFs que agregué en la re-ingesta.
+- 7 preguntas de café que no tienen respuesta en los PDFs (`negative`).
 - Las 4 búsquedas reales de la retroalimentación (`session`), sin etiquetas, que reporto aparte.
 
 Para ampliarlo con PDFs nuevos solo agrego casos al JSON; si una página esperada no existe en `rag-docs/`, la carga falla y lo avisa. Lo que todavía no valido lo marco con `"draft": true`, en la pregunta completa o en una sola página esperada: se reporta en sus propios grupos y no cambia las cifras de las preguntas validadas, así que se pueden comparar con las mediciones anteriores.

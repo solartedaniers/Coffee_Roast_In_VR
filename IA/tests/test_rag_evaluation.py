@@ -67,12 +67,9 @@ def test_the_committed_set_is_valid():
                              if source.distribution is Distribution.LOCAL and name not in catalog.file_names())
     cases = EvalSetLoader(catalog, absent_local, require_all_files=False).load(DEFAULT_CASES)
 
-    validated = [case.kind for case in cases if not case.draft]
-    drafts = [case.kind for case in cases if case.draft]
-    assert (validated.count(CaseKind.PLAYER), validated.count(CaseKind.NEGATIVE),
-            validated.count(CaseKind.SESSION)) == (25, 5, 4)
-    assert (drafts.count(CaseKind.PLAYER), drafts.count(CaseKind.NEGATIVE)) == (18, 2)
-    assert sum(bool(case.draft_pages) for case in cases) == 7
+    kinds = [case.kind for case in cases]
+    assert (kinds.count(CaseKind.PLAYER), kinds.count(CaseKind.NEGATIVE), kinds.count(CaseKind.SESSION)) == (43, 7, 4)
+    assert not any(case.draft or case.draft_pages for case in cases)
 
 
 class FakeSearch:

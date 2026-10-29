@@ -20,13 +20,11 @@
         },
         {
           "file": "yang-2016-volatile-markers-roast-defects.pdf",
-          "page": 6,
-          "draft": true
+          "page": 6
         },
         {
           "file": "munchow-2020-roasting-conditions-coffee-flavor.pdf",
-          "page": 10,
-          "draft": true
+          "page": 10
         }
       ]
     },
@@ -41,8 +39,7 @@
         },
         {
           "file": "munchow-2020-roasting-conditions-coffee-flavor.pdf",
-          "page": 10,
-          "draft": true
+          "page": 10
         }
       ]
     },
@@ -61,13 +58,11 @@
         },
         {
           "file": "yang-2016-volatile-markers-roast-defects.pdf",
-          "page": 5,
-          "draft": true
+          "page": 5
         },
         {
           "file": "local-giacalone-2019-common-roasting-defects.pdf",
-          "page": 8,
-          "draft": true
+          "page": 8
         }
       ]
     },
@@ -101,8 +96,7 @@
         },
         {
           "file": "munchow-2020-roasting-conditions-coffee-flavor.pdf",
-          "page": 4,
-          "draft": true
+          "page": 4
         }
       ]
     },
@@ -151,8 +145,7 @@
         },
         {
           "file": "munchow-2020-roasting-conditions-coffee-flavor.pdf",
-          "page": 4,
-          "draft": true
+          "page": 4
         }
       ]
     },
@@ -370,8 +363,7 @@
         },
         {
           "file": "munchow-2020-roasting-conditions-coffee-flavor.pdf",
-          "page": 2,
-          "draft": true
+          "page": 2
         }
       ]
     },
@@ -420,20 +412,17 @@
         },
         {
           "file": "vakaryk-2023-roasting-conditions-quality-coffee.pdf",
-          "page": 6,
-          "draft": true
+          "page": 6
         },
         {
           "file": "vakaryk-2023-roasting-conditions-quality-coffee.pdf",
-          "page": 7,
-          "draft": true
+          "page": 7
         }
       ]
     },
     {
       "id": "N01",
       "kind": "player",
-      "draft": true,
       "question": "¿Qué es un tueste scorched o quemado por fuera y cómo se produce?",
       "expected": [
         {
@@ -449,7 +438,6 @@
     {
       "id": "N02",
       "kind": "player",
-      "draft": true,
       "question": "¿Por qué hay que darle más gas al inicio del tueste y menos al final?",
       "expected": [
         {
@@ -465,7 +453,6 @@
     {
       "id": "N03",
       "kind": "player",
-      "draft": true,
       "question": "¿Por qué mi café sabe a pan tostado si alargué mucho el desarrollo?",
       "expected": [
         {
@@ -477,7 +464,6 @@
     {
       "id": "N04",
       "kind": "player",
-      "draft": true,
       "question": "¿Cuánto dura normalmente el desarrollo después del primer crack?",
       "expected": [
         {
@@ -493,7 +479,6 @@
     {
       "id": "N05",
       "kind": "player",
-      "draft": true,
       "question": "¿Qué le pasa al sabor si el tueste es más oscuro o más largo?",
       "expected": [
         {
@@ -509,7 +494,6 @@
     {
       "id": "N06",
       "kind": "player",
-      "draft": true,
       "question": "¿Cómo es la curva de temperatura de un café horneado?",
       "expected": [
         {
@@ -525,7 +509,6 @@
     {
       "id": "N07",
       "kind": "player",
-      "draft": true,
       "question": "¿A los consumidores les gusta menos un café con defectos de tueste?",
       "expected": [
         {
@@ -545,7 +528,6 @@
     {
       "id": "N08",
       "kind": "player",
-      "draft": true,
       "question": "¿Qué pasa si tuesto el café por debajo de 200 °C?",
       "expected": [
         {
@@ -561,7 +543,6 @@
     {
       "id": "N09",
       "kind": "player",
-      "draft": true,
       "question": "¿Con qué temperatura máxima salió mejor el arábica Santos?",
       "expected": [
         {
@@ -573,7 +554,6 @@
     {
       "id": "N10",
       "kind": "player",
-      "draft": true,
       "question": "¿Cuánto tarda el primer crack con distintas temperaturas máximas de tueste?",
       "expected": [
         {
@@ -585,7 +565,6 @@
     {
       "id": "N11",
       "kind": "player",
-      "draft": true,
       "question": "¿Entre qué valores se puede controlar la subida de temperatura por minuto en una tostadora de lecho fluidizado?",
       "expected": [
         {
@@ -597,7 +576,6 @@
     {
       "id": "N12",
       "kind": "player",
-      "draft": true,
       "question": "¿A qué temperatura se calientan los tostadores antes de cargar el café?",
       "expected": [
         {
@@ -609,7 +587,6 @@
     {
       "id": "N13",
       "kind": "player",
-      "draft": true,
       "question": "¿Qué les pasa a la cafeína y a la trigonelina durante la tostación?",
       "expected": [
         {
@@ -625,7 +602,6 @@
     {
       "id": "N14",
       "kind": "player",
-      "draft": true,
       "question": "¿Qué compuestos le dan amargor y astringencia a la bebida?",
       "expected": [
         {
@@ -645,7 +621,6 @@
     {
       "id": "N15",
       "kind": "player",
-      "draft": true,
       "question": "¿Qué defectos de sabor define la norma NTC 2758?",
       "expected": [
         {
@@ -661,7 +636,6 @@
     {
       "id": "N16",
       "kind": "player",
-      "draft": true,
       "question": "¿Qué atributos se califican en el formato de catación de la SCA?",
       "expected": [
         {
@@ -673,7 +647,6 @@
     {
       "id": "N17",
       "kind": "player",
-      "draft": true,
       "question": "¿Qué puntaje necesita un café para considerarse especial?",
       "expected": [
         {
@@ -685,7 +658,6 @@
     {
       "id": "N18",
       "kind": "player",
-      "draft": true,
       "question": "¿Cómo influye el tiempo de fermentación en el puntaje de taza?",
       "expected": [
         {
@@ -739,14 +711,12 @@
     {
       "id": "NN1",
       "kind": "negative",
-      "draft": true,
       "question": "¿Cómo se injerta un cafeto?",
       "expected": []
     },
     {
       "id": "NN2",
       "kind": "negative",
-      "draft": true,
       "question": "¿Cómo se limpia y se descalcifica una cafetera de goteo?",
       "expected": []
     },

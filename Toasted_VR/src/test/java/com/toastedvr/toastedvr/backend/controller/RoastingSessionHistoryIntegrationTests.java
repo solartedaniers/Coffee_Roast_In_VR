@@ -2,16 +2,21 @@ package com.toastedvr.toastedvr.backend.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.toastedvr.toastedvr.backend.domain.CombinedScore;
 import com.toastedvr.toastedvr.backend.domain.KnowledgeLevel;
+import com.toastedvr.toastedvr.backend.domain.RoastEvaluation;
+import com.toastedvr.toastedvr.backend.domain.RoastEvaluationSkipReason;
 import com.toastedvr.toastedvr.backend.domain.RoastingResult;
 import com.toastedvr.toastedvr.backend.domain.RoastingSession;
 import com.toastedvr.toastedvr.backend.domain.Role;
 import com.toastedvr.toastedvr.backend.domain.User;
 import com.toastedvr.toastedvr.backend.repository.BlacklistedTokenRepository;
+import com.toastedvr.toastedvr.backend.repository.RoastEvaluationRepository;
 import com.toastedvr.toastedvr.backend.repository.RoastingSessionRepository;
 import com.toastedvr.toastedvr.backend.repository.UserRepository;
 import com.toastedvr.toastedvr.backend.security.JwtService;
 import com.toastedvr.toastedvr.backend.security.UserPrincipal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -60,6 +65,9 @@ class RoastingSessionHistoryIntegrationTests {
 
     @Autowired
     private JwtService jwtService;
+
+    @Autowired
+    private RoastEvaluationRepository evaluationRepository;
 
     private User player;
     private User otherPlayer;
@@ -208,6 +216,83 @@ class RoastingSessionHistoryIntegrationTests {
         mockMvc.perform(get("/api/v1/roasting/sessions")).andExpect(status().isUnauthorized());
         mockMvc.perform(get("/api/v1/roasting/sessions/summary")).andExpect(status().isUnauthorized());
         mockMvc.perform(get("/api/v1/roasting/sessions/1")).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void shouldShowTheCombinedScoreWithItsBreakdownInTheDetail() throws Exception {
+        RoastingSession session = saveSession(player, RoastingResult.PERFECT, 74, KnowledgeLevel.INTERMEDIATE);
+        saveCompletedEvaluation(session, 93.3, 80, false);
+
+        detail(player, session.getId())
+            .andExpect(jsonPath("$.qualityScore").value(74))
+            .andExpect(jsonPath("$.finalScore").value(80))
+            .andExpect(jsonPath("$.grade").value("GOOD"))
+            .andExpect(jsonPath("$.evaluation.status").value("COMPLETED"))
+            .andExpect(jsonPath("$.evaluation.rulesScore").value(74))
+            .andExpect(jsonPath("$.evaluation.rubricScore").value(93.3))
+            .andExpect(jsonPath("$.evaluation.rulesWeight").value(0.7))
+            .andExpect(jsonPath("$.evaluation.aiWeight").value(0.3))
+            .andExpect(jsonPath("$.evaluation.defectCapApplied").value(false))
+            .andExpect(jsonPath("$.evaluation.criteria[0].id").value("DRYING_GAS"))
+            .andExpect(jsonPath("$.evaluation.criteria[0].level").value(3))
+            .andExpect(jsonPath("$.evaluation.criteria[0].justification").value("Mantuviste la subida en franja."))
+            .andExpect(jsonPath("$.evaluation.notApplicable[0]").value("ALERT_REACTION"));
+    }
+
+    // El caso que motivó separar la calificación: un tueste desarrollado con 38 % es deficiente.
+    @Test
+    void shouldGradeAnOldSessionWithItsRulesScore() throws Exception {
+        RoastingSession session = saveSession(player, RoastingResult.PERFECT, 38, KnowledgeLevel.INTERMEDIATE);
+
+        detail(player, session.getId())
+            .andExpect(jsonPath("$.result").value("PERFECT"))
+            .andExpect(jsonPath("$.finalScore").value(38))
+            .andExpect(jsonPath("$.grade").value("POOR"))
+            .andExpect(jsonPath("$.evaluation").isEmpty());
+    }
+
+    @Test
+    void shouldShowAPendingEvaluationWithTheRulesScoreMeanwhile() throws Exception {
+        RoastingSession session = saveSession(player, RoastingResult.PERFECT, 86, KnowledgeLevel.INTERMEDIATE);
+        evaluationRepository.save(RoastEvaluation.pending(session, LocalDateTime.now()));
+
+        detail(player, session.getId())
+            .andExpect(jsonPath("$.finalScore").value(86))
+            .andExpect(jsonPath("$.grade").value("EXCELLENT"))
+            .andExpect(jsonPath("$.evaluation.status").value("PENDING"))
+            .andExpect(jsonPath("$.evaluation.finalScore").isEmpty())
+            .andExpect(jsonPath("$.evaluation.criteria.length()").value(0));
+    }
+
+    @Test
+    void shouldUseTheCombinedScoreInTheRowsAndTheSummary() throws Exception {
+        RoastingSession combined = saveSession(player, RoastingResult.PERFECT, 74, KnowledgeLevel.BEGINNER);
+        saveCompletedEvaluation(combined, 26.7, 60, false);
+        RoastingSession auto = saveSession(player, RoastingResult.PERFECT, 70, KnowledgeLevel.BEGINNER);
+        evaluationRepository.save(RoastEvaluation.notApplicable(auto, RoastEvaluationSkipReason.AUTO_MODE, LocalDateTime.now()));
+        saveSession(player, RoastingResult.RAW, 33, KnowledgeLevel.BEGINNER);
+
+        JsonNode rows = readJson(history(player, "")).get("content");
+        assertThat(rows.get(2).get("finalScore").asInt()).isEqualTo(60);
+        assertThat(rows.get(2).get("qualityScore").asInt()).isEqualTo(74);
+        assertThat(rows.get(2).get("grade").asText()).isEqualTo("FAIR");
+        assertThat(rows.get(2).get("evaluationStatus").asText()).isEqualTo("COMPLETED");
+        assertThat(rows.get(1).get("evaluationStatus").asText()).isEqualTo("NOT_APPLICABLE");
+        assertThat(rows.get(0).get("evaluationStatus").isNull()).isTrue();
+
+        summary(player)
+            .andExpect(jsonPath("$.bestScore").value(70))
+            .andExpect(jsonPath("$.averageScore").value(54.3))
+            .andExpect(jsonPath("$.totalSessions").value(3));
+    }
+
+    private void saveCompletedEvaluation(RoastingSession session, double rubricScore, int finalScore, boolean capped) {
+        RoastEvaluation evaluation = RoastEvaluation.pending(session, LocalDateTime.now());
+        evaluation.complete(new CombinedScore(rubricScore, finalScore, 0.7, 0.3, capped), "draft-1", "openai/gpt-oss-120b",
+            "{\"criteria\":[{\"id\":\"DRYING_GAS\",\"level\":3,\"maxLevel\":3,"
+                + "\"justification\":\"Mantuviste la subida en franja.\"}],\"notApplicable\":[\"ALERT_REACTION\"]}",
+            LocalDateTime.now());
+        evaluationRepository.save(evaluation);
     }
 
     private RoastingSession saveSession(User owner, RoastingResult result, int score, KnowledgeLevel level) {

@@ -20,11 +20,11 @@ public interface RoastingSessionRepository extends JpaRepository<RoastingSession
 
     Page<RoastingSession> findByUserIdAndResult(Long userId, RoastingResult result, Pageable pageable);
 
-    // Sin sesiones, max y avg llegan en null y count en 0.
+    // Con la nota combinada cuando existe. Sin sesiones, max y avg llegan en null y count en 0.
     @Query("""
         select new com.toastedvr.toastedvr.backend.dto.SessionHistorySummaryResponse(
-            max(s.qualityScore), avg(s.qualityScore), count(s))
-        from RoastingSession s
+            max(coalesce(e.finalScore, s.qualityScore)), avg(coalesce(e.finalScore, s.qualityScore)), count(s))
+        from RoastingSession s left join RoastEvaluation e on e.session = s
         where s.user.id = :userId
         """)
     SessionHistorySummaryResponse summarizeByUserId(@Param("userId") Long userId);

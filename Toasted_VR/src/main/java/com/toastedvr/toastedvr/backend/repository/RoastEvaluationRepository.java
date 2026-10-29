@@ -3,6 +3,7 @@ package com.toastedvr.toastedvr.backend.repository;
 import com.toastedvr.toastedvr.backend.domain.RoastEvaluation;
 import com.toastedvr.toastedvr.backend.domain.RoastEvaluationStatus;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Pageable;
@@ -13,6 +14,8 @@ import org.springframework.data.repository.query.Param;
 public interface RoastEvaluationRepository extends JpaRepository<RoastEvaluation, Long> {
 
     Optional<RoastEvaluation> findBySessionId(Long sessionId);
+
+    List<RoastEvaluation> findBySessionIdIn(Collection<Long> sessionIds);
 
     // Las que ya pueden intentarse, de la que más espera a la que menos.
     @Query("""

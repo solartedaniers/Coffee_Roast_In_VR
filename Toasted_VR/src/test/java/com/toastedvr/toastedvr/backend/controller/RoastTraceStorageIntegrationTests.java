@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -212,6 +213,19 @@ class RoastTraceStorageIntegrationTests {
         ));
         payload.put("roastTrace", trace);
         return payload;
+    }
+
+    @Test
+    void shouldAnswerTheSaveWithThePendingEvaluationAndTheRulesScoreMeanwhile() throws Exception {
+        postSession(payload(RoastTracePayloads.coherent(780, 630, 205.0, "MANUAL")))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.finalScore").value(75))
+            .andExpect(jsonPath("$.grade").value("GOOD"))
+            .andExpect(jsonPath("$.evaluation.status").value("PENDING"));
+        postSession(payload(RoastTracePayloads.coherent(780, 630, 205.0, "AUTO")))
+            .andExpect(jsonPath("$.evaluation.status").value("NOT_APPLICABLE"))
+            .andExpect(jsonPath("$.evaluation.skipReason").value("AUTO_MODE"))
+            .andExpect(jsonPath("$.evaluation.finalScore").value(75));
     }
 
     private long savedId(ResultActions result) throws Exception {

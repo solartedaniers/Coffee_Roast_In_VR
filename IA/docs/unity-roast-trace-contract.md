@@ -109,7 +109,7 @@ La rúbrica está en `IA/config/roast_rubric.json`. El modelo solo elige un nive
 |---|---|---|
 | `DRYING_GAS` | Si la subida del secado estuvo en la franja y si el jugador corrigió el gas a tiempo y en la dirección correcta | Sin punto de retorno |
 | `RISE_TO_FIRST_CRACK` | Estancamientos y minuto del primer crack (8 a 12 min) | El grano no llegó a 160 °C |
-| `GAS_AFTER_FIRST_CRACK` | Si bajó el gas después del primer crack, cuánto y qué tan rápido | Sin primer crack o con menos de 30 s de desarrollo |
+| `GAS_AFTER_FIRST_CRACK` | Si bajó el gas después del primer crack, cuánto y qué tan rápido | Sin primer crack, o con menos de 30 s de desarrollo si el jugador todavía no había bajado el gas 5 puntos |
 | `ALERT_REACTION` | Si reaccionó a las alertas en los 20 s siguientes | Sin alertas de las de la tabla de abajo |
 
 Las alertas que cuentan para `ALERT_REACTION` y la reacción que se espera:

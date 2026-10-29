@@ -115,8 +115,22 @@ def test_lowering_just_before_the_first_crack_counts_as_on_time():
     assert after["firstDropSecondsAfterCrack"] == 0 and after["totalDropPoints"] == 10
 
 
-def test_a_very_short_development_leaves_out_the_gas_after_crack_criterion():
+def test_a_very_short_development_without_lowering_the_gas_leaves_out_the_criterion():
+    facts = facts_of(duration_seconds=620, points=GOOD_POINTS[:15] + [(620, 200.6)], gas_changes=[])
+
+    assert CriterionId.GAS_AFTER_FIRST_CRACK not in facts
+
+
+def test_a_very_short_development_still_counts_if_the_gas_was_already_lowered():
     facts = facts_of(duration_seconds=620, points=GOOD_POINTS[:15] + [(620, 200.6)])
+
+    after = facts[CriterionId.GAS_AFTER_FIRST_CRACK]
+    assert after["developmentSeconds"] == 16
+    assert after["fullDropSecondsAfterCrack"] == 0 and after["totalDropPoints"] == 5
+
+
+def test_a_very_short_development_with_a_small_drop_leaves_out_the_criterion():
+    facts = facts_of(duration_seconds=620, points=GOOD_POINTS[:15] + [(620, 200.6)], gas_changes=[(604, 28)])
 
     assert CriterionId.GAS_AFTER_FIRST_CRACK not in facts
 

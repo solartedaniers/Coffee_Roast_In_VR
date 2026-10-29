@@ -143,7 +143,7 @@ class DecisionFactsExtractor:
     def _gas_after_first_crack(self, roast: "RoastReading") -> Facts | None:
         p = self.parameters
         first_crack = roast.first_crack
-        if first_crack is None or roast.discharge - first_crack < p.min_development_seconds:
+        if first_crack is None:
             return None
         # Bajar el gas justo antes del primer crack es la misma decisión: se mide desde un poco antes.
         start = max(0, first_crack - p.gas_drop_anticipation_seconds)
@@ -151,6 +151,9 @@ class DecisionFactsExtractor:
         changes = roast.gas.between(start, roast.discharge)
         first_drop = roast.gas.first_lowering(start, roast.discharge)
         full_drop = next((t for t, _, after in changes if reference - after >= p.gas_drop_min_points), None)
+        # Con un desarrollo muy corto el criterio solo aplica si el jugador ya alcanzó a bajar el gas.
+        if roast.discharge - first_crack < p.min_development_seconds and full_drop is None:
+            return None
         lowest = min([reference, *(after for _, _, after in changes)])
         warning = next((sample.t for sample in roast.samples
                         if sample.t >= first_crack and sample.bean >= p.burn_warning_temperature), None)

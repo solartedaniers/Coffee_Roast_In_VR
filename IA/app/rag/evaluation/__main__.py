@@ -41,6 +41,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     settings = get_settings()
+    # Al medir se exigen todos los PDFs: si falta uno local, sus preguntas saldrían como fallos falsos.
     cases = EvalSetLoader(PdfCatalog(settings.rag_docs_dir)).load(args.cases)
     search = build_chunk_search(settings, build_database(settings, read_only=True),
                                 build_embeddings(settings, build_http(settings)))

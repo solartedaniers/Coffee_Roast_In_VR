@@ -3,6 +3,7 @@ import json
 import pytest
 
 from app.config import SERVICE_ROOT
+from app.rag.citations import Distribution, load_document_sources
 from app.rag.evaluation.__main__ import DEFAULT_CASES, rag_configuration
 from app.rag.evaluation.eval_set import CaseKind, EvalCase, EvalSetLoader, InvalidEvalSet
 from app.rag.evaluation.evaluator import RetrievalEvaluator, summarize
@@ -47,8 +48,24 @@ def test_rejects_invalid_sets(catalog, tmp_path, cases):
         EvalSetLoader(catalog).load(write_cases(tmp_path / "set.json", cases))
 
 
+def test_an_absent_local_pdf_is_accepted_only_when_not_every_file_is_required(catalog, tmp_path):
+    path = write_cases(tmp_path / "set.json", [
+        {"id": "P1", "kind": "player", "question": "q", "expected": [{"file": "local-b.pdf", "page": 4}]},
+    ])
+    absent = frozenset({"local-b.pdf"})
+
+    assert len(EvalSetLoader(catalog, absent, require_all_files=False).load(path)) == 1
+    with pytest.raises(InvalidEvalSet):
+        EvalSetLoader(catalog, absent).load(path)
+
+
 def test_the_committed_set_is_valid():
-    cases = EvalSetLoader(PdfCatalog(SERVICE_ROOT / "rag-docs")).load(DEFAULT_CASES)
+    docs = SERVICE_ROOT / "rag-docs"
+    catalog = PdfCatalog(docs)
+    sources = load_document_sources(docs / "document_titles.json")
+    absent_local = frozenset(name for name, source in sources.items()
+                             if source.distribution is Distribution.LOCAL and name not in catalog.file_names())
+    cases = EvalSetLoader(catalog, absent_local, require_all_files=False).load(DEFAULT_CASES)
 
     kinds = [case.kind for case in cases]
     assert (kinds.count(CaseKind.PLAYER), kinds.count(CaseKind.NEGATIVE), kinds.count(CaseKind.SESSION)) == (25, 5, 4)

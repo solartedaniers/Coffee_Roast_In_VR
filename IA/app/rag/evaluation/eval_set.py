@@ -30,8 +30,14 @@ class EvalCase:
 
 
 class EvalSetLoader:
-    def __init__(self, catalog: PdfCatalog):
+    """`absent_local_files`: PDFs locales que pueden faltar (en el CI no están). Sus páginas no se pueden
+    revisar, así que solo se aceptan si no se exige tener todos los PDFs, como al medir."""
+
+    def __init__(self, catalog: PdfCatalog, absent_local_files: frozenset[str] = frozenset(),
+                 require_all_files: bool = True):
         self.catalog = catalog
+        self.absent_local_files = absent_local_files
+        self.require_all_files = require_all_files
 
     def load(self, path: Path) -> list[EvalCase]:
         raw = json.loads(path.read_text(encoding="utf-8"))
@@ -55,6 +61,9 @@ class EvalSetLoader:
             if case.kind is not CaseKind.PLAYER and case.expected:
                 raise InvalidEvalSet(f"{case.id}: only player questions have expected pages")
             missing = [page for page in case.expected
-                       if not self.catalog.contains_page(page.file_name, page.page_number)]
+                       if not self._can_skip(page) and not self.catalog.contains_page(page.file_name, page.page_number)]
             if missing:
                 raise InvalidEvalSet(f"{case.id}: expected pages not found in rag-docs: {missing}")
+
+    def _can_skip(self, page: PageRef) -> bool:
+        return not self.require_all_files and page.file_name in self.absent_local_files

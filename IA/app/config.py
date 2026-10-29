@@ -139,6 +139,12 @@ class Settings(BaseSettings):
     piper_length_scale: float = Field(default=1.0, gt=0)
     piper_timeout_millis: int = Field(default=8_000, gt=0)
 
+    # Reglas, frases por nivel y política del canal de voz de las alertas proactivas.
+    alerts_catalog_file: Path = SERVICE_ROOT / "config" / "proactive_alerts.json"
+    # Tiempo para sintetizar las frases que falten al pedir un paquete; debe ser menor que
+    # AI_SERVICE_ALERTS_READ_TIMEOUT_MILLIS del backend. Lo que no alcance va con audio null.
+    alerts_package_timeout_millis: int = Field(default=20_000, gt=0)
+
     @field_validator("feedback_providers")
     @classmethod
     def known_providers(cls, value: str) -> str:

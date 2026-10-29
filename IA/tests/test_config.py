@@ -1,3 +1,5 @@
+import json
+
 import pytest
 from pydantic import ValidationError
 
@@ -16,6 +18,10 @@ def test_keeps_the_ollama_generation_defaults(settings):
     assert settings.ollama_keep_alive == "10m"
     assert settings.ollama_temperature == 0.4
     assert settings.ollama_num_predict == 240
+
+
+def test_answers_the_alert_package_before_the_backend_stops_waiting(settings):
+    assert settings.alerts_package_timeout_millis == 20_000
 
 
 def test_keeps_the_rag_defaults(settings):
@@ -112,3 +118,9 @@ def test_rejects_an_invalid_voice_configuration(settings, monkeypatch, variable,
 
     with pytest.raises(ValidationError):
         Settings(_env_file=None)
+
+
+def test_reads_the_alert_catalog_from_the_config_folder(settings):
+    assert settings.alerts_catalog_file == SERVICE_ROOT / "config" / "proactive_alerts.json"
+    catalog = json.loads(settings.alerts_catalog_file.read_text(encoding="utf-8"))
+    assert catalog["rules"]

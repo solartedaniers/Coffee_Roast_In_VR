@@ -34,6 +34,12 @@ class ApplicationConfigurationTests {
             .isEqualTo("${AI_SERVICE_VOICE_READ_TIMEOUT_MILLIS:30000}");
     }
 
+    @Test
+    void shouldWaitForTheAlertPackageLongerThanTheAiServiceItself() {
+        assertThat(properties.getProperty("app.ai-service.alerts-read-timeout-millis"))
+            .isEqualTo("${AI_SERVICE_ALERTS_READ_TIMEOUT_MILLIS:30000}");
+    }
+
     private static Properties loadApplicationYaml() {
         YamlPropertiesFactoryBean factory = new YamlPropertiesFactoryBean();
         factory.setResources(new ClassPathResource("application.yml"));

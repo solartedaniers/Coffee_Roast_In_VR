@@ -12,6 +12,16 @@ public class AiServiceProperties {
     private int ingestionReadTimeoutMillis = 1_800_000;
     // Mayor que VOICE_TOTAL_TIMEOUT_MILLIS del servicio IA (25 s), que corta antes.
     private int voiceReadTimeoutMillis = 30_000;
+    // Mayor que ALERTS_PACKAGE_TIMEOUT_MILLIS del servicio IA (20 s), que corta antes.
+    private int alertsReadTimeoutMillis = 30_000;
+
+    public int getAlertsReadTimeoutMillis() {
+        return alertsReadTimeoutMillis;
+    }
+
+    public void setAlertsReadTimeoutMillis(int alertsReadTimeoutMillis) {
+        this.alertsReadTimeoutMillis = alertsReadTimeoutMillis;
+    }
 
     public int getVoiceReadTimeoutMillis() {
         return voiceReadTimeoutMillis;

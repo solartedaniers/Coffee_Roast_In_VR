@@ -1,10 +1,12 @@
 """Validación de la rúbrica contra casos con nivel esperado (eval/evaluation/cases.json).
 
-Mide dos cosas sobre el mismo calificador que usa el servicio: el acuerdo con el nivel esperado (exacto
-y a un nivel de distancia) y la repetibilidad, corriendo cada caso varias veces con la misma traza.
+Mide sobre el mismo calificador que usa el servicio el acuerdo con el nivel esperado (exacto y a un nivel
+de distancia) y la repetibilidad, corriendo cada caso varias veces con la misma traza. También revisa que
+ninguna justificación que vería el jugador traiga nombres internos y de dónde salió cada una.
 """
 import json
 import time
+from collections import Counter
 from collections.abc import Callable
 from pathlib import Path
 
@@ -13,6 +15,7 @@ from pydantic.alias_generators import to_camel
 
 from app.evaluation.contracts import EvaluationRequest, EvaluationResponse, EvaluationStatus
 from app.evaluation.grader import GradingUnavailable
+from app.evaluation.justification_guard import JustificationGuard
 from app.evaluation.rubric import CriterionId
 from app.evaluation.service import RoastEvaluationService
 from app.evaluation.synthetic_trace import SyntheticTrace
@@ -47,10 +50,15 @@ class ValidationRunner:
         self.pause_seconds = pause_seconds
         self.retries = retries
         self.sleep = sleep
+        self.guard = JustificationGuard(service.rubric)
 
     def run(self, cases: list[ValidationCase]) -> dict:
+        sources_before = Counter(self.service.justifications.sources)
         results = [self._run_case(case) for case in cases]
-        return {"runs": self.runs, "summary": summarize(results, self.runs), "cases": results}
+        summary = summarize(results, self.runs)
+        summary["justificationSources"] = dict(sorted(
+            (self.service.justifications.sources - sources_before).items()))
+        return {"runs": self.runs, "summary": summary, "cases": results}
 
     def _run_case(self, case: ValidationCase) -> dict:
         responses = []
@@ -59,7 +67,9 @@ class ValidationRunner:
             response = self._evaluate(case, failures)
             if response is not None:
                 responses.append(response)
-        return describe_case(case, responses, failures)
+        facts = self.service.extractor.extract(case.trace.trace())
+        return describe_case(case, responses, failures,
+                             lambda criterion_id, text: self.guard.has_internal_names(text, facts.get(criterion_id)))
 
     def _evaluate(self, case: ValidationCase, failures: list[str]) -> EvaluationResponse | None:
         request = EvaluationRequest(trace=case.trace.trace())
@@ -76,7 +86,8 @@ class ValidationRunner:
         return None
 
 
-def describe_case(case: ValidationCase, responses: list[EvaluationResponse], failures: list[str]) -> dict:
+def describe_case(case: ValidationCase, responses: list[EvaluationResponse], failures: list[str],
+                  has_internal_names: Callable[[CriterionId, str], bool] = lambda criterion_id, text: False) -> dict:
     levels = {criterion_id: [] for criterion_id in case.expected}
     applicability_ok = True
     status_ok = True
@@ -87,6 +98,9 @@ def describe_case(case: ValidationCase, responses: list[EvaluationResponse], fai
         for criterion_id in levels:
             if criterion_id in graded:
                 levels[criterion_id].append(graded[criterion_id])
+    justifications = {criterion_id: sorted({criterion.justification for response in responses
+                                            for criterion in response.criteria if criterion.id == criterion_id})
+                      for criterion_id in case.expected}
     return {
         "id": case.trace.id,
         "description": case.trace.description,
@@ -103,8 +117,9 @@ def describe_case(case: ValidationCase, responses: list[EvaluationResponse], fai
             "exact": sum(level == expected for level in levels[criterion_id]),
             "withinOne": sum(abs(level - expected) <= 1 for level in levels[criterion_id]),
             "stable": len(set(levels[criterion_id])) == 1,
-            "justifications": sorted({criterion.justification for response in responses
-                                      for criterion in response.criteria if criterion.id == criterion_id}),
+            "justifications": justifications[criterion_id],
+            "internalNameJustifications": [text for text in justifications[criterion_id]
+                                           if has_internal_names(criterion_id, text)],
         } for criterion_id, expected in case.expected.items()],
     }
 
@@ -133,6 +148,9 @@ def summarize(results: list[dict], runs: int) -> dict:
         "applicabilityMismatches": [result["id"] for result in results if not result["applicableCriteriaMatch"]],
         "failedAttempts": sum(result["failedAttempts"] for result in results),
         "incompleteCases": [result["id"] for result in results if result["completedRuns"] < runs],
+        "justificationsWithInternalNames": [{"case": result["id"], "criterion": criterion["id"], "text": text}
+                                            for result in results for criterion in result["criteria"]
+                                            for text in criterion["internalNameJustifications"]],
         "byCriterion": {criterion_id: entry | {
             "exactAgreementPercent": percent(entry["exact"], entry["graded"]),
             "withinOneAgreementPercent": percent(entry["withinOne"], entry["graded"]),

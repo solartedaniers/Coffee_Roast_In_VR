@@ -44,7 +44,7 @@ def main() -> int:
                      indent=1))
     print(json.dumps(summary["byCriterion"], ensure_ascii=False, indent=1))
     print(f"Resultado completo en {output}")
-    return 0 if not summary["incompleteCases"] else 1
+    return 0 if not summary["incompleteCases"] and not summary["justificationsWithInternalNames"] else 1
 
 
 if __name__ == "__main__":

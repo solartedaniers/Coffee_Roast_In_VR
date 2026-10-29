@@ -5,7 +5,7 @@ from app.evaluation.contracts import EvaluationRequest, EvaluationStatus
 from app.evaluation.facts import DecisionFactsExtractor
 from app.evaluation.grader import GradingUnavailable
 from app.evaluation.service import RoastEvaluationService
-from app.evaluation.validation import ValidationRunner, load_cases
+from app.evaluation.validation import ValidationRunner, describe_case, load_cases, summarize
 from tests.test_evaluation_prompt import RUBRIC
 from tests.test_evaluation_service import FakeGrader
 
@@ -117,3 +117,29 @@ def test_a_wrong_expected_status_is_reported():
         update={"expected_status": EvaluationStatus.COMPLETED})])
 
     assert report["summary"]["statusMismatches"] == ["auto"]
+
+
+def test_reports_where_each_justification_came_from_and_none_has_internal_names():
+    grader = FakeGrader(justifications={
+        "DRYING_GAS": "Mantuviste la subida en la franja todo el secado (inBandPercent = 100).",
+        "RISE_TO_FIRST_CRACK": "Tu longestStallSeconds fue cero.",
+    })
+
+    report = runner(grader, runs=2).run([BY_ID["good"]])
+
+    summary = report["summary"]
+    assert summary["justificationsWithInternalNames"] == []
+    assert summary["justificationSources"] == {"CLEANED": 2, "FALLBACK": 2, "MODEL": 2}
+    drying = report["cases"][0]["criteria"][0]
+    assert drying["justifications"] == ["Mantuviste la subida en la franja todo el secado."]
+    assert drying["internalNameJustifications"] == []
+
+
+def test_lists_any_justification_with_internal_names_that_reaches_the_player():
+    case = BY_ID["good"]
+    response = RoastEvaluationService(RUBRIC, FakeGrader()).evaluate(EvaluationRequest(trace=case.trace.trace()))
+
+    result = describe_case(case, [response], [], lambda criterion_id, text: criterion_id == "RISE_TO_FIRST_CRACK")
+
+    [flagged] = summarize([result], 1)["justificationsWithInternalNames"]
+    assert flagged["case"] == "good" and flagged["criterion"] == "RISE_TO_FIRST_CRACK"

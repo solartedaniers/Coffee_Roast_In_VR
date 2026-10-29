@@ -3,13 +3,16 @@ import json
 import pytest
 
 from app.config import SERVICE_ROOT
-from app.rag.citations import Citation, CitationResolver, DocumentSource, RetrievedPassage, load_document_sources
+from app.rag.citations import (Citation, CitationResolver, Distribution, DocumentSource, RetrievedPassage,
+                                load_document_sources)
 from app.rag.pdf_catalog import PdfCatalog
 from app.rag.vector_store import ScoredChunk
 from tests.support.pdf_factory import write_text_pdf
 
 TITLES_FILE = SERVICE_ROOT / "rag-docs" / "document_titles.json"
 CITATION_FORMAT = "{authors} ({year}). {title}"
+# Debe coincidir con la regla de IA/.gitignore.
+LOCAL_PREFIX = "local-"
 
 
 @pytest.fixture
@@ -69,6 +72,7 @@ def test_keeps_the_text_even_without_a_citation(resolver):
     {"a.pdf": {"title": " "}},
     {"a.pdf": {"title": "T", "year": "2020"}},
     {"a.pdf": {"title": "T", "authors": 3}},
+    {"a.pdf": {"title": "T", "distribution": "github"}},
 ])
 def test_rejects_a_titles_file_with_the_wrong_shape(tmp_path, content):
     path = tmp_path / "titles.json"
@@ -82,7 +86,17 @@ def test_without_a_titles_file_there_are_no_sources(tmp_path):
     assert load_document_sources(tmp_path / "missing.json") == {}
 
 
-def test_every_pdf_in_rag_docs_has_a_title_and_every_title_has_its_pdf():
+def test_every_pdf_in_rag_docs_has_a_title_and_only_local_pdfs_may_be_missing():
+    # En el CI los PDFs locales no están (git los ignora); en mi máquina y en el servidor sí.
+    sources = load_document_sources(TITLES_FILE)
+    present = set(PdfCatalog(SERVICE_ROOT / "rag-docs").file_names())
+
+    assert present <= set(sources)
+    assert all(sources[name].distribution is Distribution.LOCAL for name in set(sources) - present)
+
+
+def test_only_local_pdfs_use_the_prefix_that_git_ignores():
     sources = load_document_sources(TITLES_FILE)
 
-    assert set(sources) == set(PdfCatalog(SERVICE_ROOT / "rag-docs").file_names())
+    assert all(name.startswith(LOCAL_PREFIX) == (source.distribution is Distribution.LOCAL)
+               for name, source in sources.items())

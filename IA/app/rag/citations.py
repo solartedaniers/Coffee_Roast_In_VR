@@ -6,6 +6,7 @@ el asistente nunca cita una fuente o una página que no existe.
 import json
 import logging
 from dataclasses import dataclass
+from enum import StrEnum
 from pathlib import Path
 
 from app.rag.pdf_catalog import PdfCatalog
@@ -28,12 +29,19 @@ class RetrievedPassage:
     citation: Citation | None
 
 
+class Distribution(StrEnum):
+    PUBLIC = "public"
+    # Su licencia no permite publicarlo: git lo ignora y se copia a mano a rag-docs/ en cada máquina.
+    LOCAL = "local"
+
+
 @dataclass(frozen=True)
 class DocumentSource:
     """Datos bibliográficos de un PDF de rag-docs/. Autor y año son opcionales (un manual puede no tenerlos)."""
     title: str
     authors: str | None = None
     year: int | None = None
+    distribution: Distribution = Distribution.PUBLIC
 
     def label(self, citation_format: str) -> str:
         if not self.authors or self.year is None:
@@ -48,14 +56,16 @@ def load_document_sources(path: Path) -> dict[str, DocumentSource]:
     raw = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(raw, dict) or not all(_is_source(entry) for entry in raw.values()):
         raise ValueError(f"{path.name} must map each PDF file name to its title, authors and year")
-    return {file_name: DocumentSource(entry["title"], entry.get("authors"), entry.get("year"))
+    return {file_name: DocumentSource(entry["title"], entry.get("authors"), entry.get("year"),
+                                      Distribution(entry.get("distribution", Distribution.PUBLIC)))
             for file_name, entry in raw.items()}
 
 
 def _is_source(entry: object) -> bool:
     return (isinstance(entry, dict) and isinstance(entry.get("title"), str) and entry["title"].strip() != ""
             and isinstance(entry.get("authors"), str | None)
-            and (entry.get("year") is None or (isinstance(entry["year"], int) and not isinstance(entry["year"], bool))))
+            and (entry.get("year") is None or (isinstance(entry["year"], int) and not isinstance(entry["year"], bool)))
+            and entry.get("distribution", Distribution.PUBLIC) in set(Distribution))
 
 
 class CitationResolver:

@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { getSessionDetail } from '../../services/progressService';
 import { getRoastingFeedback } from '../../services/simulationService';
 import { formatLocalDateTime } from '../../utils/dateFormat';
+import RoastEvaluationBreakdown from './RoastEvaluationBreakdown';
+import useSessionEvaluation from './useSessionEvaluation';
 import {
   RESULT_PILL_CLASSES,
   formatGrade,
@@ -15,7 +17,8 @@ import {
 // Detalle de una sesión del historial, con la opción de volver a pedir la
 // retroalimentación de IA (usa el mismo endpoint que la pantalla de resultados).
 export default function SessionDetailView({ texts, sessionId, onBack }) {
-  const [session, setSession] = useState(null);
+  const [loadedSession, setSession] = useState(null);
+  const { session, timedOut } = useSessionEvaluation(loadedSession);
   const [status, setStatus] = useState('loading');
   const [feedbackState, setFeedbackState] = useState('idle');
   const [feedbackText, setFeedbackText] = useState('');
@@ -86,6 +89,8 @@ export default function SessionDetailView({ texts, sessionId, onBack }) {
           </div>
         ))}
       </div>
+
+      <RoastEvaluationBreakdown texts={texts} session={session} timedOut={timedOut} />
 
       {feedbackState === 'idle' && (
         <button type="button" className="primary-button" onClick={handleRequestFeedback}>

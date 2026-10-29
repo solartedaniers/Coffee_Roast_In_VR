@@ -3,6 +3,8 @@ import GrainAppearanceModel from '../../domain/roasting/GrainAppearanceModel';
 import RoastFlavorProfileDescriber from '../../domain/roasting/RoastFlavorProfileDescriber';
 import RoastMetrics from '../../domain/roasting/RoastMetrics';
 import TemperatureUnitConverter from '../../domain/roasting/TemperatureUnitConverter';
+import RoastEvaluationBreakdown from '../progress/RoastEvaluationBreakdown';
+import useSessionEvaluation from '../progress/useSessionEvaluation';
 
 // ================================================================
 // RoastResultsPanel
@@ -18,8 +20,11 @@ export default function RoastResultsPanel({
   feedbackText,
   temperatureUnit,
   texts,
+  savedSession,
+  evaluationTexts,
   onNewSimulation,
 }) {
+  const { session: evaluatedSession, timedOut } = useSessionEvaluation(savedSession);
   const grainColor = GrainAppearanceModel.interpolateColor(sim.finalTemperature ?? sim.temperature);
   const smokeLevel = GrainAppearanceModel.getSmokeLevel(sim.finalTemperature ?? sim.temperature);
   const isBurntSmoke = GrainAppearanceModel.isBurntSmoke(sim.finalTemperature ?? sim.temperature);
@@ -104,6 +109,10 @@ export default function RoastResultsPanel({
               </div>
             )}
           </div>
+
+          {evaluatedSession && (
+            <RoastEvaluationBreakdown texts={evaluationTexts} session={evaluatedSession} timedOut={timedOut} />
+          )}
 
           {savingState === 'saving' && <p className="sim-saving-text">{texts.saving}</p>}
           {savingState === 'saved' && <p className="sim-saved-text">{texts.saved}</p>}

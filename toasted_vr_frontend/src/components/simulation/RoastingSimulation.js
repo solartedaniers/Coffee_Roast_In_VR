@@ -155,6 +155,7 @@ export default function RoastingSimulation({
   );
   const [roastResult, setRoastResult] = useState(null);
   const [savingState, setSavingState] = useState('idle');
+  const [savedSession, setSavedSession] = useState(null);
   const [saveErrorDetail, setSaveErrorDetail] = useState('');
   const [feedbackState, setFeedbackState] = useState('idle');
   const [feedbackText, setFeedbackText] = useState('');
@@ -429,6 +430,7 @@ export default function RoastingSimulation({
     burnedFiredRef.current = false;
     setRoastResult(null);
     setSavingState('idle');
+    setSavedSession(null);
     setSimState({
       ...createInitialSimState({
         chargeTemperature: chargeTempSetup,
@@ -520,6 +522,7 @@ export default function RoastingSimulation({
     );
     setRoastResult(null);
     setSavingState('idle');
+    setSavedSession(null);
     setSaveErrorDetail('');
     setFeedbackState('idle');
     setFeedbackText('');
@@ -538,6 +541,7 @@ export default function RoastingSimulation({
     setSimState(finalSim);
     setRoastResult(scoreResult);
     setSavingState('saving');
+    setSavedSession(null);
     setSaveErrorDetail('');
 
     try {
@@ -556,6 +560,7 @@ export default function RoastingSimulation({
         roastTrace: RoastTraceRecorder.build(finalSim),
       });
       setSavingState('saved');
+      setSavedSession(saved);
 
       setFeedbackState('loading');
       try {
@@ -597,6 +602,7 @@ export default function RoastingSimulation({
     );
     setRoastResult(null);
     setSavingState('idle');
+    setSavedSession(null);
     setSaveErrorDetail('');
     setFeedbackState('idle');
     setFeedbackText('');
@@ -942,6 +948,8 @@ export default function RoastingSimulation({
           feedbackText={feedbackText}
           temperatureUnit={temperatureUnit}
           texts={texts.results}
+          savedSession={savedSession}
+          evaluationTexts={texts.dataHistory}
           onNewSimulation={handleNewSimulation}
         />
       )}

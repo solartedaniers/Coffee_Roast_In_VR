@@ -454,6 +454,33 @@
         "FAIR": "Regular",
         "POOR": "Deficiente"
       },
+      "evaluation": {
+        "title": "Calificación del tueste",
+        "finalScore": "Nota final",
+        "scoreWithGrade": "{score}% · {grade}",
+        "rulesScore": "Reglas del tueste ({weight} %)",
+        "rubricScore": "Tus decisiones según la IA ({weight} %)",
+        "defectCap": "El tueste quedó con un defecto, así que la nota final no pasa del tope.",
+        "criteriaTitle": "Cómo calificó la IA tus decisiones",
+        "criterionLevel": "{title}: nivel {level} de {max}.",
+        "notApplicable": "No aplicó en este tueste: {criteria}.",
+        "criteria": {
+          "DRYING_GAS": "Gas en el secado",
+          "RISE_TO_FIRST_CRACK": "Subida hasta el first crack",
+          "GAS_AFTER_FIRST_CRACK": "Gas después del first crack",
+          "ALERT_REACTION": "Reacción a las alertas"
+        },
+        "pending": "La IA está calificando tus decisiones. Mientras tanto vale la nota de las reglas.",
+        "slow": "La calificación de la IA está tardando. Revisa el detalle en el historial más tarde.",
+        "failed": "La calificación de la IA no estuvo disponible. Vale la nota de las reglas.",
+        "skipReasons": {
+          "NO_TRACE": "Este tueste no trae el registro de tus decisiones. Vale la nota de las reglas.",
+          "INVALID_TRACE": "El registro de tus decisiones no cuadró con el tueste. Vale la nota de las reglas.",
+          "AUTO_MODE": "En modo automático la IA no califica decisiones. Vale la nota de las reglas.",
+          "NO_CRITERIA": "Ningún criterio de decisiones aplicó en este tueste. Vale la nota de las reglas."
+        },
+        "legacy": "Tueste guardado antes de la calificación combinada: vale la nota de las reglas."
+      },
       "buttons": {
         "previous": "Anterior",
         "next": "Siguiente",

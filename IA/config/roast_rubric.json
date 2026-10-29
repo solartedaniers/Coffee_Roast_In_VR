@@ -1,6 +1,6 @@
 {
   "description": "Rúbrica de las decisiones del jugador para la calificación combinada. BORRADOR: los criterios, los niveles y las fuentes los valida el autor de la tesis. Los textos usan {parametro} con los valores de parameters.",
-  "rubricVersion": "draft-2026-10-28",
+  "rubricVersion": "draft-2026-10-29",
   "status": "DRAFT",
   "maxLevel": 3,
   "parameters": {
@@ -72,7 +72,7 @@
       "levels": {
         "3": "La subida estuvo en la franja al menos el {dryingInBandHigh} % del secado, o cada vez que se salió el jugador corrigió el gas en la dirección correcta en {dryingQuickCorrectionSeconds} s o menos.",
         "2": "La subida estuvo en la franja entre el {dryingInBandLow} % y el {dryingInBandHigh} % del secado, o las correcciones llegaron entre {dryingQuickCorrectionSeconds} y {dryingSlowCorrectionSeconds} s.",
-        "1": "La subida estuvo en la franja menos del {dryingInBandLow} % del secado, pero hubo al menos una corrección del gas en la dirección correcta.",
+        "1": "La subida estuvo en la franja menos del {dryingInBandLow} % del secado, pero hubo al menos una corrección del gas en la dirección correcta, aunque haya llegado después de {dryingSlowCorrectionSeconds} s y antes de terminar el secado.",
         "0": "La subida estuvo fuera de la franja la mayor parte del secado y el jugador no corrigió el gas, o lo movió en la dirección equivocada."
       }
     },

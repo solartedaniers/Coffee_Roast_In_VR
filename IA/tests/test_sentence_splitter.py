@@ -17,6 +17,13 @@ def test_joins_words_cut_at_the_end_of_a_line_and_keeps_compound_words():
     assert cleaned.text == "El tostado y el energy-producing final"
 
 
+def test_drops_glyph_names_and_keeps_the_degree_sign():
+    raw = "Received 2020 /gid00030/gid00035/gid00032 Abstract.\nScorched started at 275 /C176C (IBM/C210 SPSS)."
+    [cleaned] = PdfTextCleaner(0.5).clean_pages([page(raw, 1)])
+
+    assert cleaned.text == "Received 2020  Abstract.\nScorched started at 275 °C (IBM SPSS)."
+
+
 def test_removes_headers_repeated_across_pages_and_page_numbers():
     bodies = ["El grano se seca.", "Empieza el crack.", "Se enfría rápido."]
     pages = [page(f"{HEADER}\n{20 + n}\n{body}", n) for n, body in enumerate(bodies, start=1)]

@@ -16,6 +16,8 @@ public record SaveSessionRequest(
     @NotNull RoastingResult result,
     @NotNull @Min(0) @Max(100) Integer qualityScore,
     @NotNull Boolean firstCrackReached,
-    @PositiveOrZero Integer developmentTimeSeconds
+    @PositiveOrZero Integer developmentTimeSeconds,
+    // Sin @Valid: una traza que no sirve se descarta, pero la sesión se guarda igual.
+    RoastTraceRequest roastTrace
 ) {
 }

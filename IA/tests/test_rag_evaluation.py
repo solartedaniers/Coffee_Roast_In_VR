@@ -127,6 +127,35 @@ def test_summarizes_each_kind_separately():
     assert summary["session"]["cases"] == 0
 
 
+def test_reports_draft_questions_and_draft_pages_apart_from_the_validated_set(catalog, tmp_path):
+    path = write_cases(tmp_path / "set.json", [
+        {"id": "P1", "kind": "player", "question": "q",
+         "expected": [{"file": "a.pdf", "page": 1}, {"file": "a.pdf", "page": 2, "draft": True}]},
+        {"id": "N1", "kind": "player", "question": "q", "draft": True, "expected": [{"file": "a.pdf", "page": 2}]},
+        {"id": "NN1", "kind": "negative", "question": "q", "draft": True},
+    ])
+    cases = EvalSetLoader(catalog).load(path)
+    search = FakeSearch([chunk("a.pdf", 2), chunk("a.pdf", 1)])
+
+    summary = summarize(RetrievalEvaluator(search, depth=10, production_top_k=4).run(cases), production_top_k=4)
+
+    assert (summary["player"]["cases"], summary["player"]["mrr_at_10"]) == (1, 0.5)
+    assert summary["groups"]["confirmed_with_draft_pages"]["mrr_at_10"] == 1.0
+    assert (summary["groups"]["draft_questions"]["cases"], summary["groups"]["draft_questions"]["hit_at_1"]) == (1, 1.0)
+    assert summary["groups"]["total"]["cases"] == 2
+    assert (summary["negative"]["cases"], summary["negative_draft"]["cases"]) == (0, 1)
+
+
+def test_a_draft_question_cannot_also_have_draft_pages(catalog, tmp_path):
+    path = write_cases(tmp_path / "set.json", [
+        {"id": "N1", "kind": "player", "question": "q", "draft": True,
+         "expected": [{"file": "a.pdf", "page": 1}, {"file": "a.pdf", "page": 2, "draft": True}]},
+    ])
+
+    with pytest.raises(InvalidEvalSet):
+        EvalSetLoader(catalog).load(path)
+
+
 def test_rejects_a_top_k_deeper_than_the_evaluation():
     with pytest.raises(ValueError):
         RetrievalEvaluator(FakeSearch([]), depth=4, production_top_k=5)

@@ -1,6 +1,7 @@
 """Carga el set de evaluación (IA/eval/rag_questions.json).
 
-Para ampliarlo basta con agregar casos al JSON; no hay que tocar código.
+Para ampliarlo basta con agregar casos al JSON; no hay que tocar código. Lo que aún no valido va
+marcado con "draft": true, en la pregunta completa o en una página esperada, y se reporta aparte.
 """
 import json
 from dataclasses import dataclass
@@ -27,6 +28,12 @@ class EvalCase:
     kind: CaseKind
     question: str
     expected: frozenset[PageRef]
+    draft_pages: frozenset[PageRef] = frozenset()
+    draft: bool = False
+
+    @property
+    def expected_with_drafts(self) -> frozenset[PageRef]:
+        return self.expected | self.draft_pages
 
 
 class EvalSetLoader:
@@ -47,8 +54,11 @@ class EvalSetLoader:
 
     @staticmethod
     def _parse(item: dict) -> EvalCase:
-        expected = frozenset(PageRef(page["file"], int(page["page"])) for page in item.get("expected", []))
-        return EvalCase(item["id"], CaseKind(item["kind"]), item["question"], expected)
+        pages = item.get("expected", [])
+        expected = frozenset(PageRef(page["file"], int(page["page"])) for page in pages if not page.get("draft"))
+        draft_pages = frozenset(PageRef(page["file"], int(page["page"])) for page in pages if page.get("draft"))
+        return EvalCase(item["id"], CaseKind(item["kind"]), item["question"], expected, draft_pages,
+                        bool(item.get("draft", False)))
 
     def _validate(self, cases: list[EvalCase]) -> None:
         ids = [case.id for case in cases]
@@ -57,10 +67,12 @@ class EvalSetLoader:
             raise InvalidEvalSet(f"Duplicated case ids: {duplicated}")
         for case in cases:
             if case.kind is CaseKind.PLAYER and not case.expected:
-                raise InvalidEvalSet(f"{case.id}: a player question needs expected pages")
-            if case.kind is not CaseKind.PLAYER and case.expected:
+                raise InvalidEvalSet(f"{case.id}: a player question needs confirmed expected pages")
+            if case.kind is not CaseKind.PLAYER and case.expected_with_drafts:
                 raise InvalidEvalSet(f"{case.id}: only player questions have expected pages")
-            missing = [page for page in case.expected
+            if case.draft and case.draft_pages:
+                raise InvalidEvalSet(f"{case.id}: a draft question cannot also have draft pages")
+            missing = [page for page in case.expected_with_drafts
                        if not self._can_skip(page) and not self.catalog.contains_page(page.file_name, page.page_number)]
             if missing:
                 raise InvalidEvalSet(f"{case.id}: expected pages not found in rag-docs: {missing}")

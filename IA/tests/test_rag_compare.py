@@ -1,4 +1,4 @@
-from app.rag.evaluation.compare import markdown_table
+from app.rag.evaluation.compare import group_table, markdown_table
 
 
 def report(label, mrr, negatives_with_context):
@@ -23,3 +23,18 @@ def test_compares_every_measurement_against_the_first_one():
 
 def test_an_empty_comparison_is_empty():
     assert markdown_table([]) == ""
+
+
+def test_separates_validated_and_draft_groups_only_for_measurements_that_have_them():
+    ranking = {"cases": 3, "hit_at_1": 0.2, "hit_at_3": 0.4, "hit_at_4": 0.5, "hit_at_5": 0.6, "mrr_at_10": 0.45}
+    grouped = report("frases", 0.4, 5)
+    grouped["summary"]["player"]["cases"] = 25
+    grouped["summary"]["groups"] = {"confirmed_with_draft_pages": ranking, "draft_questions": ranking, "total": ranking}
+
+    table = group_table([report("vieja", 0.4, 5), grouped]).splitlines()
+
+    assert table[0].startswith("| Variante | Grupo | preguntas |")
+    assert [line.split(" | ")[1] for line in table[2:]] == [
+        "validadas", "validadas + páginas en borrador", "preguntas en borrador", "total"]
+    assert table[2] == "| frases | validadas | 25 | 0.20 | 0.40 | 0.50 | 0.60 | 0.400 |"
+    assert group_table([report("vieja", 0.4, 5)]) == ""

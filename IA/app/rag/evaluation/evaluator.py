@@ -46,6 +46,9 @@ class CaseResult:
     returned_in_top_k: int
     repeated_texts_in_top_k: int
     retrieved: list[RetrievedChunk]
+    draft: bool = False
+    # Contando también las páginas en borrador; igual a first_relevant_rank si no tiene.
+    first_relevant_rank_with_drafts: int | None = None
 
 
 class RetrievalEvaluator:
@@ -68,32 +71,54 @@ class RetrievalEvaluator:
         top = chunks[:self.production_top_k]
         retrieved = [RetrievedChunk.from_scored(chunk) for chunk in chunks]
         texts = [" ".join(chunk.text.split()) for chunk in top]
+        pages = [chunk.page for chunk in retrieved]
         return CaseResult(
             case_id=case.id,
             kind=case.kind.value,
-            first_relevant_rank=first_relevant_rank([chunk.page for chunk in retrieved], set(case.expected)),
+            first_relevant_rank=first_relevant_rank(pages, set(case.expected)),
             latency_ms=round(latency_ms, 2),
             returned_in_top_k=len(top),
             repeated_texts_in_top_k=len(texts) - len(set(texts)),
             retrieved=retrieved,
+            draft=case.draft,
+            first_relevant_rank_with_drafts=first_relevant_rank(pages, set(case.expected_with_drafts)),
         )
 
 
 def summarize(results: Sequence[CaseResult], production_top_k: int) -> dict:
-    by_kind = {kind: [result for result in results if result.kind == kind.value] for kind in CaseKind}
-    player = RankingSummary.from_ranks([result.first_relevant_rank for result in by_kind[CaseKind.PLAYER]], HIT_KS)
+    """`player` y `negative` son solo las preguntas validadas con sus páginas confirmadas, para que se
+    puedan comparar con las mediciones anteriores. Lo que está en borrador va en `groups`."""
+    confirmed = [result for result in results if not result.draft]
+    by_kind = {kind: [result for result in confirmed if result.kind == kind.value] for kind in CaseKind}
+    player_results = [result for result in results if result.kind == CaseKind.PLAYER.value]
     latencies = [result.latency_ms for result in results]
     return {
-        "player": {"cases": player.cases, "mrr_at_10": round(player.mrr, 4),
-                   **{f"hit_at_{k}": round(value, 4) for k, value in player.hit_at.items()},
-                   "misses_at_top_k": [result.case_id for result in by_kind[CaseKind.PLAYER]
-                                       if not hit_at(result.first_relevant_rank, production_top_k)]},
+        "player": _ranking_summary(by_kind[CaseKind.PLAYER], production_top_k, with_drafts=False),
+        "groups": {
+            "confirmed_with_draft_pages": _ranking_summary(by_kind[CaseKind.PLAYER], production_top_k,
+                                                           with_drafts=True),
+            "draft_questions": _ranking_summary([result for result in player_results if result.draft],
+                                                production_top_k, with_drafts=True),
+            "total": _ranking_summary(player_results, production_top_k, with_drafts=True),
+        },
         "negative": _returned_summary(by_kind[CaseKind.NEGATIVE]),
+        "negative_draft": _returned_summary([result for result in results
+                                             if result.draft and result.kind == CaseKind.NEGATIVE.value]),
         "session": _returned_summary(by_kind[CaseKind.SESSION]),
         "repeated_texts_in_top_k": sum(result.repeated_texts_in_top_k for result in results),
         "latency_ms": {"p50": round(statistics.median(latencies), 1) if latencies else 0.0,
                        "max": round(max(latencies), 1) if latencies else 0.0},
     }
+
+
+def _ranking_summary(results: Sequence[CaseResult], production_top_k: int, with_drafts: bool) -> dict:
+    ranks = [result.first_relevant_rank_with_drafts if with_drafts else result.first_relevant_rank
+             for result in results]
+    summary = RankingSummary.from_ranks(ranks, HIT_KS)
+    return {"cases": summary.cases, "mrr_at_10": round(summary.mrr, 4),
+            **{f"hit_at_{k}": round(value, 4) for k, value in summary.hit_at.items()},
+            "misses_at_top_k": [result.case_id for result, rank in zip(results, ranks, strict=True)
+                                if not hit_at(rank, production_top_k)]}
 
 
 def _returned_summary(results: Sequence[CaseResult]) -> dict:

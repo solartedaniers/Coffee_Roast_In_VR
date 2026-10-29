@@ -51,6 +51,11 @@ public class RankingSnapshot {
     @Column(name = "seen_at", nullable = false)
     private LocalDateTime seenAt;
 
+    // Con qué nota se armó el ranking de la foto (RankingScoreBasis). Null en las fotos anteriores
+    // a la nota combinada: no se comparan con el ranking actual.
+    @Column(name = "score_basis", length = 60)
+    private String scoreBasis;
+
     protected RankingSnapshot() {
     }
 
@@ -59,10 +64,11 @@ public class RankingSnapshot {
         this.knowledgeLevel = knowledgeLevel;
     }
 
-    public void replace(String topPositions, Integer ownPosition, LocalDateTime seenAt) {
+    public void replace(String topPositions, Integer ownPosition, LocalDateTime seenAt, String scoreBasis) {
         this.topPositions = topPositions;
         this.ownPosition = ownPosition;
         this.seenAt = seenAt;
+        this.scoreBasis = scoreBasis;
     }
 
     public Long getId() {
@@ -87,5 +93,9 @@ public class RankingSnapshot {
 
     public LocalDateTime getSeenAt() {
         return seenAt;
+    }
+
+    public String getScoreBasis() {
+        return scoreBasis;
     }
 }

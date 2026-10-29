@@ -2,6 +2,8 @@ package com.toastedvr.toastedvr.backend.service;
 
 import com.toastedvr.toastedvr.backend.config.MessageResolver;
 import com.toastedvr.toastedvr.backend.domain.KnowledgeLevel;
+import com.toastedvr.toastedvr.backend.domain.RoastEvaluation;
+import com.toastedvr.toastedvr.backend.domain.RoastEvaluationStatus;
 import com.toastedvr.toastedvr.backend.domain.Role;
 import com.toastedvr.toastedvr.backend.domain.RoastingSession;
 import com.toastedvr.toastedvr.backend.domain.User;
@@ -12,7 +14,7 @@ import com.toastedvr.toastedvr.backend.dto.RankingMovementResponse;
 import com.toastedvr.toastedvr.backend.dto.RankingResponse;
 import com.toastedvr.toastedvr.backend.exception.InvalidRequestException;
 import com.toastedvr.toastedvr.backend.exception.ResourceNotFoundException;
-import com.toastedvr.toastedvr.backend.repository.RoastingSessionRepository;
+import com.toastedvr.toastedvr.backend.repository.RoastEvaluationRepository;
 import com.toastedvr.toastedvr.backend.repository.UserRepository;
 import com.toastedvr.toastedvr.backend.security.RankingSignatureService;
 import jakarta.transaction.Transactional;
@@ -27,13 +29,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 // Ranking por nivel (RF017). Solo cuentan las sesiones con nivel guardado de
-// jugadores activos que no son administradores. El puntaje de cada jugador es
-// su mejor sesión en ese nivel; en empate gana quien lo logró antes. Cada
-// fila indica cómo se movió desde la última foto que el jugador vio.
+// jugadores activos que no son administradores y con nota combinada (reglas e
+// IA) desde la fecha configurada. El puntaje de cada jugador es su mejor nota
+// final en ese nivel; en empate gana quien lo logró antes. Cada fila indica
+// cómo se movió desde la última foto que el jugador vio.
 @Service
 public class RankingService {
 
-    private final RoastingSessionRepository roastingSessionRepository;
+    private final RoastEvaluationRepository evaluationRepository;
+    private final RankingScoreBasis scoreBasis;
     private final UserRepository userRepository;
     private final RankingSnapshotService snapshotService;
     private final RankingSignatureService signatureService;
@@ -42,7 +46,8 @@ public class RankingService {
     private final int pollIntervalSeconds;
 
     public RankingService(
-        RoastingSessionRepository roastingSessionRepository,
+        RoastEvaluationRepository evaluationRepository,
+        RankingScoreBasis scoreBasis,
         UserRepository userRepository,
         RankingSnapshotService snapshotService,
         RankingSignatureService signatureService,
@@ -50,7 +55,8 @@ public class RankingService {
         @Value("${app.roasting.ranking-size:10}") int rankingSize,
         @Value("${app.roasting.ranking-poll-seconds:60}") int pollIntervalSeconds
     ) {
-        this.roastingSessionRepository = roastingSessionRepository;
+        this.evaluationRepository = evaluationRepository;
+        this.scoreBasis = scoreBasis;
         this.userRepository = userRepository;
         this.snapshotService = snapshotService;
         this.signatureService = signatureService;
@@ -114,18 +120,19 @@ public class RankingService {
     // ponytail: recorre todas las sesiones del nivel; si el volumen crece,
     // pasar a ROW_NUMBER() en SQL.
     private List<RankedPlayer> rankPlayers(KnowledgeLevel level) {
-        Map<Long, RoastingSession> bestByUser = new LinkedHashMap<>();
-        roastingSessionRepository.findRankingCandidates(level, Role.ADMIN)
-            .forEach(session -> bestByUser.putIfAbsent(session.getUser().getId(), session));
+        Map<Long, RoastEvaluation> bestByUser = new LinkedHashMap<>();
+        evaluationRepository.findRankingCandidates(RoastEvaluationStatus.COMPLETED, level, scoreBasis.combinedSince(), Role.ADMIN)
+            .forEach(evaluation -> bestByUser.putIfAbsent(evaluation.getSession().getUser().getId(), evaluation));
 
         List<RankedPlayer> ranked = new ArrayList<>();
         int position = 0;
-        for (RoastingSession session : bestByUser.values()) {
+        for (RoastEvaluation evaluation : bestByUser.values()) {
+            RoastingSession session = evaluation.getSession();
             position++;
             ranked.add(new RankedPlayer(
                 session.getUser().getId(),
                 session.getUser().getUsername(),
-                session.getQualityScore(),
+                evaluation.getFinalScore(),
                 ApiInstants.from(session.getCreatedAt()),
                 position
             ));

@@ -36,6 +36,8 @@ app:
     history-page-size: 10
     ranking-size: 10
     ranking-poll-seconds: 60
+    # Antes de las fechas fijas de los tests del ranking (septiembre de 2026).
+    ranking-combined-since: 2026-01-01T00:00:00
   # El proceso en segundo plano no corre en los tests: lo llaman directamente.
   roast-evaluation:
     scheduler-enabled: false

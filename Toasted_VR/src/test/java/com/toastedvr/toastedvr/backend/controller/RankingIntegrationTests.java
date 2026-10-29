@@ -2,12 +2,16 @@ package com.toastedvr.toastedvr.backend.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.toastedvr.toastedvr.backend.domain.CombinedScore;
 import com.toastedvr.toastedvr.backend.domain.KnowledgeLevel;
+import com.toastedvr.toastedvr.backend.domain.RoastEvaluation;
+import com.toastedvr.toastedvr.backend.domain.RoastEvaluationSkipReason;
 import com.toastedvr.toastedvr.backend.domain.RoastingResult;
 import com.toastedvr.toastedvr.backend.domain.RoastingSession;
 import com.toastedvr.toastedvr.backend.domain.Role;
 import com.toastedvr.toastedvr.backend.domain.User;
 import com.toastedvr.toastedvr.backend.repository.BlacklistedTokenRepository;
+import com.toastedvr.toastedvr.backend.repository.RoastEvaluationRepository;
 import com.toastedvr.toastedvr.backend.repository.RoastingSessionRepository;
 import com.toastedvr.toastedvr.backend.repository.UserRepository;
 import com.toastedvr.toastedvr.backend.security.JwtService;
@@ -50,6 +54,9 @@ class RankingIntegrationTests {
 
     @Autowired
     private RoastingSessionRepository roastingSessionRepository;
+
+    @Autowired
+    private RoastEvaluationRepository evaluationRepository;
 
     @Autowired
     private BlacklistedTokenRepository blacklistedTokenRepository;
@@ -210,6 +217,27 @@ class RankingIntegrationTests {
         mockMvc.perform(get("/api/v1/roasting/ranking")).andExpect(status().isUnauthorized());
     }
 
+    @Test
+    void shouldRankOnlyTheCombinedScoresOfSessionsSinceTheConfiguredDate() throws Exception {
+        // Cuenta la nota final (72), no la de las reglas (95).
+        complete(saveRulesOnlySession(saveUser("combinedUser", Role.PLAYER, KnowledgeLevel.BEGINNER), 95, BASE_TIME), 72);
+        saveRulesOnlySession(saveUser("legacyUser", Role.PLAYER, KnowledgeLevel.BEGINNER), 99, BASE_TIME);
+        evaluationRepository.save(RoastEvaluation.pending(
+            saveRulesOnlySession(saveUser("pendingUser", Role.PLAYER, KnowledgeLevel.BEGINNER), 98, BASE_TIME), LocalDateTime.now()));
+        evaluationRepository.save(RoastEvaluation.notApplicable(
+            saveRulesOnlySession(saveUser("autoUser", Role.PLAYER, KnowledgeLevel.BEGINNER), 97, BASE_TIME),
+            RoastEvaluationSkipReason.AUTO_MODE, LocalDateTime.now()));
+        // application-test.yml empieza a contar el 2026-01-01.
+        complete(saveRulesOnlySession(saveUser("oldUser", Role.PLAYER, KnowledgeLevel.BEGINNER), 96,
+            LocalDateTime.of(2025, 12, 31, 23, 59)), 96);
+
+        ranking(viewer, "?level=INTERMEDIATE")
+            .andExpect(jsonPath("$.top.length()").value(1))
+            .andExpect(jsonPath("$.top[0].username").value("combinedUser"))
+            .andExpect(jsonPath("$.top[0].bestScore").value(72))
+            .andExpect(jsonPath("$.me").isEmpty());
+    }
+
     private void saveSession(User owner, KnowledgeLevel level, int score, int minutesAfterBase) {
         RoastingSession session = roastingSessionRepository.save(new RoastingSession(
             owner, 190.0, 200.0, 780, 205.0, 206.0, RoastingResult.PERFECT, score, true, 150, level
@@ -220,6 +248,23 @@ class RankingIntegrationTests {
             BASE_TIME.plusMinutes(minutesAfterBase),
             session.getId()
         );
+        complete(session, score);
+    }
+
+    private RoastingSession saveRulesOnlySession(User owner, int qualityScore, LocalDateTime createdAt) {
+        RoastingSession session = roastingSessionRepository.save(new RoastingSession(
+            owner, 190.0, 200.0, 780, 205.0, 206.0, RoastingResult.PERFECT, qualityScore, true, 150, KnowledgeLevel.INTERMEDIATE
+        ));
+        jdbcTemplate.update("UPDATE roasting_sessions SET created_at = ? WHERE id = ?", createdAt, session.getId());
+        return session;
+    }
+
+    // El ranking solo cuenta la nota combinada: la sesión se guarda ya calificada con ese puntaje.
+    private void complete(RoastingSession session, int finalScore) {
+        RoastEvaluation evaluation = RoastEvaluation.pending(session, LocalDateTime.now());
+        evaluation.complete(new CombinedScore(50.0, finalScore, 0.7, 0.3, false), "draft-1", "openai/gpt-oss-120b",
+            "{\"criteria\":[],\"notApplicable\":[]}", LocalDateTime.now());
+        evaluationRepository.save(evaluation);
     }
 
     private ResultActions ranking(User user, String query) throws Exception {

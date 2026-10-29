@@ -56,6 +56,38 @@ El contrato es exactamente el mismo que tenía la versión anterior en Java, as�
 
 La ingesta no corre sola al arrancar. Cuando agrego o cambio un PDF en `rag-docs/`, la lanzo desde el backend con un usuario ADMIN (`POST /api/v1/admin/rag/ingest`). Los PDFs que no cambiaron se saltan por su hash, y cada archivo se guarda en una sola transacción: si algo falla a mitad, sus fragmentos anteriores siguen intactos.
 
+También la puedo correr sin el backend, directo contra la base y la tabla de `IA/.env`:
+
+```bash
+.venv/Scripts/python -m app.rag.ingest_cli           # solo los PDFs nuevos o cambiados
+.venv/Scripts/python -m app.rag.ingest_cli --force   # todos, por ejemplo después de cambiar RAG_TEXT_SPLITTER
+```
+
+Imprime el resultado de cada archivo y termina con código 1 si alguno falló. Después de una ingesta con material nuevo reinicio el servicio para vaciar la caché de retroalimentación.
+
+## PDFs del RAG
+
+En `rag-docs/` hay 16 PDFs. Diez están en el repositorio: los 7 de antes y 3 artículos con licencia CC BY (Münchow et al. 2020, Yang et al. 2016 y Vakaryk et al. 2023). Los otros 6 tienen el prefijo `local-` y no los subo, porque su licencia no me deja publicarlos aquí; git los ignora con la regla `rag-docs/local-*.pdf` de `.gitignore`:
+
+| Archivo | Documento |
+|---|---|
+| `local-giacalone-2019-common-roasting-defects.pdf` | Giacalone et al. (2019), defectos comunes del tueste (manuscrito aceptado) |
+| `local-puerta-2011-composicion-quimica-taza-cafe.pdf` | Puerta (2011), Avances Técnicos 414 |
+| `local-osorio-2021-calidad-del-cafe.pdf` | Osorio (2021), La calidad del café (Cenicafé) |
+| `local-ramos-criollo-2017-calidad-fisica-sensorial.pdf` | Ramos y Criollo (2017), calidad física y sensorial en La Unión, Nariño |
+| `local-gamboa-2013-taza-cafe-especial-chachagui.pdf` | Gamboa, Mosquera y Paz (2013), taza de café especial en Chachagüí |
+| `local-campo-ceballos-2020-fluidized-bed-roaster.pdf` | Campo-Ceballos et al. (2020), tostadora de lecho fluidizado |
+
+Para tenerlos en el servidor los copio a mano a `IA/rag-docs/` con estos mismos nombres, por ejemplo desde mi máquina:
+
+```bash
+scp rag-docs/local-*.pdf usuario@servidor:/ruta/al/proyecto/IA/rag-docs/
+```
+
+Después corro la ingesta (`python -m app.rag.ingest_cli` en el servidor, o `POST /api/v1/admin/rag/ingest` desde el backend) y reinicio el servicio. Sus títulos y autores ya están en `rag-docs/document_titles.json`, marcados con `"distribution": "local"`, y las citas salen igual que las de los demás.
+
+Si falta alguno, nada se rompe: la ingesta trabaja con los PDFs que encuentre, el catálogo de citas solo exige los que no son locales y los tests revisan el set de preguntas aunque falten. Para medir el RAG sí tienen que estar todos, porque sin ellos no se pueden revisar las páginas esperadas.
+
 ## Caché de retroalimentación
 
 El backend pide la retroalimentación cada vez que se abre una sesión. Para no gastar cuota del proveedor en cada apertura, guardo en memoria las respuestas por 24 horas (máximo 500). La llave incluye los datos de la sesión, el nivel y los modelos configurados, así que cambiar de modelo no reutiliza respuestas viejas. La caché se vacía si una ingesta agrega material nuevo y se pierde al reiniciar el servicio. Con `FEEDBACK_CACHE_TTL_SECONDS=0` queda desactivada.

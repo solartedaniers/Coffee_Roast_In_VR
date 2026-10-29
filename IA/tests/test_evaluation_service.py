@@ -11,9 +11,10 @@ from tests.test_evaluation_prompt import RUBRIC
 class FakeGrader:
     model = "openai/gpt-oss-120b"
 
-    def __init__(self, levels=None, error=None):
+    def __init__(self, levels=None, error=None, justifications=None):
         self.levels = levels or {}
         self.error = error
+        self.justifications = justifications or {}
         self.prompts = []
 
     def grade(self, prompt):
@@ -21,7 +22,12 @@ class FakeGrader:
         if self.error:
             raise self.error
         ids = prompt.schema["properties"]["criteria"]["required"]
-        return {CriterionId(i): CriterionGrade(self.levels.get(i, 3), f"Justificación de {i}.") for i in ids}
+        return {CriterionId(i): CriterionGrade(self.levels.get(i, 3), self.justifications.get(i, plain(i)))
+                for i in ids}
+
+
+def plain(criterion_id):
+    return f"Justificación sobre {RUBRIC.criterion(CriterionId(criterion_id)).title.lower()}."
 
 
 def evaluate(grader, **trace_changes):
@@ -67,3 +73,21 @@ def test_clips_long_justifications():
     assert clip("abc", 5) == "abc"
     assert clip("una frase demasiado larga", 10) == "una frase…"
     assert len(clip("x" * 400, 300)) == 300
+
+
+def test_the_player_never_sees_internal_fact_names():
+    grader = FakeGrader({"DRYING_GAS": 0, "RISE_TO_FIRST_CRACK": 1}, justifications={
+        "DRYING_GAS": "No estuviste en la franja (inBandPercent = 0) y la temperatura subió muy rápido.",
+        "RISE_TO_FIRST_CRACK": "Tu longestStallSeconds fue alto.",
+    })
+    service = RoastEvaluationService(RUBRIC, grader)
+
+    response = service.evaluate(EvaluationRequest(trace=trace()))
+
+    texts = {criterion.id: criterion.justification for criterion in response.criteria}
+    assert texts[CriterionId.DRYING_GAS] == "No estuviste en la franja y la temperatura subió muy rápido."
+    assert texts[CriterionId.RISE_TO_FIRST_CRACK] == RUBRIC.render(
+        RUBRIC.criterion(CriterionId.RISE_TO_FIRST_CRACK).fallback_justifications[1])
+    assert texts[CriterionId.GAS_AFTER_FIRST_CRACK] == plain("GAS_AFTER_FIRST_CRACK")
+    assert [criterion.level for criterion in response.criteria] == [0, 1, 3]
+    assert dict(service.justifications.sources) == {"CLEANED": 1, "FALLBACK": 1, "MODEL": 1}

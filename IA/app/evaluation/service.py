@@ -1,7 +1,8 @@
 from app.evaluation.contracts import (CriterionScore, EvaluationRequest, EvaluationResponse, EvaluationStatus,
                                       OperationMode)
 from app.evaluation.facts import DecisionFactsExtractor
-from app.evaluation.grader import CriterionGrade, GroqRubricGrader
+from app.evaluation.grader import GroqRubricGrader
+from app.evaluation.player_justifications import PlayerJustifications
 from app.evaluation.prompt import RubricPromptBuilder
 from app.evaluation.rubric import CriterionId, Rubric
 
@@ -24,6 +25,7 @@ class RoastEvaluationService:
         self.extractor = DecisionFactsExtractor(rubric)
         self.prompts = RubricPromptBuilder(rubric)
         self.grader = grader
+        self.justifications = PlayerJustifications(rubric)
 
     def evaluate(self, request: EvaluationRequest) -> EvaluationResponse:
         """Lanza GradingUnavailable si Groq falla; el backend reintenta más tarde."""
@@ -35,7 +37,9 @@ class RoastEvaluationService:
             return EvaluationResponse(status=EvaluationStatus.NOT_APPLICABLE, rubric_version=self.rubric.rubric_version,
                                       model=None, score=None, criteria=[], not_applicable=not_applicable)
         grades = self.grader.grade(self.prompts.build(facts))
-        criteria = [self._score(criterion_id, grades[criterion_id]) for criterion_id in facts]
+        texts = self.justifications.resolve(grades, facts)
+        criteria = [self._score(criterion_id, grades[criterion_id].level, texts[criterion_id])
+                    for criterion_id in facts]
         return EvaluationResponse(
             status=EvaluationStatus.COMPLETED,
             rubric_version=self.rubric.rubric_version,
@@ -45,7 +49,6 @@ class RoastEvaluationService:
             not_applicable=not_applicable,
         )
 
-    def _score(self, criterion_id: CriterionId, grade: CriterionGrade) -> CriterionScore:
-        return CriterionScore(id=criterion_id, level=grade.level, max_level=self.rubric.max_level,
-                              justification=clip(grade.justification,
-                                                 self.rubric.parameters.justification_max_chars))
+    def _score(self, criterion_id: CriterionId, level: int, justification: str) -> CriterionScore:
+        return CriterionScore(id=criterion_id, level=level, max_level=self.rubric.max_level,
+                              justification=clip(justification, self.rubric.parameters.justification_max_chars))

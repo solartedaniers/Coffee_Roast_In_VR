@@ -77,6 +77,12 @@
         "2": "La subida estuvo en la franja entre el {dryingInBandLow} % y el {dryingInBandHigh} % del secado, o las correcciones llegaron entre {dryingQuickCorrectionSeconds} y {dryingSlowCorrectionSeconds} s.",
         "1": "La subida estuvo en la franja menos del {dryingInBandLow} % del secado, pero hubo al menos una corrección del gas en la dirección correcta, aunque haya llegado después de {dryingSlowCorrectionSeconds} s y antes de terminar el secado.",
         "0": "La subida estuvo fuera de la franja la mayor parte del secado y el jugador no corrigió el gas, o lo movió en la dirección equivocada."
+      },
+      "fallbackJustifications": {
+        "3": "Durante el secado la temperatura subió a buen ritmo, entre {dryingRiseMin} y {dryingRiseMax} °C por minuto, y cuando se salió de ese ritmo corregiste el gas a tiempo.",
+        "2": "Durante el secado la temperatura subió a buen ritmo buena parte del tiempo, pero corregiste el gas con algo de demora.",
+        "1": "Durante el secado la temperatura subió fuera del ritmo recomendado casi todo el tiempo, aunque corregiste el gas al menos una vez.",
+        "0": "Durante el secado la temperatura subió fuera del ritmo recomendado y no corregiste el gas, o lo moviste al lado contrario."
       }
     },
     {
@@ -90,6 +96,12 @@
         "2": "Hubo un estancamiento de {stallShortSeconds} a {stallMediumSeconds} s, o el primer crack llegó fuera de la ventana por {firstCrackSlackMinutes} min o menos.",
         "1": "Hubo un estancamiento de {stallMediumSeconds} a {stallBakedSeconds} s, o el primer crack llegó fuera de la ventana por más de {firstCrackSlackMinutes} min.",
         "0": "Hubo un estancamiento de {stallBakedSeconds} s o más, o el tueste no llegó al primer crack."
+      },
+      "fallbackJustifications": {
+        "3": "La temperatura siguió subiendo sin quedarse quieta y el primer crack llegó entre los {firstCrackMinMinutes} y los {firstCrackMaxMinutes} minutos, como se espera.",
+        "2": "La temperatura se quedó quieta un rato corto, o el primer crack llegó un poco antes o después de los {firstCrackMinMinutes} a {firstCrackMaxMinutes} minutos.",
+        "1": "La temperatura se quedó quieta un buen rato, o el primer crack llegó lejos de los {firstCrackMinMinutes} a {firstCrackMaxMinutes} minutos.",
+        "0": "La temperatura se quedó quieta tanto tiempo que el café se puede hornear, o el tueste no llegó al primer crack."
       }
     },
     {
@@ -103,6 +115,12 @@
         "2": "Bajó el gas entre {gasDropQuickSeconds} y {gasDropLateSeconds} s después del primer crack, o lo bajó menos de {gasDropMinPoints} puntos.",
         "1": "Bajó el gas después de {gasDropLateSeconds} s, o solo después de llegar a {burnWarningTemperature} °C.",
         "0": "No bajó el gas después del primer crack, o lo subió."
+      },
+      "fallbackJustifications": {
+        "3": "Bajaste el gas a tiempo después del primer crack y la temperatura no llegó a {burnWarningTemperature} °C.",
+        "2": "Bajaste el gas después del primer crack, pero con algo de demora o menos de lo necesario.",
+        "1": "Bajaste el gas muy tarde después del primer crack, o solo cuando la temperatura ya llegaba a {burnWarningTemperature} °C.",
+        "0": "Después del primer crack no bajaste el gas, o lo subiste, justo cuando el grano empieza a generar calor propio."
       }
     },
     {
@@ -116,6 +134,12 @@
         "2": "Reaccionó como se esperaba entre el {alertReactedMedium} % y el {alertReactedHigh} % de las alertas.",
         "1": "Reaccionó como se esperaba entre el {alertReactedLow} % y el {alertReactedMedium} % de las alertas.",
         "0": "Reaccionó como se esperaba a menos del {alertReactedLow} % de las alertas."
+      },
+      "fallbackJustifications": {
+        "3": "Reaccionaste como se esperaba a casi todas las alertas del tueste.",
+        "2": "Reaccionaste como se esperaba a buena parte de las alertas, pero no a todas.",
+        "1": "Reaccionaste como se esperaba solo a algunas de las alertas del tueste.",
+        "0": "Casi no reaccionaste a las alertas del tueste: cuando aparezca una, revisa el gas en los {alertReactionSeconds} segundos siguientes."
       }
     }
   ]

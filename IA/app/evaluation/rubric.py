@@ -99,6 +99,8 @@ class Criterion(RubricModel):
     evidence: Evidence
     source: str = Field(min_length=1)
     levels: dict[int, str]
+    # Lo que ve el jugador si el modelo no da una justificación legible para él.
+    fallback_justifications: dict[int, str]
 
 
 class Rubric(RubricModel):
@@ -122,11 +124,14 @@ class Rubric(RubricModel):
         for criterion in self.criteria:
             if set(criterion.levels) != expected_levels:
                 raise ValueError(f"{criterion.id}: levels must be 0 to {self.max_level}")
+            if set(criterion.fallback_justifications) != expected_levels:
+                raise ValueError(f"{criterion.id}: fallback justifications must cover levels 0 to {self.max_level}")
         if set(self.reaction_labels) != set(ExpectedReaction):
             raise ValueError("Every expected reaction needs a label")
         self.render("".join(self.instructions))
         for criterion in self.criteria:
-            for text in (criterion.description, criterion.source, *criterion.levels.values()):
+            for text in (criterion.description, criterion.source, *criterion.levels.values(),
+                         *criterion.fallback_justifications.values()):
                 self.render(text)
         return self
 

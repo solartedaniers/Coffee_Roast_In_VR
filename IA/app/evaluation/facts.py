@@ -132,7 +132,7 @@ class DecisionFactsExtractor:
             "longestStallSeconds": stall,
             "gasAtDryingEnd": roast.gas.at(roast.drying_end),
             "gasAtSegmentEnd": roast.gas.at(end),
-            "gasLoweredInSegment": roast.gas.first_lowering(roast.drying_end, end) is not None,
+            "gasLoweredInSegment": roast.gas.first_lowering(roast.drying_end, end - 1) is not None,
         }
         if first_crack is not None:
             low, high = p.first_crack_min_minutes * 60, p.first_crack_max_minutes * 60

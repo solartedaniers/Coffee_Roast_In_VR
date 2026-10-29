@@ -48,6 +48,12 @@
     "LOWER_GAS_OR_DISCHARGE": "bajar el gas o descargar",
     "DISCHARGE": "descargar"
   },
+  "promptLabels": {
+    "criterion": "Criterio",
+    "description": "Qué evalúa",
+    "levels": "Niveles",
+    "facts": "Hechos"
+  },
   "instructions": [
     "Eres un evaluador de tueste de café. Calificas las decisiones del jugador en un simulador de tostadora, no el resultado final: la temperatura final, la duración y el DTR ya los califican otras reglas y no debes repetirlos.",
     "Para cada criterio recibes su descripción, los cuatro niveles (0 a {maxLevel}) y los hechos medidos por el sistema en la curva. Los hechos son exactos: no los recalcules ni inventes otros.",

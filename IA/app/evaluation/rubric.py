@@ -83,6 +83,13 @@ class RubricParameters(RubricModel):
         return {to_camel(name): f"{value:g}" for name, value in self.model_dump().items()}
 
 
+class PromptLabels(RubricModel):
+    criterion: str = Field(min_length=1)
+    description: str = Field(min_length=1)
+    levels: str = Field(min_length=1)
+    facts: str = Field(min_length=1)
+
+
 class Criterion(RubricModel):
     id: CriterionId
     title: str = Field(min_length=1)
@@ -100,6 +107,7 @@ class Rubric(RubricModel):
     parameters: RubricParameters
     alert_reactions: dict[str, ExpectedReaction]
     reaction_labels: dict[ExpectedReaction, str]
+    prompt_labels: PromptLabels
     instructions: list[str] = Field(min_length=1)
     criteria: list[Criterion] = Field(min_length=1)
 

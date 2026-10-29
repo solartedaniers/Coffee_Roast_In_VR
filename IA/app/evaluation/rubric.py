@@ -90,6 +90,8 @@ class PromptLabels(RubricModel):
     description: str = Field(min_length=1)
     levels: str = Field(min_length=1)
     facts: str = Field(min_length=1)
+    assigned_level: str = Field(min_length=1)
+    previous_justification: str = Field(min_length=1)
 
 
 class Criterion(RubricModel):
@@ -113,6 +115,7 @@ class Rubric(RubricModel):
     reaction_labels: dict[ExpectedReaction, str]
     prompt_labels: PromptLabels
     instructions: list[str] = Field(min_length=1)
+    rewrite_instruction: str = Field(min_length=1)
     criteria: list[Criterion] = Field(min_length=1)
 
     @model_validator(mode="after")
@@ -128,7 +131,7 @@ class Rubric(RubricModel):
                 raise ValueError(f"{criterion.id}: fallback justifications must cover levels 0 to {self.max_level}")
         if set(self.reaction_labels) != set(ExpectedReaction):
             raise ValueError("Every expected reaction needs a label")
-        self.render("".join(self.instructions))
+        self.render("".join(self.instructions) + self.rewrite_instruction)
         for criterion in self.criteria:
             for text in (criterion.description, criterion.source, *criterion.levels.values(),
                          *criterion.fallback_justifications.values()):

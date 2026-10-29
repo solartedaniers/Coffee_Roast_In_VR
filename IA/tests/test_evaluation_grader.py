@@ -70,3 +70,31 @@ def test_does_not_call_groq_without_a_key():
 def test_reports_an_unusable_grade(response):
     with pytest.raises(GradingUnavailable):
         grader_with(lambda request: response).grade(PROMPT)
+
+
+REWRITE = RubricPrompt("instrucciones", "criterios", RubricPromptBuilder(RUBRIC).rewrite_schema(IDS))
+
+
+def test_reads_a_rewrite_with_only_the_justifications():
+    seen = {}
+
+    def handler(request):
+        seen["body"] = json.loads(request.content)
+        return chat({"DRYING_GAS": {"justification": " Subiste a buen ritmo. "},
+                     "ALERT_REACTION": {"justification": "Reaccionaste a una de dos alertas."}})
+
+    texts = grader_with(handler).rewrite(REWRITE)
+
+    assert texts == {CriterionId.DRYING_GAS: "Subiste a buen ritmo.",
+                     CriterionId.ALERT_REACTION: "Reaccionaste a una de dos alertas."}
+    assert seen["body"]["response_format"]["json_schema"]["schema"] == REWRITE.schema
+
+
+@pytest.mark.parametrize("criteria", [
+    {"DRYING_GAS": {"justification": "Bien."}},
+    {"DRYING_GAS": {"justification": "Bien."}, "ALERT_REACTION": {"justification": "  "}},
+    {"DRYING_GAS": {"justification": "Bien."}, "ALERT_REACTION": {"text": "Bien."}},
+], ids=["missing", "empty", "wrong-field"])
+def test_reports_an_unusable_rewrite(criteria):
+    with pytest.raises(GradingUnavailable):
+        grader_with(lambda request: chat(criteria)).rewrite(REWRITE)

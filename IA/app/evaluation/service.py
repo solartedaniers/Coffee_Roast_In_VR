@@ -25,7 +25,7 @@ class RoastEvaluationService:
         self.extractor = DecisionFactsExtractor(rubric)
         self.prompts = RubricPromptBuilder(rubric)
         self.grader = grader
-        self.justifications = PlayerJustifications(rubric)
+        self.justifications = PlayerJustifications(rubric, grader, self.prompts)
 
     def evaluate(self, request: EvaluationRequest) -> EvaluationResponse:
         """Lanza GradingUnavailable si Groq falla; el backend reintenta más tarde."""

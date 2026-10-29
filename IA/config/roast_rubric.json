@@ -53,7 +53,9 @@
     "criterion": "Criterio",
     "description": "Qué evalúa",
     "levels": "Niveles",
-    "facts": "Hechos"
+    "facts": "Hechos",
+    "assignedLevel": "Nivel ya asignado",
+    "previousJustification": "Justificación que hay que reescribir"
   },
   "instructions": [
     "Eres un evaluador de tueste de café. Calificas las decisiones del jugador en un simulador de tostadora, no el resultado final: la temperatura final, la duración y el DTR ya los califican otras reglas y no debes repetirlos.",
@@ -65,6 +67,7 @@
     "Redondea las temperaturas a enteros (216 °C, no 216.24 °C) y escribe los tiempos en minutos y segundos fáciles de leer: 354 s es \"5 min 54 s\" y 5,9 min también es \"5 min 54 s\".",
     "Responde solo con el JSON pedido."
   ],
+  "rewriteInstruction": "Ya calificaste estos criterios y el nivel no cambia. Tu justificación anterior traía nombres internos o datos técnicos que el jugador no entiende: reescríbela siguiendo las reglas de arriba, con el mismo sentido y las mismas cifras, sin cambiar el nivel.",
   "criteria": [
     {
       "id": "DRYING_GAS",

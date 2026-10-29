@@ -24,6 +24,38 @@ def test_drops_glyph_names_and_keeps_the_degree_sign():
     assert cleaned.text == "Received 2020  Abstract.\nScorched started at 275 °C (IBM SPSS)."
 
 
+def test_drops_manuscript_line_numbers_but_keeps_real_figures():
+    raw = ("Accepted Manuscript\nWith more than 2 billion cups consumed around the globe on an everyday3\n"
+           "basis, coffee is the most important beverage commodity traded in world4\n"
+           "markets (Nair, 2010; Ponte, 2002). Coffee consumption rates have increased5\n"
+           "1-2% per year worldwide during the last decades and the demand6\n"
+           "for specialty coffee was roasted at 2107\nNormal 210 02:40 11:25 74.4")
+    [cleaned] = PdfTextCleaner(0.5).clean_pages([page(raw, 1)])
+
+    assert cleaned.text.splitlines()[1:] == [
+        "With more than 2 billion cups consumed around the globe on an everyday",
+        "basis, coffee is the most important beverage commodity traded in world",
+        "markets (Nair, 2010; Ponte, 2002). Coffee consumption rates have increased",
+        "1-2% per year worldwide during the last decades and the demand",
+        "for specialty coffee was roasted at 210",
+        "Normal 210 02:40 11:25 74.4",
+    ]
+
+
+def test_keeps_a_short_run_of_consecutive_numbers_at_line_ends():
+    raw = "Tueste a 200\nSecado de 5 a 6\nCrack a los 8\nFinal en 9\nDesarrollo 10\nPeso 11"
+    [cleaned] = PdfTextCleaner(0.5).clean_pages([page(raw, 1)])
+
+    assert cleaned.text == raw
+
+
+def test_keeps_the_axis_values_of_a_chart():
+    raw = "Figura 2. Azufre\n0,0\n0,1\n0,2\n0,3\n0,4\n0,5\n0,6"
+    [cleaned] = PdfTextCleaner(0.5).clean_pages([page(raw, 1)])
+
+    assert cleaned.text == raw
+
+
 def test_removes_headers_repeated_across_pages_and_page_numbers():
     bodies = ["El grano se seca.", "Empieza el crack.", "Se enfría rápido."]
     pages = [page(f"{HEADER}\n{20 + n}\n{body}", n) for n, body in enumerate(bodies, start=1)]

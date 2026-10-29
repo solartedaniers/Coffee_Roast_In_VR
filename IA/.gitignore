@@ -47,3 +47,7 @@ __pycache__/
 # Piper y su voz se descargan aparte (ver README); el audio de las frases fijas se genera solo.
 voice-runtime/
 voice-cache/
+
+### RAG ###
+# PDFs con licencia que no permite publicarlos aquí: viven solo en mi máquina y en el servidor (ver README).
+rag-docs/local-*.pdf

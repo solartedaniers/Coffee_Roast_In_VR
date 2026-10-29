@@ -1,5 +1,5 @@
 {
-  "description": "Set de evaluación del RAG. Páginas = número de página del PDF (desde 1), no la impresa. player: preguntas de jugador validadas; negative: café sin respuesta en los PDFs; session: búsquedas reales de la retroalimentación (tests/snapshots), sin etiquetas.",
+  "description": "Set de evaluación del RAG. Páginas = número de página del PDF (desde 1), no la impresa. player: preguntas de jugador validadas; negative: café sin respuesta en los PDFs; session: búsquedas reales de la retroalimentación (tests/snapshots), sin etiquetas. draft: preguntas o páginas esperadas que aún no valido; se reportan aparte y no cambian las cifras de las preguntas validadas.",
   "cases": [
     {
       "id": "P01",
@@ -17,6 +17,16 @@
         {
           "file": "cafe-manual-de-tostado_1.pdf",
           "page": 8
+        },
+        {
+          "file": "yang-2016-volatile-markers-roast-defects.pdf",
+          "page": 6,
+          "draft": true
+        },
+        {
+          "file": "munchow-2020-roasting-conditions-coffee-flavor.pdf",
+          "page": 10,
+          "draft": true
         }
       ]
     },
@@ -28,6 +38,11 @@
         {
           "file": "cafe-manual-de-tostado_1.pdf",
           "page": 8
+        },
+        {
+          "file": "munchow-2020-roasting-conditions-coffee-flavor.pdf",
+          "page": 10,
+          "draft": true
         }
       ]
     },
@@ -43,6 +58,16 @@
         {
           "file": "admin,+arc073(01)e73102.pdf",
           "page": 5
+        },
+        {
+          "file": "yang-2016-volatile-markers-roast-defects.pdf",
+          "page": 5,
+          "draft": true
+        },
+        {
+          "file": "local-giacalone-2019-common-roasting-defects.pdf",
+          "page": 8,
+          "draft": true
         }
       ]
     },
@@ -73,6 +98,11 @@
         {
           "file": "19458-Texto del artículo-88894-1-10-20250919.pdf",
           "page": 10
+        },
+        {
+          "file": "munchow-2020-roasting-conditions-coffee-flavor.pdf",
+          "page": 4,
+          "draft": true
         }
       ]
     },
@@ -118,6 +148,11 @@
         {
           "file": "cafe-manual-de-tostado_1.pdf",
           "page": 9
+        },
+        {
+          "file": "munchow-2020-roasting-conditions-coffee-flavor.pdf",
+          "page": 4,
+          "draft": true
         }
       ]
     },
@@ -332,6 +367,11 @@
         {
           "file": "cafe-manual-de-tostado_1.pdf",
           "page": 10
+        },
+        {
+          "file": "munchow-2020-roasting-conditions-coffee-flavor.pdf",
+          "page": 2,
+          "draft": true
         }
       ]
     },
@@ -377,6 +417,292 @@
         {
           "file": "admin,+arc073(01)e73102.pdf",
           "page": 9
+        },
+        {
+          "file": "vakaryk-2023-roasting-conditions-quality-coffee.pdf",
+          "page": 6,
+          "draft": true
+        },
+        {
+          "file": "vakaryk-2023-roasting-conditions-quality-coffee.pdf",
+          "page": 7,
+          "draft": true
+        }
+      ]
+    },
+    {
+      "id": "N01",
+      "kind": "player",
+      "draft": true,
+      "question": "¿Qué es un tueste scorched o quemado por fuera y cómo se produce?",
+      "expected": [
+        {
+          "file": "yang-2016-volatile-markers-roast-defects.pdf",
+          "page": 5
+        },
+        {
+          "file": "local-giacalone-2019-common-roasting-defects.pdf",
+          "page": 8
+        }
+      ]
+    },
+    {
+      "id": "N02",
+      "kind": "player",
+      "draft": true,
+      "question": "¿Por qué hay que darle más gas al inicio del tueste y menos al final?",
+      "expected": [
+        {
+          "file": "munchow-2020-roasting-conditions-coffee-flavor.pdf",
+          "page": 2
+        },
+        {
+          "file": "munchow-2020-roasting-conditions-coffee-flavor.pdf",
+          "page": 5
+        }
+      ]
+    },
+    {
+      "id": "N03",
+      "kind": "player",
+      "draft": true,
+      "question": "¿Por qué mi café sabe a pan tostado si alargué mucho el desarrollo?",
+      "expected": [
+        {
+          "file": "munchow-2020-roasting-conditions-coffee-flavor.pdf",
+          "page": 10
+        }
+      ]
+    },
+    {
+      "id": "N04",
+      "kind": "player",
+      "draft": true,
+      "question": "¿Cuánto dura normalmente el desarrollo después del primer crack?",
+      "expected": [
+        {
+          "file": "munchow-2020-roasting-conditions-coffee-flavor.pdf",
+          "page": 11
+        },
+        {
+          "file": "local-giacalone-2019-common-roasting-defects.pdf",
+          "page": 7
+        }
+      ]
+    },
+    {
+      "id": "N05",
+      "kind": "player",
+      "draft": true,
+      "question": "¿Qué le pasa al sabor si el tueste es más oscuro o más largo?",
+      "expected": [
+        {
+          "file": "munchow-2020-roasting-conditions-coffee-flavor.pdf",
+          "page": 1
+        },
+        {
+          "file": "munchow-2020-roasting-conditions-coffee-flavor.pdf",
+          "page": 9
+        }
+      ]
+    },
+    {
+      "id": "N06",
+      "kind": "player",
+      "draft": true,
+      "question": "¿Cómo es la curva de temperatura de un café horneado?",
+      "expected": [
+        {
+          "file": "yang-2016-volatile-markers-roast-defects.pdf",
+          "page": 6
+        },
+        {
+          "file": "local-giacalone-2019-common-roasting-defects.pdf",
+          "page": 8
+        }
+      ]
+    },
+    {
+      "id": "N07",
+      "kind": "player",
+      "draft": true,
+      "question": "¿A los consumidores les gusta menos un café con defectos de tueste?",
+      "expected": [
+        {
+          "file": "local-giacalone-2019-common-roasting-defects.pdf",
+          "page": 18
+        },
+        {
+          "file": "local-giacalone-2019-common-roasting-defects.pdf",
+          "page": 19
+        },
+        {
+          "file": "local-giacalone-2019-common-roasting-defects.pdf",
+          "page": 23
+        }
+      ]
+    },
+    {
+      "id": "N08",
+      "kind": "player",
+      "draft": true,
+      "question": "¿Qué pasa si tuesto el café por debajo de 200 °C?",
+      "expected": [
+        {
+          "file": "vakaryk-2023-roasting-conditions-quality-coffee.pdf",
+          "page": 5
+        },
+        {
+          "file": "vakaryk-2023-roasting-conditions-quality-coffee.pdf",
+          "page": 7
+        }
+      ]
+    },
+    {
+      "id": "N09",
+      "kind": "player",
+      "draft": true,
+      "question": "¿Con qué temperatura máxima salió mejor el arábica Santos?",
+      "expected": [
+        {
+          "file": "vakaryk-2023-roasting-conditions-quality-coffee.pdf",
+          "page": 6
+        }
+      ]
+    },
+    {
+      "id": "N10",
+      "kind": "player",
+      "draft": true,
+      "question": "¿Cuánto tarda el primer crack con distintas temperaturas máximas de tueste?",
+      "expected": [
+        {
+          "file": "vakaryk-2023-roasting-conditions-quality-coffee.pdf",
+          "page": 3
+        }
+      ]
+    },
+    {
+      "id": "N11",
+      "kind": "player",
+      "draft": true,
+      "question": "¿Entre qué valores se puede controlar la subida de temperatura por minuto en una tostadora de lecho fluidizado?",
+      "expected": [
+        {
+          "file": "local-campo-ceballos-2020-fluidized-bed-roaster.pdf",
+          "page": 8
+        }
+      ]
+    },
+    {
+      "id": "N12",
+      "kind": "player",
+      "draft": true,
+      "question": "¿A qué temperatura se calientan los tostadores antes de cargar el café?",
+      "expected": [
+        {
+          "file": "local-puerta-2011-composicion-quimica-taza-cafe.pdf",
+          "page": 6
+        }
+      ]
+    },
+    {
+      "id": "N13",
+      "kind": "player",
+      "draft": true,
+      "question": "¿Qué les pasa a la cafeína y a la trigonelina durante la tostación?",
+      "expected": [
+        {
+          "file": "local-puerta-2011-composicion-quimica-taza-cafe.pdf",
+          "page": 7
+        },
+        {
+          "file": "local-puerta-2011-composicion-quimica-taza-cafe.pdf",
+          "page": 8
+        }
+      ]
+    },
+    {
+      "id": "N14",
+      "kind": "player",
+      "draft": true,
+      "question": "¿Qué compuestos le dan amargor y astringencia a la bebida?",
+      "expected": [
+        {
+          "file": "local-puerta-2011-composicion-quimica-taza-cafe.pdf",
+          "page": 11
+        },
+        {
+          "file": "local-osorio-2021-calidad-del-cafe.pdf",
+          "page": 15
+        },
+        {
+          "file": "local-osorio-2021-calidad-del-cafe.pdf",
+          "page": 16
+        }
+      ]
+    },
+    {
+      "id": "N15",
+      "kind": "player",
+      "draft": true,
+      "question": "¿Qué defectos de sabor define la norma NTC 2758?",
+      "expected": [
+        {
+          "file": "local-osorio-2021-calidad-del-cafe.pdf",
+          "page": 8
+        },
+        {
+          "file": "local-osorio-2021-calidad-del-cafe.pdf",
+          "page": 9
+        }
+      ]
+    },
+    {
+      "id": "N16",
+      "kind": "player",
+      "draft": true,
+      "question": "¿Qué atributos se califican en el formato de catación de la SCA?",
+      "expected": [
+        {
+          "file": "local-osorio-2021-calidad-del-cafe.pdf",
+          "page": 12
+        }
+      ]
+    },
+    {
+      "id": "N17",
+      "kind": "player",
+      "draft": true,
+      "question": "¿Qué puntaje necesita un café para considerarse especial?",
+      "expected": [
+        {
+          "file": "local-gamboa-2013-taza-cafe-especial-chachagui.pdf",
+          "page": 6
+        }
+      ]
+    },
+    {
+      "id": "N18",
+      "kind": "player",
+      "draft": true,
+      "question": "¿Cómo influye el tiempo de fermentación en el puntaje de taza?",
+      "expected": [
+        {
+          "file": "local-ramos-criollo-2017-calidad-fisica-sensorial.pdf",
+          "page": 2
+        },
+        {
+          "file": "local-ramos-criollo-2017-calidad-fisica-sensorial.pdf",
+          "page": 8
+        },
+        {
+          "file": "local-ramos-criollo-2017-calidad-fisica-sensorial.pdf",
+          "page": 9
+        },
+        {
+          "file": "local-ramos-criollo-2017-calidad-fisica-sensorial.pdf",
+          "page": 13
         }
       ]
     },
@@ -408,6 +734,20 @@
       "id": "N5",
       "kind": "negative",
       "question": "¿Cómo se hace el café descafeinado?",
+      "expected": []
+    },
+    {
+      "id": "NN1",
+      "kind": "negative",
+      "draft": true,
+      "question": "¿Cómo se injerta un cafeto?",
+      "expected": []
+    },
+    {
+      "id": "NN2",
+      "kind": "negative",
+      "draft": true,
+      "question": "¿Cómo se limpia y se descalcifica una cafetera de goteo?",
       "expected": []
     },
     {

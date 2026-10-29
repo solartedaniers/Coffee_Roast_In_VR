@@ -1,7 +1,6 @@
 package com.toastedvr.toastedvr.backend.repository;
 
 import com.toastedvr.toastedvr.backend.domain.KnowledgeLevel;
-import com.toastedvr.toastedvr.backend.domain.Role;
 import com.toastedvr.toastedvr.backend.domain.RoastingResult;
 import com.toastedvr.toastedvr.backend.domain.RoastingSession;
 import com.toastedvr.toastedvr.backend.dto.SessionHistorySummaryResponse;

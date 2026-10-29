@@ -145,6 +145,16 @@ class Settings(BaseSettings):
     # AI_SERVICE_ALERTS_READ_TIMEOUT_MILLIS del backend. Lo que no alcance va con audio null.
     alerts_package_timeout_millis: int = Field(default=20_000, gt=0)
 
+    # Calificación de las decisiones del jugador con la rúbrica. Corre en segundo plano desde el backend,
+    # por eso espera más que la retroalimentación. Sin respaldo: otro modelo daría otra nota.
+    evaluation_rubric_file: Path = SERVICE_ROOT / "config" / "roast_rubric.json"
+    evaluation_groq_model: str = "openai/gpt-oss-120b"
+    evaluation_groq_temperature: float = Field(default=0, ge=0)
+    evaluation_groq_seed: int = 1
+    evaluation_groq_max_completion_tokens: int = Field(default=2_048, gt=0)
+    evaluation_groq_reasoning_effort: str = "low"
+    evaluation_groq_read_timeout_millis: int = Field(default=30_000, gt=0)
+
     @field_validator("feedback_providers")
     @classmethod
     def known_providers(cls, value: str) -> str:

@@ -93,6 +93,7 @@ def test_builds_the_real_services_without_contacting_anything(settings):
 
     assert services.feedback.configuration == "groq:openai/gpt-oss-120b,ollama:phi4-mini"
     assert [provider.name for provider in services.feedback.chain.providers] == ["groq", "ollama"]
+    assert services.evaluation.grader.model == "openai/gpt-oss-120b"
 
 
 def test_builds_only_the_configured_providers(settings, monkeypatch):

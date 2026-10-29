@@ -4,6 +4,9 @@ from dataclasses import dataclass
 from app.alerts.catalog import AlertCatalog
 from app.alerts.package import AlertPackageBuilder
 from app.config import Settings
+from app.evaluation.grader import GroqGraderOptions, GroqRubricGrader
+from app.evaluation.rubric import Rubric
+from app.evaluation.service import RoastEvaluationService
 from app.feedback.cache import FeedbackCache
 from app.feedback.prompt_builder import FeedbackPromptBuilder
 from app.feedback.providers.base import FeedbackProvider
@@ -56,6 +59,7 @@ class Services:
     # Paquete de alertas proactivas; usa la misma voz y el mismo caché de frases del asistente.
     alerts: AlertPackageBuilder | None = None
     alerts_package_timeout_seconds: float = 0.0
+    evaluation: RoastEvaluationService | None = None
 
 
 def seconds(millis: int) -> float:
@@ -130,6 +134,17 @@ def build_chunk_filters(settings: Settings) -> list[ChunkFilter]:
     return filters
 
 
+def build_evaluation(settings: Settings, http: BoundedHttpClient) -> RoastEvaluationService:
+    return RoastEvaluationService(Rubric.from_file(settings.evaluation_rubric_file), GroqRubricGrader(
+        http, GroqGraderOptions(
+            base_url=settings.groq_base_url, api_key=settings.groq_api_key, model=settings.evaluation_groq_model,
+            temperature=settings.evaluation_groq_temperature, seed=settings.evaluation_groq_seed,
+            max_completion_tokens=settings.evaluation_groq_max_completion_tokens,
+            reasoning_effort=settings.evaluation_groq_reasoning_effort,
+            connect_timeout_seconds=seconds(settings.groq_connect_timeout_millis),
+            read_timeout_seconds=seconds(settings.evaluation_groq_read_timeout_millis))))
+
+
 def build_services(settings: Settings) -> Services:
     http = build_http(settings)
     database = build_database(settings)
@@ -158,4 +173,5 @@ def build_services(settings: Settings) -> Services:
     return Services(feedback, ingestion, cache, schema, voice=voice, voice_schema=VoiceSchema(database),
                     voice_messages=voice.messages, voice_max_audio_bytes=settings.voice_max_audio_bytes,
                     voice_warm_up_seconds=seconds(settings.voice_total_timeout_millis), alerts=alerts,
-                    alerts_package_timeout_seconds=seconds(settings.alerts_package_timeout_millis))
+                    alerts_package_timeout_seconds=seconds(settings.alerts_package_timeout_millis),
+                    evaluation=build_evaluation(settings, http))

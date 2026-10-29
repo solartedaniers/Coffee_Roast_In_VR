@@ -12,6 +12,8 @@ from app.alerts.package import etag_matches
 from app.container import Services
 from app.domain import KnowledgeLevel
 from app.voice.deadline import Deadline
+from app.evaluation.contracts import EvaluationRequest, EvaluationResponse
+from app.evaluation.grader import GradingUnavailable
 from app.contracts import FeedbackResponse, RagIngestionSummaryResponse, RoastFeedbackRequest
 from app.voice.contracts import VoiceAnswerResponse, VoiceErrorResponse, VoiceQuestionContext
 from app.voice.errors import VoiceErrorCode, VoiceRequestError
@@ -62,6 +64,19 @@ def build_router(services: Services) -> APIRouter:
             if etag_matches(if_none_match, package.etag):
                 return Response(status_code=status.HTTP_304_NOT_MODIFIED, headers=headers)
             return Response(content=package.body, media_type="application/json", headers=headers)
+
+    if services.evaluation is not None:
+        evaluation = services.evaluation
+
+        # Lo llama el backend en segundo plano después de guardar la sesión; con 503 reintenta más tarde.
+        @router.post("/evaluation", response_model=EvaluationResponse)
+        def evaluate(request: EvaluationRequest) -> EvaluationResponse | JSONResponse:
+            try:
+                return evaluation.evaluate(request)
+            except GradingUnavailable as error:
+                log.warning("Could not grade the roast: %s", error)
+                return JSONResponse(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                                    content={"detail": "Evaluation unavailable"})
 
     return router
 

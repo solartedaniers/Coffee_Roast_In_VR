@@ -10,6 +10,43 @@ public class RoastEvaluationProperties {
     private double rulesWeight = 0.7;
     private double aiWeight = 0.3;
     private int defectScoreCap = 50;
+    // Proceso en segundo plano que pide la calificación al servicio IA.
+    private int batchSize = 5;
+    private int maxAttempts = 8;
+    private int baseRetrySeconds = 30;
+    private int maxRetrySeconds = 3_600;
+
+    public int getBatchSize() {
+        return batchSize;
+    }
+
+    public void setBatchSize(int batchSize) {
+        this.batchSize = batchSize;
+    }
+
+    public int getMaxAttempts() {
+        return maxAttempts;
+    }
+
+    public void setMaxAttempts(int maxAttempts) {
+        this.maxAttempts = maxAttempts;
+    }
+
+    public int getBaseRetrySeconds() {
+        return baseRetrySeconds;
+    }
+
+    public void setBaseRetrySeconds(int baseRetrySeconds) {
+        this.baseRetrySeconds = baseRetrySeconds;
+    }
+
+    public int getMaxRetrySeconds() {
+        return maxRetrySeconds;
+    }
+
+    public void setMaxRetrySeconds(int maxRetrySeconds) {
+        this.maxRetrySeconds = maxRetrySeconds;
+    }
 
     public double getRulesWeight() {
         return rulesWeight;

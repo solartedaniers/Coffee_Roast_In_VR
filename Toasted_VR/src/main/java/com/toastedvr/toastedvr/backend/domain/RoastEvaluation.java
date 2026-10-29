@@ -95,6 +95,19 @@ public class RoastEvaluation {
         return evaluation;
     }
 
+    public void complete(CombinedScore score, String rubricVersion, String model, String criteriaJson, LocalDateTime now) {
+        this.status = RoastEvaluationStatus.COMPLETED;
+        this.rubricScore = score.rubricScore();
+        this.finalScore = score.finalScore();
+        this.rulesWeight = score.rulesWeight();
+        this.aiWeight = score.aiWeight();
+        this.defectCapApplied = score.defectCapApplied();
+        this.rubricVersion = rubricVersion;
+        this.model = model;
+        this.criteriaJson = criteriaJson;
+        finish(now);
+    }
+
     public void skip(RoastEvaluationSkipReason reason, String rubricVersion, String criteriaJson, LocalDateTime now) {
         this.status = RoastEvaluationStatus.NOT_APPLICABLE;
         this.skipReason = reason;
@@ -104,9 +117,26 @@ public class RoastEvaluation {
         finish(now);
     }
 
+    public void retryLater(String error, LocalDateTime nextAttemptAt) {
+        this.attempts++;
+        this.lastError = truncate(error);
+        this.nextAttemptAt = nextAttemptAt;
+    }
+
+    public void fail(String error, LocalDateTime now) {
+        this.attempts++;
+        this.status = RoastEvaluationStatus.FAILED;
+        this.lastError = truncate(error);
+        finish(now);
+    }
+
     private void finish(LocalDateTime now) {
         this.nextAttemptAt = null;
         this.completedAt = now;
+    }
+
+    private static String truncate(String error) {
+        return error == null || error.length() <= MAX_ERROR_LENGTH ? error : error.substring(0, MAX_ERROR_LENGTH);
     }
 
     @PrePersist

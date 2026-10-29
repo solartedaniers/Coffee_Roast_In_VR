@@ -127,6 +127,15 @@
       rules-weight: ${ROAST_EVALUATION_RULES_WEIGHT:0.7}
       ai-weight: ${ROAST_EVALUATION_AI_WEIGHT:0.3}
       defect-score-cap: ${ROAST_EVALUATION_DEFECT_SCORE_CAP:50}
+      # Proceso en segundo plano: cada poll-millis califica hasta batch-size sesiones pendientes. Si
+      # el servicio IA o Groq fallan reintenta tras base-retry-seconds, duplicando la espera hasta
+      # max-retry-seconds, y a los max-attempts intentos la deja sin calificación de IA.
+      scheduler-enabled: ${ROAST_EVALUATION_SCHEDULER_ENABLED:true}
+      poll-millis: ${ROAST_EVALUATION_POLL_MILLIS:5000}
+      batch-size: ${ROAST_EVALUATION_BATCH_SIZE:5}
+      max-attempts: ${ROAST_EVALUATION_MAX_ATTEMPTS:8}
+      base-retry-seconds: ${ROAST_EVALUATION_BASE_RETRY_SECONDS:30}
+      max-retry-seconds: ${ROAST_EVALUATION_MAX_RETRY_SECONDS:3600}
     # Validación de sesiones de tueste en el servidor (RF015). Deben coincidir
     # con RoastConstants.js del frontend.
     roast-validation:

@@ -110,9 +110,9 @@ def test_keeps_the_page_of_each_chunk():
 
 
 def test_the_container_builds_the_configured_splitter(settings):
-    assert isinstance(build_text_splitter(settings), CharacterTextSplitter)
-
-    sentences = build_text_splitter(settings.model_copy(update={"rag_text_splitter": "sentences"}))
+    sentences = build_text_splitter(settings)
 
     assert isinstance(sentences, CleaningTextSplitter)
     assert isinstance(sentences.splitter, SentenceTextSplitter)
+    assert isinstance(build_text_splitter(settings.model_copy(update={"rag_text_splitter": "characters"})),
+                      CharacterTextSplitter)

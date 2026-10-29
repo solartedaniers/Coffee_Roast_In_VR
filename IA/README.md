@@ -116,7 +116,7 @@ Lo que se quedó:
 
 - **Quitar fragmentos repetidos y tomar uno por página** (05 y 06, activos por defecto): el prompt deja de recibir textos repetidos y el MRR sube de 0,409 a 0,437. No exige reindexar.
 - **Citas validadas** (archivo, página y título): `RagContextRetriever.find_relevant_passages` devuelve cada fragmento con su cita solo si el PDF existe y la página está dentro de él. El prompt de la retroalimentación sigue recibiendo exactamente los mismos textos.
-- **Partición por frases de 500 caracteres** (14), lista pero sin aplicar al índice real: limpia el PDF (une palabras cortadas, quita encabezados repetidos y la bibliografía) y junta frases completas. Es la mejor variante medida (MRR 0,482, hit@1 0,40), pero exige reingestar.
+- **Partición por frases de 500 caracteres** (14), activa por defecto desde la re-ingesta con los 16 PDFs (21): limpia el PDF (une palabras cortadas, quita encabezados repetidos, nombres de glifo sueltos, números de línea y la bibliografía) y junta frases completas. Fue la mejor variante medida con los 7 PDFs (MRR 0,482, hit@1 0,40) y lo siguió siendo con los 16.
 
 Lo que revertí, con sus mediciones guardadas como evidencia:
 

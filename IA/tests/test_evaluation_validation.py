@@ -143,3 +143,57 @@ def test_lists_any_justification_with_internal_names_that_reaches_the_player():
 
     [flagged] = summarize([result], 1)["justificationsWithInternalNames"]
     assert flagged["case"] == "good" and flagged["criterion"] == "RISE_TO_FIRST_CRACK"
+
+
+class QuotaRunsOutGrader(FakeGrader):
+    """Califica bien las primeras llamadas y después responde 429 siempre, como al gastar la cuota diaria."""
+
+    def __init__(self, good_calls, error="Groq: Remote service returned 429"):
+        super().__init__()
+        self.good_calls = good_calls
+        self.failure = error
+        self.calls = 0
+
+    def grade(self, prompt):
+        self.calls += 1
+        if self.calls > self.good_calls:
+            raise GradingUnavailable(self.failure)
+        return super().grade(prompt)
+
+
+def test_saves_the_partial_report_after_each_case():
+    saved = []
+
+    report = runner(FakeGrader(), runs=1).run([BY_ID["good"], BY_ID["raw"]], on_case=saved.append)
+
+    assert [len(partial["cases"]) for partial in saved] == [1, 2]
+    assert saved[-1] == report
+    assert report["plannedCases"] == 2 and report["stoppedReason"] is None
+
+
+def test_stops_and_keeps_what_it_measured_when_groq_runs_out_of_daily_quota():
+    saved = []
+    messages = []
+    service = RoastEvaluationService(RUBRIC, QuotaRunsOutGrader(good_calls=3))
+    validation = ValidationRunner(service, runs=2, pause_seconds=2, retries=2, sleep=lambda seconds: None,
+                                  progress=messages.append)
+
+    report = validation.run([BY_ID["good"], BY_ID["raw"], BY_ID["stall_medium"]], on_case=saved.append)
+
+    assert report["stoppedReason"] == "GROQ_QUOTA_EXHAUSTED"
+    assert [case["id"] for case in report["cases"]] == ["good", "raw"]
+    assert [case["completedRuns"] for case in report["cases"]] == [2, 1]
+    assert report["summary"]["gradedLevels"] == 7
+    assert saved[-1] == report
+    assert any("429" in message for message in messages)
+    assert any(message.startswith("Groq sin cuota") for message in messages)
+
+
+def test_a_timeout_does_not_stop_the_validation():
+    service = RoastEvaluationService(RUBRIC, QuotaRunsOutGrader(good_calls=0, error="Groq: unreachable (ReadTimeout)"))
+
+    report = ValidationRunner(service, runs=1, retries=1, sleep=lambda seconds: None).run(
+        [BY_ID["good"], BY_ID["raw"]])
+
+    assert report["stoppedReason"] is None
+    assert [case["completedRuns"] for case in report["cases"]] == [0, 0]

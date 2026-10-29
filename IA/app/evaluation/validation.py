@@ -21,6 +21,8 @@ from app.evaluation.service import RoastEvaluationService
 from app.evaluation.synthetic_trace import SyntheticTrace
 
 PERCENT_DECIMALS = 1
+QUOTA_STATUS = "429"
+STOPPED_BY_QUOTA = "GROQ_QUOTA_EXHAUSTED"
 
 
 class ValidationCase(BaseModel):
@@ -42,37 +44,68 @@ def load_cases(path: Path) -> list[ValidationCase]:
     return [ValidationCase.of(raw) for raw in json.loads(path.read_text(encoding="utf-8"))["cases"]]
 
 
+class QuotaExhausted(Exception):
+    """Una corrida agotó todos sus reintentos con 429: ya no es el límite por minuto sino el diario."""
+
+
 class ValidationRunner:
     def __init__(self, service: RoastEvaluationService, runs: int, pause_seconds: float = 0, retries: int = 0,
-                 sleep: Callable[[float], None] = time.sleep):
+                 sleep: Callable[[float], None] = time.sleep, progress: Callable[[str], None] = lambda message: None):
         self.service = service
         self.runs = runs
         self.pause_seconds = pause_seconds
         self.retries = retries
         self.sleep = sleep
+        self.progress = progress
         self.guard = JustificationGuard(service.rubric)
 
-    def run(self, cases: list[ValidationCase]) -> dict:
+    def run(self, cases: list[ValidationCase], on_case: Callable[[dict], None] = lambda report: None) -> dict:
+        """Llama a on_case con el reporte parcial después de cada caso, para no perder lo medido si se corta."""
         sources_before = Counter(self.service.justifications.sources)
-        results = [self._run_case(case) for case in cases]
+        results = []
+        stopped_reason = None
+        for index, case in enumerate(cases, start=1):
+            self.progress(f"[{index}/{len(cases)}] {case.trace.id}")
+            result, exhausted = self._run_case(case)
+            results.append(result)
+            if exhausted:
+                stopped_reason = STOPPED_BY_QUOTA
+                self.progress(f"Groq sin cuota (429 en todos los reintentos): me detengo en {case.trace.id}")
+            report = self._report(cases, results, sources_before, stopped_reason)
+            on_case(report)
+            if exhausted:
+                break
+        return self._report(cases, results, sources_before, stopped_reason)
+
+    def _report(self, cases: list[ValidationCase], results: list[dict], sources_before: Counter,
+                stopped_reason: str | None) -> dict:
         summary = summarize(results, self.runs)
         summary["justificationSources"] = dict(sorted(
             (self.service.justifications.sources - sources_before).items()))
-        return {"runs": self.runs, "summary": summary, "cases": results}
+        return {"runs": self.runs, "plannedCases": len(cases), "stoppedReason": stopped_reason,
+                "summary": summary, "cases": list(results)}
 
-    def _run_case(self, case: ValidationCase) -> dict:
+    def _run_case(self, case: ValidationCase) -> tuple[dict, bool]:
         responses = []
         failures = []
-        for _ in range(self.runs):
-            response = self._evaluate(case, failures)
+        exhausted = False
+        for run in range(1, self.runs + 1):
+            try:
+                response = self._evaluate(case, failures)
+            except QuotaExhausted:
+                exhausted = True
+                break
             if response is not None:
                 responses.append(response)
+            self.progress(f"  corrida {run}/{self.runs}: {'ok' if response is not None else 'sin respuesta'}")
         facts = self.service.extractor.extract(case.trace.trace())
-        return describe_case(case, responses, failures,
-                             lambda criterion_id, text: self.guard.has_internal_names(text, facts.get(criterion_id)))
+        result = describe_case(case, responses, failures,
+                               lambda criterion_id, text: self.guard.has_internal_names(text, facts.get(criterion_id)))
+        return result, exhausted
 
     def _evaluate(self, case: ValidationCase, failures: list[str]) -> EvaluationResponse | None:
         request = EvaluationRequest(trace=case.trace.trace())
+        errors = []
         for attempt in range(self.retries + 1):
             try:
                 response = self.service.evaluate(request)
@@ -80,9 +113,13 @@ class ValidationRunner:
                     self.sleep(self.pause_seconds)
                 return response
             except GradingUnavailable as error:
+                errors.append(str(error))
                 failures.append(str(error))
+                self.progress(f"  error (intento {attempt + 1}/{self.retries + 1}): {error}")
                 # Groq limita los tokens por minuto: se espera más en cada reintento.
                 self.sleep(self.pause_seconds * (attempt + 2))
+        if self.retries > 0 and all(QUOTA_STATUS in error for error in errors):
+            raise QuotaExhausted(errors[-1])
         return None
 
 

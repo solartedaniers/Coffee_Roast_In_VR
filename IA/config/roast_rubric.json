@@ -93,8 +93,8 @@
       "id": "GAS_AFTER_FIRST_CRACK",
       "title": "Gas después del primer crack",
       "description": "Después del primer crack el grano genera calor propio: si el jugador bajó el gas a tiempo para controlar la subida sin llegar al aviso de {burnWarningTemperature} °C. Bajarlo hasta {gasDropAnticipationSeconds} s antes del primer crack cuenta como hacerlo en el momento.",
-      "evidence": "INFERENCE",
-      "source": "Inferencia apoyada en la generación de calor del grano (Modeling and simulation of coffee bean heating during roasting: effect of heat generation); el artículo no indica bajar el gas. Parámetro de diseño: {gasDropMinPoints} puntos (la curva correcta de referencia baja de 30 a 25), {gasDropQuickSeconds} s y {gasDropLateSeconds} s.",
+      "evidence": "SOURCED",
+      "source": "Münchow et al. (2020) p.2 y p.5: el tueste necesita mucha energía al inicio y menos al final, a medida que se vuelve más exotérmico, y el aporte de calor solo se reduce, nunca se sube. Lo complementa la generación de calor del grano de Bustos-Vanegas et al. (2025). Parámetro de diseño: {gasDropMinPoints} puntos (la curva correcta de referencia baja de 30 a 25), {gasDropQuickSeconds} s y {gasDropLateSeconds} s.",
       "levels": {
         "3": "Bajó el gas al menos {gasDropMinPoints} puntos en {gasDropQuickSeconds} s o menos después del primer crack y no llegó a {burnWarningTemperature} °C.",
         "2": "Bajó el gas entre {gasDropQuickSeconds} y {gasDropLateSeconds} s después del primer crack, o lo bajó menos de {gasDropMinPoints} puntos.",

@@ -20,7 +20,8 @@ def test_the_shipped_rubric_is_a_draft_with_the_approved_criteria():
     assert [criterion.id for criterion in rubric.criteria] == [
         CriterionId.DRYING_GAS, CriterionId.RISE_TO_FIRST_CRACK,
         CriterionId.GAS_AFTER_FIRST_CRACK, CriterionId.ALERT_REACTION]
-    assert rubric.criterion(CriterionId.GAS_AFTER_FIRST_CRACK).evidence is Evidence.INFERENCE
+    assert rubric.criterion(CriterionId.GAS_AFTER_FIRST_CRACK).evidence is Evidence.SOURCED
+    assert "Münchow et al. (2020)" in rubric.criterion(CriterionId.GAS_AFTER_FIRST_CRACK).source
 
 
 def test_renders_parameters_without_trailing_zeros():

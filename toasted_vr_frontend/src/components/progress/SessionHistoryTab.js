@@ -1,7 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { getSessionHistory, getSessionSummary } from '../../services/progressService';
 import { formatLocalDateTime } from '../../utils/dateFormat';
-import { RESULT_PILL_CLASSES, formatLevel, formatMinutes, formatRatio, formatTemperature } from './progressFormat';
+import {
+  RESULT_PILL_CLASSES,
+  formatGrade,
+  formatLevel,
+  formatMinutes,
+  formatRatio,
+  formatTemperature,
+  scoreOf,
+} from './progressFormat';
 
 const RESULTS = ['PERFECT', 'RAW', 'BURNED', 'BAKED'];
 const emptyPage = { content: [], number: 0, totalPages: 0, totalElements: 0 };
@@ -71,6 +79,7 @@ export default function SessionHistoryTab({ texts, onSelectSession }) {
               <th>{texts.columns.level}</th>
               <th>{texts.columns.result}</th>
               <th>{texts.columns.score}</th>
+              <th>{texts.columns.grade}</th>
               <th>{texts.columns.finalTemp}</th>
               <th>{texts.columns.duration}</th>
               <th>{texts.columns.dtr}</th>
@@ -87,7 +96,8 @@ export default function SessionHistoryTab({ texts, onSelectSession }) {
                     {texts.results[session.result] || session.result}
                   </span>
                 </td>
-                <td className="admin-score-cell">{session.qualityScore}%</td>
+                <td className="admin-score-cell">{scoreOf(session)}%</td>
+                <td>{formatGrade(session.grade, texts)}</td>
                 <td>{formatTemperature(session.finalTemperature, texts)}</td>
                 <td>{formatMinutes(session.totalDurationSeconds, texts)}</td>
                 <td>{formatRatio(session.developmentTimeRatio, texts)}</td>

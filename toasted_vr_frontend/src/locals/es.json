@@ -389,8 +389,8 @@
         "noLevel": "Elige un nivel para ver el ranking.",
         "loading": "Cargando ranking...",
         "loadError": "No se pudo cargar el ranking.",
-        "empty": "Todavía nadie tiene tuestes en este nivel.",
-        "noSessionsInLevel": "Aún no tienes tuestes en este nivel. Guarda uno para aparecer en el ranking.",
+        "empty": "Todavía nadie tiene tuestes calificados en este nivel.",
+        "noSessionsInLevel": "Aún no tienes tuestes calificados en este nivel. Guarda uno en modo manual para aparecer en el ranking.",
         "yourPosition": "Tu posición",
         "you": "(tú)",
         "changesNotice": "Hay cambios en el ranking desde tu última visita",
@@ -432,6 +432,7 @@
         "level": "Nivel",
         "result": "Resultado",
         "score": "Puntaje",
+        "grade": "Calificación",
         "finalTemp": "Temp. final",
         "duration": "Duración",
         "dtr": "DTR"
@@ -442,10 +443,16 @@
         "ADVANCED": "Avanzado"
       },
       "results": {
-        "PERFECT": "Perfecto",
+        "PERFECT": "Desarrollado",
         "RAW": "Crudo",
         "BURNED": "Quemado",
         "BAKED": "Horneado"
+      },
+      "grades": {
+        "EXCELLENT": "Excelente",
+        "GOOD": "Bueno",
+        "FAIR": "Regular",
+        "POOR": "Deficiente"
       },
       "buttons": {
         "previous": "Anterior",
@@ -487,7 +494,7 @@
     },
     "results": {
       "title": "Evaluación del tueste",
-      "PERFECT": "Tueste Perfecto",
+      "PERFECT": "Tueste Desarrollado",
       "RAW": "Café Crudo",
       "RAW_REGRESSED": "Desarrollo interrumpido",
       "BURNED": "Café Quemado",

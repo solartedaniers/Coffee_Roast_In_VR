@@ -23,6 +23,9 @@ const perfectSession = {
   knowledgeLevel: 'INTERMEDIATE',
   result: 'PERFECT',
   qualityScore: 73,
+  finalScore: 68,
+  grade: 'FAIR',
+  evaluationStatus: 'COMPLETED',
   finalTemperature: 200.19,
   totalDurationSeconds: 780,
   developmentTimeRatio: 0.192,
@@ -35,6 +38,9 @@ const legacyRawSession = {
   knowledgeLevel: null,
   result: 'RAW',
   qualityScore: 33,
+  finalScore: 33,
+  grade: 'POOR',
+  evaluationStatus: null,
   finalTemperature: 162.25,
   totalDurationSeconds: 300,
   developmentTimeRatio: null,
@@ -76,8 +82,11 @@ describe('SessionHistoryView', () => {
     const row = within(dataRow(1));
     expect(row.getByText(formatLocalDateTime(perfectSession.createdAt))).toBeInTheDocument();
     expect(row.getByText('Intermedio')).toBeInTheDocument();
-    expect(row.getByText('Perfecto')).toHaveClass('result-pill', 'result-pill-perfect');
-    expect(row.getByText('73%')).toBeInTheDocument();
+    expect(row.getByText('Desarrollado')).toHaveClass('result-pill', 'result-pill-perfect');
+    // Vale la nota final (reglas e IA), no la de las reglas sola.
+    expect(row.getByText('68%')).toBeInTheDocument();
+    expect(row.queryByText('73%')).not.toBeInTheDocument();
+    expect(row.getByText('Regular')).toBeInTheDocument();
     expect(row.getByText('200.2 °C')).toBeInTheDocument();
     expect(row.getByText('13.00 min')).toBeInTheDocument();
     expect(row.getByText('19.2 %')).toBeInTheDocument();
@@ -90,6 +99,7 @@ describe('SessionHistoryView', () => {
     const row = within(dataRow(2));
     expect(row.getAllByText('—')).toHaveLength(2);
     expect(row.getByText('Crudo')).toHaveClass('result-pill-raw');
+    expect(row.getByText('Deficiente')).toBeInTheDocument();
   });
 
   test('filters by result starting again from the first page', async () => {
@@ -156,6 +166,8 @@ describe('SessionHistoryView', () => {
     expect(screen.getByText('190.0 °C')).toBeInTheDocument();
     expect(screen.getByText('200.6 °C')).toBeInTheDocument();
     expect(screen.getByText(texts.detail.yes)).toBeInTheDocument();
+    expect(screen.getByText('68%')).toBeInTheDocument();
+    expect(screen.getByText('Regular')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: texts.buttons.feedback }));
     expect(await screen.findByText('Buen control del desarrollo.')).toBeInTheDocument();

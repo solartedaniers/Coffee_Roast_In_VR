@@ -1,4 +1,5 @@
-"""Revisa que la justificación que ve el jugador no traiga nombres internos de los hechos ni "nombre = valor".
+"""Revisa que la justificación que ve el jugador no traiga nombres internos de los hechos, "nombre = valor" ni
+términos de la rúbrica (niveles, requisitos, franja), que se configuran en la rúbrica.
 
 Limpia lo que se puede quitar sin cambiar el sentido (paréntesis técnicos, asignaciones sueltas, decimales de
 temperatura y de minutos). Si después de limpiar sigue habiendo algo interno, la justificación no sirve.
@@ -54,12 +55,14 @@ class JustificationGuard:
         self.min_chars = rubric.parameters.justification_min_chars
         self.internal_names = ({str(criterion.id) for criterion in rubric.criteria} | set(rubric.alert_reactions)
                                | {str(reaction) for reaction in rubric.reaction_labels})
+        self.forbidden = [re.compile(pattern, re.IGNORECASE) for pattern in rubric.justification_forbidden_patterns]
 
     def has_internal_names(self, text: str, facts: Facts | None = None) -> bool:
         names = self.internal_names | (fact_names(facts) if facts else set())
         words = set(re.findall(r"\w+", text))
         return bool(words & names or CAMEL_CASE.search(text) or UPPER_SNAKE.search(text)
-                    or LITERALS.search(text) or "=" in text)
+                    or LITERALS.search(text) or "=" in text
+                    or any(pattern.search(text) for pattern in self.forbidden))
 
     def review(self, text: str, facts: Facts | None = None) -> ReviewedJustification:
         cleaned = self._clean(text, facts)

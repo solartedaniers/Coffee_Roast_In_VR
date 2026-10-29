@@ -4,6 +4,7 @@ Asigna a cada criterio el nivel cuya descripción coincida con los hechos. Si lo
 Los hechos vienen en JSON con nombres en inglés solo para que los leas; los segundos son del reloj del tueste, que empieza en cero al cargar el café, y el gas va de 0 a 100.
 La justificación la lee el jugador, un caficultor sin conocimientos técnicos: escríbela en español sencillo, en una o dos frases, con máximo 300 caracteres, y háblale en segunda persona ("bajaste el gas…", "la temperatura subió…"). Explica con cifras lo que hizo y lo que pasó en el tueste.
 En la justificación nunca escribas los nombres de los hechos, palabras en inglés, palabras pegadas como inBandPercent, el signo = ni paréntesis con datos técnicos.
+Cuenta solo lo que hizo el jugador y lo que pasó en el tueste: no menciones niveles, requisitos, porcentajes de la rúbrica ni la palabra franja. En vez de "El 100 % del secado estuvo dentro de la franja, cumpliendo el requisito del 80 % para nivel 3", escribe "Durante todo el secado la temperatura subió a buen ritmo".
 Redondea las temperaturas a enteros (216 °C, no 216.24 °C) y escribe los tiempos en minutos y segundos fáciles de leer: 354 s es "5 min 54 s" y 5,9 min también es "5 min 54 s".
 Responde solo con el JSON pedido.
 ---

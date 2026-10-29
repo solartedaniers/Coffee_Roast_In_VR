@@ -1,4 +1,5 @@
 """Rúbrica de las decisiones del jugador (config/roast_rubric.json): criterios, niveles y parámetros."""
+import re
 from enum import StrEnum
 from pathlib import Path
 
@@ -116,6 +117,8 @@ class Rubric(RubricModel):
     prompt_labels: PromptLabels
     instructions: list[str] = Field(min_length=1)
     rewrite_instruction: str = Field(min_length=1)
+    # Términos de la rúbrica que el jugador no debe ver en una justificación (sin distinguir mayúsculas).
+    justification_forbidden_patterns: list[str] = Field(default_factory=list)
     criteria: list[Criterion] = Field(min_length=1)
 
     @model_validator(mode="after")
@@ -131,6 +134,11 @@ class Rubric(RubricModel):
                 raise ValueError(f"{criterion.id}: fallback justifications must cover levels 0 to {self.max_level}")
         if set(self.reaction_labels) != set(ExpectedReaction):
             raise ValueError("Every expected reaction needs a label")
+        for pattern in self.justification_forbidden_patterns:
+            try:
+                re.compile(pattern)
+            except re.error as error:
+                raise ValueError(f"Invalid forbidden justification pattern {pattern!r}") from error
         self.render("".join(self.instructions) + self.rewrite_instruction)
         for criterion in self.criteria:
             for text in (criterion.description, criterion.source, *criterion.levels.values(),

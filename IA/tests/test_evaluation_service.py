@@ -87,7 +87,7 @@ def test_clips_long_justifications():
 
 def test_the_player_never_sees_internal_fact_names():
     grader = FakeGrader({"DRYING_GAS": 0, "RISE_TO_FIRST_CRACK": 1}, justifications={
-        "DRYING_GAS": "No estuviste en la franja (inBandPercent = 0) y la temperatura subió muy rápido.",
+        "DRYING_GAS": "La temperatura subió muy rápido (inBandPercent = 0) durante el secado.",
         "RISE_TO_FIRST_CRACK": "Tu longestStallSeconds fue alto.",
     })
     service = RoastEvaluationService(RUBRIC, grader)
@@ -95,7 +95,7 @@ def test_the_player_never_sees_internal_fact_names():
     response = service.evaluate(EvaluationRequest(trace=trace()))
 
     texts = {criterion.id: criterion.justification for criterion in response.criteria}
-    assert texts[CriterionId.DRYING_GAS] == "No estuviste en la franja y la temperatura subió muy rápido."
+    assert texts[CriterionId.DRYING_GAS] == "La temperatura subió muy rápido durante el secado."
     assert texts[CriterionId.RISE_TO_FIRST_CRACK] == RUBRIC.render(
         RUBRIC.criterion(CriterionId.RISE_TO_FIRST_CRACK).fallback_justifications[1])
     assert texts[CriterionId.GAS_AFTER_FIRST_CRACK] == plain("GAS_AFTER_FIRST_CRACK")

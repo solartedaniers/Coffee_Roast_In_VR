@@ -121,7 +121,7 @@ def test_a_wrong_expected_status_is_reported():
 
 def test_reports_where_each_justification_came_from_and_none_has_internal_names():
     grader = FakeGrader(justifications={
-        "DRYING_GAS": "Mantuviste la subida en la franja todo el secado (inBandPercent = 100).",
+        "DRYING_GAS": "Mantuviste un buen ritmo de subida todo el secado (inBandPercent = 100).",
         "RISE_TO_FIRST_CRACK": "Tu longestStallSeconds fue cero.",
     })
 
@@ -131,7 +131,7 @@ def test_reports_where_each_justification_came_from_and_none_has_internal_names(
     assert summary["justificationsWithInternalNames"] == []
     assert summary["justificationSources"] == {"CLEANED": 2, "FALLBACK": 2, "MODEL": 2}
     drying = report["cases"][0]["criteria"][0]
-    assert drying["justifications"] == ["Mantuviste la subida en la franja todo el secado."]
+    assert drying["justifications"] == ["Mantuviste un buen ritmo de subida todo el secado."]
     assert drying["internalNameJustifications"] == []
 
 

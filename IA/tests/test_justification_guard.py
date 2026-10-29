@@ -16,12 +16,36 @@ def test_collects_nested_fact_names_and_internal_values():
     assert fact_names(DRYING_FACTS) >= {"inBandPercent", "outOfBandEpisodes", "startSecond", "kind", "FAST"}
 
 
-def test_cleans_the_drying_example_from_the_web():
+def test_cleans_internal_names_out_of_a_drying_justification():
+    reviewed = review("La temperatura subió muy rápido (inBandPercent = 0) y moviste el gas al lado contrario "
+                      "(wrongDirectionChanges = 1).", DRYING_FACTS)
+
+    assert reviewed.text == "La temperatura subió muy rápido y moviste el gas al lado contrario."
+    assert reviewed.cleaned is True
+
+
+def test_the_drying_example_from_the_web_still_says_franja_so_it_is_not_usable():
     reviewed = review("No estuviste en la franja (inBandPercent = 0) y hubo un cambio en dirección equivocada "
                       "(wrongDirectionChanges = 1).", DRYING_FACTS)
 
-    assert reviewed.text == "No estuviste en la franja y hubo un cambio en dirección equivocada."
-    assert reviewed.cleaned is True
+    assert reviewed.text is None
+
+
+@pytest.mark.parametrize("text", [
+    "El 100 % del secado estuvo dentro de la franja, cumpliendo el requisito del 80 % para nivel 3.",
+    "Mantuviste la temperatura en la Franja recomendada todo el secado.",
+    "Te corresponde el nivel 2 porque corregiste el gas tarde en el secado.",
+    "Quedaste en niveles 1 y 2 durante el secado por corregir tarde.",
+    "Cumpliste el requisito de bajar el gas a tiempo después del crack.",
+])
+def test_rejects_rubric_terms_the_player_should_not_see(text):
+    assert review(text).text is None
+
+
+def test_does_not_confuse_the_word_level_without_a_number():
+    text = "Bajaste el gas a un nivel más bajo justo en el primer crack."
+
+    assert review(text).text == text
 
 
 def test_cleans_the_first_crack_example_and_reads_decimal_minutes():
@@ -39,9 +63,9 @@ def test_cleans_the_burn_example_and_rounds_the_temperature():
 
 
 def test_removes_a_loose_assignment_outside_parentheses():
-    reviewed = review("La subida estuvo en la franja inBandPercent = 100 todo el secado.", {"inBandPercent": 100})
+    reviewed = review("La subida fue pareja inBandPercent = 100 todo el secado.", {"inBandPercent": 100})
 
-    assert reviewed.text == "La subida estuvo en la franja todo el secado."
+    assert reviewed.text == "La subida fue pareja todo el secado."
 
 
 def test_keeps_plain_text_and_ordinary_parentheses_untouched():

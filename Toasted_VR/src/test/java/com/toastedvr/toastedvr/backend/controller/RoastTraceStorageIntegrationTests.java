@@ -12,9 +12,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.toastedvr.toastedvr.backend.domain.KnowledgeLevel;
+import com.toastedvr.toastedvr.backend.domain.RoastEvaluation;
+import com.toastedvr.toastedvr.backend.domain.RoastEvaluationSkipReason;
+import com.toastedvr.toastedvr.backend.domain.RoastEvaluationStatus;
 import com.toastedvr.toastedvr.backend.domain.Role;
 import com.toastedvr.toastedvr.backend.domain.User;
 import com.toastedvr.toastedvr.backend.repository.BlacklistedTokenRepository;
+import com.toastedvr.toastedvr.backend.repository.RoastEvaluationRepository;
 import com.toastedvr.toastedvr.backend.repository.RoastSessionTraceRepository;
 import com.toastedvr.toastedvr.backend.repository.RoastingSessionRepository;
 import com.toastedvr.toastedvr.backend.repository.UserRepository;
@@ -38,7 +42,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
-// La traza es opcional y nunca impide guardar la sesión: si no cuadra se descarta y se audita.
+// La traza es opcional y nunca impide guardar la sesión: si no cuadra se descarta y se audita. Cada
+// sesión nueva queda con su calificación de IA pendiente o marcada como no aplicable.
 @SpringBootTest
 @AutoConfigureMockMvc
 class RoastTraceStorageIntegrationTests {
@@ -59,6 +64,9 @@ class RoastTraceStorageIntegrationTests {
 
     @Autowired
     private RoastSessionTraceRepository traceRepository;
+
+    @Autowired
+    private RoastEvaluationRepository evaluationRepository;
 
     @Autowired
     private BlacklistedTokenRepository blacklistedTokenRepository;
@@ -98,6 +106,10 @@ class RoastTraceStorageIntegrationTests {
         JsonNode stored = objectMapper.readTree(traceRepository.findBySessionId(sessionId).orElseThrow().getTraceJson());
         assertThat(stored.get("operationMode").asText()).isEqualTo("MANUAL");
         assertThat(stored.get("samples").size()).isEqualTo(157);
+        RoastEvaluation evaluation = evaluationOf(sessionId);
+        assertThat(evaluation.getStatus()).isEqualTo(RoastEvaluationStatus.PENDING);
+        assertThat(evaluation.getFinalScore()).isNull();
+        assertThat(evaluation.getNextAttemptAt()).isNotNull();
         verify(auditService, never()).logRoastTraceDiscarded(any(), any(), anyString());
     }
 
@@ -107,6 +119,7 @@ class RoastTraceStorageIntegrationTests {
 
         assertThat(traceRepository.findBySessionId(sessionId)).isEmpty();
         verify(auditService).logRoastTraceDiscarded(eq(player.getId()), eq(sessionId), eq("FIRST_CRACK_MISMATCH"));
+        assertSkipped(sessionId, RoastEvaluationSkipReason.INVALID_TRACE);
     }
 
     @Test
@@ -126,6 +139,28 @@ class RoastTraceStorageIntegrationTests {
 
         assertThat(traceRepository.findBySessionId(sessionId)).isEmpty();
         verify(auditService, never()).logRoastTraceDiscarded(any(), any(), anyString());
+        assertSkipped(sessionId, RoastEvaluationSkipReason.NO_TRACE);
+    }
+
+    @Test
+    void shouldKeepTheAutoModeTraceWithoutAnAiEvaluation() throws Exception {
+        long sessionId = savedId(postSession(payload(RoastTracePayloads.coherent(780, 630, 205.0, "AUTO"))));
+
+        assertThat(traceRepository.findBySessionId(sessionId)).isPresent();
+        assertSkipped(sessionId, RoastEvaluationSkipReason.AUTO_MODE);
+    }
+
+    private RoastEvaluation evaluationOf(long sessionId) {
+        return evaluationRepository.findBySessionId(sessionId).orElseThrow();
+    }
+
+    // Sin calificación de IA la nota final es la de las reglas.
+    private void assertSkipped(long sessionId, RoastEvaluationSkipReason reason) {
+        RoastEvaluation evaluation = evaluationOf(sessionId);
+        assertThat(evaluation.getStatus()).isEqualTo(RoastEvaluationStatus.NOT_APPLICABLE);
+        assertThat(evaluation.getSkipReason()).isEqualTo(reason);
+        assertThat(evaluation.getFinalScore()).isEqualTo(75);
+        assertThat(evaluation.getNextAttemptAt()).isNull();
     }
 
     // Mismo mapeo que handleDischarge en RoastingSimulation.js, con la traza que arma el simulador.

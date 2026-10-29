@@ -137,10 +137,12 @@ Con los 9 PDFs nuevos (16 en total) repetí la comparación sobre una copia dese
 | 19-control-indice-java-set-nuevo | 0.32 | 0.48 | 0.56 | 0.60 | 0.437 | +0.000 | 5/5 | 0 | 385 |
 | 20-reingesta-16-caracteres-700 | 0.16 | 0.32 | 0.36 | 0.36 | 0.280 | -0.157 | 5/5 | 0 | 379 |
 | 21-reingesta-16-frases-500 | 0.36 | 0.52 | 0.52 | 0.52 | 0.457 | +0.020 | 5/5 | 0 | 381 |
+| 22-indice-java-mas-9-nuevos-frases-500 | 0.32 | 0.48 | 0.56 | 0.56 | 0.433 | -0.004 | 5/5 | 0 | 400 |
 
 - **19:** el índice actual (Java, 7 PDFs) con el set nuevo. Da el mismo 0,437 de antes, así que el set ampliado no cambió la medición de las validadas.
 - **20:** los 16 PDFs con la partición actual por caracteres de 700 (1014 fragmentos).
 - **21:** los 16 PDFs con la partición por frases de 500 (1231 fragmentos), limpiando además los nombres de glifo sueltos y los números de línea del manuscrito de Giacalone.
+- **22:** lo que haría la ingesta normal sin forzar: deja el índice de Java de los 7 PDFs viejos y agrega solo los 9 nuevos con frases de 500. Las validadas quedan en 0,433, las nuevas en 0,184 y el total en 0,329, por debajo de 21 en los tres.
 
 Por grupo de preguntas (las validadas son las de los 7 PDFs de antes; las nuevas, las de los 9 PDFs nuevos):
 

@@ -43,8 +43,8 @@ def markdown_table(reports: list[dict]) -> str:
 
 def group_rows(report: dict) -> list[list[str]]:
     summary = report["summary"]
-    groups = {"validadas": summary["player"]} | {GROUP_LABELS[name]: values
-                                                 for name, values in summary["groups"].items()}
+    groups = ({"validadas": summary["player"]} | summary.get("by_group", {})
+              | {GROUP_LABELS[name]: values for name, values in summary["groups"].items() if values["cases"]})
     return [[report["label"], name, str(values["cases"]), *(f"{values[f'hit_at_{k}']:.2f}" for k in (1, 3, 4, 5)),
              f"{values['mrr_at_10']:.3f}"] for name, values in groups.items()]
 

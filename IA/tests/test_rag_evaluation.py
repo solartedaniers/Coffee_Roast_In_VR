@@ -70,6 +70,7 @@ def test_the_committed_set_is_valid():
     kinds = [case.kind for case in cases]
     assert (kinds.count(CaseKind.PLAYER), kinds.count(CaseKind.NEGATIVE), kinds.count(CaseKind.SESSION)) == (43, 7, 4)
     assert not any(case.draft or case.draft_pages for case in cases)
+    assert all(case.group for case in cases if case.kind is CaseKind.PLAYER)
 
 
 class FakeSearch:
@@ -145,6 +146,24 @@ def test_reports_draft_questions_and_draft_pages_apart_from_the_validated_set(ca
     assert (summary["groups"]["draft_questions"]["cases"], summary["groups"]["draft_questions"]["hit_at_1"]) == (1, 1.0)
     assert summary["groups"]["total"]["cases"] == 2
     assert (summary["negative"]["cases"], summary["negative_draft"]["cases"]) == (0, 1)
+
+
+def test_summarizes_validated_questions_by_group(catalog, tmp_path):
+    path = write_cases(tmp_path / "set.json", [
+        {"id": "P1", "kind": "player", "question": "q", "group": "old", "expected": [{"file": "a.pdf", "page": 1}]},
+        {"id": "N1", "kind": "player", "question": "q", "group": "new", "expected": [{"file": "a.pdf", "page": 2}]},
+        {"id": "N2", "kind": "player", "question": "q", "group": "new", "expected": [{"file": "a.pdf", "page": 1}]},
+        {"id": "X1", "kind": "player", "question": "q", "expected": [{"file": "a.pdf", "page": 1}]},
+    ])
+    cases = EvalSetLoader(catalog).load(path)
+    search = FakeSearch([chunk("a.pdf", 1), chunk("a.pdf", 2)])
+
+    summary = summarize(RetrievalEvaluator(search, depth=10, production_top_k=4).run(cases), production_top_k=4)
+
+    assert list(summary["by_group"]) == ["new", "old"]
+    assert (summary["by_group"]["new"]["cases"], summary["by_group"]["new"]["mrr_at_10"]) == (2, 0.75)
+    assert summary["by_group"]["old"]["hit_at_1"] == 1.0
+    assert summary["player"]["cases"] == 4
 
 
 def test_a_draft_question_cannot_also_have_draft_pages(catalog, tmp_path):

@@ -2,6 +2,7 @@
 
 Para ampliarlo basta con agregar casos al JSON; no hay que tocar código. Lo que aún no valido va
 marcado con "draft": true, en la pregunta completa o en una página esperada, y se reporta aparte.
+Con "group" una pregunta se resume además en su grupo (por ejemplo, según de qué PDFs sale).
 """
 import json
 from dataclasses import dataclass
@@ -30,6 +31,7 @@ class EvalCase:
     expected: frozenset[PageRef]
     draft_pages: frozenset[PageRef] = frozenset()
     draft: bool = False
+    group: str | None = None
 
     @property
     def expected_with_drafts(self) -> frozenset[PageRef]:
@@ -58,7 +60,7 @@ class EvalSetLoader:
         expected = frozenset(PageRef(page["file"], int(page["page"])) for page in pages if not page.get("draft"))
         draft_pages = frozenset(PageRef(page["file"], int(page["page"])) for page in pages if page.get("draft"))
         return EvalCase(item["id"], CaseKind(item["kind"]), item["question"], expected, draft_pages,
-                        bool(item.get("draft", False)))
+                        bool(item.get("draft", False)), item.get("group"))
 
     def _validate(self, cases: list[EvalCase]) -> None:
         ids = [case.id for case in cases]

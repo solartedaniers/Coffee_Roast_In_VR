@@ -1,5 +1,5 @@
 {
-  "description": "Set de evaluación del RAG. Páginas = número de página del PDF (desde 1), no la impresa. player: preguntas de jugador validadas; negative: café sin respuesta en los PDFs; session: búsquedas reales de la retroalimentación (tests/snapshots), sin etiquetas. draft: preguntas o páginas esperadas que aún no valido; se reportan aparte y no cambian las cifras de las preguntas validadas.",
+  "description": "Set de evaluación del RAG. Páginas = número de página del PDF (desde 1), no la impresa. player: preguntas de jugador validadas; negative: café sin respuesta en los PDFs; session: búsquedas reales de la retroalimentación (tests/snapshots), sin etiquetas. draft: preguntas o páginas esperadas que aún no valido; se reportan aparte y no cambian las cifras de las preguntas validadas. group: de qué PDFs sale la pregunta, para resumirla aparte.",
   "cases": [
     {
       "id": "P01",
@@ -26,7 +26,8 @@
           "file": "munchow-2020-roasting-conditions-coffee-flavor.pdf",
           "page": 10
         }
-      ]
+      ],
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "id": "P02",
@@ -41,7 +42,8 @@
           "file": "munchow-2020-roasting-conditions-coffee-flavor.pdf",
           "page": 10
         }
-      ]
+      ],
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "id": "P03",
@@ -64,7 +66,8 @@
           "file": "local-giacalone-2019-common-roasting-defects.pdf",
           "page": 8
         }
-      ]
+      ],
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "id": "P04",
@@ -75,7 +78,8 @@
           "file": "cafe-manual-de-tostado_1.pdf",
           "page": 9
         }
-      ]
+      ],
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "id": "P05",
@@ -98,7 +102,8 @@
           "file": "munchow-2020-roasting-conditions-coffee-flavor.pdf",
           "page": 4
         }
-      ]
+      ],
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "id": "P06",
@@ -113,7 +118,8 @@
           "file": "cafe-manual-de-tostado_1.pdf",
           "page": 10
         }
-      ]
+      ],
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "id": "P07",
@@ -128,7 +134,8 @@
           "file": "cafe-manual-de-tostado_1.pdf",
           "page": 10
         }
-      ]
+      ],
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "id": "P08",
@@ -147,7 +154,8 @@
           "file": "munchow-2020-roasting-conditions-coffee-flavor.pdf",
           "page": 4
         }
-      ]
+      ],
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "id": "P09",
@@ -166,7 +174,8 @@
           "file": "avt0573.pdf",
           "page": 4
         }
-      ]
+      ],
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "id": "P10",
@@ -181,7 +190,8 @@
           "file": "avt0573.pdf",
           "page": 4
         }
-      ]
+      ],
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "id": "P11",
@@ -192,7 +202,8 @@
           "file": "cafe-manual-de-tostado_1.pdf",
           "page": 8
         }
-      ]
+      ],
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "id": "P12",
@@ -203,7 +214,8 @@
           "file": "cafe-manual-de-tostado_1.pdf",
           "page": 8
         }
-      ]
+      ],
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "id": "P13",
@@ -218,7 +230,8 @@
           "file": "admin,+arc073(01)e73102.pdf",
           "page": 5
         }
-      ]
+      ],
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "id": "P14",
@@ -233,7 +246,8 @@
           "file": "admin,+arc073(01)e73102.pdf",
           "page": 5
         }
-      ]
+      ],
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "id": "P15",
@@ -244,7 +258,8 @@
           "file": "cafe-manual-de-tostado_1.pdf",
           "page": 10
         }
-      ]
+      ],
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "id": "P16",
@@ -263,7 +278,8 @@
           "file": "cafe-manual-de-tostado_1.pdf",
           "page": 7
         }
-      ]
+      ],
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "id": "P17",
@@ -274,7 +290,8 @@
           "file": "admin,+arc073(01)e73102.pdf",
           "page": 9
         }
-      ]
+      ],
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "id": "P18",
@@ -289,7 +306,8 @@
           "file": "admin,+e72103.pdf",
           "page": 11
         }
-      ]
+      ],
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "id": "P19",
@@ -304,7 +322,8 @@
           "file": "cjfs_cjf-202006-0006.pdf",
           "page": 6
         }
-      ]
+      ],
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "id": "P20",
@@ -323,7 +342,8 @@
           "file": "cjfs_cjf-202006-0006.pdf",
           "page": 6
         }
-      ]
+      ],
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "id": "P21",
@@ -342,7 +362,8 @@
           "file": "avt0573.pdf",
           "page": 3
         }
-      ]
+      ],
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "id": "P22",
@@ -365,7 +386,8 @@
           "file": "munchow-2020-roasting-conditions-coffee-flavor.pdf",
           "page": 2
         }
-      ]
+      ],
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "id": "P23",
@@ -380,7 +402,8 @@
           "file": "Modeling_and_simulation_of_coffee_bean_heating_dur.pdf",
           "page": 6
         }
-      ]
+      ],
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "id": "P24",
@@ -391,7 +414,8 @@
           "file": "cjfs_cjf-202006-0006.pdf",
           "page": 5
         }
-      ]
+      ],
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "id": "P25",
@@ -418,7 +442,8 @@
           "file": "vakaryk-2023-roasting-conditions-quality-coffee.pdf",
           "page": 7
         }
-      ]
+      ],
+      "group": "PDFs de antes (P01–P25)"
     },
     {
       "id": "N01",
@@ -433,7 +458,8 @@
           "file": "local-giacalone-2019-common-roasting-defects.pdf",
           "page": 8
         }
-      ]
+      ],
+      "group": "PDFs nuevos en inglés (N01–N11)"
     },
     {
       "id": "N02",
@@ -448,7 +474,8 @@
           "file": "munchow-2020-roasting-conditions-coffee-flavor.pdf",
           "page": 5
         }
-      ]
+      ],
+      "group": "PDFs nuevos en inglés (N01–N11)"
     },
     {
       "id": "N03",
@@ -459,7 +486,8 @@
           "file": "munchow-2020-roasting-conditions-coffee-flavor.pdf",
           "page": 10
         }
-      ]
+      ],
+      "group": "PDFs nuevos en inglés (N01–N11)"
     },
     {
       "id": "N04",
@@ -474,7 +502,8 @@
           "file": "local-giacalone-2019-common-roasting-defects.pdf",
           "page": 7
         }
-      ]
+      ],
+      "group": "PDFs nuevos en inglés (N01–N11)"
     },
     {
       "id": "N05",
@@ -489,7 +518,8 @@
           "file": "munchow-2020-roasting-conditions-coffee-flavor.pdf",
           "page": 9
         }
-      ]
+      ],
+      "group": "PDFs nuevos en inglés (N01–N11)"
     },
     {
       "id": "N06",
@@ -504,7 +534,8 @@
           "file": "local-giacalone-2019-common-roasting-defects.pdf",
           "page": 8
         }
-      ]
+      ],
+      "group": "PDFs nuevos en inglés (N01–N11)"
     },
     {
       "id": "N07",
@@ -523,7 +554,8 @@
           "file": "local-giacalone-2019-common-roasting-defects.pdf",
           "page": 23
         }
-      ]
+      ],
+      "group": "PDFs nuevos en inglés (N01–N11)"
     },
     {
       "id": "N08",
@@ -538,7 +570,8 @@
           "file": "vakaryk-2023-roasting-conditions-quality-coffee.pdf",
           "page": 7
         }
-      ]
+      ],
+      "group": "PDFs nuevos en inglés (N01–N11)"
     },
     {
       "id": "N09",
@@ -549,7 +582,8 @@
           "file": "vakaryk-2023-roasting-conditions-quality-coffee.pdf",
           "page": 6
         }
-      ]
+      ],
+      "group": "PDFs nuevos en inglés (N01–N11)"
     },
     {
       "id": "N10",
@@ -560,7 +594,8 @@
           "file": "vakaryk-2023-roasting-conditions-quality-coffee.pdf",
           "page": 3
         }
-      ]
+      ],
+      "group": "PDFs nuevos en inglés (N01–N11)"
     },
     {
       "id": "N11",
@@ -571,7 +606,8 @@
           "file": "local-campo-ceballos-2020-fluidized-bed-roaster.pdf",
           "page": 8
         }
-      ]
+      ],
+      "group": "PDFs nuevos en inglés (N01–N11)"
     },
     {
       "id": "N12",
@@ -582,7 +618,8 @@
           "file": "local-puerta-2011-composicion-quimica-taza-cafe.pdf",
           "page": 6
         }
-      ]
+      ],
+      "group": "PDFs nuevos en español (N12–N18)"
     },
     {
       "id": "N13",
@@ -597,7 +634,8 @@
           "file": "local-puerta-2011-composicion-quimica-taza-cafe.pdf",
           "page": 8
         }
-      ]
+      ],
+      "group": "PDFs nuevos en español (N12–N18)"
     },
     {
       "id": "N14",
@@ -616,7 +654,8 @@
           "file": "local-osorio-2021-calidad-del-cafe.pdf",
           "page": 16
         }
-      ]
+      ],
+      "group": "PDFs nuevos en español (N12–N18)"
     },
     {
       "id": "N15",
@@ -631,7 +670,8 @@
           "file": "local-osorio-2021-calidad-del-cafe.pdf",
           "page": 9
         }
-      ]
+      ],
+      "group": "PDFs nuevos en español (N12–N18)"
     },
     {
       "id": "N16",
@@ -642,7 +682,8 @@
           "file": "local-osorio-2021-calidad-del-cafe.pdf",
           "page": 12
         }
-      ]
+      ],
+      "group": "PDFs nuevos en español (N12–N18)"
     },
     {
       "id": "N17",
@@ -653,7 +694,8 @@
           "file": "local-gamboa-2013-taza-cafe-especial-chachagui.pdf",
           "page": 6
         }
-      ]
+      ],
+      "group": "PDFs nuevos en español (N12–N18)"
     },
     {
       "id": "N18",
@@ -676,7 +718,8 @@
           "file": "local-ramos-criollo-2017-calidad-fisica-sensorial.pdf",
           "page": 13
         }
-      ]
+      ],
+      "group": "PDFs nuevos en español (N12–N18)"
     },
     {
       "id": "N1",

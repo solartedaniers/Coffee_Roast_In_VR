@@ -42,6 +42,19 @@ def test_separates_validated_and_draft_groups_only_for_measurements_that_have_th
     assert group_table([report("vieja", 0.4, 5)]) == ""
 
 
+def test_lists_the_groups_of_validated_questions_and_hides_empty_draft_groups():
+    ranking = {"cases": 3, "hit_at_1": 0.2, "hit_at_3": 0.4, "hit_at_4": 0.5, "hit_at_5": 0.6, "mrr_at_10": 0.45}
+    empty = dict(ranking, cases=0)
+    grouped = report("frases", 0.4, 5)
+    grouped["summary"]["player"]["cases"] = 43
+    grouped["summary"]["by_group"] = {"PDFs nuevos": ranking}
+    grouped["summary"]["groups"] = {"confirmed_with_draft_pages": ranking, "draft_questions": empty, "total": ranking}
+
+    names = [line.split(" | ")[1] for line in group_table([grouped]).splitlines()[2:]]
+
+    assert names == ["validadas", "PDFs nuevos", "validadas + páginas en borrador", "total"]
+
+
 def test_skips_saved_files_that_are_not_rag_measurements(tmp_path):
     measurement, rubric = tmp_path / "a.json", tmp_path / "evaluation.json"
     measurement.write_text(json.dumps(report("base", 0.4, 5)), encoding="utf-8")

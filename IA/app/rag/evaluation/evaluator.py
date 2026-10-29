@@ -49,6 +49,7 @@ class CaseResult:
     draft: bool = False
     # Contando también las páginas en borrador; igual a first_relevant_rank si no tiene.
     first_relevant_rank_with_drafts: int | None = None
+    group: str | None = None
 
 
 class RetrievalEvaluator:
@@ -82,6 +83,7 @@ class RetrievalEvaluator:
             retrieved=retrieved,
             draft=case.draft,
             first_relevant_rank_with_drafts=first_relevant_rank(pages, set(case.expected_with_drafts)),
+            group=case.group,
         )
 
 
@@ -101,6 +103,9 @@ def summarize(results: Sequence[CaseResult], production_top_k: int) -> dict:
                                                 production_top_k, with_drafts=True),
             "total": _ranking_summary(player_results, production_top_k, with_drafts=True),
         },
+        "by_group": {group: _ranking_summary([result for result in by_kind[CaseKind.PLAYER] if result.group == group],
+                                             production_top_k, with_drafts=False)
+                     for group in sorted({result.group for result in by_kind[CaseKind.PLAYER]} - {None})},
         "negative": _returned_summary(by_kind[CaseKind.NEGATIVE]),
         "negative_draft": _returned_summary([result for result in results
                                              if result.draft and result.kind == CaseKind.NEGATIVE.value]),

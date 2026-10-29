@@ -69,6 +69,16 @@ public class AuditService {
         );
     }
 
+    public void logRoastTraceDiscarded(Long userId, Long sessionId, String problem) {
+        AUDIT_LOGGER.warn(
+            "event=ROAST_TRACE_DISCARDED timestamp={} userId={} sessionId={} problem={}",
+            Instant.now(),
+            userId,
+            sessionId,
+            problem
+        );
+    }
+
     public void logRoastSessionRejected(Long userId, String rule, String detail) {
         AUDIT_LOGGER.warn(
             "event=ROAST_SESSION_REJECTED timestamp={} userId={} rule={} detail={}",

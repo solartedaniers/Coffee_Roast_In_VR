@@ -29,6 +29,7 @@ public class RoastingSessionService {
     private final UserRepository userRepository;
     private final MessageResolver messages;
     private final RoastSessionValidator roastSessionValidator;
+    private final RoastEvaluationRegistrar evaluationRegistrar;
     private final int historyPageSize;
 
     public RoastingSessionService(
@@ -36,12 +37,14 @@ public class RoastingSessionService {
         UserRepository userRepository,
         MessageResolver messages,
         RoastSessionValidator roastSessionValidator,
+        RoastEvaluationRegistrar evaluationRegistrar,
         @Value("${app.roasting.history-page-size:10}") int historyPageSize
     ) {
         this.roastingSessionRepository = roastingSessionRepository;
         this.userRepository = userRepository;
         this.messages = messages;
         this.roastSessionValidator = roastSessionValidator;
+        this.evaluationRegistrar = evaluationRegistrar;
         this.historyPageSize = historyPageSize;
     }
 
@@ -68,6 +71,7 @@ public class RoastingSessionService {
         );
 
         RoastingSession saved = roastingSessionRepository.save(session);
+        evaluationRegistrar.register(userId, saved, request);
         return toResponse(saved);
     }
 

@@ -1,0 +1,177 @@
+{
+  "description": "Casos de validación de la rúbrica de decisiones (fase 5). Cada caso es una traza por puntos clave en segundos del tueste (SyntheticTrace) con el nivel que le corresponde a cada criterio según el texto de la rúbrica. Los niveles esperados los fijé leyendo la rúbrica, no las respuestas del modelo. La curva base es la del tueste correcto de eval/alerts/curves.json.",
+  "cases": [
+    {
+      "id": "good",
+      "description": "Tueste correcto: gas al 30 % y al 25 % en el primer crack.",
+      "durationSeconds": 756,
+      "points": [[0, 108.59], [9, 110.62], [50, 120.88], [67, 124.78], [87, 128.77], [117, 133.84], [152, 138.88], [300, 158.12], [333, 162.74], [359, 167.46], [409, 175.7], [465, 183.81], [497, 187.97], [531, 192.05], [568, 196.12], [610, 200.25], [629, 201.11], [756, 204.81]],
+      "initialGas": 30,
+      "gasChanges": [[604, 25]],
+      "firstCrackSecond": 604,
+      "expected": {"DRYING_GAS": 3, "RISE_TO_FIRST_CRACK": 3, "GAS_AFTER_FIRST_CRACK": 3}
+    },
+    {
+      "id": "drying_fast_quick_fix",
+      "description": "Secado muy rápido corregido bajando el gas a los 10 s.",
+      "durationSeconds": 756,
+      "points": [[0, 100.0], [120, 180.0], [300, 190.0], [600, 200.0], [756, 205.0]],
+      "initialGas": 30,
+      "gasChanges": [[45, 20], [604, 15]],
+      "firstCrackSecond": 604,
+      "expected": {"DRYING_GAS": 3, "RISE_TO_FIRST_CRACK": 3, "GAS_AFTER_FIRST_CRACK": 3}
+    },
+    {
+      "id": "drying_fast_slow_fix",
+      "description": "Secado muy rápido corregido bajando el gas a los 45 s.",
+      "durationSeconds": 756,
+      "points": [[0, 100.0], [120, 180.0], [300, 190.0], [600, 200.0], [756, 205.0]],
+      "initialGas": 30,
+      "gasChanges": [[80, 20], [604, 15]],
+      "firstCrackSecond": 604,
+      "expected": {"DRYING_GAS": 2, "RISE_TO_FIRST_CRACK": 3, "GAS_AFTER_FIRST_CRACK": 3}
+    },
+    {
+      "id": "drying_fast_wrong_way",
+      "description": "Secado muy rápido y el jugador sube el gas en vez de bajarlo.",
+      "durationSeconds": 756,
+      "points": [[0, 100.0], [120, 180.0], [300, 190.0], [600, 200.0], [756, 205.0]],
+      "initialGas": 30,
+      "gasChanges": [[60, 40], [604, 35]],
+      "firstCrackSecond": 604,
+      "expected": {"DRYING_GAS": 0, "RISE_TO_FIRST_CRACK": 3, "GAS_AFTER_FIRST_CRACK": 3}
+    },
+    {
+      "id": "drying_slow_late_fix",
+      "description": "Secado lento casi la mitad del tiempo; sube el gas tarde (85 s).",
+      "durationSeconds": 756,
+      "points": [[0, 100.0], [240, 112.0], [420, 160.0], [604, 196.0], [756, 205.0]],
+      "initialGas": 30,
+      "gasChanges": [[120, 40], [604, 35]],
+      "firstCrackSecond": 604,
+      "expected": {"DRYING_GAS": 1, "RISE_TO_FIRST_CRACK": 3, "GAS_AFTER_FIRST_CRACK": 3}
+    },
+    {
+      "id": "first_crack_slightly_late",
+      "description": "Primer crack a los 12,5 min: medio minuto fuera de la ventana.",
+      "durationSeconds": 900,
+      "points": [[0, 100.0], [120, 130.0], [330, 160.0], [750, 200.0], [900, 205.0]],
+      "initialGas": 30,
+      "gasChanges": [[750, 25]],
+      "firstCrackSecond": 750,
+      "expected": {"DRYING_GAS": 3, "RISE_TO_FIRST_CRACK": 2, "GAS_AFTER_FIRST_CRACK": 3}
+    },
+    {
+      "id": "first_crack_very_late",
+      "description": "Primer crack a los 14 min: dos minutos fuera de la ventana.",
+      "durationSeconds": 1000,
+      "points": [[0, 100.0], [120, 130.0], [330, 160.0], [840, 200.0], [1000, 205.0]],
+      "initialGas": 30,
+      "gasChanges": [[840, 25]],
+      "firstCrackSecond": 840,
+      "expected": {"DRYING_GAS": 3, "RISE_TO_FIRST_CRACK": 1, "GAS_AFTER_FIRST_CRACK": 3}
+    },
+    {
+      "id": "stall_medium",
+      "description": "La temperatura se queda plana 20 s antes del primer crack.",
+      "durationSeconds": 756,
+      "points": [[0, 108.59], [9, 110.62], [50, 120.88], [67, 124.78], [87, 128.77], [117, 133.84], [152, 138.88], [300, 158.12], [333, 162.74], [359, 167.46], [409, 175.7], [430, 178.0], [450, 178.0], [465, 183.81], [497, 187.97], [531, 192.05], [568, 196.12], [610, 200.25], [629, 201.11], [756, 204.81]],
+      "initialGas": 30,
+      "gasChanges": [[604, 25]],
+      "firstCrackSecond": 604,
+      "expected": {"DRYING_GAS": 3, "RISE_TO_FIRST_CRACK": 1, "GAS_AFTER_FIRST_CRACK": 3}
+    },
+    {
+      "id": "baked_stall",
+      "description": "La temperatura se queda plana 40 s antes del primer crack (horneado).",
+      "durationSeconds": 756,
+      "points": [[0, 108.59], [9, 110.62], [50, 120.88], [67, 124.78], [87, 128.77], [117, 133.84], [152, 138.88], [300, 158.12], [333, 162.74], [359, 167.46], [409, 175.7], [430, 178.0], [470, 178.0], [497, 187.97], [531, 192.05], [568, 196.12], [610, 200.25], [629, 201.11], [756, 204.81]],
+      "initialGas": 30,
+      "gasChanges": [[604, 25]],
+      "firstCrackSecond": 604,
+      "expected": {"DRYING_GAS": 3, "RISE_TO_FIRST_CRACK": 0, "GAS_AFTER_FIRST_CRACK": 3}
+    },
+    {
+      "id": "gas_drop_late",
+      "description": "Baja el gas 60 s después del primer crack.",
+      "durationSeconds": 756,
+      "points": [[0, 108.59], [9, 110.62], [50, 120.88], [67, 124.78], [87, 128.77], [117, 133.84], [152, 138.88], [300, 158.12], [333, 162.74], [359, 167.46], [409, 175.7], [465, 183.81], [497, 187.97], [531, 192.05], [568, 196.12], [610, 200.25], [629, 201.11], [756, 204.81]],
+      "initialGas": 30,
+      "gasChanges": [[664, 25]],
+      "firstCrackSecond": 604,
+      "expected": {"DRYING_GAS": 3, "RISE_TO_FIRST_CRACK": 3, "GAS_AFTER_FIRST_CRACK": 2}
+    },
+    {
+      "id": "gas_drop_very_late",
+      "description": "Baja el gas 110 s después del primer crack.",
+      "durationSeconds": 756,
+      "points": [[0, 108.59], [9, 110.62], [50, 120.88], [67, 124.78], [87, 128.77], [117, 133.84], [152, 138.88], [300, 158.12], [333, 162.74], [359, 167.46], [409, 175.7], [465, 183.81], [497, 187.97], [531, 192.05], [568, 196.12], [610, 200.25], [629, 201.11], [756, 204.81]],
+      "initialGas": 30,
+      "gasChanges": [[714, 25]],
+      "firstCrackSecond": 604,
+      "expected": {"DRYING_GAS": 3, "RISE_TO_FIRST_CRACK": 3, "GAS_AFTER_FIRST_CRACK": 1}
+    },
+    {
+      "id": "gas_small_drop",
+      "description": "En el primer crack baja el gas solo 2 puntos.",
+      "durationSeconds": 756,
+      "points": [[0, 108.59], [9, 110.62], [50, 120.88], [67, 124.78], [87, 128.77], [117, 133.84], [152, 138.88], [300, 158.12], [333, 162.74], [359, 167.46], [409, 175.7], [465, 183.81], [497, 187.97], [531, 192.05], [568, 196.12], [610, 200.25], [629, 201.11], [756, 204.81]],
+      "initialGas": 30,
+      "gasChanges": [[604, 28]],
+      "firstCrackSecond": 604,
+      "expected": {"DRYING_GAS": 3, "RISE_TO_FIRST_CRACK": 3, "GAS_AFTER_FIRST_CRACK": 2}
+    },
+    {
+      "id": "gas_raised_after_crack",
+      "description": "En el primer crack sube el gas en vez de bajarlo.",
+      "durationSeconds": 756,
+      "points": [[0, 108.59], [9, 110.62], [50, 120.88], [67, 124.78], [87, 128.77], [117, 133.84], [152, 138.88], [300, 158.12], [333, 162.74], [359, 167.46], [409, 175.7], [465, 183.81], [497, 187.97], [531, 192.05], [568, 196.12], [610, 200.25], [629, 201.11], [756, 204.81]],
+      "initialGas": 30,
+      "gasChanges": [[604, 40]],
+      "firstCrackSecond": 604,
+      "expected": {"DRYING_GAS": 3, "RISE_TO_FIRST_CRACK": 3, "GAS_AFTER_FIRST_CRACK": 0}
+    },
+    {
+      "id": "alerts_reacted",
+      "description": "Tueste correcto que además responde a las dos alertas que recibe (baja el gas y descarga).",
+      "durationSeconds": 756,
+      "points": [[0, 108.59], [9, 110.62], [50, 120.88], [67, 124.78], [87, 128.77], [117, 133.84], [152, 138.88], [300, 158.12], [333, 162.74], [359, 167.46], [409, 175.7], [465, 183.81], [497, 187.97], [531, 192.05], [568, 196.12], [610, 200.25], [629, 201.11], [756, 204.81]],
+      "initialGas": 30,
+      "gasChanges": [[604, 25], [705, 20]],
+      "firstCrackSecond": 604,
+      "alerts": [["BURN_WARNING", 700], ["SECOND_CRACK_NEAR", 745]],
+      "expected": {"DRYING_GAS": 3, "RISE_TO_FIRST_CRACK": 3, "GAS_AFTER_FIRST_CRACK": 3, "ALERT_REACTION": 3}
+    },
+    {
+      "id": "alerts_ignored",
+      "description": "Tueste correcto que no responde a ninguna de las tres alertas que recibe.",
+      "durationSeconds": 756,
+      "points": [[0, 108.59], [9, 110.62], [50, 120.88], [67, 124.78], [87, 128.77], [117, 133.84], [152, 138.88], [300, 158.12], [333, 162.74], [359, 167.46], [409, 175.7], [465, 183.81], [497, 187.97], [531, 192.05], [568, 196.12], [610, 200.25], [629, 201.11], [756, 204.81]],
+      "initialGas": 30,
+      "gasChanges": [[604, 25]],
+      "firstCrackSecond": 604,
+      "alerts": [["DRYING_RISE_SLOW", 200], ["BURN_WARNING", 650], ["SECOND_CRACK_NEAR", 700]],
+      "expected": {"DRYING_GAS": 3, "RISE_TO_FIRST_CRACK": 3, "GAS_AFTER_FIRST_CRACK": 3, "ALERT_REACTION": 0}
+    },
+    {
+      "id": "raw",
+      "description": "Crudo: descarga a los 5 min sin llegar al fin del secado; solo aplica el secado.",
+      "durationSeconds": 300,
+      "points": [[0, 108.59], [152, 138.88], [300, 158.0]],
+      "initialGas": 30,
+      "expected": {"DRYING_GAS": 3}
+    },
+    {
+      "id": "auto",
+      "description": "Tueste correcto en modo automático: no hay decisiones del jugador que calificar.",
+      "operationMode": "AUTO",
+      "durationSeconds": 756,
+      "points": [[0, 108.59], [9, 110.62], [50, 120.88], [67, 124.78], [87, 128.77], [117, 133.84], [152, 138.88], [300, 158.12], [333, 162.74], [359, 167.46], [409, 175.7], [465, 183.81], [497, 187.97], [531, 192.05], [568, 196.12], [610, 200.25], [629, 201.11], [756, 204.81]],
+      "initialGas": 30,
+      "gasChanges": [[604, 25]],
+      "firstCrackSecond": 604,
+      "expectedStatus": "NOT_APPLICABLE",
+      "expected": {}
+    }
+  ]
+}

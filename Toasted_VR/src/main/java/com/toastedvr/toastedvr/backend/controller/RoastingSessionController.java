@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/roasting")
+@RequestMapping("/api/v1/roasting/sessions")
 public class RoastingSessionController {
 
     private final RoastingSessionService roastingSessionService;
@@ -40,7 +40,7 @@ public class RoastingSessionController {
         this.aiFeedbackClient = aiFeedbackClient;
     }
 
-    @PostMapping("/sessions")
+    @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public SessionResultResponse saveSession(
         @AuthenticationPrincipal UserPrincipal principal,
@@ -50,7 +50,7 @@ public class RoastingSessionController {
     }
 
     // RF016: historial del jugador autenticado, 10 por página (configurable).
-    @GetMapping("/sessions")
+    @GetMapping
     public Page<SessionHistoryItemResponse> getHistory(
         @AuthenticationPrincipal UserPrincipal principal,
         @RequestParam(defaultValue = "0") int page,
@@ -59,13 +59,13 @@ public class RoastingSessionController {
         return roastingSessionService.getHistory(principal.getId(), page, result);
     }
 
-    @GetMapping("/sessions/summary")
+    @GetMapping("/summary")
     public SessionHistorySummaryResponse getSummary(@AuthenticationPrincipal UserPrincipal principal) {
         return roastingSessionService.getSummary(principal.getId());
     }
 
     // Una sesión de otro jugador responde 404, igual que una que no existe.
-    @GetMapping("/sessions/{id}")
+    @GetMapping("/{id}")
     public SessionResultResponse getSessionDetail(
         @AuthenticationPrincipal UserPrincipal principal,
         @PathVariable Long id
@@ -73,7 +73,7 @@ public class RoastingSessionController {
         return roastingSessionService.getSessionDetail(principal.getId(), id);
     }
 
-    @GetMapping("/sessions/{id}/feedback")
+    @GetMapping("/{id}/feedback")
     public Map<String, String> getFeedback(
         @AuthenticationPrincipal UserPrincipal principal,
         @PathVariable Long id

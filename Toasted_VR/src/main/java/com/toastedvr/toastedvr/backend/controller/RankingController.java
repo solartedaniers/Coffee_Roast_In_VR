@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/roasting")
+@RequestMapping("/api/v1/roasting/ranking")
 public class RankingController {
 
     private final RankingService rankingService;
@@ -29,7 +29,7 @@ public class RankingController {
 
     // RF017: top del nivel pedido (por defecto, el del jugador), su posición,
     // el movimiento de cada fila y la firma del ranking mostrado.
-    @GetMapping("/ranking")
+    @GetMapping
     public RankingResponse getRanking(
         @AuthenticationPrincipal UserPrincipal principal,
         @RequestParam(required = false) KnowledgeLevel level
@@ -38,7 +38,7 @@ public class RankingController {
     }
 
     // Marca como visto exactamente el ranking que se mostró con esa firma.
-    @PutMapping("/ranking/seen")
+    @PutMapping("/seen")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void markRankingSeen(
         @AuthenticationPrincipal UserPrincipal principal,
@@ -48,7 +48,7 @@ public class RankingController {
     }
 
     // Consulta liviana para el punto de aviso de la corona.
-    @GetMapping("/ranking/changes")
+    @GetMapping("/changes")
     public RankingChangesResponse getRankingChanges(@AuthenticationPrincipal UserPrincipal principal) {
         return rankingService.getChanges(principal.getId());
     }

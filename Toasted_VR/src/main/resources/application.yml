@@ -121,6 +121,12 @@
       max-alert-id-length: ${ROAST_TRACE_MAX_ALERT_ID_LENGTH:40}
       time-tolerance-seconds: ${ROAST_TRACE_TIME_TOLERANCE_SECONDS:5}
       temperature-tolerance: ${ROAST_TRACE_TEMPERATURE_TOLERANCE:1.0}
+    # Calificación combinada (fase 5): nota final = rules-weight × qualityScore + ai-weight × nota de
+    # la rúbrica de la IA. Los pesos deben sumar 1. Un resultado con defecto no pasa de defect-score-cap.
+    roast-evaluation:
+      rules-weight: ${ROAST_EVALUATION_RULES_WEIGHT:0.7}
+      ai-weight: ${ROAST_EVALUATION_AI_WEIGHT:0.3}
+      defect-score-cap: ${ROAST_EVALUATION_DEFECT_SCORE_CAP:50}
     # Validación de sesiones de tueste en el servidor (RF015). Deben coincidir
     # con RoastConstants.js del frontend.
     roast-validation:

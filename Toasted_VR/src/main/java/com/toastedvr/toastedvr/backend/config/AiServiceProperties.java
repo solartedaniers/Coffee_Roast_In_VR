@@ -14,6 +14,16 @@ public class AiServiceProperties {
     private int voiceReadTimeoutMillis = 30_000;
     // Mayor que ALERTS_PACKAGE_TIMEOUT_MILLIS del servicio IA (20 s), que corta antes.
     private int alertsReadTimeoutMillis = 30_000;
+    // Mayor que EVALUATION_GROQ_READ_TIMEOUT_MILLIS del servicio IA (30 s) más la conexión a Groq.
+    private int evaluationReadTimeoutMillis = 40_000;
+
+    public int getEvaluationReadTimeoutMillis() {
+        return evaluationReadTimeoutMillis;
+    }
+
+    public void setEvaluationReadTimeoutMillis(int evaluationReadTimeoutMillis) {
+        this.evaluationReadTimeoutMillis = evaluationReadTimeoutMillis;
+    }
 
     public int getAlertsReadTimeoutMillis() {
         return alertsReadTimeoutMillis;

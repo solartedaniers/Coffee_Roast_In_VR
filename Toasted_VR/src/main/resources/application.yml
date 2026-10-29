@@ -59,6 +59,8 @@
       voice-read-timeout-millis: ${AI_SERVICE_VOICE_READ_TIMEOUT_MILLIS:30000}
       # Paquete de alertas proactivas; debe ser mayor que ALERTS_PACKAGE_TIMEOUT_MILLIS del servicio IA.
       alerts-read-timeout-millis: ${AI_SERVICE_ALERTS_READ_TIMEOUT_MILLIS:30000}
+      # Calificación con la rúbrica, en segundo plano; mayor que EVALUATION_GROQ_READ_TIMEOUT_MILLIS del servicio IA.
+      evaluation-read-timeout-millis: ${AI_SERVICE_EVALUATION_READ_TIMEOUT_MILLIS:40000}
     jwt:
       # Sin valor por defecto: la aplicación no arranca si falta APP_JWT_SECRET.
       secret: ${APP_JWT_SECRET}

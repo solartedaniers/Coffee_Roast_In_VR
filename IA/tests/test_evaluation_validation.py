@@ -197,3 +197,26 @@ def test_a_timeout_does_not_stop_the_validation():
 
     assert report["stoppedReason"] is None
     assert [case["completedRuns"] for case in report["cases"]] == [0, 0]
+
+
+def test_waits_the_same_pause_before_asking_for_a_rewrite():
+    pauses = []
+    grader = FakeGrader(justifications={"DRYING_GAS": "Tu inBandPercent fue alto."},
+                        rewrites={"DRYING_GAS": "Durante todo el secado la temperatura subió a buen ritmo."})
+    service = RoastEvaluationService(RUBRIC, grader)
+
+    ValidationRunner(service, runs=1, pause_seconds=8, sleep=pauses.append).run([BY_ID["good"]])
+
+    # Una pausa antes de la reescritura y otra después de la calificación completa.
+    assert pauses == [8, 8]
+    assert len(grader.rewrite_prompts) == 1
+
+
+def test_the_service_does_not_wait_before_a_rewrite_by_default():
+    grader = FakeGrader(justifications={"DRYING_GAS": "Tu inBandPercent fue alto."})
+    service = RoastEvaluationService(RUBRIC, grader)
+    service.justifications.sleep = lambda seconds: (_ for _ in ()).throw(AssertionError("should not wait"))
+
+    service.evaluate(EvaluationRequest(trace=BY_ID["good"].trace.trace()))
+
+    assert len(grader.rewrite_prompts) == 1

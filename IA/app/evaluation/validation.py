@@ -58,6 +58,7 @@ class ValidationRunner:
         self.sleep = sleep
         self.progress = progress
         self.guard = JustificationGuard(service.rubric)
+        service.justifications.pace_rewrites(pause_seconds, sleep)
 
     def run(self, cases: list[ValidationCase], on_case: Callable[[dict], None] = lambda report: None) -> dict:
         """Llama a on_case con el reporte parcial después de cada caso, para no perder lo medido si se corta."""

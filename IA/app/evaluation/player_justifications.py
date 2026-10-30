@@ -4,7 +4,9 @@ Orden: la del modelo (limpia si hace falta); si no sirve, se le pide al modelo u
 con el nivel fijo; si tampoco sirve, la de respaldo de la rúbrica. El nivel nunca cambia.
 """
 import logging
+import time
 from collections import Counter
+from collections.abc import Callable
 from enum import StrEnum
 
 from app.evaluation.facts import Facts
@@ -31,6 +33,16 @@ class PlayerJustifications:
         self.guard = JustificationGuard(rubric)
         # Cuántas justificaciones salieron de cada fuente; la validación con Groq las reporta.
         self.sources: Counter[JustificationSource] = Counter()
+        self.rewrite_pause_seconds = 0.0
+        self.sleep: Callable[[float], None] = time.sleep
+
+    def pace_rewrites(self, pause_seconds: float, sleep: Callable[[float], None]) -> None:
+        """Espera antes de pedir la reescritura para no chocar con el límite de tokens por minuto de Groq.
+
+        Solo la usa la validación, que hace muchas llamadas seguidas; en el servicio queda en 0.
+        """
+        self.rewrite_pause_seconds = pause_seconds
+        self.sleep = sleep
 
     def resolve(self, grades: dict[CriterionId, CriterionGrade],
                 facts: dict[CriterionId, Facts]) -> dict[CriterionId, str]:
@@ -49,6 +61,8 @@ class PlayerJustifications:
 
     def _rewrite_or_fall_back(self, grades: dict[CriterionId, CriterionGrade],
                               facts: dict[CriterionId, Facts]) -> dict[CriterionId, str]:
+        if self.rewrite_pause_seconds:
+            self.sleep(self.rewrite_pause_seconds)
         try:
             rewritten = self.grader.rewrite(self.prompts.rewrite(facts, grades))
         except GradingUnavailable as error:

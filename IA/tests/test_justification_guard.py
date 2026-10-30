@@ -37,6 +37,9 @@ def test_the_drying_example_from_the_web_still_says_franja_so_it_is_not_usable()
     "Te corresponde el nivel 2 porque corregiste el gas tarde en el secado.",
     "Quedaste en niveles 1 y 2 durante el secado por corregir tarde.",
     "Cumpliste el requisito de bajar el gas a tiempo después del crack.",
+    "Solo redujiste 2 puntos, por lo que no fue suficiente para el nivel más alto.",
+    "Bajaste el gas tarde y por eso quedaste en el nivel más bajo del criterio.",
+    "Tu reacción a las alertas alcanzó para el nivel intermedio del tueste.",
 ])
 def test_rejects_rubric_terms_the_player_should_not_see(text):
     assert review(text).text is None

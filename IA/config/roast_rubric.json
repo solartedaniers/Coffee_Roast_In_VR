@@ -74,7 +74,10 @@
   "justificationForbiddenPatterns": [
     "\\bnivel(?:es)?\\s*\\d",
     "\\bfranjas?\\b",
-    "\\brequisitos?\\b"
+    "\\brequisitos?\\b",
+    "\\bpara el nivel\\b",
+    "\\bel nivel más alto\\b",
+    "\\bel nivel más bajo\\b"
   ],
   "criteria": [
     {

@@ -344,6 +344,36 @@ Resultado con la rúbrica `draft-2026-10-29` y 5 corridas por caso (`eval/result
 
 Frente a la versión `draft-2026-10-28` (`eval/results/evaluation-draft-2026-10-28.json`, 99,6 % de acuerdo exacto), el cambio está en `drying_slow_late_fix`: el jugador corrige el gas a los 80 s y antes el modelo puso 0 en vez de 1 en una de las 5 corridas, porque el nivel 1 no decía nada del tiempo. Ahora el texto aclara que la corrección cuenta aunque llegue después de 60 s y antes de terminar el secado, y las 5 corridas dieron 1. El caso nuevo `short_development_gas_lowered` descarga 25 s después del primer crack con el gas ya bajado, y el modelo le dio 3 en el gas después del crack en las 5 corridas. Hubo 1 intento con timeout de conexión que se recuperó solo con el reintento.
 
+#### Justificaciones para el jugador (`draft-2026-10-30`)
+
+En la web salían justificaciones como "No estuviste en la franja (inBandPercent = 0)…", que un caficultor no entiende. En la versión `draft-2026-10-30` cambié el prompt para que el modelo le hable al jugador en segunda persona y en español sencillo, sin nombres de los hechos, sin "=", sin hablar de niveles, requisitos ni franja, con temperaturas enteras y tiempos en minutos y segundos. También le pido que primero elija el nivel con los hechos y después escriba la justificación, y que solo cuente lo que está en los hechos.
+
+Además, antes de guardar reviso cada justificación en el servicio (`app/evaluation/justification_guard.py`). Si trae algo interno, la limpio. Si no se puede limpiar, le pido al modelo una sola vez que la reescriba con el nivel fijo, y si sigue mal uso un texto de respaldo por criterio y nivel que está en `config/roast_rubric.json`. El nivel y la nota nunca cambian por esto. Las sesiones que ya estaban guardadas conservan su justificación.
+
+Como esta vez solo cambió la redacción, corrí una sola vuelta de los 18 casos. La repetibilidad de 5 corridas es la que medí arriba con `draft-2026-10-29`. El script ahora guarda el resultado después de cada caso, muestra el avance y se detiene si Groq se queda sin cuota diaria:
+
+```bash
+.venv/Scripts/python scripts/evaluation_validation.py --runs 1 --pause 8
+```
+
+Resultado de una corrida (`eval/results/evaluation-draft-2026-10-30.json`):
+
+| Medida | Valor |
+|---|---|
+| Niveles calificados | 51 |
+| Acuerdo exacto | 100 % (51 de 51) |
+| Justificaciones con nombres internos | 0 |
+| De dónde salió cada justificación | 46 del modelo, 3 reescritas, 2 de respaldo |
+| Tokens de Groq | 42.428 en 22 llamadas |
+
+Tres justificaciones reales de esa corrida:
+
+- Secado, nivel 3: "Durante todo el secado la temperatura subió a buen ritmo y no tuviste que mover el gas."
+- Subida hasta el primer crack, nivel 1: "El primer crack llegó a los 14 min, fuera de la ventana de 8‑12 min, aunque la temperatura no se estancó."
+- Gas después del primer crack, nivel 1: "Bajaste el gas 5 puntos, pero lo hiciste 1 min 50 s después del primer crack."
+
+Después de esa corrida ajusté dos detalles de la redacción. En `gas_small_drop` una justificación decía "no fue suficiente para el nivel más alto", así que ahora también bloqueo "para el nivel", "el nivel más alto" y "el nivel más bajo". En el secado de `first_crack_very_late` otra mencionaba correcciones del gas que no hubo, así que agregué al prompt que solo cuente lo que está en los hechos. Comprobé esos dos casos con Groq: los niveles quedaron iguales (1 y 2), y las justificaciones ya no hablan de niveles ni inventan correcciones. Por ejemplo: "Bajaste el gas poco después del primer crack, aunque solo en 2 puntos, y evitaste que la temperatura alcanzara los 215 °C."
+
 Los tests de `tests/test_evaluation_validation.py` revisan sin Groq que cada caso aplique exactamente los criterios que espera y que los casos cubran todos los niveles.
 
 ## Servidor Ubuntu

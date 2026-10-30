@@ -4,6 +4,7 @@ import pytest
 from pydantic import ValidationError
 
 from app.config import SERVICE_ROOT
+from app.evaluation.justification_guard import JustificationGuard
 from app.evaluation.rubric import CriterionId, Evidence, Rubric, RubricStatus
 
 RUBRIC_FILE = SERVICE_ROOT / "config" / "roast_rubric.json"
@@ -20,7 +21,8 @@ def test_the_shipped_rubric_is_a_draft_with_the_approved_criteria():
     assert [criterion.id for criterion in rubric.criteria] == [
         CriterionId.DRYING_GAS, CriterionId.RISE_TO_FIRST_CRACK,
         CriterionId.GAS_AFTER_FIRST_CRACK, CriterionId.ALERT_REACTION]
-    assert rubric.criterion(CriterionId.GAS_AFTER_FIRST_CRACK).evidence is Evidence.INFERENCE
+    assert rubric.criterion(CriterionId.GAS_AFTER_FIRST_CRACK).evidence is Evidence.SOURCED
+    assert "Münchow et al. (2020)" in rubric.criterion(CriterionId.GAS_AFTER_FIRST_CRACK).source
 
 
 def test_renders_parameters_without_trailing_zeros():
@@ -68,4 +70,23 @@ def test_rejects_an_unknown_reaction():
     data["alertReactions"]["BURN_WARNING"] = "PRAY"
 
     with pytest.raises(ValidationError):
+        Rubric.model_validate(data)
+
+
+def test_every_fallback_justification_is_plain_text_for_the_player():
+    rubric = Rubric.from_file(RUBRIC_FILE)
+    guard = JustificationGuard(rubric)
+
+    for criterion in rubric.criteria:
+        for text in criterion.fallback_justifications.values():
+            rendered = rubric.render(text)
+            assert guard.review(rendered).text == rendered, rendered
+            assert len(rendered) <= rubric.parameters.justification_max_chars
+
+
+def test_rejects_missing_fallback_justifications():
+    data = raw_rubric()
+    del data["criteria"][2]["fallbackJustifications"]["3"]
+
+    with pytest.raises(ValidationError, match="fallback"):
         Rubric.model_validate(data)

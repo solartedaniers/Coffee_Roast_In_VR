@@ -11,6 +11,15 @@ SPLIT_WORD = re.compile(r"(\w) -\s*\n\s*([a-záéíóúñü])")
 COMPOUND_LINE_BREAK = re.compile(r"(\w)-\n\s*([a-záéíóúñü])")
 DIGITS = re.compile(r"\d+")
 REFERENCES_HEADING = re.compile(r"(?im)^\s*(references|referencias|bibliograf[ií]a|literatura citada)\b")
+# Nombres de glifo que pypdf deja cuando la fuente no trae su tabla de caracteres: "/gid00030" no
+# significa nada y "/C176" es el símbolo de grados ("275 /C176C" = 275 °C). Los demás "/Cnnn" solo
+# aparecen en licencias y nombres de programas (®, ©), así que se quitan.
+GLYPH_IDS = re.compile(r"(?:/gid\d{5}\s*)+")
+DEGREE_GLYPH = "/C176"
+OTHER_CHAR_GLYPHS = re.compile(r"/C\d{3}")
+TRAILING_NUMBER = re.compile(r"\D(\d{1,4})$")
+# Con menos renglones numerados en una página no se puede distinguir una numeración de cifras reales.
+MIN_NUMBERED_LINES = 5
 
 
 class PdfTextCleaner:
@@ -24,7 +33,8 @@ class PdfTextCleaner:
         self.repeated_line_page_ratio = repeated_line_page_ratio
 
     def clean_pages(self, pages: list[Document]) -> list[Document]:
-        texts = [self._join_split_words(unicodedata.normalize("NFKC", page.text)) for page in pages]
+        texts = [self._join_split_words(_drop_line_numbers(_drop_glyph_names(unicodedata.normalize("NFKC", page.text))))
+                 for page in pages]
         texts = self._drop_references(texts)
         repeated = self._repeated_lines(texts)
         return [replace(page, text="\n".join(line for line in text.splitlines()
@@ -57,6 +67,40 @@ class PdfTextCleaner:
         minimum = max(2, self.repeated_line_page_ratio * len(texts))
         # Las líneas que eran solo números (páginas) quedan con llave vacía y se quitan siempre.
         return {key for key, count in pages_with_line.items() if count >= minimum} | {""}
+
+
+def _drop_line_numbers(text: str) -> str:
+    """Quita los números de línea que un manuscrito aceptado deja pegados al final de cada renglón
+    ("coffee is the most important beverage3"). Solo cuenta un número si sigue la secuencia de los
+    renglones anteriores, así que una cifra real al final de un renglón ("en 2010") no se toca."""
+    lines = text.split("\n")
+    stripped = list(lines)
+    expected = _first_line_number(lines)
+    found = 0
+    for index, line in enumerate(lines):
+        if expected is None:
+            break
+        body = line.rstrip()
+        rest = body[:-len(str(expected))]
+        # Solo renglones de texto: los valores del eje de una gráfica ("0,1", "0,2") no tienen letras.
+        if body.endswith(str(expected)) and any(char.isalpha() for char in rest):
+            stripped[index] = rest
+            expected += 1
+            found += 1
+    return "\n".join(stripped) if found >= MIN_NUMBERED_LINES else text
+
+
+def _first_line_number(lines: list[str]) -> int | None:
+    trailing = [TRAILING_NUMBER.search(line.rstrip()) if any(char.isalpha() for char in line) else None
+                for line in lines]
+    for current, following in zip(trailing, trailing[1:]):
+        if current and following and int(following.group(1)) == int(current.group(1)) + 1:
+            return int(current.group(1))
+    return None
+
+
+def _drop_glyph_names(text: str) -> str:
+    return OTHER_CHAR_GLYPHS.sub("", GLYPH_IDS.sub(" ", text).replace(DEGREE_GLYPH, "°"))
 
 
 def _line_key(line: str) -> str:

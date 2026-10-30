@@ -132,3 +132,59 @@ test('muestra la calificación de la sesión guardada y avisa mientras la IA cal
   expect(screen.getByText(`${roastResult.score}% · Deficiente`)).toBeInTheDocument();
   expect(screen.getByText(evaluationTexts.evaluation.pending)).toBeInTheDocument();
 });
+
+test('la barra muestra la nota final de la sesión guardada en vez de la de las reglas', () => {
+  const finishedSim = {
+    finalTemperature: 150,
+    maxConsecutiveBurnSeconds: 0,
+    burnedFlag: false,
+    firstCrackReached: false,
+    firstCrackTimeSeconds: null,
+    roastingElapsedSeconds: 300,
+    chargeTemperature: 195,
+    maillardStagnationSeconds: 0,
+    maillardStagnationFlag: false,
+  };
+  const roastResult = RoastQualityEvaluator.evaluate(finishedSim, 'INTERMEDIATE');
+  const finalScore = roastResult.score + 7;
+  const savedSession = {
+    id: 9,
+    qualityScore: roastResult.score,
+    finalScore,
+    grade: 'POOR',
+    evaluation: { status: 'COMPLETED', criteria: [], notApplicable: [] },
+  };
+
+  const { container } = render(
+    <RoastResultsPanel
+      {...baseProps}
+      savingState="saved"
+      sim={finishedSim}
+      roastResult={roastResult}
+      savedSession={savedSession}
+      evaluationTexts={esTexts.simulation.dataHistory}
+    />
+  );
+
+  expect(container.querySelector('.score-number')).toHaveTextContent(`${finalScore}%`);
+  expect(container.querySelector('.score-bar-fill')).toHaveStyle({ width: `${finalScore}%` });
+});
+
+test('sin sesión guardada la barra muestra la nota de las reglas', () => {
+  const finishedSim = {
+    finalTemperature: 150,
+    maxConsecutiveBurnSeconds: 0,
+    burnedFlag: false,
+    firstCrackReached: false,
+    firstCrackTimeSeconds: null,
+    roastingElapsedSeconds: 300,
+    chargeTemperature: 195,
+    maillardStagnationSeconds: 0,
+    maillardStagnationFlag: false,
+  };
+  const roastResult = RoastQualityEvaluator.evaluate(finishedSim, 'INTERMEDIATE');
+
+  const { container } = render(<RoastResultsPanel {...baseProps} sim={finishedSim} roastResult={roastResult} />);
+
+  expect(container.querySelector('.score-number')).toHaveTextContent(`${roastResult.score}%`);
+});

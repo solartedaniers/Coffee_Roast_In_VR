@@ -29,7 +29,7 @@ def test_answers_the_evaluation_in_camel_case():
     assert data["status"] == "COMPLETED" and data["rubricVersion"] == RUBRIC.rubric_version
     assert data["score"] == 88.9 and data["notApplicable"] == ["ALERT_REACTION"]
     assert data["criteria"][0] == {"id": "DRYING_GAS", "level": 2, "maxLevel": 3,
-                                   "justification": "Justificación de DRYING_GAS."}
+                                   "justification": "Justificación sobre manejo del gas en el secado."}
 
 
 def test_answers_503_when_groq_fails_so_the_backend_retries():

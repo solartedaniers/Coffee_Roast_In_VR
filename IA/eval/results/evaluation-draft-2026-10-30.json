@@ -1,0 +1,1506 @@
+{
+ "rubricVersion": "draft-2026-10-30",
+ "model": "openai/gpt-oss-120b",
+ "temperature": 0.0,
+ "seed": 1,
+ "reasoningEffort": "low",
+ "runs": 1,
+ "plannedCases": 18,
+ "stoppedReason": null,
+ "summary": {
+  "cases": 18,
+  "gradedLevels": 51,
+  "exactAgreementPercent": 100.0,
+  "withinOneAgreementPercent": 100.0,
+  "stableCriteriaPercent": 100.0,
+  "stableScoreCases": 18,
+  "statusMismatches": [],
+  "applicabilityMismatches": [],
+  "failedAttempts": 1,
+  "incompleteCases": [],
+  "justificationsWithInternalNames": [],
+  "byCriterion": {
+   "DRYING_GAS": {
+    "graded": 17,
+    "exact": 17,
+    "withinOne": 17,
+    "exactAgreementPercent": 100.0,
+    "withinOneAgreementPercent": 100.0
+   },
+   "RISE_TO_FIRST_CRACK": {
+    "graded": 16,
+    "exact": 16,
+    "withinOne": 16,
+    "exactAgreementPercent": 100.0,
+    "withinOneAgreementPercent": 100.0
+   },
+   "GAS_AFTER_FIRST_CRACK": {
+    "graded": 16,
+    "exact": 16,
+    "withinOne": 16,
+    "exactAgreementPercent": 100.0,
+    "withinOneAgreementPercent": 100.0
+   },
+   "ALERT_REACTION": {
+    "graded": 2,
+    "exact": 2,
+    "withinOne": 2,
+    "exactAgreementPercent": 100.0,
+    "withinOneAgreementPercent": 100.0
+   }
+  },
+  "disagreements": [],
+  "justificationSources": {
+   "FALLBACK": 2,
+   "MODEL": 46,
+   "REWRITTEN": 3
+  }
+ },
+ "cases": [
+  {
+   "id": "good",
+   "description": "Tueste correcto: gas al 30 % y al 25 % en el primer crack.",
+   "completedRuns": 1,
+   "failedAttempts": 0,
+   "errors": [],
+   "statusMatches": true,
+   "applicableCriteriaMatch": true,
+   "scores": [
+    100.0
+   ],
+   "criteria": [
+    {
+     "id": "DRYING_GAS",
+     "expected": 3,
+     "levels": [
+      3
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "Durante todo el secado la temperatura subió a buen ritmo y no tuviste que mover el gas."
+     ],
+     "internalNameJustifications": []
+    },
+    {
+     "id": "RISE_TO_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "La temperatura subió sin detenerse y el primer crack llegó a los 10 min 6 s, dentro del rango esperado."
+     ],
+     "internalNameJustifications": []
+    },
+    {
+     "id": "GAS_AFTER_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "Justo al primer crack bajaste el gas 5 puntos en menos de 30 s y la temperatura nunca alcanzó los 215 °C."
+     ],
+     "internalNameJustifications": []
+    }
+   ]
+  },
+  {
+   "id": "drying_fast_quick_fix",
+   "description": "Secado muy rápido corregido bajando el gas a los 10 s.",
+   "completedRuns": 1,
+   "failedAttempts": 0,
+   "errors": [],
+   "statusMatches": true,
+   "applicableCriteriaMatch": true,
+   "scores": [
+    100.0
+   ],
+   "criteria": [
+    {
+     "id": "DRYING_GAS",
+     "expected": 3,
+     "levels": [
+      3
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "Durante el secado la temperatura subió a buen ritmo, entre 5 y 25 °C por minuto, y cuando se salió de ese ritmo corregiste el gas a tiempo."
+     ],
+     "internalNameJustifications": []
+    },
+    {
+     "id": "RISE_TO_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "La temperatura siguió subiendo sin detenerse y el primer crack llegó a los 10 min, dentro del rango esperado."
+     ],
+     "internalNameJustifications": []
+    },
+    {
+     "id": "GAS_AFTER_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "Después del primer crack bajaste el gas en 5 puntos rápidamente, sin que la temperatura alcanzara los 215 °C."
+     ],
+     "internalNameJustifications": []
+    }
+   ]
+  },
+  {
+   "id": "drying_fast_slow_fix",
+   "description": "Secado muy rápido corregido bajando el gas a los 45 s.",
+   "completedRuns": 1,
+   "failedAttempts": 0,
+   "errors": [],
+   "statusMatches": true,
+   "applicableCriteriaMatch": true,
+   "scores": [
+    88.9
+   ],
+   "criteria": [
+    {
+     "id": "DRYING_GAS",
+     "expected": 2,
+     "levels": [
+      2
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "Durante el secado la temperatura subió a buen ritmo buena parte del tiempo, pero corregiste el gas con algo de demora."
+     ],
+     "internalNameJustifications": []
+    },
+    {
+     "id": "RISE_TO_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "La temperatura subió sin detenerse y el primer crack llegó a los 10 min 6 s."
+     ],
+     "internalNameJustifications": []
+    },
+    {
+     "id": "GAS_AFTER_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "Después del primer crack bajaste el gas 5 puntos de inmediato y la temperatura no alcanzó los 215 °C."
+     ],
+     "internalNameJustifications": []
+    }
+   ]
+  },
+  {
+   "id": "drying_fast_wrong_way",
+   "description": "Secado muy rápido y el jugador sube el gas en vez de bajarlo.",
+   "completedRuns": 1,
+   "failedAttempts": 0,
+   "errors": [],
+   "statusMatches": true,
+   "applicableCriteriaMatch": true,
+   "scores": [
+    66.7
+   ],
+   "criteria": [
+    {
+     "id": "DRYING_GAS",
+     "expected": 0,
+     "levels": [
+      0
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "Durante el secado la temperatura subió demasiado rápido y no corregiste el gas, incluso lo moviste en dirección equivocada."
+     ],
+     "internalNameJustifications": []
+    },
+    {
+     "id": "RISE_TO_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "La temperatura subió sin detenerse y el primer crack llegó a los 10 min, dentro del rango esperado."
+     ],
+     "internalNameJustifications": []
+    },
+    {
+     "id": "GAS_AFTER_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "Justo al iniciar el primer crack bajaste el gas 5 puntos y mantuviste la temperatura bajo 215 °C."
+     ],
+     "internalNameJustifications": []
+    }
+   ]
+  },
+  {
+   "id": "drying_slow_late_fix",
+   "description": "Secado lento casi la mitad del tiempo; sube el gas tarde (85 s).",
+   "completedRuns": 1,
+   "failedAttempts": 0,
+   "errors": [],
+   "statusMatches": true,
+   "applicableCriteriaMatch": true,
+   "scores": [
+    77.8
+   ],
+   "criteria": [
+    {
+     "id": "DRYING_GAS",
+     "expected": 1,
+     "levels": [
+      1
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "Durante el secado la temperatura estuvo en la zona adecuada menos de la mitad del tiempo y solo una vez ajustaste el gas, tardando alrededor de 1 min 20 s en hacerlo."
+     ],
+     "internalNameJustifications": []
+    },
+    {
+     "id": "RISE_TO_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "La temperatura subió sin detenerse y el primer crack llegó a los 10 min 6 s, dentro del rango esperado."
+     ],
+     "internalNameJustifications": []
+    },
+    {
+     "id": "GAS_AFTER_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "Después del primer crack bajaste el gas 5 puntos de inmediato y la temperatura nunca alcanzó los 215 °C."
+     ],
+     "internalNameJustifications": []
+    }
+   ]
+  },
+  {
+   "id": "first_crack_slightly_late",
+   "description": "Primer crack a los 12,5 min: medio minuto fuera de la ventana.",
+   "completedRuns": 1,
+   "failedAttempts": 0,
+   "errors": [],
+   "statusMatches": true,
+   "applicableCriteriaMatch": true,
+   "scores": [
+    88.9
+   ],
+   "criteria": [
+    {
+     "id": "DRYING_GAS",
+     "expected": 3,
+     "levels": [
+      3
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "Durante todo el secado la temperatura subió a buen ritmo y nunca tuviste que ajustar el gas."
+     ],
+     "internalNameJustifications": []
+    },
+    {
+     "id": "RISE_TO_FIRST_CRACK",
+     "expected": 2,
+     "levels": [
+      2
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "La temperatura subió sin detenerse y el primer crack llegó a los 12 min 30 s, justo fuera de la ventana de 8‑12 min."
+     ],
+     "internalNameJustifications": []
+    },
+    {
+     "id": "GAS_AFTER_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "Bajaste el gas 5 puntos justo después del primer crack y la temperatura nunca alcanzó los 215 °C."
+     ],
+     "internalNameJustifications": []
+    }
+   ]
+  },
+  {
+   "id": "first_crack_very_late",
+   "description": "Primer crack a los 14 min: dos minutos fuera de la ventana.",
+   "completedRuns": 1,
+   "failedAttempts": 0,
+   "errors": [],
+   "statusMatches": true,
+   "applicableCriteriaMatch": true,
+   "scores": [
+    77.8
+   ],
+   "criteria": [
+    {
+     "id": "DRYING_GAS",
+     "expected": 3,
+     "levels": [
+      3
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "Durante todo el secado la temperatura subió entre 5 y 25 °C por minuto y cada vez que se salió ajustaste el gas correctamente en menos de 20 s."
+     ],
+     "internalNameJustifications": []
+    },
+    {
+     "id": "RISE_TO_FIRST_CRACK",
+     "expected": 1,
+     "levels": [
+      1
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "El primer crack llegó a los 14 min, fuera de la ventana de 8‑12 min, aunque la temperatura no se estancó."
+     ],
+     "internalNameJustifications": []
+    },
+    {
+     "id": "GAS_AFTER_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "Después del primer crack bajaste el gas 5 puntos al instante y la temperatura nunca alcanzó los 215 °C."
+     ],
+     "internalNameJustifications": []
+    }
+   ]
+  },
+  {
+   "id": "stall_medium",
+   "description": "La temperatura se queda plana 20 s antes del primer crack.",
+   "completedRuns": 1,
+   "failedAttempts": 0,
+   "errors": [],
+   "statusMatches": true,
+   "applicableCriteriaMatch": true,
+   "scores": [
+    77.8
+   ],
+   "criteria": [
+    {
+     "id": "DRYING_GAS",
+     "expected": 3,
+     "levels": [
+      3
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "Durante todo el secado la temperatura subió a buen ritmo y nunca tuviste que ajustar el gas."
+     ],
+     "internalNameJustifications": []
+    },
+    {
+     "id": "RISE_TO_FIRST_CRACK",
+     "expected": 1,
+     "levels": [
+      1
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "La temperatura subió bien hasta el primer crack a los 10 min, pero hubo una pausa de unos 20 s."
+     ],
+     "internalNameJustifications": []
+    },
+    {
+     "id": "GAS_AFTER_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "Justo después del primer crack bajaste el gas 5 puntos en menos de 30 s y la temperatura no llegó a 215 °C."
+     ],
+     "internalNameJustifications": []
+    }
+   ]
+  },
+  {
+   "id": "baked_stall",
+   "description": "La temperatura se queda plana 40 s antes del primer crack (horneado).",
+   "completedRuns": 1,
+   "failedAttempts": 0,
+   "errors": [],
+   "statusMatches": true,
+   "applicableCriteriaMatch": true,
+   "scores": [
+    66.7
+   ],
+   "criteria": [
+    {
+     "id": "DRYING_GAS",
+     "expected": 3,
+     "levels": [
+      3
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "Durante todo el secado la temperatura subió a buen ritmo sin que tuvieras que mover el gas."
+     ],
+     "internalNameJustifications": []
+    },
+    {
+     "id": "RISE_TO_FIRST_CRACK",
+     "expected": 0,
+     "levels": [
+      0
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "Hubo una pausa de 40 s en la subida, lo que detuvo el avance antes del primer crack."
+     ],
+     "internalNameJustifications": []
+    },
+    {
+     "id": "GAS_AFTER_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "Bajaste el gas 5 puntos justo después del primer crack y la temperatura no llegó a 215 °C."
+     ],
+     "internalNameJustifications": []
+    }
+   ]
+  },
+  {
+   "id": "gas_drop_late",
+   "description": "Baja el gas 60 s después del primer crack.",
+   "completedRuns": 1,
+   "failedAttempts": 0,
+   "errors": [],
+   "statusMatches": true,
+   "applicableCriteriaMatch": true,
+   "scores": [
+    88.9
+   ],
+   "criteria": [
+    {
+     "id": "DRYING_GAS",
+     "expected": 3,
+     "levels": [
+      3
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "Durante todo el secado la temperatura subió a buen ritmo y no tuviste que ajustar el gas."
+     ],
+     "internalNameJustifications": []
+    },
+    {
+     "id": "RISE_TO_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "La temperatura siguió subiendo sin detenerse y el primer crack llegó a los 10 min."
+     ],
+     "internalNameJustifications": []
+    },
+    {
+     "id": "GAS_AFTER_FIRST_CRACK",
+     "expected": 2,
+     "levels": [
+      2
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "Después del primer crack bajaste el gas 5 puntos en 1 min, manteniendo la temperatura bajo el límite de 215 °C."
+     ],
+     "internalNameJustifications": []
+    }
+   ]
+  },
+  {
+   "id": "gas_drop_very_late",
+   "description": "Baja el gas 110 s después del primer crack.",
+   "completedRuns": 1,
+   "failedAttempts": 0,
+   "errors": [],
+   "statusMatches": true,
+   "applicableCriteriaMatch": true,
+   "scores": [
+    77.8
+   ],
+   "criteria": [
+    {
+     "id": "DRYING_GAS",
+     "expected": 3,
+     "levels": [
+      3
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "Durante todo el secado la temperatura subió a buen ritmo y nunca tuviste que ajustar el gas."
+     ],
+     "internalNameJustifications": []
+    },
+    {
+     "id": "RISE_TO_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "La temperatura siguió subiendo sin detenerse y el primer crack llegó a los 10 min 6 s."
+     ],
+     "internalNameJustifications": []
+    },
+    {
+     "id": "GAS_AFTER_FIRST_CRACK",
+     "expected": 1,
+     "levels": [
+      1
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "Bajaste el gas 5 puntos, pero lo hiciste 1 min 50 s después del primer crack."
+     ],
+     "internalNameJustifications": []
+    }
+   ]
+  },
+  {
+   "id": "gas_small_drop",
+   "description": "En el primer crack baja el gas solo 2 puntos.",
+   "completedRuns": 1,
+   "failedAttempts": 0,
+   "errors": [],
+   "statusMatches": true,
+   "applicableCriteriaMatch": true,
+   "scores": [
+    88.9
+   ],
+   "criteria": [
+    {
+     "id": "DRYING_GAS",
+     "expected": 3,
+     "levels": [
+      3
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "Durante todo el secado la temperatura subió a buen ritmo y nunca tuviste que ajustar el gas."
+     ],
+     "internalNameJustifications": []
+    },
+    {
+     "id": "RISE_TO_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "La temperatura subió sin detenerse y el primer crack llegó a los 10 min, dentro del rango esperado."
+     ],
+     "internalNameJustifications": []
+    },
+    {
+     "id": "GAS_AFTER_FIRST_CRACK",
+     "expected": 2,
+     "levels": [
+      2
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "Bajaste el gas justo después del primer crack, pero solo redujiste 2 puntos, por lo que no fue suficiente para el nivel más alto."
+     ],
+     "internalNameJustifications": []
+    }
+   ]
+  },
+  {
+   "id": "gas_raised_after_crack",
+   "description": "En el primer crack sube el gas en vez de bajarlo.",
+   "completedRuns": 1,
+   "failedAttempts": 0,
+   "errors": [],
+   "statusMatches": true,
+   "applicableCriteriaMatch": true,
+   "scores": [
+    66.7
+   ],
+   "criteria": [
+    {
+     "id": "DRYING_GAS",
+     "expected": 3,
+     "levels": [
+      3
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "Durante todo el secado la temperatura subió a buen ritmo y nunca tuviste que ajustar el gas."
+     ],
+     "internalNameJustifications": []
+    },
+    {
+     "id": "RISE_TO_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "La temperatura siguió subiendo sin detenerse y el primer crack llegó a los 10 min 6 s."
+     ],
+     "internalNameJustifications": []
+    },
+    {
+     "id": "GAS_AFTER_FIRST_CRACK",
+     "expected": 0,
+     "levels": [
+      0
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "Después del primer crack no bajaste el gas; la temperatura siguió subiendo hasta 204 °C sin que lo redujeras."
+     ],
+     "internalNameJustifications": []
+    }
+   ]
+  },
+  {
+   "id": "short_development_gas_lowered",
+   "description": "Descarga 25 s después del primer crack, pero el gas ya se había bajado 5 puntos en el primer crack: el gas después del crack sí se califica.",
+   "completedRuns": 1,
+   "failedAttempts": 0,
+   "errors": [],
+   "statusMatches": true,
+   "applicableCriteriaMatch": true,
+   "scores": [
+    100.0
+   ],
+   "criteria": [
+    {
+     "id": "DRYING_GAS",
+     "expected": 3,
+     "levels": [
+      3
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "Durante todo el secado la temperatura subió a buen ritmo y nunca tuviste que ajustar el gas."
+     ],
+     "internalNameJustifications": []
+    },
+    {
+     "id": "RISE_TO_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "La temperatura subió sin detenerse y el primer crack llegó a los 10 min, dentro del rango esperado."
+     ],
+     "internalNameJustifications": []
+    },
+    {
+     "id": "GAS_AFTER_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "Bajaste el gas 5 puntos en menos de 30 s después del primer crack y la temperatura no alcanzó los 215 °C."
+     ],
+     "internalNameJustifications": []
+    }
+   ]
+  },
+  {
+   "id": "alerts_reacted",
+   "description": "Tueste correcto que además responde a las dos alertas que recibe (baja el gas y descarga).",
+   "completedRuns": 1,
+   "failedAttempts": 1,
+   "errors": [
+    "Groq: Remote service returned 429"
+   ],
+   "statusMatches": true,
+   "applicableCriteriaMatch": true,
+   "scores": [
+    100.0
+   ],
+   "criteria": [
+    {
+     "id": "DRYING_GAS",
+     "expected": 3,
+     "levels": [
+      3
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "Durante los 5 min 15 s del secado la temperatura subió entre 5 y 25 °C por minuto todo el tiempo, sin que tuvieras que mover el gas."
+     ],
+     "internalNameJustifications": []
+    },
+    {
+     "id": "RISE_TO_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "La temperatura subió sin detenerse y el primer crack llegó a los 10 min, dentro del rango esperado."
+     ],
+     "internalNameJustifications": []
+    },
+    {
+     "id": "GAS_AFTER_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "Justo después del primer crack bajaste el gas 10 puntos en menos de 30 s y la temperatura nunca alcanzó los 215 °C."
+     ],
+     "internalNameJustifications": []
+    },
+    {
+     "id": "ALERT_REACTION",
+     "expected": 3,
+     "levels": [
+      3
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "Respondiste a ambas alertas en 5 s y 11 s, cumpliendo rápidamente con lo que se pedía."
+     ],
+     "internalNameJustifications": []
+    }
+   ]
+  },
+  {
+   "id": "alerts_ignored",
+   "description": "Tueste correcto que no responde a ninguna de las tres alertas que recibe.",
+   "completedRuns": 1,
+   "failedAttempts": 0,
+   "errors": [],
+   "statusMatches": true,
+   "applicableCriteriaMatch": true,
+   "scores": [
+    75.0
+   ],
+   "criteria": [
+    {
+     "id": "DRYING_GAS",
+     "expected": 3,
+     "levels": [
+      3
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "Durante todo el secado la temperatura subió a buen ritmo y nunca tuviste que ajustar el gas."
+     ],
+     "internalNameJustifications": []
+    },
+    {
+     "id": "RISE_TO_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "La temperatura siguió subiendo sin detenerse y el primer crack llegó a los 10 min."
+     ],
+     "internalNameJustifications": []
+    },
+    {
+     "id": "GAS_AFTER_FIRST_CRACK",
+     "expected": 3,
+     "levels": [
+      3
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "Bajaste el gas justo después del primer crack, reduciéndolo 5 puntos en menos de 30 s y evitaste la alerta de quemado."
+     ],
+     "internalNameJustifications": []
+    },
+    {
+     "id": "ALERT_REACTION",
+     "expected": 0,
+     "levels": [
+      0
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "No respondiste a ninguna de las alertas que aparecieron durante el tueste."
+     ],
+     "internalNameJustifications": []
+    }
+   ]
+  },
+  {
+   "id": "raw",
+   "description": "Crudo: descarga a los 5 min sin llegar al fin del secado; solo aplica el secado.",
+   "completedRuns": 1,
+   "failedAttempts": 0,
+   "errors": [],
+   "statusMatches": true,
+   "applicableCriteriaMatch": true,
+   "scores": [
+    100.0
+   ],
+   "criteria": [
+    {
+     "id": "DRYING_GAS",
+     "expected": 3,
+     "levels": [
+      3
+     ],
+     "exact": 1,
+     "withinOne": 1,
+     "stable": true,
+     "justifications": [
+      "Durante todo el secado la temperatura subió entre 5 y 25 °C por minuto y nunca tuviste que ajustar el gas."
+     ],
+     "internalNameJustifications": []
+    }
+   ]
+  },
+  {
+   "id": "auto",
+   "description": "Tueste correcto en modo automático: no hay decisiones del jugador que calificar.",
+   "completedRuns": 1,
+   "failedAttempts": 0,
+   "errors": [],
+   "statusMatches": true,
+   "applicableCriteriaMatch": true,
+   "scores": [
+    null
+   ],
+   "criteria": []
+  }
+ ],
+ "groqCalls": [
+  {
+   "kind": "grade",
+   "criteria": [
+    "DRYING_GAS",
+    "RISE_TO_FIRST_CRACK",
+    "GAS_AFTER_FIRST_CRACK"
+   ],
+   "usage": {
+    "queue_time": 0.142173607,
+    "prompt_tokens": 1715,
+    "prompt_time": 0.075661937,
+    "completion_tokens": 369,
+    "completion_time": 0.766900366,
+    "total_tokens": 2084,
+    "total_time": 0.842562303,
+    "completion_tokens_details": {
+     "reasoning_tokens": 190
+    }
+   },
+   "promptChars": 5083
+  },
+  {
+   "kind": "rewrite",
+   "criteria": [
+    "DRYING_GAS"
+   ],
+   "usage": {
+    "queue_time": 0.172982584,
+    "prompt_tokens": 1139,
+    "prompt_time": 0.048658298,
+    "completion_tokens": 136,
+    "completion_time": 0.285781281,
+    "total_tokens": 1275,
+    "total_time": 0.334439579,
+    "completion_tokens_details": {
+     "reasoning_tokens": 72
+    }
+   },
+   "promptChars": 3774
+  },
+  {
+   "kind": "grade",
+   "criteria": [
+    "DRYING_GAS",
+    "RISE_TO_FIRST_CRACK",
+    "GAS_AFTER_FIRST_CRACK"
+   ],
+   "usage": {
+    "queue_time": 0.114451295,
+    "prompt_tokens": 1751,
+    "prompt_time": 0.07676712,
+    "completion_tokens": 553,
+    "completion_time": 1.139924003,
+    "total_tokens": 2304,
+    "total_time": 1.216691123,
+    "completion_tokens_details": {
+     "reasoning_tokens": 370
+    }
+   },
+   "promptChars": 5184
+  },
+  {
+   "kind": "rewrite",
+   "criteria": [
+    "DRYING_GAS"
+   ],
+   "usage": {
+    "queue_time": 0.229280365,
+    "prompt_tokens": 1183,
+    "prompt_time": 0.069151893,
+    "completion_tokens": 233,
+    "completion_time": 0.480011591,
+    "total_tokens": 1416,
+    "total_time": 0.549163484,
+    "completion_tokens_details": {
+     "reasoning_tokens": 160
+    }
+   },
+   "promptChars": 3899
+  },
+  {
+   "kind": "grade",
+   "criteria": [
+    "DRYING_GAS",
+    "RISE_TO_FIRST_CRACK",
+    "GAS_AFTER_FIRST_CRACK"
+   ],
+   "usage": {
+    "queue_time": 0.223466012,
+    "prompt_tokens": 1751,
+    "prompt_time": 0.054581665,
+    "completion_tokens": 568,
+    "completion_time": 1.552785198,
+    "total_tokens": 2319,
+    "total_time": 1.607366863,
+    "prompt_tokens_details": {
+     "cached_tokens": 512
+    },
+    "completion_tokens_details": {
+     "reasoning_tokens": 386
+    }
+   },
+   "promptChars": 5184
+  },
+  {
+   "kind": "rewrite",
+   "criteria": [
+    "DRYING_GAS"
+   ],
+   "usage": {
+    "queue_time": 0.113729519,
+    "prompt_tokens": 1186,
+    "prompt_time": 0.02919554,
+    "completion_tokens": 230,
+    "completion_time": 0.648326775,
+    "total_tokens": 1416,
+    "total_time": 0.677522315,
+    "prompt_tokens_details": {
+     "cached_tokens": 512
+    },
+    "completion_tokens_details": {
+     "reasoning_tokens": 158
+    }
+   },
+   "promptChars": 3913
+  },
+  {
+   "kind": "grade",
+   "criteria": [
+    "DRYING_GAS",
+    "RISE_TO_FIRST_CRACK",
+    "GAS_AFTER_FIRST_CRACK"
+   ],
+   "usage": {
+    "queue_time": 0.171866099,
+    "prompt_tokens": 1749,
+    "prompt_time": 0.087289371,
+    "completion_tokens": 457,
+    "completion_time": 0.950075574,
+    "total_tokens": 2206,
+    "total_time": 1.037364945,
+    "completion_tokens_details": {
+     "reasoning_tokens": 282
+    }
+   },
+   "promptChars": 5188
+  },
+  {
+   "kind": "grade",
+   "criteria": [
+    "DRYING_GAS",
+    "RISE_TO_FIRST_CRACK",
+    "GAS_AFTER_FIRST_CRACK"
+   ],
+   "usage": {
+    "queue_time": 0.228164062,
+    "prompt_tokens": 1752,
+    "prompt_time": 0.043943987,
+    "completion_tokens": 464,
+    "completion_time": 0.967642978,
+    "total_tokens": 2216,
+    "total_time": 1.011586965,
+    "prompt_tokens_details": {
+     "cached_tokens": 1024
+    },
+    "completion_tokens_details": {
+     "reasoning_tokens": 273
+    }
+   },
+   "promptChars": 5188
+  },
+  {
+   "kind": "rewrite",
+   "criteria": [
+    "DRYING_GAS"
+   ],
+   "usage": {
+    "queue_time": 0.203383059,
+    "prompt_tokens": 1191,
+    "prompt_time": 0.047642422,
+    "completion_tokens": 127,
+    "completion_time": 0.267557269,
+    "total_tokens": 1318,
+    "total_time": 0.315199691,
+    "completion_tokens_details": {
+     "reasoning_tokens": 46
+    }
+   },
+   "promptChars": 3923
+  },
+  {
+   "kind": "grade",
+   "criteria": [
+    "DRYING_GAS",
+    "RISE_TO_FIRST_CRACK",
+    "GAS_AFTER_FIRST_CRACK"
+   ],
+   "usage": {
+    "queue_time": 0.173849023,
+    "prompt_tokens": 1715,
+    "prompt_time": 0.081543977,
+    "completion_tokens": 348,
+    "completion_time": 0.720704038,
+    "total_tokens": 2063,
+    "total_time": 0.802248015,
+    "completion_tokens_details": {
+     "reasoning_tokens": 169
+    }
+   },
+   "promptChars": 5082
+  },
+  {
+   "kind": "grade",
+   "criteria": [
+    "DRYING_GAS",
+    "RISE_TO_FIRST_CRACK",
+    "GAS_AFTER_FIRST_CRACK"
+   ],
+   "usage": {
+    "queue_time": 0.23253153,
+    "prompt_tokens": 1715,
+    "prompt_time": 0.172404171,
+    "completion_tokens": 613,
+    "completion_time": 1.461051842,
+    "total_tokens": 2328,
+    "total_time": 1.633456013,
+    "prompt_tokens_details": {
+     "cached_tokens": 1024
+    },
+    "completion_tokens_details": {
+     "reasoning_tokens": 419
+    }
+   },
+   "promptChars": 5082
+  },
+  {
+   "kind": "grade",
+   "criteria": [
+    "DRYING_GAS",
+    "RISE_TO_FIRST_CRACK",
+    "GAS_AFTER_FIRST_CRACK"
+   ],
+   "usage": {
+    "queue_time": 0.220359691,
+    "prompt_tokens": 1715,
+    "prompt_time": 0.053747937,
+    "completion_tokens": 314,
+    "completion_time": 0.773119897,
+    "total_tokens": 2029,
+    "total_time": 0.826867834,
+    "prompt_tokens_details": {
+     "cached_tokens": 512
+    },
+    "completion_tokens_details": {
+     "reasoning_tokens": 138
+    }
+   },
+   "promptChars": 5084
+  },
+  {
+   "kind": "grade",
+   "criteria": [
+    "DRYING_GAS",
+    "RISE_TO_FIRST_CRACK",
+    "GAS_AFTER_FIRST_CRACK"
+   ],
+   "usage": {
+    "queue_time": 0.17135252,
+    "prompt_tokens": 1715,
+    "prompt_time": 0.482209848,
+    "completion_tokens": 395,
+    "completion_time": 0.810888291,
+    "total_tokens": 2110,
+    "total_time": 1.293098139,
+    "prompt_tokens_details": {
+     "cached_tokens": 1024
+    },
+    "completion_tokens_details": {
+     "reasoning_tokens": 227
+    }
+   },
+   "promptChars": 5084
+  },
+  {
+   "kind": "grade",
+   "criteria": [
+    "DRYING_GAS",
+    "RISE_TO_FIRST_CRACK",
+    "GAS_AFTER_FIRST_CRACK"
+   ],
+   "usage": {
+    "queue_time": 0.181019537,
+    "prompt_tokens": 1715,
+    "prompt_time": 0.080108523,
+    "completion_tokens": 271,
+    "completion_time": 0.56653913,
+    "total_tokens": 1986,
+    "total_time": 0.646647653,
+    "completion_tokens_details": {
+     "reasoning_tokens": 101
+    }
+   },
+   "promptChars": 5085
+  },
+  {
+   "kind": "grade",
+   "criteria": [
+    "DRYING_GAS",
+    "RISE_TO_FIRST_CRACK",
+    "GAS_AFTER_FIRST_CRACK"
+   ],
+   "usage": {
+    "queue_time": 0.149510826,
+    "prompt_tokens": 1715,
+    "prompt_time": 0.078185444,
+    "completion_tokens": 355,
+    "completion_time": 0.793906721,
+    "total_tokens": 2070,
+    "total_time": 0.872092165,
+    "prompt_tokens_details": {
+     "cached_tokens": 1536
+    },
+    "completion_tokens_details": {
+     "reasoning_tokens": 187
+    }
+   },
+   "promptChars": 5087
+  },
+  {
+   "kind": "grade",
+   "criteria": [
+    "DRYING_GAS",
+    "RISE_TO_FIRST_CRACK",
+    "GAS_AFTER_FIRST_CRACK"
+   ],
+   "usage": {
+    "queue_time": 0.225724006,
+    "prompt_tokens": 1714,
+    "prompt_time": 0.078073395,
+    "completion_tokens": 358,
+    "completion_time": 0.744613606,
+    "total_tokens": 2072,
+    "total_time": 0.822687001,
+    "completion_tokens_details": {
+     "reasoning_tokens": 182
+    }
+   },
+   "promptChars": 5086
+  },
+  {
+   "kind": "grade",
+   "criteria": [
+    "DRYING_GAS",
+    "RISE_TO_FIRST_CRACK",
+    "GAS_AFTER_FIRST_CRACK"
+   ],
+   "usage": {
+    "queue_time": 0.20100247,
+    "prompt_tokens": 1713,
+    "prompt_time": 0.081808009,
+    "completion_tokens": 268,
+    "completion_time": 0.569234274,
+    "total_tokens": 1981,
+    "total_time": 0.651042283,
+    "completion_tokens_details": {
+     "reasoning_tokens": 96
+    }
+   },
+   "promptChars": 5089
+  },
+  {
+   "kind": "grade",
+   "criteria": [
+    "DRYING_GAS",
+    "RISE_TO_FIRST_CRACK",
+    "GAS_AFTER_FIRST_CRACK"
+   ],
+   "usage": {
+    "queue_time": 0.07602664,
+    "prompt_tokens": 1715,
+    "prompt_time": 0.08190182,
+    "completion_tokens": 280,
+    "completion_time": 0.581205024,
+    "total_tokens": 1995,
+    "total_time": 0.663106844,
+    "completion_tokens_details": {
+     "reasoning_tokens": 106
+    }
+   },
+   "promptChars": 5082
+  },
+  {
+   "kind": "grade",
+   "criteria": [
+    "DRYING_GAS",
+    "RISE_TO_FIRST_CRACK",
+    "GAS_AFTER_FIRST_CRACK",
+    "ALERT_REACTION"
+   ],
+   "usage": {
+    "queue_time": 0.257388394,
+    "prompt_tokens": 2003,
+    "prompt_time": 0.119195137,
+    "completion_tokens": 363,
+    "completion_time": 0.765200527,
+    "total_tokens": 2366,
+    "total_time": 0.884395664,
+    "completion_tokens_details": {
+     "reasoning_tokens": 125
+    }
+   },
+   "promptChars": 5824
+  },
+  {
+   "kind": "rewrite",
+   "criteria": [
+    "DRYING_GAS"
+   ],
+   "usage": {
+    "queue_time": 0.223726271,
+    "prompt_tokens": 1148,
+    "prompt_time": 0.044836338,
+    "completion_tokens": 176,
+    "completion_time": 0.369518518,
+    "total_tokens": 1324,
+    "total_time": 0.414354856,
+    "completion_tokens_details": {
+     "reasoning_tokens": 95
+    }
+   },
+   "promptChars": 3803
+  },
+  {
+   "kind": "grade",
+   "criteria": [
+    "DRYING_GAS",
+    "RISE_TO_FIRST_CRACK",
+    "GAS_AFTER_FIRST_CRACK",
+    "ALERT_REACTION"
+   ],
+   "usage": {
+    "queue_time": 0.113812985,
+    "prompt_tokens": 2040,
+    "prompt_time": 0.114451017,
+    "completion_tokens": 346,
+    "completion_time": 0.715779568,
+    "total_tokens": 2386,
+    "total_time": 0.830230585,
+    "completion_tokens_details": {
+     "reasoning_tokens": 131
+    }
+   },
+   "promptChars": 5942
+  },
+  {
+   "kind": "grade",
+   "criteria": [
+    "DRYING_GAS"
+   ],
+   "usage": {
+    "queue_time": 0.173264613,
+    "prompt_tokens": 1063,
+    "prompt_time": 0.024932482,
+    "completion_tokens": 101,
+    "completion_time": 0.210756739,
+    "total_tokens": 1164,
+    "total_time": 0.235689221,
+    "prompt_tokens_details": {
+     "cached_tokens": 512
+    },
+    "completion_tokens_details": {
+     "reasoning_tokens": 23
+    }
+   },
+   "promptChars": 3362
+  }
+ ]
+}

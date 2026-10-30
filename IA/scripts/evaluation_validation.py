@@ -32,19 +32,25 @@ def main() -> int:
     settings = get_settings()
     service = build_evaluation(settings, build_http(settings))
     cases = [case for case in load_cases(args.cases) if not args.only or case.trace.id in args.only]
-    report = ValidationRunner(service, args.runs, args.pause, args.retries).run(cases)
-    report = {"rubricVersion": service.rubric.rubric_version, "model": settings.evaluation_groq_model,
-              "temperature": settings.evaluation_groq_temperature, "seed": settings.evaluation_groq_seed,
-              "reasoningEffort": settings.evaluation_groq_reasoning_effort} | report
-
     output = args.output or RESULTS_DIR / f"evaluation-{service.rubric.rubric_version}.json"
-    output.write_text(json.dumps(report, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    header = {"rubricVersion": service.rubric.rubric_version, "model": settings.evaluation_groq_model,
+              "temperature": settings.evaluation_groq_temperature, "seed": settings.evaluation_groq_seed,
+              "reasoningEffort": settings.evaluation_groq_reasoning_effort}
+
+    def save(partial: dict) -> None:
+        output.write_text(json.dumps(header | partial, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+
+    runner = ValidationRunner(service, args.runs, args.pause, args.retries, progress=lambda line: print(line, flush=True))
+    report = header | runner.run(cases, on_case=save)
     summary = report["summary"]
     print(json.dumps({key: value for key, value in summary.items() if key != "byCriterion"}, ensure_ascii=False,
                      indent=1))
     print(json.dumps(summary["byCriterion"], ensure_ascii=False, indent=1))
-    print(f"Resultado completo en {output}")
-    return 0 if not summary["incompleteCases"] else 1
+    if report["stoppedReason"]:
+        print(f"Detenida por {report['stoppedReason']}: {len(report['cases'])} de {report['plannedCases']} casos")
+    print(f"Resultado en {output}")
+    complete = not report["stoppedReason"] and not summary["incompleteCases"]
+    return 0 if complete and not summary["justificationsWithInternalNames"] else 1
 
 
 if __name__ == "__main__":

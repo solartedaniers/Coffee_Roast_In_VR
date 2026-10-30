@@ -5,7 +5,7 @@ import pytest
 
 from app.rag import chunk_search as chunk_search_module
 from app.rag.chunk_search import SemanticChunkSearch
-from app.rag.citations import Citation, CitationResolver, RetrievedPassage
+from app.rag.citations import Citation, CitationResolver, DocumentSource, RetrievedPassage
 from app.rag.context_retriever import RagContextRetriever
 from app.rag.embeddings import EmbeddingError
 from app.rag.pdf_catalog import PdfCatalog
@@ -91,7 +91,8 @@ def test_returns_each_passage_with_its_validated_citation(monkeypatch, settings,
                        ScoredChunk("Dos.", {"file_name": "a.pdf", "page_number": 9}, 0.7)]
     query_builder = RagQueryBuilder(DevelopmentTimeRange(settings.rag_dtr_optimal_min, settings.rag_dtr_optimal_max))
     retriever = RagContextRetriever(SemanticChunkSearch(FakeDatabase(), "t", FakeEmbeddings()), query_builder, 4,
-                                    CitationResolver(PdfCatalog(tmp_path), {"a.pdf": "Manual"}))
+                                    CitationResolver(PdfCatalog(tmp_path), {"a.pdf": DocumentSource("Manual")},
+                                                     "{authors} ({year}). {title}"))
 
     passages = retriever.find_relevant_passages(ALL[0].request, ALL[0].level)
 

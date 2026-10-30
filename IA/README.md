@@ -56,6 +56,38 @@ El contrato es exactamente el mismo que tenía la versión anterior en Java, as�
 
 La ingesta no corre sola al arrancar. Cuando agrego o cambio un PDF en `rag-docs/`, la lanzo desde el backend con un usuario ADMIN (`POST /api/v1/admin/rag/ingest`). Los PDFs que no cambiaron se saltan por su hash, y cada archivo se guarda en una sola transacción: si algo falla a mitad, sus fragmentos anteriores siguen intactos.
 
+También la puedo correr sin el backend, directo contra la base y la tabla de `IA/.env`:
+
+```bash
+.venv/Scripts/python -m app.rag.ingest_cli           # solo los PDFs nuevos o cambiados
+.venv/Scripts/python -m app.rag.ingest_cli --force   # todos, por ejemplo después de cambiar RAG_TEXT_SPLITTER
+```
+
+Imprime el resultado de cada archivo y termina con código 1 si alguno falló. Después de una ingesta con material nuevo reinicio el servicio para vaciar la caché de retroalimentación.
+
+## PDFs del RAG
+
+En `rag-docs/` hay 16 PDFs. Diez están en el repositorio: los 7 de antes y 3 artículos con licencia CC BY (Münchow et al. 2020, Yang et al. 2016 y Vakaryk et al. 2023). Los otros 6 tienen el prefijo `local-` y no los subo, porque su licencia no me deja publicarlos aquí; git los ignora con la regla `rag-docs/local-*.pdf` de `.gitignore`:
+
+| Archivo | Documento |
+|---|---|
+| `local-giacalone-2019-common-roasting-defects.pdf` | Giacalone et al. (2019), defectos comunes del tueste (manuscrito aceptado) |
+| `local-puerta-2011-composicion-quimica-taza-cafe.pdf` | Puerta (2011), Avances Técnicos 414 |
+| `local-osorio-2021-calidad-del-cafe.pdf` | Osorio (2021), La calidad del café (Cenicafé) |
+| `local-ramos-criollo-2017-calidad-fisica-sensorial.pdf` | Ramos y Criollo (2017), calidad física y sensorial en La Unión, Nariño |
+| `local-gamboa-2013-taza-cafe-especial-chachagui.pdf` | Gamboa, Mosquera y Paz (2013), taza de café especial en Chachagüí |
+| `local-campo-ceballos-2020-fluidized-bed-roaster.pdf` | Campo-Ceballos et al. (2020), tostadora de lecho fluidizado |
+
+Para tenerlos en el servidor los copio a mano a `IA/rag-docs/` con estos mismos nombres, por ejemplo desde mi máquina:
+
+```bash
+scp rag-docs/local-*.pdf usuario@servidor:/ruta/al/proyecto/IA/rag-docs/
+```
+
+Después corro la ingesta (`python -m app.rag.ingest_cli` en el servidor, o `POST /api/v1/admin/rag/ingest` desde el backend) y reinicio el servicio. Sus títulos y autores ya están en `rag-docs/document_titles.json`, marcados con `"distribution": "local"`, y las citas salen igual que las de los demás.
+
+Si falta alguno, nada se rompe: la ingesta trabaja con los PDFs que encuentre, el catálogo de citas solo exige los que no son locales y los tests revisan el set de preguntas aunque falten. Para medir el RAG sí tienen que estar todos, porque sin ellos no se pueden revisar las páginas esperadas.
+
 ## Caché de retroalimentación
 
 El backend pide la retroalimentación cada vez que se abre una sesión. Para no gastar cuota del proveedor en cada apertura, guardo en memoria las respuestas por 24 horas (máximo 500). La llave incluye los datos de la sesión, el nivel y los modelos configurados, así que cambiar de modelo no reutiliza respuestas viejas. La caché se vacía si una ingesta agrega material nuevo y se pierde al reiniciar el servicio. Con `FEEDBACK_CACHE_TTL_SECONDS=0` queda desactivada.
@@ -74,11 +106,11 @@ Del RAG también configuro los filtros sobre lo recuperado (`RAG_DEDUPLICATE_CHU
 
 Para saber si los fragmentos que llegan al prompt son relevantes, mido la recuperación con un set de preguntas en `eval/rag_questions.json`:
 
-- 25 preguntas de jugador (`player`), cada una con el PDF y la página donde está la respuesta. La página es la del PDF, no la impresa.
-- 5 preguntas de café que no tienen respuesta en los PDFs (`negative`).
+- 43 preguntas de jugador (`player`), cada una con el PDF y la página donde está la respuesta. La página es la del PDF, no la impresa. Las 25 primeras (P01–P25) son de los 7 PDFs de antes y las 18 nuevas (N01–N18), de los 9 PDFs que agregué en la re-ingesta.
+- 7 preguntas de café que no tienen respuesta en los PDFs (`negative`).
 - Las 4 búsquedas reales de la retroalimentación (`session`), sin etiquetas, que reporto aparte.
 
-Para ampliarlo con PDFs nuevos solo agrego casos al JSON; si una página esperada no existe en `rag-docs/`, la carga falla y lo avisa.
+Para ampliarlo con PDFs nuevos solo agrego casos al JSON; si una página esperada no existe en `rag-docs/`, la carga falla y lo avisa. Lo que todavía no valido lo marco con `"draft": true`, en la pregunta completa o en una sola página esperada: se reporta en sus propios grupos y no cambia las cifras de las preguntas validadas, así que se pueden comparar con las mediciones anteriores.
 
 ```bash
 .venv/Scripts/python -m app.rag.diagnostics                       # fragmentos por archivo, archivos fallidos, PDFs sin texto
@@ -116,7 +148,7 @@ Lo que se quedó:
 
 - **Quitar fragmentos repetidos y tomar uno por página** (05 y 06, activos por defecto): el prompt deja de recibir textos repetidos y el MRR sube de 0,409 a 0,437. No exige reindexar.
 - **Citas validadas** (archivo, página y título): `RagContextRetriever.find_relevant_passages` devuelve cada fragmento con su cita solo si el PDF existe y la página está dentro de él. El prompt de la retroalimentación sigue recibiendo exactamente los mismos textos.
-- **Partición por frases de 500 caracteres** (14), lista pero sin aplicar al índice real: limpia el PDF (une palabras cortadas, quita encabezados repetidos y la bibliografía) y junta frases completas. Es la mejor variante medida (MRR 0,482, hit@1 0,40), pero exige reingestar.
+- **Partición por frases de 500 caracteres** (14), activa por defecto desde la re-ingesta con los 16 PDFs (21): limpia el PDF (une palabras cortadas, quita encabezados repetidos, nombres de glifo sueltos, números de línea y la bibliografía) y junta frases completas. Fue la mejor variante medida con los 7 PDFs (MRR 0,482, hit@1 0,40) y lo siguió siendo con los 16.
 
 Lo que revertí, con sus mediciones guardadas como evidencia:
 
@@ -127,6 +159,45 @@ Lo que revertí, con sus mediciones guardadas como evidencia:
 - **Modelo multilingüe bge-m3** (16): con la misma partición queda por debajo de nomic (0,342 contra 0,482). Revisándolo, varias de sus respuestas son páginas relevantes que no están entre las esperadas: es una limitación de etiquetar por página.
 
 Un hallazgo importante: el índice actual (1243 fragmentos) lo armó la versión en Java, cuyo lector de PDF dejaba el texto con muchos espacios. Reingestar los mismos PDFs con el lector de Python, sin ningún otro cambio, deja 390 fragmentos y baja el MRR a 0,335 (10). Por eso, cuando reingeste, lo hago con la partición por frases de 500 y no con la de caracteres.
+
+### Re-ingesta con los PDFs nuevos
+
+Con los 9 PDFs nuevos (16 en total) repetí la comparación sobre una copia desechable de la base, con el set ampliado a 43 preguntas de jugador y 7 negativas. A 7 de las preguntas de antes (P01, P02, P03, P05, P08, P22 y P25) les agregué páginas de los PDFs nuevos que también las responden.
+
+| Variante | hit@1 | hit@3 | hit@4 | hit@5 | MRR@10 | neg. con contexto | p50 ms |
+|---|---|---|---|---|---|---|---|
+| 19-control-indice-java-set-nuevo | 0.19 | 0.28 | 0.33 | 0.35 | 0.254 | 7/7 | 378 |
+| 20-reingesta-16-caracteres-700 | 0.12 | 0.26 | 0.30 | 0.30 | 0.219 | 7/7 | 381 |
+| 21-reingesta-16-frases-500 | 0.26 | 0.40 | 0.42 | 0.42 | 0.344 | 7/7 | 382 |
+| 22-indice-java-mas-9-nuevos-frases-500 | 0.23 | 0.40 | 0.44 | 0.44 | 0.329 | 7/7 | 403 |
+
+- **19:** el índice de Java de siempre (7 PDFs), sin los nuevos.
+- **20:** los 16 PDFs con la partición por caracteres de 700 (1014 fragmentos).
+- **21:** los 16 PDFs con la partición por frases de 500 (1231 fragmentos), limpiando además los nombres de glifo sueltos y los números de línea del manuscrito de Giacalone.
+- **22:** lo que haría la ingesta normal sin forzar: deja el índice de Java de los 7 PDFs viejos y agrega solo los 9 nuevos con frases de 500.
+
+Por grupo de PDFs de cada pregunta:
+
+| Variante | PDFs de antes (P01–P25) | PDFs nuevos en español (N12–N18) | PDFs nuevos en inglés (N01–N11) | Total (43) |
+|---|---|---|---|---|
+| 19 | 0.437 (hit@4 0.56) | 0.000 (hit@4 0.00) | 0.000 (hit@4 0.00) | 0.254 (hit@4 0.33) |
+| 20 | 0.280 (hit@4 0.36) | 0.342 (hit@4 0.57) | 0.000 (hit@4 0.00) | 0.219 (hit@4 0.30) |
+| 21 | 0.457 (hit@4 0.52) | 0.482 (hit@4 0.71) | 0.000 (hit@4 0.00) | 0.344 (hit@4 0.42) |
+| 22 | 0.433 (hit@4 0.56) | 0.473 (hit@4 0.71) | 0.000 (hit@4 0.00) | 0.329 (hit@4 0.44) |
+
+Las cifras son MRR@10. Me quedé con la 21, que es la que uso ahora por defecto (`RAG_TEXT_SPLITTER=sentences`, `RAG_CHUNK_SIZE_CHARS=500`): es la mejor en el total y en los dos grupos que se pueden recuperar. En los PDFs de antes sube de 0,437 a 0,457; en el hit@4 baja de 0,56 a 0,52, que es una sola pregunta y lo tomo como empate. La 22 es más barata de aplicar, pero queda por debajo de la 21 en los tres grupos, así que reingesté todo con `--force`.
+
+### Limitación: los PDFs en inglés
+
+El buscador casi no encuentra los PDFs en inglés cuando la pregunta es en español. En la variante 21 las 11 preguntas que se responden con Münchow, Yang, Vakaryk, Giacalone o Campo-Ceballos sacan 0,000 de MRR, mientras que las 7 de los PDFs nuevos en español sacan 0,482. De los 540 fragmentos que devolvieron las 54 búsquedas, solo 6 son de los PDFs en inglés. Tampoco cuentan las páginas en inglés que les agregué a las preguntas de antes: el grupo P01–P25 da lo mismo con ellas o sin ellas.
+
+No es un problema del índice. Las mismas preguntas hechas en inglés sí llegan a la página correcta de cada uno de esos PDFs. Es el límite de `nomic-embed-text` para relacionar textos de dos idiomas, que ya había medido al traducir la consulta (09).
+
+En la práctica:
+
+- **El asistente de voz y la retroalimentación se apoyan sobre todo en los PDFs en español** (los 7 de antes y los de Cenicafé, Ramos y Criollo y Gamboa). Ahí está casi todo lo que necesita un jugador.
+- **La rúbrica cita los PDFs en inglés de forma directa**, en el texto de cada criterio de `config/roast_rubric.json`, sin pasar por el buscador. Por ejemplo, el criterio del gas después del primer crack se apoya en Münchow et al. (2020).
+- Los PDFs en inglés quedan indexados igual, así que se aprovechan si el jugador pregunta en inglés o si más adelante cambio el modelo de embeddings.
 
 ## Asistente de voz
 
@@ -246,7 +317,7 @@ Después del primer crack el resultado es muy sensible al gas: con el 25 % el tu
 
 Cada sesión tiene una nota final que combina las reglas del simulador con una calificación de las decisiones del jugador: `0.7 × qualityScore + 0.3 × nota de la rúbrica`, con un tope de 50 si el resultado tiene un defecto (crudo, quemado u horneado). Los pesos, el tope y los rangos de la calificación (Excelente 85, Bueno 70, Regular 50) están en `app.roast-evaluation` del backend.
 
-- **Rúbrica:** `config/roast_rubric.json`, en estado *DRAFT*. Tiene cuatro criterios: gas en el secado, subida hasta el primer crack, gas después del primer crack y reacción a las alertas. Cada uno dice de dónde sale: *Fuente*, *Inferencia* o *Parámetro de diseño*. El criterio del gas después del primer crack lo marqué como inferencia, apoyada en el calor que genera el grano según el PDF de modelado, no como algo que digan las fuentes. Las fuentes y los umbrales se cambian en ese archivo sin tocar código.
+- **Rúbrica:** `config/roast_rubric.json`, en estado *DRAFT*. Tiene cuatro criterios: gas en el secado, subida hasta el primer crack, gas después del primer crack y reacción a las alertas. Cada uno dice de dónde sale: *Fuente*, *Inferencia* o *Parámetro de diseño*. Con los PDFs nuevos, el criterio del gas después del primer crack pasó de inferencia a fuente: Münchow et al. (2020) dice que el tueste necesita menos energía al final, cuando se vuelve exotérmico. Lo complementa el calor que genera el grano según Bustos-Vanegas et al. (2025). Si el jugador descarga menos de 30 s después del primer crack, el criterio solo se califica si ya había bajado el gas. Las fuentes y los umbrales se cambian en ese archivo sin tocar código.
 - **Quién calcula qué:** el código mide los hechos sobre la traza (porcentaje en la franja, demoras de corrección, estancamientos, minuto del primer crack, bajada del gas, reacción a cada alerta). El modelo solo elige un nivel de 0 a 3 por criterio y escribe una justificación corta, con un esquema JSON estricto. La nota de la rúbrica la calculo yo: `100 × suma de niveles / (3 × criterios que aplican)`. Los criterios que no aplican quedan fuera del denominador.
 - **Modelo:** Groq `openai/gpt-oss-120b`, temperatura 0, semilla fija y razonamiento `low` (`EVALUATION_GROQ_*`). No uso respaldo con Ollama: otro modelo podría darle otra nota a la misma sesión. Si Groq no responde, el backend reintenta con espera creciente y, al final, deja la nota de las reglas.
 - **Modo automático:** no se califica (`NOT_APPLICABLE`), porque el gas no lo maneja el jugador. Esas sesiones no entran al ranking.
@@ -254,24 +325,54 @@ Cada sesión tiene una nota final que combina las reglas del simulador con una c
 
 ### Validación con Groq
 
-`scripts/evaluation_validation.py` corre la rúbrica con Groq real sobre los casos de `eval/evaluation/cases.json`. Son 17 trazas con el nivel que le corresponde a cada criterio, que fijé leyendo la rúbrica y no las respuestas del modelo. Mide el acuerdo con el nivel esperado y la repetibilidad corriendo cada caso varias veces:
+`scripts/evaluation_validation.py` corre la rúbrica con Groq real sobre los casos de `eval/evaluation/cases.json`. Son 18 trazas con el nivel que le corresponde a cada criterio, que fijé leyendo la rúbrica y no las respuestas del modelo. Mide el acuerdo con el nivel esperado y la repetibilidad corriendo cada caso varias veces:
 
 ```bash
 .venv/Scripts/python scripts/evaluation_validation.py --runs 5 --pause 8
 ```
 
-Resultado con la rúbrica `draft-2026-10-28` y 5 corridas por caso (`eval/results/evaluation-draft-2026-10-28.json`):
+Resultado con la rúbrica `draft-2026-10-29` y 5 corridas por caso (`eval/results/evaluation-draft-2026-10-29.json`):
 
 | Medida | Valor |
 |---|---|
-| Niveles calificados | 240 |
-| Acuerdo exacto | 99,6 % (239 de 240) |
+| Niveles calificados | 255 |
+| Acuerdo exacto | 100 % (255 de 255) |
 | Acuerdo a un nivel | 100 % |
-| Criterios con el mismo nivel en las 5 corridas | 97,9 % (47 de 48) |
-| Casos calificados con la misma nota en las 5 corridas | 15 de 16 |
+| Criterios con el mismo nivel en las 5 corridas | 100 % (51 de 51) |
+| Casos calificados con la misma nota en las 5 corridas | 17 de 17 |
 | Criterios aplicados y estado (AUTO) | Sin diferencias |
 
-Por criterio, el acuerdo exacto fue 98,8 % en el secado y 100 % en los otros tres. El único desacuerdo fue en `drying_slow_late_fix`: el jugador corrigió el gas a los 80 s y en 1 de las 5 corridas el modelo puso 0 en vez de 1, porque entendió que la corrección tenía que llegar en 60 s o menos. Es una ambigüedad del texto del nivel 1, que no dice nada del tiempo; la anoto para revisarla cuando ajuste la rúbrica con los PDFs nuevos. Hubo 2 intentos con timeout de conexión que se recuperaron solos con el reintento.
+Frente a la versión `draft-2026-10-28` (`eval/results/evaluation-draft-2026-10-28.json`, 99,6 % de acuerdo exacto), el cambio está en `drying_slow_late_fix`: el jugador corrige el gas a los 80 s y antes el modelo puso 0 en vez de 1 en una de las 5 corridas, porque el nivel 1 no decía nada del tiempo. Ahora el texto aclara que la corrección cuenta aunque llegue después de 60 s y antes de terminar el secado, y las 5 corridas dieron 1. El caso nuevo `short_development_gas_lowered` descarga 25 s después del primer crack con el gas ya bajado, y el modelo le dio 3 en el gas después del crack en las 5 corridas. Hubo 1 intento con timeout de conexión que se recuperó solo con el reintento.
+
+#### Justificaciones para el jugador (`draft-2026-10-30`)
+
+En la web salían justificaciones como "No estuviste en la franja (inBandPercent = 0)…", que un caficultor no entiende. En la versión `draft-2026-10-30` cambié el prompt para que el modelo le hable al jugador en segunda persona y en español sencillo, sin nombres de los hechos, sin "=", sin hablar de niveles, requisitos ni franja, con temperaturas enteras y tiempos en minutos y segundos. También le pido que primero elija el nivel con los hechos y después escriba la justificación, y que solo cuente lo que está en los hechos.
+
+Además, antes de guardar reviso cada justificación en el servicio (`app/evaluation/justification_guard.py`). Si trae algo interno, la limpio. Si no se puede limpiar, le pido al modelo una sola vez que la reescriba con el nivel fijo, y si sigue mal uso un texto de respaldo por criterio y nivel que está en `config/roast_rubric.json`. El nivel y la nota nunca cambian por esto. Las sesiones que ya estaban guardadas conservan su justificación.
+
+Como esta vez solo cambió la redacción, corrí una sola vuelta de los 18 casos. La repetibilidad de 5 corridas es la que medí arriba con `draft-2026-10-29`. El script ahora guarda el resultado después de cada caso, muestra el avance y se detiene si Groq se queda sin cuota diaria:
+
+```bash
+.venv/Scripts/python scripts/evaluation_validation.py --runs 1 --pause 8
+```
+
+Resultado de una corrida (`eval/results/evaluation-draft-2026-10-30.json`):
+
+| Medida | Valor |
+|---|---|
+| Niveles calificados | 51 |
+| Acuerdo exacto | 100 % (51 de 51) |
+| Justificaciones con nombres internos | 0 |
+| De dónde salió cada justificación | 46 del modelo, 3 reescritas, 2 de respaldo |
+| Tokens de Groq | 42.428 en 22 llamadas |
+
+Tres justificaciones reales de esa corrida:
+
+- Secado, nivel 3: "Durante todo el secado la temperatura subió a buen ritmo y no tuviste que mover el gas."
+- Subida hasta el primer crack, nivel 1: "El primer crack llegó a los 14 min, fuera de la ventana de 8‑12 min, aunque la temperatura no se estancó."
+- Gas después del primer crack, nivel 1: "Bajaste el gas 5 puntos, pero lo hiciste 1 min 50 s después del primer crack."
+
+Después de esa corrida ajusté dos detalles de la redacción. En `gas_small_drop` una justificación decía "no fue suficiente para el nivel más alto", así que ahora también bloqueo "para el nivel", "el nivel más alto" y "el nivel más bajo". En el secado de `first_crack_very_late` otra mencionaba correcciones del gas que no hubo, así que agregué al prompt que solo cuente lo que está en los hechos. Comprobé esos dos casos con Groq: los niveles quedaron iguales (1 y 2), y las justificaciones ya no hablan de niveles ni inventan correcciones. Por ejemplo: "Bajaste el gas poco después del primer crack, aunque solo en 2 puntos, y evitaste que la temperatura alcanzara los 215 °C."
 
 Los tests de `tests/test_evaluation_validation.py` revisan sin Groq que cada caso aplique exactamente los criterios que espera y que los casos cubran todos los niveles.
 

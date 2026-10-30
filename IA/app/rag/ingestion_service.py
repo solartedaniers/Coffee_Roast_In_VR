@@ -2,6 +2,8 @@
 
 Solo corre cuando el backend lo pide (POST /api/v1/admin/rag/ingest, que valida al ADMIN). Un
 archivo cuyo hash ya está registrado se salta, así que agregar un PDF no reindexa los demás.
+Con `force` se reingestan todos aunque no hayan cambiado, que es lo que hace falta al cambiar la
+partición del texto (el hash del PDF es el mismo). Cada PDF va en su propia transacción.
 """
 import hashlib
 import logging
@@ -32,13 +34,13 @@ class RagIngestionService:
         self.splitter = splitter
         self.embedder = DocumentEmbedder(embeddings, embedding_batch_size)
 
-    def ingest_all(self) -> RagIngestionSummaryResponse:
+    def ingest_all(self, force: bool = False) -> RagIngestionSummaryResponse:
         paths = sorted(self.docs_dir.glob(PDF_PATTERN)) if self.docs_dir.is_dir() else []
         if not paths:
             log.warning("No PDFs found under %s", self.docs_dir)
-        return RagIngestionSummaryResponse.from_files([self.ingest_one(path) for path in paths])
+        return RagIngestionSummaryResponse.from_files([self.ingest_one(path, force) for path in paths])
 
-    def ingest_one(self, path: Path) -> FileResult:
+    def ingest_one(self, path: Path, force: bool = False) -> FileResult:
         try:
             content_hash = hashlib.sha256(path.read_bytes()).hexdigest()
         except OSError as error:
@@ -47,7 +49,7 @@ class RagIngestionService:
 
         with self.database.transaction() as connection:
             existing = IngestedDocumentRepository(connection).find_by_file_name(path.name)
-        if existing and existing.content_hash == content_hash:
+        if existing and existing.content_hash == content_hash and not force:
             return FileResult(file_name=path.name, status=IngestionStatus.SKIPPED_UNCHANGED,
                               chunk_count=existing.chunk_count)
 

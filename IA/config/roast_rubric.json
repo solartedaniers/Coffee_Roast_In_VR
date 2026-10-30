@@ -1,6 +1,6 @@
 {
   "description": "Rúbrica de las decisiones del jugador para la calificación combinada. BORRADOR: los criterios, los niveles y las fuentes los valida el autor de la tesis. Los textos usan {parametro} con los valores de parameters.",
-  "rubricVersion": "draft-2026-10-28",
+  "rubricVersion": "draft-2026-10-30",
   "status": "DRAFT",
   "maxLevel": 3,
   "parameters": {
@@ -29,7 +29,8 @@
     "alertReactedHigh": 90,
     "alertReactedMedium": 60,
     "alertReactedLow": 30,
-    "justificationMaxChars": 300
+    "justificationMaxChars": 300,
+    "justificationMinChars": 20
   },
   "alertReactions": {
     "DRYING_RISE_FAST": "LOWER_GAS",
@@ -52,15 +53,32 @@
     "criterion": "Criterio",
     "description": "Qué evalúa",
     "levels": "Niveles",
-    "facts": "Hechos"
+    "facts": "Hechos",
+    "assignedLevel": "Nivel ya asignado",
+    "previousJustification": "Justificación que hay que reescribir"
   },
   "instructions": [
     "Eres un evaluador de tueste de café. Calificas las decisiones del jugador en un simulador de tostadora, no el resultado final: la temperatura final, la duración y el DTR ya los califican otras reglas y no debes repetirlos.",
     "Para cada criterio recibes su descripción, los cuatro niveles (0 a {maxLevel}) y los hechos medidos por el sistema en la curva. Los hechos son exactos: no los recalcules ni inventes otros.",
     "Asigna a cada criterio el nivel cuya descripción coincida con los hechos. Si los hechos quedan entre dos niveles, elige el más bajo.",
-    "La justificación va en español, en una o dos frases, con máximo {justificationMaxChars} caracteres, y cita los hechos que decidieron el nivel con sus cifras. Habla del jugador en segunda persona.",
-    "Los hechos vienen en JSON con nombres en inglés; los segundos son del reloj del tueste, que empieza en cero al cargar el café y el gas va de 0 a 100.",
+    "Primero elige el nivel comparando los hechos con el texto de cada nivel: un nivel solo aplica si los hechos cumplen lo que dice su texto. Después escribe la justificación, que debe ser coherente con ese nivel; la forma de redactarla nunca cambia el nivel.",
+    "Los hechos vienen en JSON con nombres en inglés solo para que los leas; los segundos son del reloj del tueste, que empieza en cero al cargar el café, y el gas va de 0 a 100.",
+    "La justificación la lee el jugador, un caficultor sin conocimientos técnicos: escríbela en español sencillo, en una o dos frases, con máximo {justificationMaxChars} caracteres, y háblale en segunda persona (\"bajaste el gas…\", \"la temperatura subió…\"). Explica con cifras lo que hizo y lo que pasó en el tueste.",
+    "En la justificación nunca escribas los nombres de los hechos, palabras en inglés, palabras pegadas como inBandPercent, el signo = ni paréntesis con datos técnicos.",
+    "Cuenta solo lo que hizo el jugador y lo que pasó en el tueste: no menciones niveles, requisitos, porcentajes de la rúbrica ni la palabra franja. En vez de \"El 100 % del secado estuvo dentro de la franja, cumpliendo el requisito del 80 % para nivel 3\", escribe \"Durante todo el secado la temperatura subió a buen ritmo\".",
+    "La justificación solo cuenta cosas que estén en los hechos: no inventes acciones del jugador ni lo que pasó en el tueste. Si los hechos no muestran que la temperatura se salió del ritmo en el secado, no menciones correcciones del gas.",
+    "Redondea las temperaturas a enteros (216 °C, no 216.24 °C) y escribe los tiempos en minutos y segundos fáciles de leer: 354 s es \"5 min 54 s\" y 5,9 min también es \"5 min 54 s\".",
+    "En el secado lo que tiene un ritmo es la subida de la temperatura, en °C por minuto; el gas es lo que el jugador mueve para corregir ese ritmo. No escribas que el gas estuvo entre ciertos °C por minuto ni en una zona: escribe, por ejemplo, \"durante todo el secado la temperatura subió a buen ritmo sin que tuvieras que mover el gas\".",
     "Responde solo con el JSON pedido."
+  ],
+  "rewriteInstruction": "Ya calificaste estos criterios y el nivel no cambia. Tu justificación anterior traía nombres internos o datos técnicos que el jugador no entiende: reescríbela siguiendo las reglas de arriba, con el mismo sentido y las mismas cifras, sin cambiar el nivel.",
+  "justificationForbiddenPatterns": [
+    "\\bnivel(?:es)?\\s*\\d",
+    "\\bfranjas?\\b",
+    "\\brequisitos?\\b",
+    "\\bpara el nivel\\b",
+    "\\bel nivel más alto\\b",
+    "\\bel nivel más bajo\\b"
   ],
   "criteria": [
     {
@@ -68,12 +86,18 @@
       "title": "Manejo del gas en el secado",
       "description": "Desde el punto de retorno hasta {dryingEndTemperature} °C: si la subida se mantuvo en la franja de {dryingRiseMin} a {dryingRiseMax} °C/min y si el jugador corrigió el gas cuando se salió.",
       "evidence": "SOURCED",
-      "source": "Manual básico de buenas prácticas para el tostado del café p.11 (muy rápido deja puntas oscuras, muy lento hornea) y Jama tabla 2 (la curva aceptada más lenta sube unos 6,5 °C/min). Parámetro de diseño: {dryingRiseMin} y {dryingRiseMax} °C/min son los umbrales de las alertas de subida lenta y rápida; el tueste correcto del simulador sube unos 8 °C/min al final del secado.",
+      "source": "Manual básico de buenas prácticas para el tostado del café p.11 (muy rápido deja puntas oscuras, muy lento hornea) y Jama tabla 2 (la curva aceptada más lenta sube unos 6,5 °C/min). Yang et al. (2016) p.5 y Giacalone et al. (2019) p.8: el defecto de quemado (scorched) viene de un tueste más rápido y caliente. Parámetro de diseño: {dryingRiseMin} y {dryingRiseMax} °C/min son los umbrales de las alertas de subida lenta y rápida; el tueste correcto del simulador sube unos 8 °C/min al final del secado.",
       "levels": {
         "3": "La subida estuvo en la franja al menos el {dryingInBandHigh} % del secado, o cada vez que se salió el jugador corrigió el gas en la dirección correcta en {dryingQuickCorrectionSeconds} s o menos.",
         "2": "La subida estuvo en la franja entre el {dryingInBandLow} % y el {dryingInBandHigh} % del secado, o las correcciones llegaron entre {dryingQuickCorrectionSeconds} y {dryingSlowCorrectionSeconds} s.",
-        "1": "La subida estuvo en la franja menos del {dryingInBandLow} % del secado, pero hubo al menos una corrección del gas en la dirección correcta.",
+        "1": "La subida estuvo en la franja menos del {dryingInBandLow} % del secado, pero hubo al menos una corrección del gas en la dirección correcta, aunque haya llegado después de {dryingSlowCorrectionSeconds} s y antes de terminar el secado.",
         "0": "La subida estuvo fuera de la franja la mayor parte del secado y el jugador no corrigió el gas, o lo movió en la dirección equivocada."
+      },
+      "fallbackJustifications": {
+        "3": "Durante el secado la temperatura subió a buen ritmo, entre {dryingRiseMin} y {dryingRiseMax} °C por minuto, y cuando se salió de ese ritmo corregiste el gas a tiempo.",
+        "2": "Durante el secado la temperatura subió a buen ritmo buena parte del tiempo, pero corregiste el gas con algo de demora.",
+        "1": "Durante el secado la temperatura subió fuera del ritmo recomendado casi todo el tiempo, aunque corregiste el gas al menos una vez.",
+        "0": "Durante el secado la temperatura subió fuera del ritmo recomendado y no corregiste el gas, o lo moviste al lado contrario."
       }
     },
     {
@@ -81,25 +105,37 @@
       "title": "Subida hasta el primer crack",
       "description": "Desde {dryingEndTemperature} °C hasta el primer crack: si la temperatura siguió subiendo sin estancarse y si el primer crack llegó entre {firstCrackMinMinutes} y {firstCrackMaxMinutes} min.",
       "evidence": "SOURCED",
-      "source": "Avances Técnicos 573 (primer crack entre 8 y 12 min) y fase de Maillard 160-200 °C (Debona et al. 2022, Bustos-Vanegas et al. 2025). Parámetro de diseño: estancamientos de {stallMediumSeconds} y {stallBakedSeconds} s.",
+      "source": "Avances Técnicos 573 (primer crack entre 8 y 12 min), que coincide con Münchow et al. (2020) p.8 (7:21 a 10:07 min) y Vakaryk et al. (2023) p.3 (6:03 a 8:21 min) y fase de Maillard 160-200 °C (Debona et al. 2022, Bustos-Vanegas et al. 2025). El horneado (baked) se asocia a un tueste más largo (Yang et al. 2016 p.6, Münchow et al. 2020 p.10). Parámetro de diseño: estancamientos de {stallMediumSeconds} y {stallBakedSeconds} s.",
       "levels": {
         "3": "Ningún estancamiento duró más de {stallShortSeconds} s y el primer crack llegó entre {firstCrackMinMinutes} y {firstCrackMaxMinutes} min.",
         "2": "Hubo un estancamiento de {stallShortSeconds} a {stallMediumSeconds} s, o el primer crack llegó fuera de la ventana por {firstCrackSlackMinutes} min o menos.",
         "1": "Hubo un estancamiento de {stallMediumSeconds} a {stallBakedSeconds} s, o el primer crack llegó fuera de la ventana por más de {firstCrackSlackMinutes} min.",
         "0": "Hubo un estancamiento de {stallBakedSeconds} s o más, o el tueste no llegó al primer crack."
+      },
+      "fallbackJustifications": {
+        "3": "La temperatura siguió subiendo sin quedarse quieta y el primer crack llegó entre los {firstCrackMinMinutes} y los {firstCrackMaxMinutes} minutos, como se espera.",
+        "2": "La temperatura se quedó quieta un rato corto, o el primer crack llegó un poco antes o después de los {firstCrackMinMinutes} a {firstCrackMaxMinutes} minutos.",
+        "1": "La temperatura se quedó quieta un buen rato, o el primer crack llegó lejos de los {firstCrackMinMinutes} a {firstCrackMaxMinutes} minutos.",
+        "0": "La temperatura se quedó quieta tanto tiempo que el café se puede hornear, o el tueste no llegó al primer crack."
       }
     },
     {
       "id": "GAS_AFTER_FIRST_CRACK",
       "title": "Gas después del primer crack",
       "description": "Después del primer crack el grano genera calor propio: si el jugador bajó el gas a tiempo para controlar la subida sin llegar al aviso de {burnWarningTemperature} °C. Bajarlo hasta {gasDropAnticipationSeconds} s antes del primer crack cuenta como hacerlo en el momento.",
-      "evidence": "INFERENCE",
-      "source": "Inferencia apoyada en la generación de calor del grano (Modeling and simulation of coffee bean heating during roasting: effect of heat generation); el artículo no indica bajar el gas. Parámetro de diseño: {gasDropMinPoints} puntos (la curva correcta de referencia baja de 30 a 25), {gasDropQuickSeconds} s y {gasDropLateSeconds} s.",
+      "evidence": "SOURCED",
+      "source": "Münchow et al. (2020) p.2 y p.5: el tueste necesita mucha energía al inicio y menos al final, a medida que se vuelve más exotérmico, y el aporte de calor solo se reduce, nunca se sube. Lo complementa la generación de calor del grano de Bustos-Vanegas et al. (2025). Parámetro de diseño: {gasDropMinPoints} puntos (la curva correcta de referencia baja de 30 a 25), {gasDropQuickSeconds} s y {gasDropLateSeconds} s.",
       "levels": {
         "3": "Bajó el gas al menos {gasDropMinPoints} puntos en {gasDropQuickSeconds} s o menos después del primer crack y no llegó a {burnWarningTemperature} °C.",
         "2": "Bajó el gas entre {gasDropQuickSeconds} y {gasDropLateSeconds} s después del primer crack, o lo bajó menos de {gasDropMinPoints} puntos.",
         "1": "Bajó el gas después de {gasDropLateSeconds} s, o solo después de llegar a {burnWarningTemperature} °C.",
         "0": "No bajó el gas después del primer crack, o lo subió."
+      },
+      "fallbackJustifications": {
+        "3": "Bajaste el gas a tiempo después del primer crack y la temperatura no llegó a {burnWarningTemperature} °C.",
+        "2": "Bajaste el gas después del primer crack, pero con algo de demora o menos de lo necesario.",
+        "1": "Bajaste el gas muy tarde después del primer crack, o solo cuando la temperatura ya llegaba a {burnWarningTemperature} °C.",
+        "0": "Después del primer crack no bajaste el gas, o lo subiste, justo cuando el grano empieza a generar calor propio."
       }
     },
     {
@@ -113,6 +149,12 @@
         "2": "Reaccionó como se esperaba entre el {alertReactedMedium} % y el {alertReactedHigh} % de las alertas.",
         "1": "Reaccionó como se esperaba entre el {alertReactedLow} % y el {alertReactedMedium} % de las alertas.",
         "0": "Reaccionó como se esperaba a menos del {alertReactedLow} % de las alertas."
+      },
+      "fallbackJustifications": {
+        "3": "Reaccionaste como se esperaba a casi todas las alertas del tueste.",
+        "2": "Reaccionaste como se esperaba a buena parte de las alertas, pero no a todas.",
+        "1": "Reaccionaste como se esperaba solo a algunas de las alertas del tueste.",
+        "0": "Casi no reaccionaste a las alertas del tueste: cuando aparezca una, revisa el gas en los {alertReactionSeconds} segundos siguientes."
       }
     }
   ]

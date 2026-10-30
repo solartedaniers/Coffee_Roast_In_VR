@@ -139,6 +139,18 @@ def test_replaces_the_chunks_of_a_changed_pdf(tmp_path, state):
     assert state.records["a.pdf"].chunk_count == 2
 
 
+def test_force_reingests_unchanged_pdfs_replacing_their_chunks(tmp_path, state):
+    write_text_pdf(tmp_path / "a.pdf", ["Secado"])
+    service = service_for(tmp_path)
+    service.ingest_all()
+
+    summary = service.ingest_all(force=True)
+
+    assert summary.files[0].status is IngestionStatus.REINGESTED
+    assert len(state.chunks) == 1
+    assert state.records["a.pdf"].id == 1
+
+
 def test_marks_a_broken_pdf_as_failed_and_continues(tmp_path, state):
     (tmp_path / "a.pdf").write_bytes(b"not a pdf")
     write_text_pdf(tmp_path / "b.pdf", ["Secado"])

@@ -1,4 +1,5 @@
 """Rúbrica de las decisiones del jugador (config/roast_rubric.json): criterios, niveles y parámetros."""
+import re
 from enum import StrEnum
 from pathlib import Path
 
@@ -62,6 +63,7 @@ class RubricParameters(RubricModel):
     alert_reacted_medium: float = Field(ge=0, le=100)
     alert_reacted_low: float = Field(ge=0, le=100)
     justification_max_chars: int = Field(gt=0)
+    justification_min_chars: int = Field(gt=0)
 
     @model_validator(mode="after")
     def ranges_are_ordered(self) -> "RubricParameters":
@@ -73,6 +75,7 @@ class RubricParameters(RubricModel):
             and self.first_crack_min_minutes < self.first_crack_max_minutes
             and self.gas_drop_quick_seconds <= self.gas_drop_late_seconds
             and self.alert_reacted_low <= self.alert_reacted_medium <= self.alert_reacted_high
+            and self.justification_min_chars < self.justification_max_chars
         )
         if not ordered:
             raise ValueError("Rubric parameters must keep their ranges in order")
@@ -88,6 +91,8 @@ class PromptLabels(RubricModel):
     description: str = Field(min_length=1)
     levels: str = Field(min_length=1)
     facts: str = Field(min_length=1)
+    assigned_level: str = Field(min_length=1)
+    previous_justification: str = Field(min_length=1)
 
 
 class Criterion(RubricModel):
@@ -97,6 +102,8 @@ class Criterion(RubricModel):
     evidence: Evidence
     source: str = Field(min_length=1)
     levels: dict[int, str]
+    # Lo que ve el jugador si el modelo no da una justificación legible para él.
+    fallback_justifications: dict[int, str]
 
 
 class Rubric(RubricModel):
@@ -109,6 +116,9 @@ class Rubric(RubricModel):
     reaction_labels: dict[ExpectedReaction, str]
     prompt_labels: PromptLabels
     instructions: list[str] = Field(min_length=1)
+    rewrite_instruction: str = Field(min_length=1)
+    # Términos de la rúbrica que el jugador no debe ver en una justificación (sin distinguir mayúsculas).
+    justification_forbidden_patterns: list[str] = Field(default_factory=list)
     criteria: list[Criterion] = Field(min_length=1)
 
     @model_validator(mode="after")
@@ -120,11 +130,19 @@ class Rubric(RubricModel):
         for criterion in self.criteria:
             if set(criterion.levels) != expected_levels:
                 raise ValueError(f"{criterion.id}: levels must be 0 to {self.max_level}")
+            if set(criterion.fallback_justifications) != expected_levels:
+                raise ValueError(f"{criterion.id}: fallback justifications must cover levels 0 to {self.max_level}")
         if set(self.reaction_labels) != set(ExpectedReaction):
             raise ValueError("Every expected reaction needs a label")
-        self.render("".join(self.instructions))
+        for pattern in self.justification_forbidden_patterns:
+            try:
+                re.compile(pattern)
+            except re.error as error:
+                raise ValueError(f"Invalid forbidden justification pattern {pattern!r}") from error
+        self.render("".join(self.instructions) + self.rewrite_instruction)
         for criterion in self.criteria:
-            for text in (criterion.description, criterion.source, *criterion.levels.values()):
+            for text in (criterion.description, criterion.source, *criterion.levels.values(),
+                         *criterion.fallback_justifications.values()):
                 self.render(text)
         return self
 

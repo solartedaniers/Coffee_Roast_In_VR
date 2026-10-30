@@ -26,7 +26,7 @@ def test_answers_the_alert_package_before_the_backend_stops_waiting(settings):
 
 def test_keeps_the_rag_defaults(settings):
     assert settings.rag_top_k == 4
-    assert settings.rag_chunk_size_chars == 700
+    assert settings.rag_chunk_size_chars == 500
     assert settings.rag_chunk_overlap_chars == 100
     assert settings.rag_dtr_optimal_min == 0.18
     assert settings.rag_dtr_optimal_max == 0.22
@@ -36,7 +36,7 @@ def test_keeps_the_rag_defaults(settings):
 def test_removes_repeated_chunks_and_takes_one_per_page_by_default(settings):
     assert settings.rag_deduplicate_chunks is True
     assert settings.rag_max_chunks_per_page == 1
-    assert settings.rag_text_splitter == "characters"
+    assert settings.rag_text_splitter == "sentences"
 
 
 def test_keeps_the_same_pgvector_table(settings):

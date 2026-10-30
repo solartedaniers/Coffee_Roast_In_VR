@@ -132,6 +132,16 @@
       "expected": {"DRYING_GAS": 3, "RISE_TO_FIRST_CRACK": 3, "GAS_AFTER_FIRST_CRACK": 0}
     },
     {
+      "id": "short_development_gas_lowered",
+      "description": "Descarga 25 s después del primer crack, pero el gas ya se había bajado 5 puntos en el primer crack: el gas después del crack sí se califica.",
+      "durationSeconds": 629,
+      "points": [[0, 108.59], [9, 110.62], [50, 120.88], [67, 124.78], [87, 128.77], [117, 133.84], [152, 138.88], [300, 158.12], [333, 162.74], [359, 167.46], [409, 175.7], [465, 183.81], [497, 187.97], [531, 192.05], [568, 196.12], [610, 200.25], [629, 201.11]],
+      "initialGas": 30,
+      "gasChanges": [[604, 25]],
+      "firstCrackSecond": 604,
+      "expected": {"DRYING_GAS": 3, "RISE_TO_FIRST_CRACK": 3, "GAS_AFTER_FIRST_CRACK": 3}
+    },
+    {
       "id": "alerts_reacted",
       "description": "Tueste correcto que además responde a las dos alertas que recibe (baja el gas y descarga).",
       "durationSeconds": 756,

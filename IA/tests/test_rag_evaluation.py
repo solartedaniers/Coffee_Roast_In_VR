@@ -3,6 +3,7 @@ import json
 import pytest
 
 from app.config import SERVICE_ROOT
+from app.rag.citations import Distribution, load_document_sources
 from app.rag.evaluation.__main__ import DEFAULT_CASES, rag_configuration
 from app.rag.evaluation.eval_set import CaseKind, EvalCase, EvalSetLoader, InvalidEvalSet
 from app.rag.evaluation.evaluator import RetrievalEvaluator, summarize
@@ -47,11 +48,29 @@ def test_rejects_invalid_sets(catalog, tmp_path, cases):
         EvalSetLoader(catalog).load(write_cases(tmp_path / "set.json", cases))
 
 
+def test_an_absent_local_pdf_is_accepted_only_when_not_every_file_is_required(catalog, tmp_path):
+    path = write_cases(tmp_path / "set.json", [
+        {"id": "P1", "kind": "player", "question": "q", "expected": [{"file": "local-b.pdf", "page": 4}]},
+    ])
+    absent = frozenset({"local-b.pdf"})
+
+    assert len(EvalSetLoader(catalog, absent, require_all_files=False).load(path)) == 1
+    with pytest.raises(InvalidEvalSet):
+        EvalSetLoader(catalog, absent).load(path)
+
+
 def test_the_committed_set_is_valid():
-    cases = EvalSetLoader(PdfCatalog(SERVICE_ROOT / "rag-docs")).load(DEFAULT_CASES)
+    docs = SERVICE_ROOT / "rag-docs"
+    catalog = PdfCatalog(docs)
+    sources = load_document_sources(docs / "document_titles.json")
+    absent_local = frozenset(name for name, source in sources.items()
+                             if source.distribution is Distribution.LOCAL and name not in catalog.file_names())
+    cases = EvalSetLoader(catalog, absent_local, require_all_files=False).load(DEFAULT_CASES)
 
     kinds = [case.kind for case in cases]
-    assert (kinds.count(CaseKind.PLAYER), kinds.count(CaseKind.NEGATIVE), kinds.count(CaseKind.SESSION)) == (25, 5, 4)
+    assert (kinds.count(CaseKind.PLAYER), kinds.count(CaseKind.NEGATIVE), kinds.count(CaseKind.SESSION)) == (43, 7, 4)
+    assert not any(case.draft or case.draft_pages for case in cases)
+    assert all(case.group for case in cases if case.kind is CaseKind.PLAYER)
 
 
 class FakeSearch:
@@ -108,6 +127,53 @@ def test_summarizes_each_kind_separately():
     assert summary["player"]["misses_at_top_k"] == ["P2"]
     assert summary["negative"] == {"cases": 1, "cases_with_context": 1, "mean_returned": 1}
     assert summary["session"]["cases"] == 0
+
+
+def test_reports_draft_questions_and_draft_pages_apart_from_the_validated_set(catalog, tmp_path):
+    path = write_cases(tmp_path / "set.json", [
+        {"id": "P1", "kind": "player", "question": "q",
+         "expected": [{"file": "a.pdf", "page": 1}, {"file": "a.pdf", "page": 2, "draft": True}]},
+        {"id": "N1", "kind": "player", "question": "q", "draft": True, "expected": [{"file": "a.pdf", "page": 2}]},
+        {"id": "NN1", "kind": "negative", "question": "q", "draft": True},
+    ])
+    cases = EvalSetLoader(catalog).load(path)
+    search = FakeSearch([chunk("a.pdf", 2), chunk("a.pdf", 1)])
+
+    summary = summarize(RetrievalEvaluator(search, depth=10, production_top_k=4).run(cases), production_top_k=4)
+
+    assert (summary["player"]["cases"], summary["player"]["mrr_at_10"]) == (1, 0.5)
+    assert summary["groups"]["confirmed_with_draft_pages"]["mrr_at_10"] == 1.0
+    assert (summary["groups"]["draft_questions"]["cases"], summary["groups"]["draft_questions"]["hit_at_1"]) == (1, 1.0)
+    assert summary["groups"]["total"]["cases"] == 2
+    assert (summary["negative"]["cases"], summary["negative_draft"]["cases"]) == (0, 1)
+
+
+def test_summarizes_validated_questions_by_group(catalog, tmp_path):
+    path = write_cases(tmp_path / "set.json", [
+        {"id": "P1", "kind": "player", "question": "q", "group": "old", "expected": [{"file": "a.pdf", "page": 1}]},
+        {"id": "N1", "kind": "player", "question": "q", "group": "new", "expected": [{"file": "a.pdf", "page": 2}]},
+        {"id": "N2", "kind": "player", "question": "q", "group": "new", "expected": [{"file": "a.pdf", "page": 1}]},
+        {"id": "X1", "kind": "player", "question": "q", "expected": [{"file": "a.pdf", "page": 1}]},
+    ])
+    cases = EvalSetLoader(catalog).load(path)
+    search = FakeSearch([chunk("a.pdf", 1), chunk("a.pdf", 2)])
+
+    summary = summarize(RetrievalEvaluator(search, depth=10, production_top_k=4).run(cases), production_top_k=4)
+
+    assert list(summary["by_group"]) == ["new", "old"]
+    assert (summary["by_group"]["new"]["cases"], summary["by_group"]["new"]["mrr_at_10"]) == (2, 0.75)
+    assert summary["by_group"]["old"]["hit_at_1"] == 1.0
+    assert summary["player"]["cases"] == 4
+
+
+def test_a_draft_question_cannot_also_have_draft_pages(catalog, tmp_path):
+    path = write_cases(tmp_path / "set.json", [
+        {"id": "N1", "kind": "player", "question": "q", "draft": True,
+         "expected": [{"file": "a.pdf", "page": 1}, {"file": "a.pdf", "page": 2, "draft": True}]},
+    ])
+
+    with pytest.raises(InvalidEvalSet):
+        EvalSetLoader(catalog).load(path)
 
 
 def test_rejects_a_top_k_deeper_than_the_evaluation():

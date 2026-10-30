@@ -23,7 +23,7 @@ from app.rag.chunk_filters import (
     PageQuotaFilter,
 )
 from app.rag.chunk_search import ChunkSearch, SemanticChunkSearch
-from app.rag.citations import CitationResolver, load_document_titles
+from app.rag.citations import CitationResolver, load_document_sources
 from app.rag.context_retriever import RagContextRetriever
 from app.rag.database import Database
 from app.rag.embeddings import OllamaEmbeddings
@@ -106,7 +106,13 @@ def build_embeddings(settings: Settings, http: BoundedHttpClient) -> OllamaEmbed
 
 
 def build_citations(settings: Settings) -> CitationResolver:
-    return CitationResolver(PdfCatalog(settings.rag_docs_dir), load_document_titles(settings.rag_document_titles_file))
+    return CitationResolver(PdfCatalog(settings.rag_docs_dir), load_document_sources(settings.rag_document_titles_file),
+                            settings.rag_citation_format)
+
+
+def build_ingestion(settings: Settings, database: Database, embeddings: OllamaEmbeddings) -> RagIngestionService:
+    return RagIngestionService(database, settings.rag_vector_table, settings.rag_docs_dir, PdfPageReader(),
+                               build_text_splitter(settings), embeddings, settings.rag_embedding_batch_size)
 
 
 def build_text_splitter(settings: Settings) -> TextSplitter:
@@ -161,11 +167,7 @@ def build_services(settings: Settings) -> Services:
         cache,
         provider_configuration(settings),
     )
-    ingestion = RagIngestionService(
-        database, settings.rag_vector_table, settings.rag_docs_dir, PdfPageReader(),
-        build_text_splitter(settings), embeddings,
-        settings.rag_embedding_batch_size,
-    )
+    ingestion = build_ingestion(settings, database, embeddings)
     schema = RagSchema(database, settings.rag_vector_table, settings.rag_embedding_dimensions)
     voice = build_voice(settings, http, database, build_chunk_search(settings, database, embeddings),
                         build_citations(settings))

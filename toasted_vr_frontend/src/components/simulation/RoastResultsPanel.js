@@ -5,6 +5,7 @@ import RoastMetrics from '../../domain/roasting/RoastMetrics';
 import TemperatureUnitConverter from '../../domain/roasting/TemperatureUnitConverter';
 import RoastEvaluationBreakdown from '../progress/RoastEvaluationBreakdown';
 import useSessionEvaluation from '../progress/useSessionEvaluation';
+import { scoreOf } from '../progress/progressFormat';
 
 // ================================================================
 // RoastResultsPanel
@@ -25,6 +26,8 @@ export default function RoastResultsPanel({
   onNewSimulation,
 }) {
   const { session: evaluatedSession, timedOut } = useSessionEvaluation(savedSession);
+  // La barra muestra la nota final de la sesión guardada; mientras no exista, la de las reglas.
+  const displayedScore = evaluatedSession ? scoreOf(evaluatedSession) : roastResult.score;
   const grainColor = GrainAppearanceModel.interpolateColor(sim.finalTemperature ?? sim.temperature);
   const smokeLevel = GrainAppearanceModel.getSmokeLevel(sim.finalTemperature ?? sim.temperature);
   const isBurntSmoke = GrainAppearanceModel.isBurntSmoke(sim.finalTemperature ?? sim.temperature);
@@ -60,9 +63,9 @@ export default function RoastResultsPanel({
         <div className="results-score-col">
           <div className="score-display">
             <div className="score-bar-track">
-              <div className="score-bar-fill" style={{ width: `${roastResult.score}%` }} />
+              <div className="score-bar-fill" style={{ width: `${displayedScore}%` }} />
             </div>
-            <span className="score-number">{roastResult.score}%</span>
+            <span className="score-number">{displayedScore}%</span>
           </div>
 
           <div className={`result-badge result-badge-${roastResult.result}`}>

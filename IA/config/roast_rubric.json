@@ -66,6 +66,7 @@
     "En la justificación nunca escribas los nombres de los hechos, palabras en inglés, palabras pegadas como inBandPercent, el signo = ni paréntesis con datos técnicos.",
     "Cuenta solo lo que hizo el jugador y lo que pasó en el tueste: no menciones niveles, requisitos, porcentajes de la rúbrica ni la palabra franja. En vez de \"El 100 % del secado estuvo dentro de la franja, cumpliendo el requisito del 80 % para nivel 3\", escribe \"Durante todo el secado la temperatura subió a buen ritmo\".",
     "Redondea las temperaturas a enteros (216 °C, no 216.24 °C) y escribe los tiempos en minutos y segundos fáciles de leer: 354 s es \"5 min 54 s\" y 5,9 min también es \"5 min 54 s\".",
+    "En el secado lo que tiene un ritmo es la subida de la temperatura, en °C por minuto; el gas es lo que el jugador mueve para corregir ese ritmo. No escribas que el gas estuvo entre ciertos °C por minuto ni en una zona: escribe, por ejemplo, \"durante todo el secado la temperatura subió a buen ritmo sin que tuvieras que mover el gas\".",
     "Responde solo con el JSON pedido."
   ],
   "rewriteInstruction": "Ya calificaste estos criterios y el nivel no cambia. Tu justificación anterior traía nombres internos o datos técnicos que el jugador no entiende: reescríbela siguiendo las reglas de arriba, con el mismo sentido y las mismas cifras, sin cambiar el nivel.",

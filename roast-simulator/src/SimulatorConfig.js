@@ -3,6 +3,7 @@ const DEFAULTS = Object.freeze({
   port: 8083,
   idleTimeoutSeconds: 120,
   maxBodyBytes: 16384,
+  maxStoredTicks: 3600,
 });
 
 const readPositiveInteger = (env, name, fallback) => {
@@ -25,6 +26,7 @@ export default class SimulatorConfig {
       port: readPositiveInteger(env, 'SIMULATOR_PORT', DEFAULTS.port),
       idleTimeoutSeconds: readPositiveInteger(env, 'SIMULATION_IDLE_TIMEOUT_SECONDS', DEFAULTS.idleTimeoutSeconds),
       maxBodyBytes: readPositiveInteger(env, 'SIMULATOR_MAX_BODY_BYTES', DEFAULTS.maxBodyBytes),
+      maxStoredTicks: readPositiveInteger(env, 'SIMULATION_MAX_STORED_TICKS', DEFAULTS.maxStoredTicks),
     });
   }
 }

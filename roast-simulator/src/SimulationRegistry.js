@@ -7,9 +7,11 @@ import SimulationError from './SimulationError.js';
 export default class SimulationRegistry {
   #entries = new Map();
   #idleTimeoutMs;
+  #maxStoredTicks;
 
-  constructor({ idleTimeoutMs }) {
+  constructor({ idleTimeoutMs, maxStoredTicks }) {
     this.#idleTimeoutMs = idleTimeoutMs;
+    this.#maxStoredTicks = maxStoredTicks;
   }
 
   create(userId, settings) {
@@ -18,7 +20,12 @@ export default class SimulationRegistry {
         this.#evict(id);
       }
     }
-    const session = new RoastSimulationSession({ id: randomUUID(), userId, ...settings });
+    const session = new RoastSimulationSession({
+      id: randomUUID(),
+      userId,
+      maxStoredTicks: this.#maxStoredTicks,
+      ...settings,
+    });
     const entry = { session, idleTimer: null };
     this.#entries.set(session.id, entry);
     this.#touch(entry);

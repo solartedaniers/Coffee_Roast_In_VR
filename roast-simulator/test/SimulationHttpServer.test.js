@@ -30,7 +30,7 @@ const call = async (method, path, { userId = 'user-1', body, rawBody } = {}) => 
 const createSimulation = async (userId = 'user-1') => (await call('POST', '/api/v1/simulations', { userId, body: {} })).json;
 
 before(async () => {
-  registry = new SimulationRegistry({ idleTimeoutMs: IDLE_TIMEOUT_MS });
+  registry = new SimulationRegistry({ idleTimeoutMs: IDLE_TIMEOUT_MS, maxStoredTicks: 3600 });
   server = new SimulationHttpServer({ registry, maxBodyBytes: MAX_BODY_BYTES });
   const { port } = await server.listen(0, '127.0.0.1');
   baseUrl = `http://127.0.0.1:${port}`;

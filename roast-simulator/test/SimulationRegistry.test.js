@@ -17,7 +17,7 @@ let registry;
 
 beforeEach(() => {
   mock.timers.enable({ apis: ['setTimeout'] });
-  registry = new SimulationRegistry({ idleTimeoutMs: IDLE_TIMEOUT_MS });
+  registry = new SimulationRegistry({ idleTimeoutMs: IDLE_TIMEOUT_MS, maxStoredTicks: 3600 });
 });
 
 afterEach(() => {

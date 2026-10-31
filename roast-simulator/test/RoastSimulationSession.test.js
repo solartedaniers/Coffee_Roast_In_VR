@@ -6,13 +6,15 @@ import { RoastPacingProfile, PHASES, CHARGE_TEMP_DEFAULT_C, TARGET_TEMP_DEFAULT_
 const PREHEAT_MS = RoastPacingProfile.forPhase(PHASES.PREHEAT).tickIntervalMs;
 const CHARGED_MS = RoastPacingProfile.forPhase(PHASES.CHARGE_DIP).tickIntervalMs;
 const MAX_TICKS = 3600;
+const MAX_STORED_TICKS = 3600;
 
-const newSession = () =>
+const newSession = (maxStoredTicks = MAX_STORED_TICKS) =>
   new RoastSimulationSession({
     id: 'sim-1',
     userId: 'user-1',
     chargeTemperature: CHARGE_TEMP_DEFAULT_C,
     targetTemperature: TARGET_TEMP_DEFAULT_C,
+    maxStoredTicks,
   });
 
 // MockTimers ejecuta un solo salto por llamada cuando un timer programa el siguiente.
@@ -55,6 +57,18 @@ test('arranca precalentando y avanza un tick por cada intervalo del precalentado
   tickTimes(PREHEAT_MS, 3);
   assert.deepEqual(session.ticksAfter(0).map((tick) => tick.tick), [1, 2, 3, 4]);
   assert.deepEqual(session.ticksAfter(2).map((tick) => tick.tick), [3, 4]);
+});
+
+test('guarda solo los últimos ticks y un afterTick ya descartado recibe desde el más antiguo', () => {
+  session.stop();
+  session = newSession(3);
+  tickTimes(PREHEAT_MS, 5);
+
+  assert.deepEqual(session.ticksAfter(0).map((tick) => tick.tick), [3, 4, 5]);
+  assert.deepEqual(session.ticksAfter(1).map((tick) => tick.tick), [3, 4, 5]);
+  assert.deepEqual(session.ticksAfter(3).map((tick) => tick.tick), [4, 5]);
+  assert.deepEqual(session.ticksAfter(5), []);
+  assert.equal(session.snapshot.tick, 5);
 });
 
 test('al cargar el reloj se reinicia con el intervalo de la carga', () => {

@@ -10,10 +10,12 @@ export default class RoastSimulationSession {
   #state;
   #ticks = [];
   #timer = null;
+  #maxStoredTicks;
 
-  constructor({ id, userId, chargeTemperature, targetTemperature }) {
+  constructor({ id, userId, chargeTemperature, targetTemperature, maxStoredTicks }) {
     this.id = id;
     this.userId = userId;
+    this.#maxStoredTicks = maxStoredTicks;
     this.#state = RoastSimulationEngine.startPreheat({
       chargeTemperature,
       targetTemperature,
@@ -26,10 +28,14 @@ export default class RoastSimulationSession {
     return TickSnapshotPresenter.present(this.#state);
   }
 
-  // ponytail: guarda todos los ticks en memoria (~300 B cada uno); una sesión que se queda horas en
-  // LISTO crece sin tope hasta que expira por inactividad. Poner un máximo si llega a importar.
+  // Los ticks guardados son consecutivos; si el cliente pide uno que ya se descartó, recibe desde el
+  // más antiguo que queda.
   ticksAfter(tick) {
-    return this.#ticks.slice(Math.max(0, tick));
+    if (this.#ticks.length === 0) {
+      return [];
+    }
+    const oldestTick = this.#ticks[0].tick;
+    return this.#ticks.slice(Math.max(0, tick - oldestTick + 1));
   }
 
   setGas(gasPercent) {
@@ -83,6 +89,9 @@ export default class RoastSimulationSession {
   #advance() {
     this.#state = RoastSimulationEngine.tick(this.#state);
     this.#ticks.push(TickSnapshotPresenter.present(this.#state));
+    if (this.#ticks.length > this.#maxStoredTicks) {
+      this.#ticks.shift();
+    }
     this.#scheduleNextTick();
   }
 }

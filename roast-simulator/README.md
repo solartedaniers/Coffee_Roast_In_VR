@@ -7,7 +7,7 @@ Unity no habla con este servicio. Unity llama al backend (`/api/v1/roasting/simu
 ## Cómo funciona
 
 - Cada simulación avanza sola, con el mismo ritmo de la web (`RoastPacingProfile`): un tick cada 225 ms en el precalentado y uno por segundo desde la carga. El jugador solo cambia el gas, carga y descarga.
-- Guardo cada tick. El cliente pide `?afterTick=N` y recibe todos los ticks posteriores a `N`, así la curva queda completa aunque el WiFi se corte un momento.
+- Guardo los últimos `SIMULATION_MAX_STORED_TICKS` ticks de cada simulación y descarto los más viejos. El cliente pide `?afterTick=N` y recibe todos los ticks guardados posteriores a `N`, así la curva queda completa aunque el WiFi se corte un momento. Si `N` es más viejo que lo que guardo, recibe desde el tick más antiguo que queda: el cliente lo nota porque el primer `tick` de la lista es mayor que `N + 1`.
 - Cada jugador tiene una sola simulación: crear otra reemplaza la anterior. Si nadie consulta una simulación durante `SIMULATION_IDLE_TIMEOUT_SECONDS`, la borro.
 - Al descargar calculo la nota con `RoastQualityEvaluator` y armo el pedido de guardado con la traza (`RoastTraceRecorder`) y las alertas que sonaron en Unity. El backend es quien lo guarda.
 - Las simulaciones viven en memoria: si reinicio el servicio, las que estaban en curso responden 404.
@@ -31,6 +31,7 @@ Queda en `http://127.0.0.1:8083`.
 | `SIMULATOR_HOST` | `127.0.0.1` | Dirección donde escucha |
 | `SIMULATOR_PORT` | `8083` | Puerto |
 | `SIMULATION_IDLE_TIMEOUT_SECONDS` | `120` | Segundos sin consultas tras los que borro una simulación |
+| `SIMULATION_MAX_STORED_TICKS` | `3600` | Ticks que guardo por simulación; 3600 es una hora simulada, cerca de 1,5 MB |
 | `SIMULATOR_MAX_BODY_BYTES` | `16384` | Tamaño máximo del cuerpo de un pedido |
 
 ## API interna

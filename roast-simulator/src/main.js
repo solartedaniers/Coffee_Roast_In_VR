@@ -5,7 +5,10 @@ import SimulationHttpServer from './SimulationHttpServer.js';
 const MILLIS_PER_SECOND = 1000;
 
 const config = SimulatorConfig.fromEnv();
-const registry = new SimulationRegistry({ idleTimeoutMs: config.idleTimeoutSeconds * MILLIS_PER_SECOND });
+const registry = new SimulationRegistry({
+  idleTimeoutMs: config.idleTimeoutSeconds * MILLIS_PER_SECOND,
+  maxStoredTicks: config.maxStoredTicks,
+});
 const server = new SimulationHttpServer({ registry, maxBodyBytes: config.maxBodyBytes });
 
 await server.listen(config.port, config.host);

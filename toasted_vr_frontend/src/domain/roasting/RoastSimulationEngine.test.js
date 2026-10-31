@@ -58,6 +58,16 @@ describe('RoastSimulationEngine', () => {
     expect(roasting.probeTemperature).toBeGreaterThan(roasting.lowestProbeSinceCharge);
   });
 
+  test('no deja descargar en el tick del punto de retorno hasta que el pico cuenta', () => {
+    const ready = tickUntil(RoastSimulationEngine.startPreheat(SETTINGS), (s) => s.phase === PHASES.READY);
+    const charged = RoastSimulationEngine.charge(ready);
+    const turningPoint = tickUntil(charged, (s) => s.phase === PHASES.ROASTING);
+
+    expect(RoastSimulationEngine.canDischarge(charged)).toBe(false);
+    expect(RoastSimulationEngine.canDischarge(turningPoint)).toBe(false);
+    expect(RoastSimulationEngine.canDischarge(RoastSimulationEngine.tick(turningPoint))).toBe(true);
+  });
+
   test('cada muestra guarda el gas con el que corrió ese segundo', () => {
     const preheating = RoastSimulationEngine.tick(RoastSimulationEngine.startPreheat(SETTINGS));
     const next = RoastSimulationEngine.tick(RoastSimulationEngine.setFlamePower(preheating, 80));

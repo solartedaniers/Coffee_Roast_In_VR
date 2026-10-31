@@ -625,7 +625,12 @@ export default function RoastingSimulation({
 
           {s.phase === PHASES.ROASTING && (
             <div className="control-section">
-              <button type="button" className="primary-button sim-action-btn" onClick={handleDischarge}>
+              <button
+                type="button"
+                className="primary-button sim-action-btn"
+                onClick={handleDischarge}
+                disabled={!RoastSimulationEngine.canDischarge(s)}
+              >
                 {texts.buttons.dischargeCoffee}
               </button>
             </div>

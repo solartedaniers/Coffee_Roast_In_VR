@@ -257,6 +257,11 @@ export default class RoastSimulationEngine {
     };
   }
 
+  // En el tick del punto de retorno el pico aún no cuenta y la sesión no pasaría la validación del backend.
+  static canDischarge(state) {
+    return state.phase === PHASES.ROASTING && state.peakTemperature >= state.probeTemperature;
+  }
+
   static discharge(current) {
     return {
       ...current,

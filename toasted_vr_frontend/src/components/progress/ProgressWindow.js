@@ -4,6 +4,8 @@ import useBodyScrollLock from '../../hooks/useBodyScrollLock';
 
 // Ventana modal de la barra del jugador. Recibe el título y el contenido que
 // debe mostrar (historial o ranking); el diseño es el mismo para las dos.
+// Usa las clases de las demás ventanas más un modificador propio
+// (progress-window), así su tamaño no afecta a Perfil, Ayuda ni Configuración.
 export default function ProgressWindow({ title, closeLabel, onClose, children }) {
   useEscapeKey(onClose);
   useBodyScrollLock();
@@ -14,20 +16,20 @@ export default function ProgressWindow({ title, closeLabel, onClose, children })
 
   return (
     <div
-      className="profile-modal-backdrop"
+      className="profile-modal-backdrop progress-window-backdrop"
       role="dialog"
       aria-modal="true"
       aria-label={title}
       onClick={handleBackdropClick}
     >
-      <div className="profile-modal settings-modal">
-        <div className="profile-modal-header">
+      <div className="profile-modal settings-modal progress-window">
+        <div className="profile-modal-header progress-window-header">
+          <h2>{title}</h2>
           <button type="button" className="secondary-button profile-close-button" onClick={onClose}>
             {closeLabel}
           </button>
         </div>
-        <h2>{title}</h2>
-        {children}
+        <div className="progress-window-body">{children}</div>
       </div>
     </div>
   );

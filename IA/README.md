@@ -291,23 +291,25 @@ Con `scripts/alert_simulator.py` veo qué alerta suena en cada curva, en qué se
 .venv/Scripts/python scripts/alert_simulator.py --catalog copia.json --summary   # probar umbrales
 ```
 
-Las curvas de prueba (`eval/alerts/curves.json`) salen del simulador del frontend, sin modificar su física. Con ellas genero los vectores de conformidad (`eval/alerts/conformance.json`, con `python -m app.alerts.conformance`) que Unity usa para comprobar su evaluador en C#; un test falla si el catálogo cambia y no los regenero.
+Las curvas de prueba (`eval/alerts/curves.json`) salen del simulador del frontend, sin modificar su física, y son lo que marca la sonda del grano. Con ellas genero los vectores de conformidad (`eval/alerts/conformance.json`, con `python -m app.alerts.conformance`) que Unity usa para comprobar su evaluador en C#; un test falla si el catálogo cambia y no los regenero.
 
-Alertas por tueste en la revisión 2, con las curvas de prueba del repositorio:
+Alertas por tueste en la revisión 3, con las curvas de prueba del repositorio:
 
 | Curva | BEGINNER | INTERMEDIATE | ADVANCED |
 |---|---|---|---|
-| Buena | 5 | 5 | 2 |
-| Quemada | 10 | 10 | 7 |
+| Buena | 4 | 4 | 2 |
+| Quemada | 9 | 9 | 7 |
 | Horneada | 8 | 8 | 5 |
-| Cruda | 1 | 1 | 0 |
+| Cruda | 0 | 0 | 0 |
 | Con caída | 6 | 6 | 3 |
-| Carga baja | 6 | 6 | 3 |
-| Sobredesarrollada | 7 | 7 | 4 |
+| Carga baja | 5 | 5 | 3 |
+| Sobredesarrollada | 6 | 6 | 4 |
 
 Afiné los umbrales además con 10 semillas por escenario del simulador real; en BEGINNER la buena queda en 5, la quemada entre 8 y 10 y la horneada entre 7 y 8.
 
-Dos ajustes salieron de esas curvas: en el simulador la pantalla salta del aire al grano al cargar, así que la subida de las alertas empieza de nuevo en la carga (antes marcaba un estancamiento falso a los 13 s en todos los tuestes); y la subida rápida del secado avisa desde 25 °C/min, porque un tueste normal llega como máximo a 21.
+Dos ajustes salieron de esas curvas: la subida de las alertas empieza de nuevo en la carga, porque ahí el termómetro pasa de marcar el aire a marcar la sonda del grano; y la subida rápida del secado avisa desde 25 °C/min, porque un tueste normal llega como máximo a 21.
+
+En la revisión 3 el termómetro del simulador pasó a ser una sonda metida en la masa de grano, como en la máquina real: al cargar se enfría poco a poco hasta el punto de retorno, cerca de los 2 min, y ahí termina la carga. Por eso la subida lenta del secado espera 90 s después del retorno y el estancamiento del secado 30 s (la sonda arranca despacio, igual que en los tuestes del experto), y el pico y el techo de quemado cuentan desde el retorno. Ya no suena el refuerzo de buen ritmo en el secado (pide 10 °C/min o más durante 60 s): con la sonda, la subida del secado llega como máximo a 9 °C/min en las curvas de prueba.
 
 ### Observación pendiente
 

@@ -49,6 +49,7 @@ import ChartSmoothingFilter from '../../domain/roasting/ChartSmoothingFilter';
 import RoastCurveProfile from '../../domain/roasting/RoastCurveProfile';
 import RoastPacingProfile from '../../domain/roasting/RoastPacingProfile';
 import ChargeDipCalculator from '../../domain/roasting/ChargeDipCalculator';
+import ProbeTemperatureModel from '../../domain/roasting/ProbeTemperatureModel';
 import RoastTraceRecorder from '../../domain/roasting/RoastTraceRecorder';
 
 // Valores de ejemplo para las 3 curvas de "Programación de Curvas" —
@@ -88,6 +89,9 @@ function createInitialSimState({ chargeTemperature, targetTemperature, operation
     beanProfile,
     airTemperature: AMBIENT_TEMP_C,
     temperature: AMBIENT_TEMP_C,
+    // Lo que marca el termómetro: el aire antes de cargar y la sonda que
+    // persigue al grano después (ProbeTemperatureModel).
+    probeTemperature: AMBIENT_TEMP_C,
     prevTemperature: AMBIENT_TEMP_C,
     peakTemperature: AMBIENT_TEMP_C,
     finalTemperature: null,
@@ -244,6 +248,9 @@ export default function RoastingSimulation({
       const newMoisturePct = beanIsCharged
         ? RoastThermalModel.computeNextMoisture(prev.moisturePct, newTemp)
         : prev.moisturePct;
+      const newProbeTemp = beanIsCharged
+        ? ProbeTemperatureModel.computeNextProbeTemp(prev.probeTemperature, newTemp)
+        : newAirTemp;
 
       const newElapsed = prev.elapsedSeconds + 1;
       // LISTO cuenta como precalentando para este reloj: el café todavía no
@@ -252,14 +259,10 @@ export default function RoastingSimulation({
       const newRoastingElapsed =
         prev.phase === PHASES.PREHEAT || prev.phase === PHASES.READY ? 0 : prev.roastingElapsedSeconds + 1;
 
-      // Una sola señal, con sentido físico en todo momento: el aire
-      // mientras el café no está cargado (es lo único presente en el
-      // tambor) y el grano una vez cargado — mismo gate que beanIsCharged.
-      // La alimenta tanto el Incremento °C/min como la gráfica (más abajo),
-      // que ahora dibuja una sola línea continua desde el encendido — el
-      // ChartSmoothingFilter se encarga de que el cambio de identidad en el
-      // momento de la carga se vea como un descenso rápido, no un salto.
-      const displayTemp = beanIsCharged ? newTemp : newAirTemp;
+      // Una sola señal, la del termómetro: alimenta el Incremento °C/min y
+      // la gráfica, que dibuja una línea continua desde el encendido. Al
+      // cargar la sonda se enfría poco a poco hacia el grano, sin saltos.
+      const displayTemp = newProbeTemp;
       // gas: la potencia con la que corrió este segundo; la usa la traza del tueste.
       const newSamples = [...prev.samples, { time: newElapsed, temp: displayTemp, gas: prev.flamePowerPercent }];
       const rateOfRisePerMinute = RoastMetrics.computeRateOfRisePerMinute(newSamples, newElapsed);
@@ -324,6 +327,7 @@ export default function RoastingSimulation({
         phase: nextPhase,
         airTemperature: newAirTemp,
         temperature: newTemp,
+        probeTemperature: newProbeTemp,
         prevTemperature: prev.temperature,
         peakTemperature: Math.max(prev.peakTemperature, newTemp),
         moisturePct: newMoisturePct,
@@ -633,22 +637,11 @@ export default function RoastingSimulation({
   const showChargeOvershootAlert =
     (s.phase === PHASES.PREHEAT || s.phase === PHASES.READY) && s.airTemperature > s.chargeTemperature;
 
-  // El termómetro/gráfica del horno debe mostrar la temperatura del
-  // aire/tambor mientras el café no está cargado (es lo único que sube
-  // durante el precalentado bajo el modelo de dos cuerpos) y pasar a la
-  // temperatura del grano una vez cargado — mismo gate que beanIsCharged
-  // en runTick.
-  const ovenDisplayTemp =
-    s.phase === PHASES.PREHEAT || s.phase === PHASES.READY ? s.airTemperature : s.temperature;
+  const ovenDisplayTemp = s.probeTemperature;
 
-  // La gráfica dibuja una sola línea continua desde el encendido del
-  // horno: aire/tambor mientras el café no está cargado, grano después
-  // (ver displayTemp en runTick). El "salto" de identidad en el momento
-  // de la carga es real (el aire estaba caliente, el grano entra frío),
-  // pero ChartSmoothingFilter lo dibuja como un descenso rápido y
-  // continuo en vez de un corte vertical — así se ve como el punto de
-  // giro de una curva de tueste real, no como un glitch. El tiempo es
-  // relativo al encendido (elapsedSeconds ya arranca en 0 ahí).
+  // La gráfica dibuja la lectura del termómetro desde el encendido del
+  // horno (ver displayTemp en runTick). El tiempo es relativo al
+  // encendido (elapsedSeconds ya arranca en 0 ahí).
   const chartPoints = useMemo(() => {
     if (s.samples.length === 0) return [];
     const windowStart = Math.max(0, s.chartViewResetAtSeconds ?? -Infinity, s.elapsedSeconds - CHART_TIME_WINDOW_SECONDS);
@@ -867,7 +860,7 @@ export default function RoastingSimulation({
               rateOfRisePerMinute={s.rateOfRisePerMinute}
               flamePowerPercent={Math.round(s.flamePowerPercent)}
               onCommitFlamePower={handleCommitFlamePower}
-              beanTemperature={showBeans ? s.temperature : 0}
+              beanTemperature={showBeans ? s.probeTemperature : 0}
               sensorCalibrationOffsetC={sensorCalibrationOffsetC}
               temperatureUnit={temperatureUnit}
               roastTimeDisplay={roastTimeDisplay}

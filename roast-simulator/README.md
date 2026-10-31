@@ -72,7 +72,7 @@ Un `state` (y cada elemento de `ticks`) se ve así:
 | 400 | `GAS_OUT_OF_RANGE` | El gas no está entre 0 y 100 |
 | 404 | `SIMULATION_NOT_FOUND` | No existe, expiró o es de otro jugador |
 | 404 | `ROUTE_NOT_FOUND` | La ruta no existe |
-| 409 | `SIMULATION_INVALID_PHASE` | Cargar fuera del precalentado, descargar antes del punto de retorno o cambiar el gas ya descargado |
+| 409 | `SIMULATION_INVALID_PHASE` | Cargar fuera del precalentado, descargar antes del punto de retorno o en su mismo tick (el pico todavía no cuenta; se reintenta al segundo siguiente) o cambiar el gas ya descargado |
 | 413 | `SIMULATION_BODY_TOO_LARGE` | El cuerpo pasa `SIMULATOR_MAX_BODY_BYTES` |
 
 ## Probarlo con curl

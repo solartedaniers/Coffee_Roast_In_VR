@@ -97,6 +97,19 @@ test('rechaza cargar dos veces y descargar antes del punto de retorno', () => {
   assert.throws(() => session.discharge({ knowledgeLevel: 'BEGINNER', alerts: [] }), { code: 'SIMULATION_INVALID_PHASE' });
 });
 
+test('no deja descargar en el mismo tick del punto de retorno, cuando el pico todavía no cuenta', () => {
+  advanceUntil(session, (s) => s.phase === PHASES.READY);
+  session.charge();
+  const turningPoint = advanceUntil(session, (s) => s.phase === PHASES.ROASTING);
+
+  assert.throws(() => session.discharge({ knowledgeLevel: 'BEGINNER', alerts: [] }), { code: 'SIMULATION_INVALID_PHASE' });
+  mock.timers.tick(CHARGED_MS);
+  const request = session.discharge({ knowledgeLevel: 'BEGINNER', alerts: [] });
+
+  assert.equal(request.totalDurationSeconds, turningPoint.roastSeconds + 1);
+  assert.ok(request.peakTemperature >= request.finalTemperature);
+});
+
 test('al descargar deja de avanzar y arma la sesión con las alertas que sonaron', () => {
   advanceUntil(session, (s) => s.phase === PHASES.READY);
   session.charge();

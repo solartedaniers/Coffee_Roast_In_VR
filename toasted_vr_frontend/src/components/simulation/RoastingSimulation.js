@@ -45,7 +45,6 @@ import RoastQualityEvaluator from '../../domain/roasting/RoastQualityEvaluator';
 import GrainAppearanceModel from '../../domain/roasting/GrainAppearanceModel';
 import KnowledgeLevelRules from '../../domain/roasting/KnowledgeLevelRules';
 import GreenBeanProfileFactory from '../../domain/roasting/GreenBeanProfileFactory';
-import ChartSmoothingFilter from '../../domain/roasting/ChartSmoothingFilter';
 import RoastCurveProfile from '../../domain/roasting/RoastCurveProfile';
 import RoastPacingProfile from '../../domain/roasting/RoastPacingProfile';
 import ChargeDipCalculator from '../../domain/roasting/ChargeDipCalculator';
@@ -655,18 +654,8 @@ export default function RoastingSimulation({
   const chartPoints = useMemo(() => {
     if (s.samples.length === 0) return [];
     const windowStart = Math.max(0, s.chartViewResetAtSeconds ?? -Infinity, s.elapsedSeconds - CHART_TIME_WINDOW_SECONDS);
-    const windowed = s.samples.filter((sample) => sample.time >= windowStart);
-    return ChartSmoothingFilter.smooth(windowed);
+    return s.samples.filter((sample) => sample.time >= windowStart);
   }, [s.samples, s.chartViewResetAtSeconds, s.elapsedSeconds]);
-
-  // Curva sin ventana móvil, para la pantalla de resultado final de
-  // tuestes largos. Solo se calcula al terminar (s.samples ya no crece
-  // en ese momento): mientras se tuesta devuelve un arreglo vacío para
-  // no mapear el historial completo en cada muestra nueva.
-  const fullRoastChartPoints = useMemo(() => {
-    if (s.phase !== PHASES.FINISHED) return [];
-    return ChartSmoothingFilter.smooth(s.samples);
-  }, [s.phase, s.samples]);
 
   const isFinished = s.phase === PHASES.FINISHED;
   // s.elapsedSeconds (no roastingElapsedSeconds): la gráfica arranca en el
@@ -675,7 +664,7 @@ export default function RoastingSimulation({
   // se recorta cuando el total pasa de 6 min aunque la parte cargada sola
   // no llegue a esa marca.
   const isLongFinishedRoast = isFinished && s.elapsedSeconds > CHART_TIME_WINDOW_SECONDS;
-  const displayedChartPoints = isLongFinishedRoast ? fullRoastChartPoints : chartPoints;
+  const displayedChartPoints = isLongFinishedRoast ? s.samples : chartPoints;
   const chartTitle = isFinished ? texts.chart.titleFinal : texts.chart.title;
 
   const chargeSliderPct =

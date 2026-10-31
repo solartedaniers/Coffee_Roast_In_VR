@@ -331,19 +331,6 @@ export const CHART_VERTICAL_TICK_COUNT = 6;
 export const CHART_HORIZONTAL_TICK_COUNT = 15;
 export const CHART_TIME_WINDOW_SECONDS = CHART_HORIZONTAL_TICK_COUNT * 60;
 
-// Suavizado visual de caídas bruscas (ej. al cargar el grano en el tambor
-// caliente): ninguna caída entre puntos consecutivos de la línea dibujada
-// supera este valor — el exceso se reparte hacia adelante. Solo afecta la
-// línea de la gráfica, nunca las muestras crudas que alimentan el panel de
-// datos ni el puntaje. Este valor (19) se calibró cuando CHARGE_DIP corría
-// a 2.5s/muestra (caso de referencia: carga a 190°C, salto de 170°C → 9
-// muestras → 22.5s reales) — ahora que CHARGE_DIP_TICK_INTERVAL_MS es 1s
-// igual que el tueste, la misma caída se resuelve en ~9s reales (9
-// muestras × 1s), 2.5x más rápido que antes. Pendiente confirmar tras
-// probar si esa duración sigue viéndose bien o si hay que bajar este
-// valor para volver a estirar la caída a ~20-25s reales.
-export const CHART_SMOOTHING_MAX_DROP_C_PER_SAMPLE = 19;
-
 // Línea de referencia fija (piso) de la gráfica — no depende de ningún
 // slider ni del rango recomendado de carga (180-200°C, ver
 // CHARGE_TEMP_IDEAL_MIN_C/MAX_C): es solo una marca visual de referencia

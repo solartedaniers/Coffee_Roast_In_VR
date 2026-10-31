@@ -20,6 +20,13 @@ import {
   DTR_IDEAL_MIN_RATIO,
   DTR_IDEAL_MAX_RATIO,
   BURN_WARNING_TEMP_C,
+  BURN_ABSOLUTE_CEILING_TEMP_C,
+  SECOND_CRACK_TEMP_MAX_C,
+  BEAN_DENSITY_MAX,
+  BEAN_MOISTURE_MAX_PCT,
+  BEAN_ENTRY_TEMP_MIN_C,
+  CRACK_DENSITY_SHIFT_C_PER_DENSITY_UNIT,
+  FLAME_POWER_MAX_PCT,
   GUIDE_DRYING_FLAME_PCT,
   GUIDE_MAILLARD_FLAME_PCT,
   GUIDE_DEVELOPMENT_FLAME_PCT,
@@ -111,7 +118,7 @@ function followGuide() {
 
 // Misma secuencia que el tick de RoastingSimulation desde la carga: aire,
 // grano, humedad y sonda; la carga termina en el punto de retorno, el
-// primer crack se lee en la sonda y se descarga con TARGET_DTR.
+// primer crack se lee en la sonda y se descarga con dischargeAtDtr (null: no descarga nunca).
 function simulateRoast({
   chargeTemp,
   batchWeightKg,
@@ -120,6 +127,7 @@ function simulateRoast({
   moisturePct: initialMoisturePct = BEAN_MOISTURE_REFERENCE_PCT,
   entryTempC = AMBIENT_TEMP_C,
   firstCrackThresholdTemp = MIDDLE_FIRST_CRACK_C,
+  dischargeAtDtr = TARGET_DTR,
 }) {
   const thermalMassFactor = REFERENCE_BATCH_WEIGHT_KG / batchWeightKg;
   let airTemp = chargeTemp;
@@ -166,7 +174,7 @@ function simulateRoast({
     } else if (firstCrack == null && FirstCrackDetector.hasReachedFirstCrack(probeTemp, firstCrackThresholdTemp)) {
       firstCrack = second;
     }
-    if (firstCrack != null && (second - firstCrack) / second >= TARGET_DTR) break;
+    if (dischargeAtDtr != null && firstCrack != null && (second - firstCrack) / second >= dischargeAtDtr) break;
   }
   return { readings, turningPoint, turningPointTemp: lowestProbe, firstCrack, finalTemp: probeTemp };
 }
@@ -268,5 +276,44 @@ describe('siguiendo la guía de es.json', () => {
     // eslint-disable-next-line no-console
     console.log(`cobertura de la guía: ${inWindow.length} de ${profiles.length} granos aleatorios`);
     expect(inWindow.length / profiles.length).toBeGreaterThanOrEqual(GUIDE_MIN_COVERAGE);
+  });
+});
+
+// La calibración no puede quitarle al jugador la posibilidad de equivocarse: sin descargar,
+// el café se tiene que poder quemar y llegar al segundo crack, también el grano más denso.
+describe('el jugador sigue libre de equivocarse', () => {
+  const densityShift = (density) => (density - BEAN_DENSITY_REFERENCE) * CRACK_DENSITY_SHIFT_C_PER_DENSITY_UNIT;
+  const beans = [
+    ['de referencia', { density: BEAN_DENSITY_REFERENCE }],
+    ['más denso y húmedo', { density: BEAN_DENSITY_MAX, moisturePct: BEAN_MOISTURE_MAX_PCT, entryTempC: BEAN_ENTRY_TEMP_MIN_C }],
+  ];
+  const cases = batchWeights.flatMap((batchWeightKg) => beans.map(([name, bean]) => [batchWeightKg, name, bean]));
+  const hottest = ({ readings }) => Math.max(...readings.map(({ probe }) => probe));
+
+  test.each(cases)('lote de %d kg, grano %s: con el gas al 50 %% después del crack y sin descargar se quema', (batchWeightKg, name, bean) => {
+    const guide = followGuide();
+    const roast = simulateRoast({
+      chargeTemp: CHARGE_TEMP_DEFAULT_C,
+      batchWeightKg,
+      ...bean,
+      firstCrackThresholdTemp: FIRST_CRACK_TEMP_MAX_C + densityShift(bean.density),
+      gasFor: (state) => (state.firstCrackReached ? GUIDE_DRYING_FLAME_PCT : guide(state)),
+      dischargeAtDtr: null,
+    });
+    expect(roast.firstCrack).not.toBeNull();
+    expect(hottest(roast)).toBeGreaterThan(BURN_WARNING_TEMP_C);
+    expect(hottest(roast)).toBeGreaterThan(BURN_ABSOLUTE_CEILING_TEMP_C);
+  });
+
+  test.each(cases)('lote de %d kg, grano %s: con el gas al 100 %% y sin descargar llega al segundo crack más alto', (batchWeightKg, name, bean) => {
+    const roast = simulateRoast({
+      chargeTemp: CHARGE_TEMP_DEFAULT_C,
+      batchWeightKg,
+      ...bean,
+      firstCrackThresholdTemp: FIRST_CRACK_TEMP_MAX_C + densityShift(bean.density),
+      gasFor: () => FLAME_POWER_MAX_PCT,
+      dischargeAtDtr: null,
+    });
+    expect(hottest(roast)).toBeGreaterThanOrEqual(SECOND_CRACK_TEMP_MAX_C + densityShift(BEAN_DENSITY_MAX));
   });
 });

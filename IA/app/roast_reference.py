@@ -15,6 +15,9 @@ SECOND_CRACK_PHASE_START_C = 224.0
 # Franja de temperatura final sin castigo del puntaje perfecto (IDEAL_FINAL_TEMP_MIN_C/MAX_C).
 IDEAL_FINAL_MIN_C = 205.0
 IDEAL_FINAL_MAX_C = 212.0
+# Franja de duración sin castigo (IDEAL_TOTAL_ROAST_MIN_MINUTES/MAX_MINUTES), en segundos.
+IDEAL_TOTAL_MIN_SECONDS = 600
+IDEAL_TOTAL_MAX_SECONDS = 900
 
 DRYING_PHASE_LABEL = "Secado"
 MAILLARD_PHASE_LABEL = "Caramelización (reacción de Maillard)"

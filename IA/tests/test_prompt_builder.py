@@ -56,3 +56,30 @@ def test_gives_the_model_the_result_in_spanish(builder, recorded):
     prompt = builder.build(recorded.request, recorded.level, recorded.context)
 
     assert not any(result.value in prompt for result in RoastingResult)
+
+
+KEEP_STRATEGY = "felicita al jugador y sugiérele repetir la misma estrategia"
+
+
+def guide_roast(**changes) -> RoastFeedbackRequest:
+    values = {"result": RoastingResult.PERFECT, "quality_score": 100, "target_temperature": 210.0,
+              "final_temperature": 206.6, "total_duration_seconds": 782, "development_time_seconds": 157,
+              "first_crack_reached": True, "charge_temperature": 190.0} | changes
+    return RoastFeedbackRequest(**values)
+
+
+def test_asks_to_repeat_the_strategy_when_everything_is_in_range(builder):
+    prompt = builder.build(guide_roast(), None, None)
+
+    assert KEEP_STRATEGY in prompt
+    assert "sin proponer otros cambios ni mover el tiempo de desarrollo fuera de 18%-22%." in prompt
+
+
+@pytest.mark.parametrize("changes", [
+    {"final_temperature": 214.0},
+    {"total_duration_seconds": 1000, "development_time_seconds": 200},
+    {"development_time_seconds": 200},
+    {"result": RoastingResult.BURNED, "quality_score": 30},
+])
+def test_keeps_asking_for_a_suggestion_when_something_is_out_of_range(builder, changes):
+    assert KEEP_STRATEGY not in builder.build(guide_roast(**changes), None, None)

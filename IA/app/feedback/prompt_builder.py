@@ -11,6 +11,8 @@ from app.roast_reference import (
     CHARGE_IDEAL_MIN_C,
     IDEAL_FINAL_MAX_C,
     IDEAL_FINAL_MIN_C,
+    IDEAL_TOTAL_MAX_SECONDS,
+    IDEAL_TOTAL_MIN_SECONDS,
     DevelopmentTimeRange,
     charge_out_of_range,
     distance_outside_ideal_final,
@@ -33,6 +35,7 @@ PROMPT_TEMPLATE = (
     "bien o mal según esos datos y una sugerencia concreta para el próximo "
     "tueste. No inventes objetos, herramientas ni escenas que no estén en "
     "los datos. No repitas estas instrucciones. No uses markdown ni encabezados.\n"
+    "{keep_strategy}"
     "{reminder}\n"
     "{context}\n"
     "Recuerda el resultado real de esta sesión: {result} (puntaje {score}/100). Tu "
@@ -110,6 +113,7 @@ class FeedbackPromptBuilder:
             first_crack=YES if session.first_crack_reached is True else NO,
             development=self._development_time_text(session),
             level=LEVEL_LABELS[level],
+            keep_strategy=self._keep_strategy_text(session),
             reminder=VOCABULARY_REMINDERS[level],
             context=self._context_block(retrieved_context),
         )
@@ -124,6 +128,26 @@ class FeedbackPromptBuilder:
             return f"Quedó dentro del rango ideal de {band}."
         direction = BELOW_IDEAL_LABEL if distance < 0 else ABOVE_IDEAL_LABEL
         return f"Quedó {fixed(abs(distance), 1)}°C {direction} del rango ideal de {band}."
+
+    def _keep_strategy_text(self, session: RoastFeedbackRequest) -> str:
+        # Con todo en rango el modelo igual proponía alargar o acortar el desarrollo y lo sacaba de la franja.
+        if session.result is not RoastingResult.PERFECT or not self._everything_in_range(session):
+            return ""
+        bounds = (f"{fixed(self.development_range.optimal_min * 100, 0)}%"
+                  f"-{fixed(self.development_range.optimal_max * 100, 0)}%")
+        return ("Todo quedó dentro de los rangos ideales (temperatura final, duración y tiempo de desarrollo): "
+                "felicita al jugador y sugiérele repetir la misma estrategia, sin proponer otros cambios ni mover "
+                f"el tiempo de desarrollo fuera de {bounds}.\n")
+
+    def _everything_in_range(self, session: RoastFeedbackRequest) -> bool:
+        duration = session.total_duration_seconds
+        development = session.development_time_seconds
+        if duration is None or development is None or duration <= 0:
+            return False
+        ratio = development / duration
+        return (distance_outside_ideal_final(session.final_temperature) == 0
+                and IDEAL_TOTAL_MIN_SECONDS <= duration <= IDEAL_TOTAL_MAX_SECONDS
+                and self.development_range.optimal_min <= ratio <= self.development_range.optimal_max)
 
     def _development_time_text(self, session: RoastFeedbackRequest) -> str:
         development_time = session.development_time_seconds

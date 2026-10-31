@@ -7,6 +7,7 @@ Duración total: 780 segundos. First crack alcanzado: sí.
 Tiempo de desarrollo tras el first crack: 156 segundos de 780 segundos totales (20% del tueste) — dentro del rango óptimo.
 Nivel del usuario: principiante, usa vocabulario simple y explica cualquier término técnico que uses.
 Escribe 2 o 3 frases en español, en texto plano, explicando qué salió bien o mal según esos datos y una sugerencia concreta para el próximo tueste. No inventes objetos, herramientas ni escenas que no estén en los datos. No repitas estas instrucciones. No uses markdown ni encabezados.
+Todo quedó dentro de los rangos ideales (temperatura final, duración y tiempo de desarrollo): felicita al jugador y sugiérele repetir la misma estrategia, sin proponer otros cambios ni mover el tiempo de desarrollo fuera de 18%-22%.
 Recuerda: nivel principiante. Usa palabras simples como "tueste", "tiempo" y "temperatura"; evita o explica términos como "ratio de desarrollo", "Maillard" o "DTR".
 Contexto de referencia de material académico (úsalo solo si es relevante, no lo cites textualmente):
 - Fragmento uno.

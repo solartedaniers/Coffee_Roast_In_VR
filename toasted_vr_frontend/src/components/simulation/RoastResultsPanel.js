@@ -63,7 +63,7 @@ export default function RoastResultsPanel({
         <div className="results-score-col">
           <div className="score-display">
             <div className="score-bar-track">
-              <div className="score-bar-fill" style={{ width: `${displayedScore}%` }} />
+              <div className="score-bar-fill" data-testid="score-bar-fill" style={{ width: `${displayedScore}%` }} />
             </div>
             <span className="score-number">{displayedScore}%</span>
           </div>

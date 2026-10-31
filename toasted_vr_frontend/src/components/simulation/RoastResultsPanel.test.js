@@ -155,7 +155,7 @@ test('la barra muestra la nota final de la sesión guardada en vez de la de las 
     evaluation: { status: 'COMPLETED', criteria: [], notApplicable: [] },
   };
 
-  const { container } = render(
+  render(
     <RoastResultsPanel
       {...baseProps}
       savingState="saved"
@@ -166,8 +166,8 @@ test('la barra muestra la nota final de la sesión guardada en vez de la de las 
     />
   );
 
-  expect(container.querySelector('.score-number')).toHaveTextContent(`${finalScore}%`);
-  expect(container.querySelector('.score-bar-fill')).toHaveStyle({ width: `${finalScore}%` });
+  expect(screen.getByText(`${finalScore}%`)).toBeInTheDocument();
+  expect(screen.getByTestId('score-bar-fill')).toHaveStyle({ width: `${finalScore}%` });
 });
 
 test('sin sesión guardada la barra muestra la nota de las reglas', () => {
@@ -184,7 +184,7 @@ test('sin sesión guardada la barra muestra la nota de las reglas', () => {
   };
   const roastResult = RoastQualityEvaluator.evaluate(finishedSim, 'INTERMEDIATE');
 
-  const { container } = render(<RoastResultsPanel {...baseProps} sim={finishedSim} roastResult={roastResult} />);
+  render(<RoastResultsPanel {...baseProps} sim={finishedSim} roastResult={roastResult} />);
 
-  expect(container.querySelector('.score-number')).toHaveTextContent(`${roastResult.score}%`);
+  expect(screen.getByText(`${roastResult.score}%`)).toBeInTheDocument();
 });

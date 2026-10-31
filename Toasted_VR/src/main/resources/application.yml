@@ -61,6 +61,12 @@
       alerts-read-timeout-millis: ${AI_SERVICE_ALERTS_READ_TIMEOUT_MILLIS:30000}
       # Calificación con la rúbrica, en segundo plano; mayor que EVALUATION_GROQ_READ_TIMEOUT_MILLIS del servicio IA.
       evaluation-read-timeout-millis: ${AI_SERVICE_EVALUATION_READ_TIMEOUT_MILLIS:40000}
+    # Simulador de tueste en Node (roast-simulator/), fuera de Docker. Unity juega a través de
+    # /api/v1/roasting/simulations y el backend le reenvía cada pedido con el id del jugador.
+    roast-simulator:
+      base-url: ${ROAST_SIMULATOR_BASE_URL:http://127.0.0.1:8083}
+      connect-timeout-millis: ${ROAST_SIMULATOR_CONNECT_TIMEOUT_MILLIS:2000}
+      read-timeout-millis: ${ROAST_SIMULATOR_READ_TIMEOUT_MILLIS:5000}
     jwt:
       # Sin valor por defecto: la aplicación no arranca si falta APP_JWT_SECRET.
       secret: ${APP_JWT_SECRET}

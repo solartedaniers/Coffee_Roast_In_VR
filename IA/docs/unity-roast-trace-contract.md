@@ -1,8 +1,8 @@
 # Contrato de la traza del tueste (Unity → backend)
 
-Desde la fase 5 cada sesión tiene una **nota final** que combina dos partes: el 70 % es la nota de las reglas (`qualityScore`, la misma de siempre) y el 30 % es la nota de las decisiones del jugador que da la IA con una rúbrica. Para calificar las decisiones necesito saber qué hizo el jugador durante el tueste, y eso viaja en la **traza**: un campo opcional `roastTrace` dentro del mismo `POST /api/v1/roasting/sessions` que Unity ya envía.
+Desde la fase 5 cada sesión tiene una **nota final** que combina dos partes: el 70 % es la nota de las reglas (`qualityScore`, la misma de siempre) y el 30 % es la nota de las decisiones del jugador que da la IA con una rúbrica. Para calificar las decisiones necesito saber qué hizo el jugador durante el tueste, y eso viaja en la **traza**: un campo opcional `roastTrace` dentro de `POST /api/v1/roasting/sessions`.
 
-La traza es opcional. Si Unity no la manda, la sesión se guarda igual que antes y su nota final es la de las reglas. La web ya la envía (`toasted_vr_frontend/src/domain/roasting/RoastTraceRecorder.js`), y ese archivo sirve de referencia para la implementación en C#.
+La traza es opcional. Si no llega, la sesión se guarda igual que antes y su nota final es la de las reglas. La arma `toasted_vr_frontend/src/domain/roasting/RoastTraceRecorder.js`: la web la envía en ese `POST` y, para Unity, la arma el simulador de tueste al descargar ([unity-roast-simulation-contract.md](unity-roast-simulation-contract.md)). Unity no hace este `POST` ni arma la traza: solo manda en la descarga las alertas que sonaron, que el backend agrega en `alerts`. Este documento explica qué lleva la traza y qué devuelve el guardado, que es la `session` que recibe Unity al descargar.
 
 ## Qué se envía
 

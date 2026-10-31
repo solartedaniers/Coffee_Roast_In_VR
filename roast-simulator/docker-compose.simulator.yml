@@ -1,0 +1,18 @@
+services:
+  roast-simulator:
+    image: toasted-vr-roast-simulator:local
+    container_name: toasted_vr_roast_simulator
+    build:
+      context: .
+      dockerfile: roast-simulator/Dockerfile
+    restart: unless-stopped
+    environment:
+      # 0.0.0.0 es la interfaz del contenedor, no la del host: el backend lo alcanza por la red de
+      # Compose (http://roast-simulator:8083) y hacia afuera solo queda publicado en 127.0.0.1.
+      SIMULATOR_HOST: 0.0.0.0
+      SIMULATOR_PORT: 8083
+      SIMULATION_IDLE_TIMEOUT_SECONDS: ${SIMULATION_IDLE_TIMEOUT_SECONDS:-120}
+      SIMULATION_MAX_STORED_TICKS: ${SIMULATION_MAX_STORED_TICKS:-3600}
+      SIMULATOR_MAX_BODY_BYTES: ${SIMULATOR_MAX_BODY_BYTES:-16384}
+    ports:
+      - "127.0.0.1:8083:8083"

@@ -40,6 +40,14 @@ class ApplicationConfigurationTests {
             .isEqualTo("${AI_SERVICE_ALERTS_READ_TIMEOUT_MILLIS:30000}");
     }
 
+    @Test
+    void shouldReachTheRoastSimulatorOnTheLoopbackByDefault() {
+        assertThat(properties.getProperty("app.roast-simulator.base-url"))
+            .isEqualTo("${ROAST_SIMULATOR_BASE_URL:http://127.0.0.1:8083}");
+        assertThat(properties.getProperty("app.roast-simulator.read-timeout-millis"))
+            .isEqualTo("${ROAST_SIMULATOR_READ_TIMEOUT_MILLIS:5000}");
+    }
+
     private static Properties loadApplicationYaml() {
         YamlPropertiesFactoryBean factory = new YamlPropertiesFactoryBean();
         factory.setResources(new ClassPathResource("application.yml"));

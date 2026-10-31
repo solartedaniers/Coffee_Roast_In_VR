@@ -206,7 +206,7 @@ class RoastEvaluationProcessorIntegrationTests {
     void skipsAPendingEvaluationWithoutTrace() {
         RoastingSession session = sessionRepository.save(new RoastingSession(
             player, 190.0, 200.0, 780, 205.0, 206.0, RoastingResult.PERFECT, 74, true, 150, null));
-        RoastEvaluation evaluation = evaluationRepository.save(Objects.requireNonNull(RoastEvaluation.pending(session, LocalDateTime.now())));
+        RoastEvaluation evaluation = evaluationRepository.save(Objects.requireNonNull(RoastEvaluation.pending(session, LocalDateTime.now().minusSeconds(1))));
 
         processor.processDue();
 

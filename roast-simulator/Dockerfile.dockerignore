@@ -1,0 +1,6 @@
+*
+!roast-simulator/package.json
+!roast-simulator/src
+!toasted_vr_frontend/src/domain/roasting
+**/*.test.js
+toasted_vr_frontend/src/domain/roasting/calibration

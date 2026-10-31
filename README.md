@@ -132,14 +132,44 @@ la aplicacion funciona con normalidad; simplemente no se muestra la
 retroalimentacion de IA y en su lugar aparece el mensaje "Retroalimentacion
 no disponible por ahora".
 
+### 4. Simulador de tueste para Unity (Node)
+
+Unity usa la misma fisica del simulador web sin copiarla: la carpeta
+`roast-simulator/` es un servicio en Node 24, sin dependencias, que importa
+directamente `toasted_vr_frontend/src/domain/roasting`. Unity nunca lo llama
+directo: juega a traves de `/api/v1/roasting/simulations` del backend, que
+valida el token y guarda la sesion al descargar. El simulador nunca queda
+abierto hacia la red.
+
+Lo levanto de una de dos formas:
+
+- Con Node en el host (`127.0.0.1:8083`), cuando el backend tambien corre en el host:
+  ```bash
+  cd roast-simulator
+  npm start
+  ```
+- Con Docker, junto con los demas servicios, agregando su compose:
+  ```powershell
+  docker compose --env-file .\Toasted_VR\.env -f .\docker-compose.yml -f .\Toasted_VR\docker-compose.backend.yml -f .\toasted_vr_frontend\docker-compose.frontend.yml -f .\roast-simulator\docker-compose.simulator.yml up --build -d
+  ```
+  El backend en Docker lo encuentra por el nombre del servicio y el puerto solo
+  se publica en `127.0.0.1:8083`.
+
+El backend lo encuentra con `ROAST_SIMULATOR_BASE_URL` (backend en el host) o
+`DOCKER_ROAST_SIMULATOR_BASE_URL` (backend en Docker) en `Toasted_VR/.env`. El
+contrato para Unity esta en `IA/docs/unity-roast-simulation-contract.md` y los
+detalles del servicio en `roast-simulator/README.md`. La web no lo necesita:
+sigue corriendo la fisica en el navegador.
+
 ---
 
 ## Flujo de Pull Requests y CI
 
-Trabajo cada cambio en su propia rama y lo integro a `main` solo por Pull Request. Cada PR hacia `main` (y cada push a `main`) dispara el workflow `.github/workflows/ci.yml` en GitHub Actions, que corre tres checks:
+Trabajo cada cambio en su propia rama y lo integro a `main` solo por Pull Request. Cada PR hacia `main` (y cada push a `main`) dispara el workflow `.github/workflows/ci.yml` en GitHub Actions, que corre cuatro checks:
 
 - `backend-tests`: los tests de `Toasted_VR` con Java 17 y Maven (`./mvnw -B test`). Usan el perfil `test` (H2 en memoria, correo deshabilitado y servicio IA simulado), así que no necesitan PostgreSQL, el servicio IA ni SMTP.
 - `frontend-tests`: en `toasted_vr_frontend` con Node 20 corre `npm ci`, los tests con `CI=true` y `npm run build`.
+- `simulator-tests`: los tests de `roast-simulator` con Node 24 (`npm test`). No tienen dependencias: importan el dominio de la web directamente.
 - `ai-tests`: los tests del servicio `IA/` con Python 3.12 y pytest. No necesitan PostgreSQL, Ollama ni Groq.
 
 Solo fusiono un PR cuando los checks están en verde. Para revisarlo antes de abrir el PR, corro lo mismo localmente:
@@ -147,6 +177,7 @@ Solo fusiono un PR cuando los checks están en verde. Para revisarlo antes de ab
 ```bash
 cd Toasted_VR && ./mvnw -B test
 cd IA && .venv/Scripts/python -m pytest -q
+cd roast-simulator && npm test
 cd toasted_vr_frontend && npm ci && CI=true npm test -- --watchAll=false && CI=true npm run build
 ```
 

@@ -2036,6 +2036,7 @@ select.field-input:focus {
   flex-direction: column;
   width: var(--progress-window-width);
   height: var(--progress-window-height);
+  max-width: none;
   max-height: none;
   overflow: hidden;
 }

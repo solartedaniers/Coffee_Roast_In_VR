@@ -116,3 +116,13 @@ def test_abstains_when_every_sentence_has_an_invented_figure():
     grounded = grounding().ground(answer(text="Ponlo al 70 %. Espera 3 minutos.", ids=["ROAST"]), FIGURES_PROMPT)
 
     assert (grounded.status, grounded.text) == (AnswerStatus.ABSTAINED, ABSTENTION)
+
+
+def test_takes_figures_from_the_guide_only_when_it_is_cited():
+    prompt = AnswerPrompt("s", "u", {}, question="¿Qué hago con el gas?",
+                          state_text="- Temperatura del grano: 185.1 °C.",
+                          guide_text="Cuando la temperatura llegue a unos 185°C bájala a 40 %.")
+    text = "Baja el gas a 40 %."
+
+    assert grounding().ground(answer(text=text, ids=["GUIA", "ROAST"]), prompt).text == text
+    assert grounding().ground(answer(text=text, ids=["ROAST"]), prompt).status is AnswerStatus.ABSTAINED

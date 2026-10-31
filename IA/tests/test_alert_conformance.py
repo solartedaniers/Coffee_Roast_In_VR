@@ -32,7 +32,7 @@ def test_vectors_carry_the_catalog_version_and_one_line_per_sample(vectors, cata
     assert (vectors["schemaVersion"], vectors["catalogRevision"]) == (catalog.schema_version,
                                                                      catalog.catalog_revision)
     good = vectors["vectors"][0]
-    assert good["samples"][0] == ["READY", 190.02, 0, False, 8.0, False, False]
+    assert good["samples"][0] == ["READY", 190.07, 0, False, 8.0, False, False]
     assert len(good["samples"][0]) == len(vectors["sampleFields"])
 
 

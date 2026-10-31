@@ -102,7 +102,7 @@ class SignalTracker:
             temperature=sample.temperature,
             rise_per_minute=self._rise_per_minute(),
             stagnation_seconds=self.stagnation,
-            seconds_above_ceiling=self.above_ceiling if charged else 0,
+            seconds_above_ceiling=self.above_ceiling,
             development_ratio=self._development_ratio(sample.roast_seconds),
             roast_seconds=sample.roast_seconds,
             moisture_pct=sample.moisture_pct,
@@ -117,9 +117,12 @@ class SignalTracker:
 
     def _track_charged(self, sample: RoastSample) -> None:
         temperature = sample.temperature
-        self.peak = temperature if self.peak is None else max(self.peak, temperature)
-        ceiling = self.settings.burn_ceiling_temperature
-        self.above_ceiling = self.above_ceiling + 1 if temperature > ceiling else 0
+        if sample.phase is RoastPhase.ROASTING:
+            # Durante la carga la sonda todavía marca el calor del tambor: el pico y el techo cuentan desde
+            # el punto de retorno, igual que en el simulador.
+            self.peak = temperature if self.peak is None else max(self.peak, temperature)
+            ceiling = self.settings.burn_ceiling_temperature
+            self.above_ceiling = self.above_ceiling + 1 if temperature > ceiling else 0
         if self.lowest_after_charge is None or temperature < self.lowest_after_charge:
             self.lowest_after_charge = temperature
         rise = temperature - self.lowest_after_charge

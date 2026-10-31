@@ -18,15 +18,15 @@
     "expected": {
       "BEGINNER": {
         "result": "PERFECT",
-        "score": 17
+        "score": 45
       },
       "INTERMEDIATE": {
         "result": "PERFECT",
-        "score": 0
+        "score": 29
       },
       "ADVANCED": {
         "result": "PERFECT",
-        "score": 0
+        "score": 7
       }
     }
   },
@@ -49,15 +49,15 @@
     "expected": {
       "BEGINNER": {
         "result": "PERFECT",
-        "score": 81
+        "score": 90
       },
       "INTERMEDIATE": {
         "result": "PERFECT",
-        "score": 74
+        "score": 86
       },
       "ADVANCED": {
         "result": "PERFECT",
-        "score": 65
+        "score": 79
       }
     }
   },
@@ -80,15 +80,15 @@
     "expected": {
       "BEGINNER": {
         "result": "PERFECT",
-        "score": 51
+        "score": 60
       },
       "INTERMEDIATE": {
         "result": "PERFECT",
-        "score": 44
+        "score": 56
       },
       "ADVANCED": {
         "result": "PERFECT",
-        "score": 35
+        "score": 49
       }
     }
   },
@@ -452,15 +452,15 @@
     "expected": {
       "BEGINNER": {
         "result": "PERFECT",
-        "score": 72
+        "score": 71
       },
       "INTERMEDIATE": {
         "result": "PERFECT",
-        "score": 64
+        "score": 63
       },
       "ADVANCED": {
         "result": "PERFECT",
-        "score": 54
+        "score": 53
       }
     }
   },
@@ -576,15 +576,15 @@
     "expected": {
       "BEGINNER": {
         "result": "PERFECT",
-        "score": 71
+        "score": 63
       },
       "INTERMEDIATE": {
         "result": "PERFECT",
-        "score": 62
+        "score": 53
       },
       "ADVANCED": {
         "result": "PERFECT",
-        "score": 52
+        "score": 39
       }
     }
   },
@@ -607,15 +607,15 @@
     "expected": {
       "BEGINNER": {
         "result": "PERFECT",
-        "score": 62
+        "score": 84
       },
       "INTERMEDIATE": {
         "result": "PERFECT",
-        "score": 51
+        "score": 80
       },
       "ADVANCED": {
         "result": "PERFECT",
-        "score": 36
+        "score": 73
       }
     }
   },
@@ -701,15 +701,15 @@
     "expected": {
       "BEGINNER": {
         "result": "PERFECT",
-        "score": 61
+        "score": 90
       },
       "INTERMEDIATE": {
         "result": "PERFECT",
-        "score": 49
+        "score": 86
       },
       "ADVANCED": {
         "result": "PERFECT",
-        "score": 32
+        "score": 79
       }
     }
   }

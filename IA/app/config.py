@@ -93,6 +93,7 @@ class Settings(BaseSettings):
     # Debe ser menor que AI_SERVICE_VOICE_READ_TIMEOUT_MILLIS del backend.
     voice_total_timeout_millis: int = Field(default=25_000, gt=0)
     voice_messages_file: Path = SERVICE_ROOT / "config" / "voice_messages.json"
+    voice_roast_guide_file: Path = SERVICE_ROOT / "config" / "roast_guide.json"
     voice_silence_phrases_file: Path = SERVICE_ROOT / "config" / "whisper_silence_phrases.json"
     voice_audio_cache_dir: Path = SERVICE_ROOT / "voice-cache"
 

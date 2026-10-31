@@ -1,2 +1,2 @@
-Tueste de café. Resultado: BURNED. Puntaje: 30/100. Fase alcanzada: Segundo Crack. Nivel del usuario: ADVANCED. Temperatura final por encima del objetivo (228.0°C vs 205.0°C, 23.0°C de exceso). Tiempo de desarrollo corto tras el first crack, riesgo de subdesarrollo. Posible quemado. Temperatura de carga fuera del rango ideal (230.0°C).
+Tueste de café. Resultado: BURNED. Puntaje: 30/100. Fase alcanzada: Segundo Crack. Nivel del usuario: ADVANCED. Temperatura final por encima del rango ideal (228.0°C vs 205-212°C, 16.0°C de exceso). Tiempo de desarrollo corto tras el first crack, riesgo de subdesarrollo. Posible quemado. Temperatura de carga fuera del rango ideal (230.0°C).
 topK=4

@@ -13,10 +13,6 @@ import {
 // Responsabilidad única: todo lo que depende de qué tan caliente
 // estaba el aire al momento de cargar el café frío en el tambor —
 // tanto la caída de temperatura del aire como el piso real del grano.
-// computeEffectiveDurationSeconds es el mismo cálculo que usa la
-// transición de fase CARGA→TUESTE en RoastingSimulation.js, para que
-// el "punto de recuperación" de la caída y el cambio de fase siempre
-// coincidan, incluso si la potencia cambia en vivo durante la carga.
 // ================================================================
 export default class ChargeDipCalculator {
   static computeEffectiveDurationSeconds(flamePowerPercent) {

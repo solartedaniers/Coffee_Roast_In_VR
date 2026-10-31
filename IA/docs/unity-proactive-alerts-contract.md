@@ -1,6 +1,6 @@
 # Contrato de las alertas proactivas (Unity → backend)
 
-Durante el tueste el asistente habla por su cuenta en los momentos clave: carga fuera de rango, subida muy rápida o muy lenta, estancamiento, primer crack, desarrollo y riesgo de quemado. Las reglas no corren en el servidor: Unity descarga al empezar el tueste un **paquete** con las reglas, la frase de su nivel y el audio ya sintetizado, y lo evalúa localmente una vez por segundo. Así no hay latencia de red, funciona sin WiFi y no se gasta la cuota de Azure en cada alerta.
+Durante el tueste el asistente habla por su cuenta en los momentos clave: carga fuera de rango, subida muy rápida o muy lenta, estancamiento, tueste lento o largo, primer crack, desarrollo y riesgo de quemado. Las reglas no corren en el servidor: Unity descarga al empezar el tueste un **paquete** con las reglas, la frase de su nivel y el audio ya sintetizado, y lo evalúa localmente una vez por segundo. Así no hay latencia de red, funciona sin WiFi y no se gasta la cuota de Azure en cada alerta.
 
 El catálogo completo, con la fuente de cada umbral, está en `IA/config/proactive_alerts.json`. Este documento es la especificación que debe seguir el evaluador en C#.
 
@@ -37,7 +37,7 @@ Un `schemaVersion` desconocido significa que cambió la forma de las reglas: ese
 ```json
 {
   "schemaVersion": 1,
-  "catalogRevision": 2,
+  "catalogRevision": 4,
   "level": "BEGINNER",
   "signals": {"riseWindowSeconds": 30, "maillardStartTemperature": 160, "maillardEndTemperature": 200,
               "burnCeilingTemperature": 220, "turningPointMinRise": 0.5},
@@ -72,8 +72,8 @@ Unity llama al evaluador una vez por **tick del simulador** (un segundo simulado
 
 | Campo | Qué es |
 |---|---|
-| `phase` | `PREHEAT`, `READY`, `CHARGE_DIP` o `ROASTING` |
-| `temperature` | La que muestra el termómetro: el aire antes de cargar y el grano después (el `displayTemp` del simulador) |
+| `phase` | `PREHEAT`, `READY`, `CHARGE_DIP` o `ROASTING`. `CHARGE_DIP` va desde la carga hasta el punto de retorno de la sonda (ver abajo) |
+| `temperature` | La que muestra el termómetro (el `displayTemp` del simulador): el aire antes de cargar y la sonda del grano después |
 | `roastSeconds` | `roastingElapsedSeconds`: el mismo reloj de la nota y del DTR. Es 0 antes de cargar |
 | `firstCrackReached` | Si ya hubo primer crack |
 | `moisturePct` | Humedad del grano. Opcional: **`SCORCH_RISK` solo funciona si Unity la envía** |
@@ -81,6 +81,15 @@ Unity llama al evaluador una vez por **tick del simulador** (un segundo simulado
 | `assistantBusy` | El asistente está esperando o reproduciendo una respuesta |
 
 En PREHEAT y READY el simulador comprime el reloj real (225 ms por tick). Lo que cuenta es el tick, no el reloj real. Desde la carga cada tick dura 1 s real.
+
+### La sonda y el fin de la carga
+
+El termómetro de una tostadora real es una sonda metida en la masa de grano: al caer el café frío todavía marca el calor del tambor y se enfría poco a poco hasta igualarse con el grano. Unity la calcula igual que `ProbeTemperatureModel` del simulador:
+
+- Antes de cargar, la sonda marca el aire.
+- En cada tick desde la carga: `sonda = round2(sonda + (grano − sonda) / PROBE_RESPONSE_TIME_CONSTANT_SEC)`, con `PROBE_RESPONSE_TIME_CONSTANT_SEC = 60` y el grano ya calculado en ese tick.
+- La fase pasa de `CHARGE_DIP` a `ROASTING` en el primer tick en que `sonda − mínima desde la carga ≥ TURNING_POINT_MIN_RISE_C` (0,5 °C, el mismo `turningPointMinRise` de las señales): el punto de retorno.
+- Desde ese tick las reglas del simulador (primer y segundo crack, quemado, horneado, pico y temperatura final) leen la sonda.
 
 ## Señales
 
@@ -91,8 +100,8 @@ Se calculan en este orden en cada tick. `charged` significa fase `CHARGE_DIP` o 
 | `temperature`, `roastSeconds`, `phase`, `firstCrackReached`, `moisturePct` | La muestra tal cual |
 | `secondsInPhase` | 1 en el primer tick de una fase, +1 en cada tick siguiente de la misma fase |
 | `risePerMinute` | Ventana de las últimas `riseWindowSeconds + 1` temperaturas. Al entrar a una fase `charged` desde una que no lo es, la ventana se **vacía** antes de agregar la muestra. Con `n` muestras: `n < 2` da 0; si no, `round((última − primera) / (n − 1) × 60)` con el redondeo de `Math.round` de JavaScript: `floor(x + 0.5)` (−2,5 da −2, no −3) |
-| `peakTemperature` | Máxima temperatura desde la carga; `null` antes de cargar |
-| `secondsAboveCeiling` | Solo `charged`: +1 si `temperature > burnCeilingTemperature`, si no 0. Antes de cargar vale 0 |
+| `peakTemperature` | Máxima temperatura en `ROASTING`, es decir desde el punto de retorno; `null` antes. Durante la carga la sonda todavía marca el calor del tambor |
+| `secondsAboveCeiling` | Solo en `ROASTING`: +1 si `temperature > burnCeilingTemperature`, si no 0. Antes vale 0 |
 | `turningPointReached` | Solo `charged`: se guarda la mínima temperatura desde la carga; pasa a verdadero (y no vuelve a falso) cuando `temperature − mínima > 0` y `≥ turningPointMinRise` |
 | `stagnationSeconds` | Igual que `MaillardStagnationMonitor`. Solo cambia en `ROASTING`, si el tick **anterior** no tenía primer crack y `maillardStart ≤ temperature ≤ maillardEnd`: +1 si `temperature ≤` la temperatura de **dos ticks atrás** (o la más vieja que haya), si no 0. En cualquier otro caso conserva su valor |
 | `developmentRatio` | 0 sin primer crack. Si no, `(roastSeconds − roastSeconds del primer tick con primer crack) / roastSeconds` |
@@ -120,25 +129,26 @@ Hay un solo canal. En cada tick:
 
 **Cómo se entrega**: con `recording` verdadero solo se muestra el subtítulo (para que Whisper no transcriba la alerta). En otro caso suena el audio y se muestra el subtítulo. Una alerta `CRITICAL` corta la respuesta que esté sonando.
 
-## Catálogo (revisión 2)
+## Catálogo (revisión 4)
 
 | id | Prioridad | Niveles | Cuándo |
 |---|---|---|---|
 | CHARGE_TEMP_LOW / CHARGE_TEMP_HIGH | NORMAL | B I A | READY, < 180 °C o > 200 °C durante 3 s |
-| DRYING_RISE_FAST | NORMAL | B I | Después del punto de retorno, < 160 °C, subida ≥ 25 °C/min durante 10 s |
-| DRYING_RISE_SLOW | NORMAL | B I | Después del punto de retorno, 100–160 °C, subida entre 0 y 5 durante 20 s |
-| TEMP_STALL_DRYING | HIGH | B I A | Después del punto de retorno, < 160 °C, subida ≤ 0 durante 10 s |
+| DRYING_RISE_FAST | NORMAL | B I | Después del punto de retorno, < 160 °C, subida ≥ 18 °C/min durante 10 s (se rearma al bajar a 16) |
+| DRYING_RISE_SLOW | NORMAL | B I | 90 s o más después del punto de retorno, 100–160 °C, subida entre 0 y 5 durante 20 s |
+| TEMP_STALL_DRYING | HIGH | B I A | 30 s o más después del punto de retorno, < 160 °C, subida ≤ 0 durante 10 s |
 | TEMP_STALL_MAILLARD | HIGH | B I A | Sin primer crack, 160–200 °C, 15 s estancado (se hornea a los 30) |
 | FIRST_CRACK_NEAR | NORMAL | B I | Sin primer crack, ≥ 190 °C |
 | FIRST_CRACK | HIGH | B I A | Primer crack |
+| ROAST_RUNNING_SLOW | NORMAL | B I A | 9 min de tueste sin primer crack y la sonda bajo 182 °C (parámetro de diseño) |
 | ROAST_RUNNING_LONG | NORMAL | B I A | 13 min de tueste sin primer crack |
 | BURN_WARNING | HIGH | B I A | ≥ 215 °C sin haber pasado 220 |
 | SECOND_CRACK_NEAR | CRITICAL | B I A | ≥ 218 °C sin haber pasado 220 |
 | BURN_CEILING_EXCEEDED | CRITICAL | B I A | Pasó de 220 °C |
-| SCORCH_RISK | CRITICAL | B I A | Subida ≥ 30 °C/min con humedad ≤ 3 % (requiere la humedad) |
+| SCORCH_RISK | CRITICAL | B I A | Subida ≥ 18 °C/min con humedad ≤ 3 % (requiere la humedad; se rearma al bajar a 16) |
 | DEVELOPMENT_READY | HIGH | B I A | DTR ≥ 18 % |
 | DISCHARGE_WINDOW_CLOSING | HIGH | B I A | DTR ≥ 22 %, se repite una vez a los 20 s |
-| ON_TRACK_DRYING / ON_TRACK_MAILLARD | LOW | B I | Buen ritmo durante 60 s sin otra alerta |
+| ON_TRACK_DRYING / ON_TRACK_MAILLARD | LOW | B I | Buen ritmo durante 60 s sin otra alerta: subida de 10 a 17 °C/min en el secado y de 5 a 17 °C/min después |
 
 ## Vectores de conformidad
 
@@ -149,7 +159,7 @@ Hay un solo canal. En cada tick:
 
 El evaluador en C# pasa la prueba si, con el catálogo de la misma `catalogRevision`, entrega **exactamente** la misma lista en las 7 curvas y los 3 niveles. La curva buena incluye una pregunta grabada justo en el primer crack, para probar el modo de solo subtítulo.
 
-Conteo esperado por tueste (BEGINNER / INTERMEDIATE / ADVANCED): buena 5/5/2, quemada 10/10/7, horneada 8/8/5, cruda 1/1/0, con caída 6/6/3, carga baja 6/6/3, sobredesarrollada 7/7/4.
+Conteo esperado por tueste (BEGINNER / INTERMEDIATE / ADVANCED): buena 5/5/2, quemada 10/10/7, horneada 10/10/6, cruda 1/1/0, con caída 6/6/4, carga baja 6/6/3, sobredesarrollada 7/7/4.
 
 ## Probarlo sin Unity
 
@@ -163,7 +173,3 @@ Desde `IA/`:
 # Regenerar los vectores después de cambiar el catálogo
 .venv/Scripts/python -m app.alerts.conformance
 ```
-
-## Observación pendiente (sin cambiar la física)
-
-En las curvas del simulador, después del primer crack el resultado es muy sensible al gas: con el 25 % el tueste sale bien (PERFECT 84–90), con el 30 % el grano llega a 216–220 °C y con el 15 % se enfría hasta quedar crudo. Las alertas avisan en los dos extremos (aviso a 215 °C y descarga por DTR), pero el margen de control es estrecho. Queda anotado para revisarlo con la física del simulador; no se cambió nada en esta fase.

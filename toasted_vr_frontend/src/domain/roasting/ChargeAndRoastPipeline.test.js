@@ -7,7 +7,10 @@ import {
   BEAN_MOISTURE_REFERENCE_PCT,
   FIRST_CRACK_TEMP_MIN_C,
   BURN_ABSOLUTE_CEILING_TEMP_C,
-  IDEAL_TOTAL_ROAST_MINUTES,
+  IDEAL_TOTAL_ROAST_MAX_MINUTES,
+  FLAME_POWER_DEFAULT_PCT,
+  CHARGE_TEMP_MIN_C,
+  CHARGE_TEMP_MAX_C,
 } from './RoastConstants';
 
 // ================================================================
@@ -20,12 +23,11 @@ import {
 // AIR_WEIGHT (u otra constante de la carga) cambia y desplaza el first
 // crack de forma inesperada, este test lo marca en rojo.
 //
-// Con AIR_WEIGHT=0.5 (ver RoastConstants.js), el first crack YA NO cae
-// siempre en la ventana clásica 8-12 min — decisión consciente, priorizando
-// el realismo físico del piso de carga sobre esa ventana. Los rangos de
-// abajo documentan el comportamiento actual, no la ventana vieja.
+// Mide el grano, no la sonda. Con el grano entrando a su temperatura
+// (CHARGE_DIP_FLOOR_AIR_WEIGHT = 0) la temperatura de carga casi no mueve
+// el primer crack: el aire alcanza su objetivo en segundos.
 // ================================================================
-const DEVELOPMENT_PHASE_POWER_PCT = 25;
+const DEVELOPMENT_PHASE_POWER_PCT = 20;
 
 function runChargeAndRoast(airTempAtCharge, flamePowerPercent, maxSeconds, { entryTempC = AMBIENT_TEMP_C, density = BEAN_DENSITY_REFERENCE, moisture0Pct = BEAN_MOISTURE_REFERENCE_PCT } = {}) {
   const thermalMassFactor = 1;
@@ -37,7 +39,7 @@ function runChargeAndRoast(airTempAtCharge, flamePowerPercent, maxSeconds, { ent
   let moisturePct = moisture0Pct;
   let firstCrackReached = false;
   let firstCrackTimeSeconds = null;
-  let beanAt13Min = null;
+  let beanAtIdealEnd = null;
 
   for (let second = 1; second <= maxSeconds; second++) {
     const inChargeDip = second <= duration;
@@ -62,25 +64,22 @@ function runChargeAndRoast(airTempAtCharge, flamePowerPercent, maxSeconds, { ent
       firstCrackReached = true;
       firstCrackTimeSeconds = second;
     }
-    if (second === IDEAL_TOTAL_ROAST_MINUTES * 60) beanAt13Min = beanTemp;
+    if (second === IDEAL_TOTAL_ROAST_MAX_MINUTES * 60) beanAtIdealEnd = beanTemp;
   }
 
-  return { beanTemp, firstCrackTimeSeconds, beanAt13Min };
+  return { beanTemp, firstCrackTimeSeconds, beanAtIdealEnd };
 }
 
-// Ventanas actualizadas junto con FIRST_CRACK_TEMP_MIN_C/MAX_C (196-205°C,
-// antes 189-198°C, ver RoastConstants.js) — recalculadas con simulación
-// numérica para cada temperatura de carga antes de aplicar el cambio.
+// Rango medido con el umbral en sus dos extremos: 7:13-8:20 en todas las cargas.
 test.each([
-  [100, 10, 12],
-  [150, 9, 11],
-  [200, 8, 10],
-  [264, 6, 8],
-  [300, 5, 7],
+  [CHARGE_TEMP_MIN_C, 7, 9],
+  [180, 7, 9],
+  [200, 7, 9],
+  [CHARGE_TEMP_MAX_C, 7, 9],
 ])(
   'carga a %i°C: first crack cae entre %i y %i minutos (alarma si esto se mueve)',
   (airTempAtCharge, minMinutes, maxMinutes) => {
-    const { firstCrackTimeSeconds } = runChargeAndRoast(airTempAtCharge, 30, 20 * 60);
+    const { firstCrackTimeSeconds } = runChargeAndRoast(airTempAtCharge, FLAME_POWER_DEFAULT_PCT, 20 * 60);
     const minutes = firstCrackTimeSeconds / 60;
 
     // eslint-disable-next-line no-console
@@ -92,9 +91,9 @@ test.each([
   }
 );
 
-test('incluso con la carga más agresiva probada (300°C), el grano a los 13 min sigue en tueste, no crudo ni quemado', () => {
-  const { beanAt13Min } = runChargeAndRoast(300, 30, 20 * 60);
+test('incluso con la carga más alta permitida, el grano al final de la duración ideal sigue en tueste, no crudo ni quemado', () => {
+  const { beanAtIdealEnd } = runChargeAndRoast(CHARGE_TEMP_MAX_C, FLAME_POWER_DEFAULT_PCT, 20 * 60);
 
-  expect(beanAt13Min).toBeGreaterThanOrEqual(FIRST_CRACK_TEMP_MIN_C);
-  expect(beanAt13Min).toBeLessThan(BURN_ABSOLUTE_CEILING_TEMP_C);
+  expect(beanAtIdealEnd).toBeGreaterThanOrEqual(FIRST_CRACK_TEMP_MIN_C);
+  expect(beanAtIdealEnd).toBeLessThan(BURN_ABSOLUTE_CEILING_TEMP_C);
 });

@@ -15,22 +15,23 @@ test('promedio ponderado: el piso se reparte entre aire y entrada según CHARGE_
   expect(ChargeDipCalculator.computeEffectiveChargeFloor(airTempAtCharge, ENTRY_TEMP_C)).toBeCloseTo(expectedFloor);
 });
 
-test('un horno a 200°C da un piso cercano a 100°C (caso de referencia que motivó el cambio)', () => {
+// La sonda es la que baja en curva desde el calor del tambor: el grano entra a su temperatura.
+test('con el horno a 200°C el grano arranca cerca de su temperatura de entrada', () => {
   const floor = ChargeDipCalculator.computeEffectiveChargeFloor(200, ENTRY_TEMP_C);
-  expect(floor).toBeGreaterThan(90);
-  expect(floor).toBeLessThan(120);
+  expect(floor).toBeGreaterThanOrEqual(ENTRY_TEMP_C);
+  expect(floor).toBeLessThan(ENTRY_TEMP_C + 10);
 });
 
-test('el piso sube de forma monótona con la temperatura del aire al cargar', () => {
+test('el piso nunca baja al subir la temperatura del aire al cargar', () => {
   const floorAt100 = ChargeDipCalculator.computeEffectiveChargeFloor(100, ENTRY_TEMP_C);
   const floorAt200 = ChargeDipCalculator.computeEffectiveChargeFloor(200, ENTRY_TEMP_C);
   const floorAt300 = ChargeDipCalculator.computeEffectiveChargeFloor(300, ENTRY_TEMP_C);
 
-  expect(floorAt100).toBeLessThan(floorAt200);
-  expect(floorAt200).toBeLessThan(floorAt300);
+  expect(floorAt100).toBeLessThanOrEqual(floorAt200);
+  expect(floorAt200).toBeLessThanOrEqual(floorAt300);
 });
 
-test('clamp de seguridad: el piso nunca supera MAX_SAFE_TEMP_C incluso con el aire en su techo', () => {
-  const floor = ChargeDipCalculator.computeEffectiveChargeFloor(750, ENTRY_TEMP_C);
+test('clamp de seguridad: el piso nunca supera MAX_SAFE_TEMP_C', () => {
+  const floor = ChargeDipCalculator.computeEffectiveChargeFloor(MAX_SAFE_TEMP_C + 50, MAX_SAFE_TEMP_C + 50);
   expect(floor).toBe(MAX_SAFE_TEMP_C);
 });

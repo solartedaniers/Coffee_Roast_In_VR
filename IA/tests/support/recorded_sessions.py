@@ -1,4 +1,4 @@
-"""Sesiones cuyas salidas (prompt y búsqueda del RAG) se grabaron con el código en Java.
+"""Sesiones con su prompt y su búsqueda del RAG esperados (la primera versión se grabó con el código en Java).
 
 Se comparan después de normalizar CRLF, igual que hacía el test en Java.
 """
@@ -38,7 +38,7 @@ def _request(charge, target, duration, final, result, score, first_crack, develo
 
 
 ALL = [
-    RecordedSession("perfect", _request(190.0, 200.0, 780, 200.0, RoastingResult.PERFECT, 92, True, 156),
+    RecordedSession("perfect", _request(190.0, 210.0, 780, 207.0, RoastingResult.PERFECT, 100, True, 156),
                     KnowledgeLevel.BEGINNER, ["Fragmento uno.", "Fragmento dos."]),
     RecordedSession("burned", _request(230.0, 205.0, 600, 228.0, RoastingResult.BURNED, 30, True, 60),
                     KnowledgeLevel.ADVANCED, []),

@@ -1,4 +1,10 @@
-import { AMBIENT_TEMP_C, MAX_AIR_TEMP_C, AIR_RESPONSE_RATE_PER_SEC, MIN_AIR_TEMP_C } from './RoastConstants';
+import {
+  AMBIENT_TEMP_C,
+  MAX_AIR_TEMP_C,
+  AIR_TARGET_GAS_EXPONENT,
+  AIR_RESPONSE_RATE_PER_SEC,
+  MIN_AIR_TEMP_C,
+} from './RoastConstants';
 
 // ================================================================
 // RoastAirModel
@@ -10,7 +16,8 @@ import { AMBIENT_TEMP_C, MAX_AIR_TEMP_C, AIR_RESPONSE_RATE_PER_SEC, MIN_AIR_TEMP
 // ================================================================
 export default class RoastAirModel {
   static computeAirTargetTemp(burnerPowerPercent) {
-    return AMBIENT_TEMP_C + (burnerPowerPercent / 100) * (MAX_AIR_TEMP_C - AMBIENT_TEMP_C);
+    if (burnerPowerPercent <= 0) return AMBIENT_TEMP_C;
+    return AMBIENT_TEMP_C + Math.pow(burnerPowerPercent / 100, AIR_TARGET_GAS_EXPONENT) * (MAX_AIR_TEMP_C - AMBIENT_TEMP_C);
   }
 
   // El aire persigue su objetivo de forma asintótica: nunca lo supera, así

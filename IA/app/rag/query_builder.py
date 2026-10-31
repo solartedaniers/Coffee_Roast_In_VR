@@ -6,7 +6,14 @@ lenguaje de los PDFs de rag-docs/. Debe coincidir con la búsqueda que hacía Ja
 from app.contracts import RoastFeedbackRequest
 from app.domain import KnowledgeLevel
 from app.java_format import fixed, integer, text
-from app.roast_reference import DevelopmentTimeRange, charge_out_of_range, roast_phase_label
+from app.roast_reference import (
+    IDEAL_FINAL_MAX_C,
+    IDEAL_FINAL_MIN_C,
+    DevelopmentTimeRange,
+    charge_out_of_range,
+    distance_outside_ideal_final,
+    roast_phase_label,
+)
 
 
 class RagQueryBuilder:
@@ -16,20 +23,21 @@ class RagQueryBuilder:
     def build(self, session: RoastFeedbackRequest, knowledge_level: KnowledgeLevel | None) -> str:
         level = knowledge_level or KnowledgeLevel.INTERMEDIATE
         final = session.final_temperature
-        target = session.target_temperature
         parts = [
             f"Tueste de café. Resultado: {text(session.result)}. Puntaje: {integer(session.quality_score)}/100. "
             f"Fase alcanzada: {roast_phase_label(final)}. Nivel del usuario: {level.value}."
         ]
 
-        below_target = final < target
-        above_target = final > target
-        if below_target:
-            parts.append(f"Temperatura final por debajo del objetivo ({fixed(final, 1)}°C vs {fixed(target, 1)}°C, "
-                         f"faltaron {fixed(target - final, 1)}°C).")
-        elif above_target:
-            parts.append(f"Temperatura final por encima del objetivo ({fixed(final, 1)}°C vs {fixed(target, 1)}°C, "
-                         f"{fixed(final - target, 1)}°C de exceso).")
+        distance = distance_outside_ideal_final(final)
+        below_ideal = distance < 0
+        above_ideal = distance > 0
+        band = f"{fixed(IDEAL_FINAL_MIN_C, 0)}-{fixed(IDEAL_FINAL_MAX_C, 0)}°C"
+        if below_ideal:
+            parts.append(f"Temperatura final por debajo del rango ideal ({fixed(final, 1)}°C vs {band}, "
+                         f"faltaron {fixed(-distance, 1)}°C).")
+        elif above_ideal:
+            parts.append(f"Temperatura final por encima del rango ideal ({fixed(final, 1)}°C vs {band}, "
+                         f"{fixed(distance, 1)}°C de exceso).")
 
         ratio = self._development_time_ratio(session)
         under_developed = ratio is not None and ratio < self.development_range.optimal_min
@@ -40,9 +48,9 @@ class RagQueryBuilder:
             parts.append("Tiempo de desarrollo prolongado tras el first crack, riesgo de sobre-tueste.")
 
         # Solo cuando coinciden los dos extremos, para no forzar un defecto que no aplica.
-        if below_target and over_developed:
+        if below_ideal and over_developed:
             parts.append("Posible horneado.")
-        elif above_target and under_developed:
+        elif above_ideal and under_developed:
             parts.append("Posible quemado.")
 
         charge = session.charge_temperature

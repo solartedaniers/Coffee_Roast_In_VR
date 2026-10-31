@@ -12,7 +12,7 @@ En el secado lo que tiene un ritmo es la subida de la temperatura, en °C por mi
 Responde solo con el JSON pedido.
 ---
 Criterio DRYING_GAS - Manejo del gas en el secado
-Qué evalúa: Desde el punto de retorno hasta 160 °C: si la subida se mantuvo en la franja de 5 a 25 °C/min y si el jugador corrigió el gas cuando se salió.
+Qué evalúa: Desde el punto de retorno hasta 160 °C: si la subida se mantuvo en la franja de 5 a 18 °C/min y si el jugador corrigió el gas cuando se salió.
 Niveles:
 3: La subida estuvo en la franja al menos el 80 % del secado, o cada vez que se salió el jugador corrigió el gas en la dirección correcta en 20 s o menos.
 2: La subida estuvo en la franja entre el 60 % y el 80 % del secado, o las correcciones llegaron entre 20 y 60 s.

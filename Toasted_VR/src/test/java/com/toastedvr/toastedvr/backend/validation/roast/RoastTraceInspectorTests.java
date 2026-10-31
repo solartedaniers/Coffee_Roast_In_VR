@@ -115,6 +115,17 @@ class RoastTraceInspectorTests {
     }
 
     @Test
+    void ignoresTheChargeReadingBeforeTheTurningPoint() {
+        RoastTraceRequest charged = trace(samples -> {
+            samples.set(0, new RoastTraceRequest.Sample(0, 215.0, 30.0));
+            samples.set(1, new RoastTraceRequest.Sample(5, 160.0, 30.0));
+            return samples;
+        });
+
+        assertThat(problemOf(charged)).isEmpty();
+    }
+
+    @Test
     void rejectsAFirstCrackOrDischargeThatDoesNotMatchTheSession() {
         RoastTraceRequest base = trace(samples -> samples);
 

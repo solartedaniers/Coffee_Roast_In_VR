@@ -65,18 +65,20 @@ def test_stagnation_counts_only_while_roasting():
     assert [s.stagnation_seconds for s in signals] == [0, 0, 0]
 
 
-def test_counts_consecutive_seconds_above_the_ceiling_after_charging():
-    _, ready = feed([225, 225], phase=READY, start_seconds=0)
-    _, signals = feed([219, 220, 221, 222, 219, 221])
-    assert [s.seconds_above_ceiling for s in ready] == [0, 0]
+def test_counts_consecutive_seconds_above_the_ceiling_after_the_turning_point():
+    tracker, ready = feed([225, 225], phase=READY, start_seconds=0)
+    tracker, dip = feed([224, 223], phase=DIP, tracker=tracker)
+    _, signals = feed([219, 220, 221, 222, 219, 221], tracker=tracker, start_seconds=3)
+    assert [s.seconds_above_ceiling for s in ready + dip] == [0, 0, 0, 0]
     assert [s.seconds_above_ceiling for s in signals] == [0, 0, 1, 2, 0, 1]
 
 
-def test_peak_starts_when_the_beans_are_charged():
+def test_peak_starts_at_the_turning_point():
     tracker, ready = feed([190], phase=READY, start_seconds=0)
-    _, signals = feed([110, 105, 130], phase=DIP, tracker=tracker)
-    assert ready[0].peak_temperature is None
-    assert [s.peak_temperature for s in signals] == [110, 110, 130]
+    tracker, dip = feed([185, 150, 110], phase=DIP, tracker=tracker)
+    _, signals = feed([111, 105, 130], tracker=tracker, start_seconds=4)
+    assert [s.peak_temperature for s in ready + dip] == [None, None, None, None]
+    assert [s.peak_temperature for s in signals] == [111, 111, 130]
 
 
 def test_turning_point_needs_the_minimum_rise_after_the_lowest_temperature():

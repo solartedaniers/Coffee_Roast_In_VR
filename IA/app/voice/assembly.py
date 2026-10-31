@@ -9,6 +9,7 @@ from app.rag.database import Database
 from app.voice.answer.groq import GroqAnswerOptions, GroqVoiceAnswerer
 from app.voice.answer.figures import SupportedFigures
 from app.voice.answer.grounding import AnswerGrounding, SpokenTextLimiter
+from app.voice.answer.guide import load_roast_guide
 from app.voice.answer.prompt import VoiceAnswerPromptBuilder
 from app.voice.answer.retriever import QuestionPassageRetriever
 from app.voice.audio import WaveLimits, WaveValidator
@@ -105,7 +106,8 @@ def build_voice(settings: Settings, http: BoundedHttpClient, database: Database,
                                          SilencePhraseFilter.from_file(settings.voice_silence_phrases_file),
                                          settings.voice_max_transcript_chars),
         retriever=QuestionPassageRetriever(chunk_search, citations, settings.voice_rag_top_k),
-        prompt_builder=VoiceAnswerPromptBuilder(settings.voice_answer_max_sentences),
+        prompt_builder=VoiceAnswerPromptBuilder(settings.voice_answer_max_sentences,
+                                                load_roast_guide(settings.voice_roast_guide_file)),
         answerer=GroqVoiceAnswerer(http, GroqAnswerOptions(
             base_url=settings.groq_base_url, api_key=settings.groq_api_key, model=settings.voice_groq_model,
             temperature=settings.voice_groq_temperature,

@@ -4,8 +4,9 @@ import json
 import pytest
 from pydantic import ValidationError
 
-from app.alerts.catalog import AlertCatalog, Priority, Signal
+from app.alerts.catalog import AlertCatalog, Operator, Priority, Signal
 from app.config import Settings
+from app.evaluation.rubric import Rubric
 from app.domain import KnowledgeLevel
 
 GUIDANCE_RULES = {"DRYING_RISE_FAST", "DRYING_RISE_SLOW", "FIRST_CRACK_NEAR"}
@@ -46,7 +47,7 @@ def settings_module() -> Settings:
 def test_loads_the_catalog_of_the_repository(catalog):
     assert catalog.schema_version == 1
     assert catalog.default_level is KnowledgeLevel.INTERMEDIATE
-    assert len(catalog.rules) == 17
+    assert len(catalog.rules) == 18
 
 
 def test_advanced_gets_no_encouragement_nor_soft_guidance(catalog):
@@ -134,3 +135,35 @@ def test_reads_the_catalog_from_a_file(tmp_path):
     path = tmp_path / "alerts.json"
     path.write_text(json.dumps(MINIMAL_CATALOG), encoding="utf-8")
     assert AlertCatalog.from_file(path).rules[0].id == "FIRST_CRACK"
+
+
+def test_drying_slow_and_stall_alerts_wait_after_the_turning_point(catalog):
+    # La sonda arranca despacio después del retorno; sin esta espera las dos alertas sonaban en falso.
+    for rule_id in ("TEMP_STALL_DRYING", "DRYING_RISE_SLOW"):
+        rule = next(rule for rule in catalog.rules if rule.id == rule_id)
+        assert any(c.signal is Signal.PHASE and c.value == "ROASTING" for c in rule.when)
+        assert any(c.signal is Signal.SECONDS_IN_PHASE and c.value >= catalog.signals.rise_window_seconds
+                   for c in rule.when)
+
+
+def test_slow_roast_alert_warns_before_the_first_crack_window_closes(catalog, settings_module):
+    # El aviso de los 13 min llega tarde para corregir; este suena antes y no lo reemplaza.
+    rules = {rule.id: rule for rule in catalog.rules}
+    window_end = Rubric.from_file(settings_module.evaluation_rubric_file).parameters.first_crack_max_minutes * 60
+    slow, long = rules["ROAST_RUNNING_SLOW"], rules["ROAST_RUNNING_LONG"]
+    slow_start = next(c.value for c in slow.when if c.signal is Signal.ROAST_SECONDS)
+    long_start = next(c.value for c in long.when if c.signal is Signal.ROAST_SECONDS)
+    assert slow_start < window_end < long_start
+    assert any(c.signal is Signal.FIRST_CRACK_REACHED and c.value is False for c in slow.when)
+    assert any(c.signal is Signal.TEMPERATURE and c.op is Operator.LT for c in slow.when)
+
+
+def test_rubric_drying_band_uses_the_rise_alert_thresholds(catalog, settings_module):
+    # La rúbrica califica el secado con la misma franja con la que avisan las alertas de subida.
+    parameters = Rubric.from_file(settings_module.evaluation_rubric_file).parameters
+    rules = {rule.id: rule for rule in catalog.rules}
+    rise = lambda rule_id, op: next(c.value for c in rules[rule_id].when  # noqa: E731
+                                    if c.signal is Signal.RISE_PER_MINUTE and c.op is op)
+    assert parameters.drying_rise_min == rise("DRYING_RISE_SLOW", Operator.LE)
+    assert parameters.drying_rise_max == rise("DRYING_RISE_FAST", Operator.GE)
+

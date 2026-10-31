@@ -35,7 +35,6 @@ const readBackendDefault = (property) => {
 
 describe('límites del servidor sincronizados con RoastConstants', () => {
   test.each([
-    ['charge-temperature-max', MAX_AIR_TEMP_C],
     ['target-temperature-min', TARGET_TEMP_MIN_C],
     ['target-temperature-max', TARGET_TEMP_MAX_C],
     ['final-temperature-max', MAX_SAFE_TEMP_C],
@@ -49,8 +48,13 @@ describe('límites del servidor sincronizados con RoastConstants', () => {
     expect(readBackendDefault(property)).toBe(simulatorValue);
   });
 
-  // La carga enviada es la temperatura del aire, que nunca baja del ambiente:
-  // el mínimo del servidor solo tiene que quedar por debajo.
+  // La carga enviada es la temperatura del aire, que nunca pasa de MAX_AIR_TEMP_C:
+  // el máximo del servidor solo tiene que quedar por encima.
+  test('charge-temperature-max no rechaza ninguna temperatura del aire posible', () => {
+    expect(readBackendDefault('charge-temperature-max')).toBeGreaterThanOrEqual(MAX_AIR_TEMP_C);
+  });
+
+  // Ni baja del ambiente: el mínimo del servidor solo tiene que quedar por debajo.
   test('charge-temperature-min no rechaza ninguna temperatura del aire posible', () => {
     expect(readBackendDefault('charge-temperature-min')).toBeLessThanOrEqual(MIN_AIR_TEMP_C);
   });

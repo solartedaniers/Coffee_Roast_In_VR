@@ -7,7 +7,7 @@ from app.evaluation.synthetic_trace import SyntheticTrace
 
 RUBRIC = Rubric.from_file(SERVICE_ROOT / "config" / "roast_rubric.json")
 
-# Curva "good" de eval/alerts/curves.json en segundos del tueste: primer crack a los 604 s y DTR 20 %.
+# Tueste correcto fijo en segundos del tueste (la curva "good" de antes de la sonda): primer crack a los 604 s y DTR 20 %.
 GOOD_POINTS = [(0, 108.59), (9, 110.62), (50, 120.88), (67, 124.78), (87, 128.77), (117, 133.84), (152, 138.88),
                (300, 158.12), (333, 162.74), (359, 167.46), (409, 175.7), (465, 183.81), (497, 187.97),
                (531, 192.05), (568, 196.12), (610, 200.25), (629, 201.11), (756, 204.81)]
@@ -146,6 +146,14 @@ def test_checks_each_actionable_alert_against_the_expected_reaction():
     burn, window = reaction["alerts"]
     assert burn["reacted"] is True and burn["reactionSeconds"] == 10 and burn["expected"] == "bajar el gas"
     assert window["reacted"] is False
+
+
+def test_the_slow_roast_alert_expects_raising_the_gas():
+    reaction = facts_of(alerts=[("ROAST_RUNNING_SLOW", 540)],
+                        gas_changes=[(548, 35), (604, 25)])[CriterionId.ALERT_REACTION]
+
+    assert reaction["alerts"][0]["expected"] == "subir el gas"
+    assert reaction["alerts"][0]["reacted"] is True and reaction["alerts"][0]["reactionSeconds"] == 8
 
 
 @pytest.mark.parametrize("discharge, reacted", [(715, True), (730, False)])

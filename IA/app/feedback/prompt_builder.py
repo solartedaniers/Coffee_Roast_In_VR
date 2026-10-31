@@ -4,13 +4,18 @@ El texto está en español a propósito: es lo que hace que el modelo responda e
 coincidir byte a byte con el que armaba el servicio en Java (ver tests/snapshots).
 """
 from app.contracts import RoastFeedbackRequest
-from app.domain import KnowledgeLevel
+from app.domain import KnowledgeLevel, RoastingResult
 from app.java_format import fixed, integer, text
 from app.roast_reference import (
     CHARGE_IDEAL_MAX_C,
     CHARGE_IDEAL_MIN_C,
+    IDEAL_FINAL_MAX_C,
+    IDEAL_FINAL_MIN_C,
+    IDEAL_TOTAL_MAX_SECONDS,
+    IDEAL_TOTAL_MIN_SECONDS,
     DevelopmentTimeRange,
     charge_out_of_range,
+    distance_outside_ideal_final,
     roast_phase_label,
 )
 
@@ -21,7 +26,7 @@ PROMPT_TEMPLATE = (
     "(no hay objetos físicos: solo estos números).\n"
     "Resultado: {result}. Puntaje: {score}/100.\n"
     "Temperatura de carga: {charge}.\n"
-    "Temperatura objetivo: {target}°C. Temperatura final: {final}°C. {delta}\n"
+    "Temperatura final: {final}°C. {final_band}\n"
     "Fase del tueste alcanzada al finalizar: {phase}.\n"
     "Duración total: {duration} segundos. First crack alcanzado: {first_crack}.\n"
     "{development}\n"
@@ -30,6 +35,7 @@ PROMPT_TEMPLATE = (
     "bien o mal según esos datos y una sugerencia concreta para el próximo "
     "tueste. No inventes objetos, herramientas ni escenas que no estén en "
     "los datos. No repitas estas instrucciones. No uses markdown ni encabezados.\n"
+    "{keep_strategy}"
     "{reminder}\n"
     "{context}\n"
     "Recuerda el resultado real de esta sesión: {result} (puntaje {score}/100). Tu "
@@ -41,14 +47,23 @@ PROMPT_TEMPLATE = (
 YES = "sí"
 NO = "no"
 NOT_AVAILABLE = "N/A"
-BELOW_TARGET_LABEL = "POR DEBAJO"
-ABOVE_TARGET_LABEL = "POR ENCIMA"
+BELOW_IDEAL_LABEL = "POR DEBAJO"
+ABOVE_IDEAL_LABEL = "POR ENCIMA"
 DEVELOPMENT_TIME_SHORT_LABEL = "CORTO"
 DEVELOPMENT_TIME_LONG_LABEL = "PROLONGADO"
 DEVELOPMENT_TIME_OPTIMAL_LABEL = "dentro del rango óptimo"
 CONTEXT_HEADER = (
     "Contexto de referencia de material académico (úsalo solo si es relevante, no lo cites textualmente):"
 )
+
+# Las mismas etiquetas que ve el jugador en el historial (es.json): con el valor interno en inglés
+# el modelo lo copiaba tal cual en la retroalimentación.
+RESULT_LABELS = {
+    RoastingResult.PERFECT: "Desarrollado",
+    RoastingResult.RAW: "Crudo",
+    RoastingResult.BURNED: "Quemado",
+    RoastingResult.BAKED: "Horneado",
+}
 
 LEVEL_LABELS = {
     KnowledgeLevel.BEGINNER: "principiante, usa vocabulario simple y explica cualquier término técnico que uses",
@@ -88,29 +103,51 @@ class FeedbackPromptBuilder:
         charge = (self._charge_temperature_text(session.charge_temperature)
                   if session.charge_temperature is not None else NOT_AVAILABLE)
         return PROMPT_TEMPLATE.format(
-            result=text(session.result),
+            result=RESULT_LABELS.get(session.result) or text(session.result),
             score=integer(session.quality_score),
             charge=charge,
-            target=fixed(session.target_temperature, 1),
             final=fixed(session.final_temperature, 1),
-            delta=self._target_vs_final_delta_text(session),
+            final_band=self._final_band_text(session.final_temperature),
             phase=roast_phase_label(session.final_temperature),
             duration=integer(session.total_duration_seconds),
             first_crack=YES if session.first_crack_reached is True else NO,
             development=self._development_time_text(session),
             level=LEVEL_LABELS[level],
+            keep_strategy=self._keep_strategy_text(session),
             reminder=VOCABULARY_REMINDERS[level],
             context=self._context_block(retrieved_context),
         )
 
     @staticmethod
-    def _target_vs_final_delta_text(session: RoastFeedbackRequest) -> str:
-        # La dirección y la magnitud van ya calculadas: el modelo llegó a inventar el objetivo.
-        delta = session.final_temperature - session.target_temperature
-        if delta == 0:
-            return "La temperatura final coincidió exactamente con el objetivo."
-        direction = BELOW_TARGET_LABEL if delta < 0 else ABOVE_TARGET_LABEL
-        return f"Quedó {fixed(abs(delta), 1)}°C {direction} del objetivo."
+    def _final_band_text(final_temperature: float) -> str:
+        # Se compara con la franja del puntaje y no con el objetivo del jugador: un tueste bueno
+        # quedaba "por encima del objetivo". La dirección va calculada: el modelo la inventaba.
+        band = f"{fixed(IDEAL_FINAL_MIN_C, 0)}-{fixed(IDEAL_FINAL_MAX_C, 0)}°C"
+        distance = distance_outside_ideal_final(final_temperature)
+        if distance == 0:
+            return f"Quedó dentro del rango ideal de {band}."
+        direction = BELOW_IDEAL_LABEL if distance < 0 else ABOVE_IDEAL_LABEL
+        return f"Quedó {fixed(abs(distance), 1)}°C {direction} del rango ideal de {band}."
+
+    def _keep_strategy_text(self, session: RoastFeedbackRequest) -> str:
+        # Con todo en rango el modelo igual proponía alargar o acortar el desarrollo y lo sacaba de la franja.
+        if session.result is not RoastingResult.PERFECT or not self._everything_in_range(session):
+            return ""
+        bounds = (f"{fixed(self.development_range.optimal_min * 100, 0)}%"
+                  f"-{fixed(self.development_range.optimal_max * 100, 0)}%")
+        return ("Todo quedó dentro de los rangos ideales (temperatura final, duración y tiempo de desarrollo): "
+                "felicita al jugador y sugiérele repetir la misma estrategia, sin proponer otros cambios ni mover "
+                f"el tiempo de desarrollo fuera de {bounds}.\n")
+
+    def _everything_in_range(self, session: RoastFeedbackRequest) -> bool:
+        duration = session.total_duration_seconds
+        development = session.development_time_seconds
+        if duration is None or development is None or duration <= 0:
+            return False
+        ratio = development / duration
+        return (distance_outside_ideal_final(session.final_temperature) == 0
+                and IDEAL_TOTAL_MIN_SECONDS <= duration <= IDEAL_TOTAL_MAX_SECONDS
+                and self.development_range.optimal_min <= ratio <= self.development_range.optimal_max)
 
     def _development_time_text(self, session: RoastFeedbackRequest) -> str:
         development_time = session.development_time_seconds

@@ -58,8 +58,7 @@ public class RoastTraceInspector {
     }
 
     private Optional<RoastTraceProblem> findMismatch(SaveSessionRequest session, RoastTraceRequest trace) {
-        double hottest = trace.samples().stream().mapToDouble(sample -> sample.bean()).max().orElseThrow();
-        if (hottest > session.peakTemperature() + properties.getTemperatureTolerance()) {
+        if (hottestAfterTurningPoint(trace.samples()) > session.peakTemperature() + properties.getTemperatureTolerance()) {
             return Optional.of(RoastTraceProblem.PEAK_MISMATCH);
         }
         Optional<Integer> firstCrack = eventSecond(trace, FIRST_CRACK);
@@ -77,6 +76,18 @@ public class RoastTraceInspector {
             return Optional.of(RoastTraceProblem.DISCHARGE_MISMATCH);
         }
         return Optional.empty();
+    }
+
+    // La sonda marca todavía el calor del tambor al cargar y baja hasta el punto de retorno (la mínima
+    // de la traza); el pico de la sesión se cuenta desde ahí.
+    private static double hottestAfterTurningPoint(List<RoastTraceRequest.Sample> samples) {
+        int coldest = 0;
+        for (int index = 1; index < samples.size(); index++) {
+            if (samples.get(index).bean() < samples.get(coldest).bean()) {
+                coldest = index;
+            }
+        }
+        return samples.subList(coldest, samples.size()).stream().mapToDouble(sample -> sample.bean()).max().orElseThrow();
     }
 
     private boolean validSamples(RoastTraceRequest trace, int lastSecond) {

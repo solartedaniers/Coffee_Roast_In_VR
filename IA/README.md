@@ -4,6 +4,8 @@ Aquí tengo separada toda la parte de IA del proyecto: la retroalimentación de 
 
 La retroalimentación la redacta un LLM con cadena de respaldo: primero Groq (`openai/gpt-oss-120b`) y, si falla o se queda sin cuota, Ollama local (`phi4-mini`). Si ninguno responde, la retroalimentación queda vacía y la sesión se ve igual que siempre.
 
+Al modelo le paso el resultado en español (Desarrollado, Crudo, Quemado u Horneado, como en el historial), porque con el valor interno en inglés lo copiaba en el texto que lee el jugador. La temperatura final la comparo con la franja ideal del puntaje (205–212 °C) y no con el objetivo del jugador, que es el del modo automático: antes un tueste bueno a 207 °C salía "por encima del objetivo". Si el resultado es Desarrollado y la temperatura final, la duración (10–15 min) y el desarrollo (18–22 %) quedaron en rango, le pido que felicite y sugiera repetir la misma estrategia, porque sin eso proponía alargar o acortar el desarrollo y lo sacaba de la franja.
+
 El frontend y Unity no lo llaman directamente: siguen usando los mismos endpoints del backend (`GET /api/v1/roasting/sessions/{id}/feedback` y `POST /api/v1/admin/rag/ingest`), y el backend le delega el trabajo a este servicio por HTTP.
 
 ## Requisitos
@@ -207,7 +209,7 @@ Cada pregunta pasa por cuatro pasos, cada uno con respaldo:
 
 1. **Voz a texto:** Groq Whisper (`whisper-large-v3-turbo`); si falla, Azure Speech. Las frases que Whisper inventa con el silencio ("Gracias por ver el video"…) se filtran con `config/whisper_silence_phrases.json` y responden 422.
 2. **Fragmentos del RAG:** los 3 más cercanos a la pregunta, con su cita validada.
-3. **Respuesta:** Groq `openai/gpt-oss-20b` con salida JSON estricta, máximo 3 frases, adaptada al nivel del jugador y con las 2 últimas respuestas del mismo intento como contexto. El modelo tiene que decir qué fuentes usó (PDFs o el estado del tueste); si no usa ninguna o cita una que no se le dio, el asistente se abstiene en vez de inventar. Además, cada cifra de la respuesta (temperatura, porcentaje de gas, tiempo) tiene que aparecer en los fragmentos que citó, en el estado del tueste (si lo citó) o en la pregunta, con un margen de redondeo de `VOICE_FIGURE_TOLERANCE`. Las frases con cifras sin respaldo se quitan y, si no queda ninguna, se abstiene: es un simulador para enseñar y una cifra inventada enseña algo falso. El prompt le pide al modelo dar solo la dirección ("baja un poco el gas") cuando no tiene una cifra con respaldo. Solo reviso cifras escritas con dígitos, que es como el prompt le pide escribirlas. No hay respaldo en Ollama a propósito: phi4-mini tarda demasiado para una respuesta hablada.
+3. **Respuesta:** Groq `openai/gpt-oss-20b` con salida JSON estricta, máximo 3 frases, adaptada al nivel del jugador y con las 2 últimas respuestas del mismo intento como contexto. Para aconsejar el gas también le paso la guía de la web (`config/roast_guide.json`), que es el mismo texto de `es.json`: el test `roastGuideContract.test.js` del frontend comprueba que coincide y que trae los números de `RoastConstants.js`. El objetivo de temperatura solo aparece en el estado después del primer crack: antes, "faltan 83 °C del objetivo" hacía que pidiera subir el gas en pleno secado. El modelo tiene que decir qué fuentes usó (PDFs, el estado del tueste o la guía); si no usa ninguna o cita una que no se le dio, el asistente se abstiene en vez de inventar. Además, cada cifra de la respuesta (temperatura, porcentaje de gas, tiempo) tiene que aparecer en los fragmentos que citó, en el estado del tueste o en la guía (si los citó) o en la pregunta, con un margen de redondeo de `VOICE_FIGURE_TOLERANCE`. Las frases con cifras sin respaldo se quitan y, si no queda ninguna, se abstiene: es un simulador para enseñar y una cifra inventada enseña algo falso. El prompt le pide al modelo dar solo la dirección ("baja un poco el gas") cuando no tiene una cifra con respaldo. Solo reviso cifras escritas con dígitos, que es como el prompt le pide escribirlas. No hay respaldo en Ollama a propósito: phi4-mini tarda demasiado para una respuesta hablada.
 4. **Texto a voz:** Azure (`es-CO-SalomeNeural`); si falla o se llega al límite mensual, Piper local con `es_MX-claude-high`.
 
 Si Groq no responde, el jugador oye una frase fija ("No puedo responder en este momento…"). Esa frase y la de abstención están en `config/voice_messages.json` y su audio se genera al arrancar y queda guardado en `voice-cache/`, así que se oyen al instante y sin gastar cuota.
@@ -268,13 +270,13 @@ El paso más lento es generar la voz, porque espera el audio completo antes de r
 
 ## Alertas proactivas
 
-Durante el tueste el asistente también habla por su cuenta, como un profesor al lado: carga fuera de rango, subida muy rápida o muy lenta, estancamiento, primer crack, desarrollo y riesgo de quemado. Las reglas no corren aquí: armo un paquete por nivel con las reglas como datos, la frase del nivel y su audio ya sintetizado, y Unity lo descarga al empezar el tueste y lo evalúa localmente cada segundo. Así no hay latencia de red, funciona sin WiFi y Azure se gasta una sola vez por frase. El contrato y la especificación del evaluador para Unity están en [docs/unity-proactive-alerts-contract.md](docs/unity-proactive-alerts-contract.md).
+Durante el tueste el asistente también habla por su cuenta, como un profesor al lado: carga fuera de rango, subida muy rápida o muy lenta, estancamiento, tueste lento o largo, primer crack, desarrollo y riesgo de quemado. Las reglas no corren aquí: armo un paquete por nivel con las reglas como datos, la frase del nivel y su audio ya sintetizado, y Unity lo descarga al empezar el tueste y lo evalúa localmente cada segundo. Así no hay latencia de red, funciona sin WiFi y Azure se gasta una sola vez por frase. El contrato y la especificación del evaluador para Unity están en [docs/unity-proactive-alerts-contract.md](docs/unity-proactive-alerts-contract.md).
 
 - **Catálogo:** `config/proactive_alerts.json`. Cada regla dice de dónde sale cada umbral: *Fuente* (PDFs o tesis), *Parámetro de diseño* (reglas del simulador sin respaldo en los PDFs) o *Propuesto* (valores míos, afinados con el simulador). Se valida al arrancar: señales, operadores, niveles y una frase por nivel.
 - **Reglas de quemado:** aviso a 215 °C, segundo crack inminente a 218 °C y techo superado por encima de 220 °C. El estancamiento de Maillard solo cuenta antes del primer crack y el desarrollo avisa con el DTR en 18 % y 22 %.
-- **Niveles:** el backend entrega solo el paquete del nivel del jugador (INTERMEDIATE si no tiene). BEGINNER e INTERMEDIATE reciben las 17 reglas con frases distintas; ADVANCED recibe 12, sin la guía de subida del secado, el aviso de primer crack cercano ni los refuerzos LOW.
+- **Niveles:** el backend entrega solo el paquete del nivel del jugador (INTERMEDIATE si no tiene). BEGINNER e INTERMEDIATE reciben las 18 reglas con frases distintas; ADVANCED recibe 13, sin la guía de subida del secado, el aviso de primer crack cercano ni los refuerzos LOW.
 - **Canal de voz:** una sola voz con prioridades CRITICAL > HIGH > NORMAL > LOW, cola de 5 s, LOW nunca espera y mínimo 8 s entre alertas que no son CRITICAL. Mientras el jugador graba una pregunta solo se muestra el subtítulo.
-- **Audio:** se genera al arrancar, en segundo plano, con la misma voz y el mismo `voice-cache/` del asistente. Las 46 frases de los tres niveles gastan 2 775 caracteres de Azure una sola vez, contados en `tts_monthly_usage` (0,6 % del límite mensual). Si una frase no se pudo sintetizar va con audio `null` y se reintenta en el siguiente pedido.
+- **Audio:** se genera al arrancar, en segundo plano, con la misma voz y el mismo `voice-cache/` del asistente. Las 49 frases de los tres niveles gastan 2 986 caracteres de Azure una sola vez, contados en `tts_monthly_usage` (0,7 % del límite mensual). Si una frase no se pudo sintetizar va con audio `null` y se reintenta en el siguiente pedido.
 - **ETag:** el backend reenvía `If-None-Match` y responde 304 si Unity ya tiene esa versión. Tiempo para sintetizar lo que falte en un pedido: `ALERTS_PACKAGE_TIMEOUT_MILLIS` (20 s), menor que los 30 s de `AI_SERVICE_ALERTS_READ_TIMEOUT_MILLIS` en el backend.
 
 | Método | Ruta | Uso |
@@ -291,27 +293,27 @@ Con `scripts/alert_simulator.py` veo qué alerta suena en cada curva, en qué se
 .venv/Scripts/python scripts/alert_simulator.py --catalog copia.json --summary   # probar umbrales
 ```
 
-Las curvas de prueba (`eval/alerts/curves.json`) salen del simulador del frontend, sin modificar su física. Con ellas genero los vectores de conformidad (`eval/alerts/conformance.json`, con `python -m app.alerts.conformance`) que Unity usa para comprobar su evaluador en C#; un test falla si el catálogo cambia y no los regenero.
+Las curvas de prueba (`eval/alerts/curves.json`) salen del simulador del frontend, sin modificar su física, y son lo que marca la sonda del grano. Con ellas genero los vectores de conformidad (`eval/alerts/conformance.json`, con `python -m app.alerts.conformance`) que Unity usa para comprobar su evaluador en C#; un test falla si el catálogo cambia y no los regenero.
 
-Alertas por tueste en la revisión 2, con las curvas de prueba del repositorio:
+Alertas por tueste en la revisión 4, con las curvas de prueba del repositorio:
 
 | Curva | BEGINNER | INTERMEDIATE | ADVANCED |
 |---|---|---|---|
 | Buena | 5 | 5 | 2 |
 | Quemada | 10 | 10 | 7 |
-| Horneada | 8 | 8 | 5 |
+| Horneada | 10 | 10 | 6 |
 | Cruda | 1 | 1 | 0 |
-| Con caída | 6 | 6 | 3 |
+| Con caída | 6 | 6 | 4 |
 | Carga baja | 6 | 6 | 3 |
 | Sobredesarrollada | 7 | 7 | 4 |
 
-Afiné los umbrales además con 10 semillas por escenario del simulador real; en BEGINNER la buena queda en 5, la quemada entre 8 y 10 y la horneada entre 7 y 8.
+La subida de las alertas empieza de nuevo en la carga, porque ahí el termómetro pasa de marcar el aire a marcar la sonda del grano.
 
-Dos ajustes salieron de esas curvas: en el simulador la pantalla salta del aire al grano al cargar, así que la subida de las alertas empieza de nuevo en la carga (antes marcaba un estancamiento falso a los 13 s en todos los tuestes); y la subida rápida del secado avisa desde 25 °C/min, porque un tueste normal llega como máximo a 21.
+En la revisión 3 el termómetro del simulador pasó a ser una sonda metida en la masa de grano, como en la máquina real: al cargar se enfría poco a poco hasta el punto de retorno, cerca de los 2 min, y ahí termina la carga. Por eso la subida lenta del secado espera 90 s después del retorno y el estancamiento del secado 30 s (la sonda arranca despacio, igual que en los tuestes del experto), y el pico y el techo de quemado cuentan desde el retorno.
 
-### Observación pendiente
+En la revisión 4 recalibré el gas con los tuestes del experto y ajusté los umbrales de subida a lo que alcanza la física nueva, como parámetros de diseño. Lo medí con 400 granos al azar: siguiendo la guía, la subida redondeada llega como máximo a 17 °C/min, y con el gas al 100 % llega a 20. Por eso la subida rápida del secado y el riesgo de chamuscado avisan desde 18 °C/min y se rearman al bajar a 16: siguiendo la guía no suenan nunca, y con el gas al 100 % la subida rápida suena en 65 de 400 tuestes y el chamuscado en 28. Los refuerzos de buen ritmo van de 10 a 17 °C/min en el secado y de 5 a 17 después, y en la curva buena vuelven a sonar los dos.
 
-Después del primer crack el resultado es muy sensible al gas: con el 25 % el tueste sale bien, con el 30 % el grano llega a 216–220 °C y con el 15 % se enfría hasta quedar crudo. Lo anoto para revisarlo con la física del simulador; en esta fase no la cambié.
+También agregué el aviso de tueste lento: a los 9 min, si la sonda sigue bajo 182 °C y no hay primer crack, pide subir el gas. No reemplaza el de tueste largo de los 13 min. Con la guía al pie de la letra suena en 62 de los 112 tuestes que se pasarían de 12 min, y en 54 de esos 62 subir el gas a tiempo deja el primer crack en 12 min o antes; en los que iban bien suena en 75 de 1 888. En las curvas horneada y con caída el canal lo descarta porque llega 2 s después de otra alerta y entre alertas hay un mínimo de 8 s; en la horneada sigue avisando el de tueste largo.
 
 ## Calificación del tueste
 
@@ -325,7 +327,7 @@ Cada sesión tiene una nota final que combina las reglas del simulador con una c
 
 ### Validación con Groq
 
-`scripts/evaluation_validation.py` corre la rúbrica con Groq real sobre los casos de `eval/evaluation/cases.json`. Son 18 trazas con el nivel que le corresponde a cada criterio, que fijé leyendo la rúbrica y no las respuestas del modelo. Mide el acuerdo con el nivel esperado y la repetibilidad corriendo cada caso varias veces:
+`scripts/evaluation_validation.py` corre la rúbrica con Groq real sobre los casos de `eval/evaluation/cases.json`. Son 19 trazas con el nivel que le corresponde a cada criterio, que fijé leyendo la rúbrica y no las respuestas del modelo. Mide el acuerdo con el nivel esperado y la repetibilidad corriendo cada caso varias veces:
 
 ```bash
 .venv/Scripts/python scripts/evaluation_validation.py --runs 5 --pause 8
@@ -356,7 +358,7 @@ Como esta vez solo cambió la redacción, corrí una sola vuelta de los 18 casos
 .venv/Scripts/python scripts/evaluation_validation.py --runs 1 --pause 8
 ```
 
-Resultado de una corrida (`eval/results/evaluation-draft-2026-10-30.json`):
+Resultado de la primera corrida con esta versión:
 
 | Medida | Valor |
 |---|---|
@@ -373,6 +375,36 @@ Tres justificaciones reales de esa corrida:
 - Gas después del primer crack, nivel 1: "Bajaste el gas 5 puntos, pero lo hiciste 1 min 50 s después del primer crack."
 
 Después de esa corrida ajusté dos detalles de la redacción. En `gas_small_drop` una justificación decía "no fue suficiente para el nivel más alto", así que ahora también bloqueo "para el nivel", "el nivel más alto" y "el nivel más bajo". En el secado de `first_crack_very_late` otra mencionaba correcciones del gas que no hubo, así que agregué al prompt que solo cuente lo que está en los hechos. Comprobé esos dos casos con Groq: los niveles quedaron iguales (1 y 2), y las justificaciones ya no hablan de niveles ni inventan correcciones. Por ejemplo: "Bajaste el gas poco después del primer crack, aunque solo en 2 puntos, y evitaste que la temperatura alcanzara los 215 °C."
+
+#### Validación con la física recalibrada
+
+Recalibré el simulador con los tuestes del experto, así que reconstruí los casos que salen de la curva buena (primer crack a los 10 min 24 s y descarga a los 13 min 1 s). La franja de subida del secado bajó a 5–18 °C/min, igual que las alertas, y la reacción a las alertas ahora cuenta el aviso de tueste lento (`ROAST_RUNNING_SLOW`, se espera subir el gas), con el caso nuevo `slow_alert_reacted`. Corrí una vuelta de los 19 casos (`eval/results/evaluation-draft-2026-10-30.json`):
+
+| Medida | Valor |
+|---|---|
+| Niveles calificados | 55 |
+| Acuerdo exacto | 100 % (55 de 55) |
+| Criterios aplicados y estado (AUTO) | Sin diferencias |
+| Justificaciones con nombres internos | 0 |
+| De dónde salió cada justificación | 50 del modelo, 2 reescritas, 3 de respaldo |
+| Tokens de Groq | 47.942 en 25 llamadas, contando 2 de la prueba de la retroalimentación |
+
+El caso del tueste lento quedó con 3 en el secado, 2 en la subida hasta el primer crack (12 min 30 s), 3 en el gas después del crack y 3 en la reacción a las alertas.
+
+#### Prueba de los consejos con la guía nueva
+
+Después probé con Groq que la retroalimentación y el asistente de voz aconsejen lo mismo que la guía de la web:
+
+| Caso | Respuesta |
+|---|---|
+| Retroalimentación, tueste según la guía (206,6 °C, 13 min 2 s, desarrollo 20 %) | Felicita y sugiere repetir la misma carga y el mismo tiempo total |
+| Retroalimentación, gas al 50 % después del crack y descarga tarde (216,3 °C, desarrollo 28 %) | Dice que la temperatura final se pasó del rango y que el desarrollo fue largo; sugiere volver a cerca del 20 % ajustando el calor después del crack |
+| Voz a los 4 min, 126 °C, gas al 50 % y subida de 14 °C por minuto | "Mantén el gas al 50 %" |
+| Voz a 185 °C con el gas al 50 % | "Baja el gas al 40 %. Mantén esa potencia hasta que suene el primer crack" |
+| Voz justo después del primer crack | "Baja el gas al 20 %" |
+| Voz 1 min después del crack con el gas todavía al 50 % | "Baja el gas al 20 %" |
+
+En el borde de la regla, con la subida justo en 16 °C por minuto, el asistente pidió bajar a 40 %, aunque la guía lo pide solo si sube más de 16.
 
 Los tests de `tests/test_evaluation_validation.py` revisan sin Groq que cada caso aplique exactamente los criterios que espera y que los casos cubran todos los niveles.
 

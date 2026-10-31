@@ -148,6 +148,14 @@ def test_checks_each_actionable_alert_against_the_expected_reaction():
     assert window["reacted"] is False
 
 
+def test_the_slow_roast_alert_expects_raising_the_gas():
+    reaction = facts_of(alerts=[("ROAST_RUNNING_SLOW", 540)],
+                        gas_changes=[(548, 35), (604, 25)])[CriterionId.ALERT_REACTION]
+
+    assert reaction["alerts"][0]["expected"] == "subir el gas"
+    assert reaction["alerts"][0]["reacted"] is True and reaction["alerts"][0]["reactionSeconds"] == 8
+
+
 @pytest.mark.parametrize("discharge, reacted", [(715, True), (730, False)])
 def test_discharging_answers_a_discharge_alert_within_the_window(discharge, reacted):
     points = GOOD_POINTS[:-1] + [(discharge, 204.0)]

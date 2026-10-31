@@ -117,7 +117,7 @@ Las alertas que cuentan para `ALERT_REACTION` y la reacción que se espera:
 | Alerta | Reacción esperada |
 |---|---|
 | `DRYING_RISE_FAST`, `BURN_WARNING`, `SCORCH_RISK` | Bajar el gas |
-| `DRYING_RISE_SLOW`, `TEMP_STALL_DRYING`, `TEMP_STALL_MAILLARD` | Subir el gas |
+| `DRYING_RISE_SLOW`, `TEMP_STALL_DRYING`, `TEMP_STALL_MAILLARD`, `ROAST_RUNNING_SLOW` | Subir el gas |
 | `SECOND_CRACK_NEAR`, `BURN_CEILING_EXCEEDED` | Bajar el gas o descargar |
 | `DISCHARGE_WINDOW_CLOSING` | Descargar |
 

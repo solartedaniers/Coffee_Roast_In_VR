@@ -15,17 +15,17 @@ La traza es opcional. Si Unity no la manda, la sesión se guarda igual que antes
     "operationMode": "MANUAL",
     "sampleIntervalSeconds": 5,
     "samples": [
-      { "t": 1, "bean": 108.59, "gas": 30 },
-      { "t": 5, "bean": 109.4, "gas": 30 },
-      { "t": 756, "bean": 204.81, "gas": 25 }
+      { "t": 1, "bean": 189.46, "gas": 30 },
+      { "t": 5, "bean": 184.15, "gas": 30 },
+      { "t": 836, "bean": 207.69, "gas": 25 }
     ],
-    "gasChanges": [ { "t": 604, "gas": 25 } ],
+    "gasChanges": [ { "t": 668, "gas": 25 } ],
     "events": [
       { "type": "CHARGE", "t": 0 },
-      { "type": "FIRST_CRACK", "t": 604 },
-      { "type": "DISCHARGE", "t": 756 }
+      { "type": "FIRST_CRACK", "t": 668 },
+      { "type": "DISCHARGE", "t": 836 }
     ],
-    "alerts": [ { "id": "BURN_WARNING", "t": 700 } ]
+    "alerts": [ { "id": "BURN_WARNING", "t": 774 } ]
   }
 }
 ```
@@ -37,7 +37,7 @@ La traza es opcional. Si Unity no la manda, la sesión se guarda igual que antes
 | `version` | Siempre `1`. |
 | `operationMode` | `MANUAL` o `AUTO`. Si el control automático manejó el gas en **cualquier** momento después de la carga, va `AUTO`. |
 | `sampleIntervalSeconds` | Cada cuántos segundos hay una muestra. Uso 5. |
-| `samples` | Una muestra cada `sampleIntervalSeconds`, más la primera después de la carga y la última antes de descargar. `bean` es la temperatura del grano (°C, dos decimales) y `gas` la potencia del quemador (0 a 100) con la que corrió ese segundo. Mínimo 2, en orden y sin segundos repetidos. |
+| `samples` | Una muestra cada `sampleIntervalSeconds`, más la primera después de la carga y la última antes de descargar. `bean` es la que marca la sonda del grano (°C, dos decimales; ver la sonda en [unity-proactive-alerts-contract.md](unity-proactive-alerts-contract.md)) y `gas` la potencia del quemador (0 a 100) con la que corrió ese segundo. Mínimo 2, en orden y sin segundos repetidos. |
 | `gasChanges` | Cada vez que **el jugador** cambió el gas: el segundo y el gas nuevo. En `AUTO` va vacío. En orden cronológico. |
 | `events` | `CHARGE` (siempre `t: 0`), `FIRST_CRACK`, `SECOND_CRACK` si pasó, y `DISCHARGE` (igual a `totalDurationSeconds`). Cada tipo una sola vez. |
 | `alerts` | Las alertas proactivas que sonaron (ver [unity-proactive-alerts-contract.md](unity-proactive-alerts-contract.md)): su `id` del catálogo y el segundo en que sonaron. La web todavía no emite alertas, así que manda la lista vacía. |
@@ -60,7 +60,7 @@ Son los de `app.roast-trace` en `Toasted_VR/src/main/resources/application.yml`:
 
 ## Qué revisa el backend
 
-La traza tiene que cuadrar con la sesión que la acompaña: ningún segundo pasa de `totalDurationSeconds` + 5 s, la muestra más caliente no pasa de `peakTemperature` + 1 °C, hay `FIRST_CRACK` si y solo si `firstCrackReached` es `true`, el desarrollo (`totalDurationSeconds` − primer crack) coincide con `developmentTimeSeconds` y la descarga coincide con `totalDurationSeconds`, todo con la tolerancia de 5 s.
+La traza tiene que cuadrar con la sesión que la acompaña: ningún segundo pasa de `totalDurationSeconds` + 5 s, la muestra más caliente desde el punto de retorno (la más fría de la traza) no pasa de `peakTemperature` + 1 °C, hay `FIRST_CRACK` si y solo si `firstCrackReached` es `true`, el desarrollo (`totalDurationSeconds` − primer crack) coincide con `developmentTimeSeconds` y la descarga coincide con `totalDurationSeconds`, todo con la tolerancia de 5 s.
 
 Si algo no cuadra, **la sesión se guarda igual**: el backend descarta la traza, deja anotado el motivo en la auditoría y la nota final queda con las reglas (`skipReason: INVALID_TRACE`). Una traza mala nunca hace fallar el guardado.
 

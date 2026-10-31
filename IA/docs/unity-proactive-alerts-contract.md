@@ -37,7 +37,7 @@ Un `schemaVersion` desconocido significa que cambió la forma de las reglas: ese
 ```json
 {
   "schemaVersion": 1,
-  "catalogRevision": 2,
+  "catalogRevision": 3,
   "level": "BEGINNER",
   "signals": {"riseWindowSeconds": 30, "maillardStartTemperature": 160, "maillardEndTemperature": 200,
               "burnCeilingTemperature": 220, "turningPointMinRise": 0.5},
@@ -72,8 +72,8 @@ Unity llama al evaluador una vez por **tick del simulador** (un segundo simulado
 
 | Campo | Qué es |
 |---|---|
-| `phase` | `PREHEAT`, `READY`, `CHARGE_DIP` o `ROASTING` |
-| `temperature` | La que muestra el termómetro: el aire antes de cargar y el grano después (el `displayTemp` del simulador) |
+| `phase` | `PREHEAT`, `READY`, `CHARGE_DIP` o `ROASTING`. `CHARGE_DIP` va desde la carga hasta el punto de retorno de la sonda (ver abajo) |
+| `temperature` | La que muestra el termómetro (el `displayTemp` del simulador): el aire antes de cargar y la sonda del grano después |
 | `roastSeconds` | `roastingElapsedSeconds`: el mismo reloj de la nota y del DTR. Es 0 antes de cargar |
 | `firstCrackReached` | Si ya hubo primer crack |
 | `moisturePct` | Humedad del grano. Opcional: **`SCORCH_RISK` solo funciona si Unity la envía** |
@@ -81,6 +81,15 @@ Unity llama al evaluador una vez por **tick del simulador** (un segundo simulado
 | `assistantBusy` | El asistente está esperando o reproduciendo una respuesta |
 
 En PREHEAT y READY el simulador comprime el reloj real (225 ms por tick). Lo que cuenta es el tick, no el reloj real. Desde la carga cada tick dura 1 s real.
+
+### La sonda y el fin de la carga
+
+El termómetro de una tostadora real es una sonda metida en la masa de grano: al caer el café frío todavía marca el calor del tambor y se enfría poco a poco hasta igualarse con el grano. Unity la calcula igual que `ProbeTemperatureModel` del simulador:
+
+- Antes de cargar, la sonda marca el aire.
+- En cada tick desde la carga: `sonda = round2(sonda + (grano − sonda) / PROBE_RESPONSE_TIME_CONSTANT_SEC)`, con `PROBE_RESPONSE_TIME_CONSTANT_SEC = 60` y el grano ya calculado en ese tick.
+- La fase pasa de `CHARGE_DIP` a `ROASTING` en el primer tick en que `sonda − mínima desde la carga ≥ TURNING_POINT_MIN_RISE_C` (0,5 °C, el mismo `turningPointMinRise` de las señales): el punto de retorno.
+- Desde ese tick las reglas del simulador (primer y segundo crack, quemado, horneado, pico y temperatura final) leen la sonda.
 
 ## Señales
 
@@ -91,8 +100,8 @@ Se calculan en este orden en cada tick. `charged` significa fase `CHARGE_DIP` o 
 | `temperature`, `roastSeconds`, `phase`, `firstCrackReached`, `moisturePct` | La muestra tal cual |
 | `secondsInPhase` | 1 en el primer tick de una fase, +1 en cada tick siguiente de la misma fase |
 | `risePerMinute` | Ventana de las últimas `riseWindowSeconds + 1` temperaturas. Al entrar a una fase `charged` desde una que no lo es, la ventana se **vacía** antes de agregar la muestra. Con `n` muestras: `n < 2` da 0; si no, `round((última − primera) / (n − 1) × 60)` con el redondeo de `Math.round` de JavaScript: `floor(x + 0.5)` (−2,5 da −2, no −3) |
-| `peakTemperature` | Máxima temperatura desde la carga; `null` antes de cargar |
-| `secondsAboveCeiling` | Solo `charged`: +1 si `temperature > burnCeilingTemperature`, si no 0. Antes de cargar vale 0 |
+| `peakTemperature` | Máxima temperatura en `ROASTING`, es decir desde el punto de retorno; `null` antes. Durante la carga la sonda todavía marca el calor del tambor |
+| `secondsAboveCeiling` | Solo en `ROASTING`: +1 si `temperature > burnCeilingTemperature`, si no 0. Antes vale 0 |
 | `turningPointReached` | Solo `charged`: se guarda la mínima temperatura desde la carga; pasa a verdadero (y no vuelve a falso) cuando `temperature − mínima > 0` y `≥ turningPointMinRise` |
 | `stagnationSeconds` | Igual que `MaillardStagnationMonitor`. Solo cambia en `ROASTING`, si el tick **anterior** no tenía primer crack y `maillardStart ≤ temperature ≤ maillardEnd`: +1 si `temperature ≤` la temperatura de **dos ticks atrás** (o la más vieja que haya), si no 0. En cualquier otro caso conserva su valor |
 | `developmentRatio` | 0 sin primer crack. Si no, `(roastSeconds − roastSeconds del primer tick con primer crack) / roastSeconds` |
@@ -120,14 +129,14 @@ Hay un solo canal. En cada tick:
 
 **Cómo se entrega**: con `recording` verdadero solo se muestra el subtítulo (para que Whisper no transcriba la alerta). En otro caso suena el audio y se muestra el subtítulo. Una alerta `CRITICAL` corta la respuesta que esté sonando.
 
-## Catálogo (revisión 2)
+## Catálogo (revisión 3)
 
 | id | Prioridad | Niveles | Cuándo |
 |---|---|---|---|
 | CHARGE_TEMP_LOW / CHARGE_TEMP_HIGH | NORMAL | B I A | READY, < 180 °C o > 200 °C durante 3 s |
 | DRYING_RISE_FAST | NORMAL | B I | Después del punto de retorno, < 160 °C, subida ≥ 25 °C/min durante 10 s |
-| DRYING_RISE_SLOW | NORMAL | B I | Después del punto de retorno, 100–160 °C, subida entre 0 y 5 durante 20 s |
-| TEMP_STALL_DRYING | HIGH | B I A | Después del punto de retorno, < 160 °C, subida ≤ 0 durante 10 s |
+| DRYING_RISE_SLOW | NORMAL | B I | 90 s o más después del punto de retorno, 100–160 °C, subida entre 0 y 5 durante 20 s |
+| TEMP_STALL_DRYING | HIGH | B I A | 30 s o más después del punto de retorno, < 160 °C, subida ≤ 0 durante 10 s |
 | TEMP_STALL_MAILLARD | HIGH | B I A | Sin primer crack, 160–200 °C, 15 s estancado (se hornea a los 30) |
 | FIRST_CRACK_NEAR | NORMAL | B I | Sin primer crack, ≥ 190 °C |
 | FIRST_CRACK | HIGH | B I A | Primer crack |
@@ -149,7 +158,7 @@ Hay un solo canal. En cada tick:
 
 El evaluador en C# pasa la prueba si, con el catálogo de la misma `catalogRevision`, entrega **exactamente** la misma lista en las 7 curvas y los 3 niveles. La curva buena incluye una pregunta grabada justo en el primer crack, para probar el modo de solo subtítulo.
 
-Conteo esperado por tueste (BEGINNER / INTERMEDIATE / ADVANCED): buena 5/5/2, quemada 10/10/7, horneada 8/8/5, cruda 1/1/0, con caída 6/6/3, carga baja 6/6/3, sobredesarrollada 7/7/4.
+Conteo esperado por tueste (BEGINNER / INTERMEDIATE / ADVANCED): buena 4/4/2, quemada 9/9/7, horneada 8/8/5, cruda 0/0/0, con caída 6/6/3, carga baja 5/5/3, sobredesarrollada 6/6/4.
 
 ## Probarlo sin Unity
 

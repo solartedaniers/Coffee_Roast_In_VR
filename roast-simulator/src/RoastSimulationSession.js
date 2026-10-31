@@ -57,8 +57,7 @@ export default class RoastSimulationSession {
   // El motor empieza a llevar el pico un tick después del punto de retorno. Descargar justo en ese tick
   // dejaría el pico por debajo de la final y el backend rechazaría la sesión (PeakTemperatureRule).
   discharge({ knowledgeLevel, alerts }) {
-    const { phase, peakTemperature, probeTemperature } = this.#state;
-    if (phase !== PHASES.ROASTING || peakTemperature < probeTemperature) {
+    if (!RoastSimulationEngine.canDischarge(this.#state)) {
       throw SimulationError.invalidPhase();
     }
     this.stop();

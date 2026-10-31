@@ -124,11 +124,11 @@ export const AIR_RESPONSE_RATE_PER_SEC = 0.18;
 
 // Velocidad de respuesta del aire SOLO durante el precalentamiento — mucho
 // más lenta que AIR_RESPONSE_RATE_PER_SEC de arriba (que sigue igual para
-// carga/tueste, sin tocar). Calibrado para que a potencia "eficiente"
-// (30%) y temperatura de carga por defecto, el precalentamiento tenga una
-// duración SIMULADA realista de 8-10 min, en vez de los 8-60s que daba
-// antes al compartir la misma tasa rápida del tueste.
-export const PREHEAT_AIR_RESPONSE_RATE_PER_SEC = 0.0028;
+// carga/tueste, sin tocar). Calibrado para que con la llama de arranque
+// (FLAME_POWER_DEFAULT_PCT) y la temperatura de carga por defecto, el
+// precalentamiento dure 8-10 min simulados en lotes de 5 a 6 kg — ver
+// RoastPacingProfile.test.js.
+export const PREHEAT_AIR_RESPONSE_RATE_PER_SEC = 0.0037;
 
 // Ritmo del reloj REAL solo durante el precalentamiento: comprime esos
 // 8-10 min simulados a ~2 min reales de espera para el usuario — el

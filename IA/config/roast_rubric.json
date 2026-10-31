@@ -8,7 +8,7 @@
     "turningPointMinRise": 0.5,
     "dryingEndTemperature": 160,
     "dryingRiseMin": 5,
-    "dryingRiseMax": 25,
+    "dryingRiseMax": 18,
     "dryingInBandHigh": 80,
     "dryingInBandLow": 60,
     "dryingQuickCorrectionSeconds": 20,
@@ -86,7 +86,7 @@
       "title": "Manejo del gas en el secado",
       "description": "Desde el punto de retorno hasta {dryingEndTemperature} °C: si la subida se mantuvo en la franja de {dryingRiseMin} a {dryingRiseMax} °C/min y si el jugador corrigió el gas cuando se salió.",
       "evidence": "SOURCED",
-      "source": "Manual básico de buenas prácticas para el tostado del café p.11 (muy rápido deja puntas oscuras, muy lento hornea) y Jama tabla 2 (la curva aceptada más lenta sube unos 6,5 °C/min). Yang et al. (2016) p.5 y Giacalone et al. (2019) p.8: el defecto de quemado (scorched) viene de un tueste más rápido y caliente. Parámetro de diseño: {dryingRiseMin} y {dryingRiseMax} °C/min son los umbrales de las alertas de subida lenta y rápida; el tueste correcto del simulador sube unos 8 °C/min al final del secado.",
+      "source": "Manual básico de buenas prácticas para el tostado del café p.11 (muy rápido deja puntas oscuras, muy lento hornea) y Jama tabla 2 (la curva aceptada más lenta sube unos 6,5 °C/min). Yang et al. (2016) p.5 y Giacalone et al. (2019) p.8: el defecto de quemado (scorched) viene de un tueste más rápido y caliente. Parámetro de diseño: {dryingRiseMin} y {dryingRiseMax} °C/min son los umbrales de las alertas de subida lenta y rápida; el tueste correcto del simulador sube unos 13 °C/min al final del secado.",
       "levels": {
         "3": "La subida estuvo en la franja al menos el {dryingInBandHigh} % del secado, o cada vez que se salió el jugador corrigió el gas en la dirección correcta en {dryingQuickCorrectionSeconds} s o menos.",
         "2": "La subida estuvo en la franja entre el {dryingInBandLow} % y el {dryingInBandHigh} % del secado, o las correcciones llegaron entre {dryingQuickCorrectionSeconds} y {dryingSlowCorrectionSeconds} s.",

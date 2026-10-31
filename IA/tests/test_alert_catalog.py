@@ -156,3 +156,14 @@ def test_slow_roast_alert_warns_before_the_first_crack_window_closes(catalog, se
     assert slow_start < window_end < long_start
     assert any(c.signal is Signal.FIRST_CRACK_REACHED and c.value is False for c in slow.when)
     assert any(c.signal is Signal.TEMPERATURE and c.op is Operator.LT for c in slow.when)
+
+
+def test_rubric_drying_band_uses_the_rise_alert_thresholds(catalog, settings_module):
+    # La rúbrica califica el secado con la misma franja con la que avisan las alertas de subida.
+    parameters = Rubric.from_file(settings_module.evaluation_rubric_file).parameters
+    rules = {rule.id: rule for rule in catalog.rules}
+    rise = lambda rule_id, op: next(c.value for c in rules[rule_id].when  # noqa: E731
+                                    if c.signal is Signal.RISE_PER_MINUTE and c.op is op)
+    assert parameters.drying_rise_min == rise("DRYING_RISE_SLOW", Operator.LE)
+    assert parameters.drying_rise_max == rise("DRYING_RISE_FAST", Operator.GE)
+

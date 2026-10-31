@@ -1,6 +1,6 @@
 {
  "schemaVersion": 1,
- "catalogRevision": 3,
+ "catalogRevision": 4,
  "sampleFields": ["phase", "temperature", "roastSeconds", "firstCrackReached", "moisturePct", "recording", "assistantBusy"],
  "vectors": [
   {
@@ -4547,8 +4547,14 @@
       "mode": "VOICE"
      },
      {
-      "second": 561,
-      "roastSeconds": 542,
+      "second": 559,
+      "roastSeconds": 540,
+      "alertId": "ROAST_RUNNING_SLOW",
+      "mode": "VOICE"
+     },
+     {
+      "second": 619,
+      "roastSeconds": 600,
       "alertId": "ON_TRACK_MAILLARD",
       "mode": "VOICE"
      },
@@ -4585,8 +4591,14 @@
       "mode": "VOICE"
      },
      {
-      "second": 561,
-      "roastSeconds": 542,
+      "second": 559,
+      "roastSeconds": 540,
+      "alertId": "ROAST_RUNNING_SLOW",
+      "mode": "VOICE"
+     },
+     {
+      "second": 619,
+      "roastSeconds": 600,
       "alertId": "ON_TRACK_MAILLARD",
       "mode": "VOICE"
      },
@@ -4614,6 +4626,12 @@
       "second": 229,
       "roastSeconds": 210,
       "alertId": "TEMP_STALL_DRYING",
+      "mode": "VOICE"
+     },
+     {
+      "second": 559,
+      "roastSeconds": 540,
+      "alertId": "ROAST_RUNNING_SLOW",
       "mode": "VOICE"
      },
      {

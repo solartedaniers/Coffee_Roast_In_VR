@@ -1,7 +1,7 @@
 {
   "description": "Catálogo de alertas proactivas del tueste. Unity lo recibe por nivel y lo evalúa una vez por segundo simulado (ver docs/unity-proactive-alerts-contract.md). Cada regla dice en 'source' de dónde sale cada valor: Fuente (PDFs o tesis), Parámetro de diseño (reglas del simulador sin respaldo en los PDFs) o Propuesto (se afina con scripts/alert_simulator.py).",
   "schemaVersion": 1,
-  "catalogRevision": 3,
+  "catalogRevision": 4,
   "defaultLevel": "INTERMEDIATE",
   "signals": {
     "riseWindowSeconds": 30,
@@ -182,6 +182,28 @@
         "BEGINNER": "¡Primer crack! Desde ahora cuenta el tiempo de desarrollo. Baja un poco el gas: el grano ya genera su propio calor.",
         "INTERMEDIATE": "Primer crack. Empieza el desarrollo; baja un poco el gas.",
         "ADVANCED": "Primer crack."
+      }
+    },
+    {
+      "id": "ROAST_RUNNING_SLOW",
+      "priority": "NORMAL",
+      "levels": ["BEGINNER", "INTERMEDIATE", "ADVANCED"],
+      "when": [
+        {"signal": "phase", "op": "eq", "value": "ROASTING"},
+        {"signal": "firstCrackReached", "op": "eq", "value": false},
+        {"signal": "roastSeconds", "op": "ge", "value": 540},
+        {"signal": "temperature", "op": "lt", "value": 182}
+      ],
+      "sustainSeconds": 1,
+      "rearmWhen": null,
+      "cooldownSeconds": 0,
+      "maxRepeats": 1,
+      "requiresQuietSeconds": 0,
+      "source": "Parámetro de diseño: a los 9 min la sonda de un grano que va a cruzar en la ventana ya pasa de 182 °C (el lote de referencia de 6 kg va en ~189 °C); más abajo el primer crack suele llegar después de los 12 min. Fuente: Avances Técnicos 573 (8-12 min hasta el primer crack). Con el simulador, de los granos que pasan de 12 min avisa a 93 de 144, y subiendo el gas desde aquí 84 de esos 93 todavía cruzan antes de los 12 min.",
+      "phrases": {
+        "BEGINNER": "El tueste va lento y el primer crack puede llegar tarde. Sube el gas para que el café no quede horneado.",
+        "INTERMEDIATE": "Tueste lento, el primer crack va a llegar tarde; sube el gas.",
+        "ADVANCED": "Tueste lento para la ventana del primer crack."
       }
     },
     {

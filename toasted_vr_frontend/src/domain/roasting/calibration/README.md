@@ -1,6 +1,6 @@
 # Datos del tostador experto
 
-`expert-roasts.csv` tiene dos tuestes completos que hizo un tostador experto en la misma clase de máquina que modelo en el simulador: tostadora a gas de 5 a 6 kg, con el control de temperatura en 200 °C. Los uso como referencia para calibrar la forma de la curva y la respuesta al gas, y para comparar la curva simulada con la real.
+`expert-roasts.csv` tiene dos tuestes completos que hizo un tostador experto en la misma clase de máquina que modelo en el simulador: tostadora a gas de 5 a 6 kg, con el control de temperatura en 200 °C. Los uso como referencia para calibrar la forma de la curva y la respuesta al gas, y para comparar la curva simulada con la real en `ExpertCurveCalibration.test.js`.
 
 ## Columnas
 

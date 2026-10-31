@@ -4,6 +4,7 @@ import esTexts from '../../locals/es.json';
 import {
   getRanking,
   getRankingChanges,
+  getSessionDetail,
   getSessionHistory,
   getSessionSummary,
   markRankingSeen,
@@ -104,6 +105,36 @@ describe('PlayerProgressButtons', () => {
     await screen.findByRole('dialog');
 
     fireEvent.click(screen.getByRole('button', { name: texts.close }));
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  test('Escape goes back from a session detail to the list, and only from the list closes the window', async () => {
+    const session = {
+      id: 7,
+      createdAt: '2026-09-25T02:30:00Z',
+      knowledgeLevel: 'INTERMEDIATE',
+      result: 'PERFECT',
+      qualityScore: 73,
+      finalScore: 68,
+      grade: 'FAIR',
+      finalTemperature: 200.19,
+      totalDurationSeconds: 780,
+      developmentTimeRatio: 0.192,
+    };
+    getSessionHistory.mockResolvedValue({ content: [session], number: 0, totalPages: 1, totalElements: 1 });
+    getSessionDetail.mockResolvedValue({ ...session, firstCrackReached: true });
+    render(<PlayerProgressButtons texts={texts} currentUser={player} />);
+    fireEvent.click(historyButton());
+    fireEvent.click(await screen.findByRole('button', { name: texts.buttons.view }));
+    expect(await screen.findByRole('heading', { name: texts.detail.title })).toBeInTheDocument();
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(await screen.findByRole('button', { name: texts.buttons.view })).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: 'Historial' })).toBeInTheDocument();
+
+    fireEvent.keyDown(document, { key: 'Escape' });
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });

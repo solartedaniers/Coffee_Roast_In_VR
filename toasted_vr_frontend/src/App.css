@@ -27,6 +27,11 @@
   --font-display: "Playfair Display", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
   --font-body: Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
 
+  /* Ventanas de Historial y Ranking */
+  --progress-window-width: 95vw;
+  --progress-window-height: 95dvh;
+  --progress-window-table-min-height: 160px;
+
   /* Simulación de tueste — tokens semánticos (los tríos RGB se combinan
      con una opacidad en tiempo real vía rgba(var(--x), alpha)) */
   --color-oven-glow-rgb: 185, 100, 30;
@@ -2015,4 +2020,80 @@ select.field-input:focus {
     width: 100%;
   }
 
+}
+
+/* ================================================================
+   PROGRESS WINDOW (Historial y Ranking)
+   Solo modificadores propios: las clases compartidas no se tocan.
+   ================================================================ */
+
+.progress-window-backdrop {
+  padding: 0;
+}
+
+.progress-window.profile-modal {
+  display: flex;
+  flex-direction: column;
+  width: var(--progress-window-width);
+  height: var(--progress-window-height);
+  max-width: none;
+  max-height: none;
+  overflow: hidden;
+}
+
+.progress-window .progress-window-header {
+  flex-direction: row;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.progress-window .progress-window-header h2 {
+  margin: 0;
+}
+
+.progress-window-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* Con tabla, el resumen, el filtro y la paginación quedan fijos y la tabla es
+   la que se encoge y hace scroll. Sin tabla (detalle, carga, vacío) el cuerpo
+   sigue en bloque como antes y hace scroll completo. */
+.progress-window-body:has(> .users-table-wrapper) {
+  display: flex;
+  flex-direction: column;
+}
+
+.progress-window-body:has(> .users-table-wrapper) > * {
+  flex-shrink: 0;
+}
+
+.progress-window-body > .users-table-wrapper {
+  flex: 0 1 auto;
+  min-height: var(--progress-window-table-min-height);
+  overflow: auto;
+}
+
+.progress-window .admin-compact-table th,
+.progress-window .admin-compact-table td {
+  white-space: nowrap;
+}
+
+.progress-window .admin-compact-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--color-bg-page);
+}
+
+@media (max-width: 600px) {
+  .progress-window.profile-modal {
+    width: 100vw;
+    height: 100dvh;
+    border: none;
+    border-radius: 0;
+  }
 }

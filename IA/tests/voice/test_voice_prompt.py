@@ -30,7 +30,7 @@ def test_describes_the_live_roast_state():
 
     assert "Tiempo transcurrido: 5 min 12 s." in user
     assert "Temperatura del grano: 187.4 °C (fase: Caramelización (reacción de Maillard))." in user
-    assert "Temperatura objetivo: 205.0 °C (faltan 17.6 °C)." in user
+    assert "Temperatura objetivo" not in user
     assert "Temperatura de carga: 210.0 °C (fuera del rango recomendado de 180-200 °C)." in user
     assert "Primer crack: todavía no ha ocurrido." in user
     assert "Nivel de calor del quemador: sin dato." in user
@@ -93,7 +93,7 @@ def test_keeps_the_question_and_roast_state_to_check_the_figures():
     prompt = build()
 
     assert prompt.question == "¿Cuándo llega el primer crack?"
-    assert "Temperatura objetivo: 205.0 °C (faltan 17.6 °C)." in prompt.state_text
+    assert "Temperatura del grano: 187.4 °C" in prompt.state_text
     assert prompt.state_text in prompt.user
 
 
@@ -106,3 +106,11 @@ def test_offers_the_web_guide_as_evidence_for_the_gas():
     assert prompt.evidence_ids == {"ROAST", "GUIA"}
     assert prompt.guide_text == guide
     assert "sigue la GUÍA DEL SIMULADOR" in prompt.system
+
+
+def test_shows_the_target_only_after_the_first_crack():
+    # Antes del crack el objetivo es el del modo automático: con "faltan X °C" pedía subir el gas en el secado.
+    state = RoastState(elapsed_seconds=640, bean_temperature=201.3, first_crack_reached=True,
+                       first_crack_elapsed_seconds=625, target_temperature=210.0)
+
+    assert "Temperatura objetivo: 210.0 °C (faltan 8.7 °C)." in build(state=state).user

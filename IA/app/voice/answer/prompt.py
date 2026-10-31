@@ -91,7 +91,9 @@ class VoiceAnswerPromptBuilder:
             f"Temperatura del grano: {state.bean_temperature:.1f} °C "
             f"(fase: {roast_phase_label(state.bean_temperature)}).",
         ]
-        if state.target_temperature is not None:
+        # Antes del primer crack el objetivo es el del modo automático, no una meta del secado: con
+        # "faltan X °C" el modelo pedía subir el gas en pleno secado, contra la guía.
+        if state.target_temperature is not None and state.first_crack_reached:
             gap = state.target_temperature - state.bean_temperature
             where = f"faltan {gap:.1f} °C" if gap > 0 else f"ya la superó por {-gap:.1f} °C" if gap < 0 else "alcanzada"
             lines.append(f"Temperatura objetivo: {state.target_temperature:.1f} °C ({where}).")

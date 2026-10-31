@@ -2053,18 +2053,21 @@ select.field-input:focus {
   margin: 0;
 }
 
-/* El resumen, el filtro y la paginación quedan fijos; la tabla es la que
-   se encoge y hace scroll. Si ni así cabe (pantallas muy bajas), hace scroll
-   todo el cuerpo, igual que la vista de detalle. */
 .progress-window-body {
-  display: flex;
   flex: 1 1 auto;
-  flex-direction: column;
   min-height: 0;
   overflow-y: auto;
 }
 
-.progress-window-body > * {
+/* Con tabla, el resumen, el filtro y la paginación quedan fijos y la tabla es
+   la que se encoge y hace scroll. Sin tabla (detalle, carga, vacío) el cuerpo
+   sigue en bloque como antes y hace scroll completo. */
+.progress-window-body:has(> .users-table-wrapper) {
+  display: flex;
+  flex-direction: column;
+}
+
+.progress-window-body:has(> .users-table-wrapper) > * {
   flex-shrink: 0;
 }
 

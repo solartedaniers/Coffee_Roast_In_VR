@@ -29,7 +29,6 @@ import {
   ALARM_LIMIT_DEFAULT_C,
   CHART_VERTICAL_STEP_C,
   CHART_TIME_WINDOW_SECONDS,
-  CHART_SAMPLE_INTERVAL_SECONDS,
   FIRST_CRACK_TEMP_MIN_C,
   FIRST_CRACK_TEMP_MAX_C,
   IDEAL_FINAL_TEMP_C,
@@ -51,6 +50,7 @@ import RoastPacingProfile from '../../domain/roasting/RoastPacingProfile';
 import ChargeDipCalculator from '../../domain/roasting/ChargeDipCalculator';
 import ProbeTemperatureModel from '../../domain/roasting/ProbeTemperatureModel';
 import TurningPointDetector from '../../domain/roasting/TurningPointDetector';
+import ChartSampleSelector from '../../domain/roasting/ChartSampleSelector';
 import RoastTraceRecorder from '../../domain/roasting/RoastTraceRecorder';
 
 // Valores de ejemplo para las 3 curvas de "Programación de Curvas" —
@@ -652,10 +652,7 @@ export default function RoastingSimulation({
   // La gráfica dibuja la lectura del termómetro desde el encendido del
   // horno (ver displayTemp en runTick). El tiempo es relativo al
   // encendido (elapsedSeconds ya arranca en 0 ahí).
-  const chartSamples = useMemo(
-    () => s.samples.filter((sample) => sample.time % CHART_SAMPLE_INTERVAL_SECONDS === 0),
-    [s.samples]
-  );
+  const chartSamples = useMemo(() => ChartSampleSelector.select(s.samples), [s.samples]);
   const chartPoints = useMemo(() => {
     const windowStart = Math.max(0, s.chartViewResetAtSeconds ?? -Infinity, s.elapsedSeconds - CHART_TIME_WINDOW_SECONDS);
     return chartSamples.filter((sample) => sample.time >= windowStart);

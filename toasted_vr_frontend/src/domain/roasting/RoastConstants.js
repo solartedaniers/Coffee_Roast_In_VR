@@ -331,10 +331,10 @@ export const CHART_VERTICAL_TICK_COUNT = 6;
 export const CHART_HORIZONTAL_TICK_COUNT = 15;
 export const CHART_TIME_WINDOW_SECONDS = CHART_HORIZONTAL_TICK_COUNT * 60;
 
-// La gráfica dibuja un punto cada tantos segundos simulados, como la
-// pantalla de la tostadora real; el Incremento °C/min y la traza siguen
-// usando las muestras de cada segundo.
-export const CHART_SAMPLE_INTERVAL_SECONDS = 5;
+// La gráfica dibuja un punto cada tantos segundos simulados, para que la
+// línea se vea fluida; el Incremento °C/min usa las muestras de cada
+// segundo y la traza va cada ROAST_TRACE_SAMPLE_INTERVAL_SECONDS.
+export const CHART_SAMPLE_INTERVAL_SECONDS = 2;
 
 // Línea de referencia fija (piso) de la gráfica — no depende de ningún
 // slider ni del rango recomendado de carga (180-200°C, ver

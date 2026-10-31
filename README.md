@@ -136,15 +136,24 @@ no disponible por ahora".
 
 Unity usa la misma fisica del simulador web sin copiarla: la carpeta
 `roast-simulator/` es un servicio en Node 24, sin dependencias, que importa
-directamente `toasted_vr_frontend/src/domain/roasting`. Corre en el host, fuera
-de Docker, igual que el servicio IA, y escucha solo en `127.0.0.1:8083`. Unity
-nunca lo llama directo: juega a traves de `/api/v1/roasting/simulations` del
-backend, que valida el token y guarda la sesion al descargar.
+directamente `toasted_vr_frontend/src/domain/roasting`. Unity nunca lo llama
+directo: juega a traves de `/api/v1/roasting/simulations` del backend, que
+valida el token y guarda la sesion al descargar. El simulador nunca queda
+abierto hacia la red.
 
-```bash
-cd roast-simulator
-npm start
-```
+Lo levanto de una de dos formas:
+
+- Con Node en el host (`127.0.0.1:8083`), cuando el backend tambien corre en el host:
+  ```bash
+  cd roast-simulator
+  npm start
+  ```
+- Con Docker, junto con los demas servicios, agregando su compose:
+  ```powershell
+  docker compose --env-file .\Toasted_VR\.env -f .\docker-compose.yml -f .\Toasted_VR\docker-compose.backend.yml -f .\toasted_vr_frontend\docker-compose.frontend.yml -f .\roast-simulator\docker-compose.simulator.yml up --build -d
+  ```
+  El backend en Docker lo encuentra por el nombre del servicio y el puerto solo
+  se publica en `127.0.0.1:8083`.
 
 El backend lo encuentra con `ROAST_SIMULATOR_BASE_URL` (backend en el host) o
 `DOCKER_ROAST_SIMULATOR_BASE_URL` (backend en Docker) en `Toasted_VR/.env`. El

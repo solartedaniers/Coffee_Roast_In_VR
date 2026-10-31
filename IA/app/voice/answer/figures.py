@@ -15,7 +15,7 @@ def numbers_in(text: str) -> list[float]:
 
 
 class SupportedFigures:
-    # ponytail: solo reconoce cifras escritas con dígitos (el prompt lo exige); "setenta por ciento" pasaría.
+    # Solo reconoce cifras escritas con dígitos, porque el prompt le exige al modelo escribirlas así.
     def __init__(self, tolerance: float):
         self.tolerance = tolerance
 

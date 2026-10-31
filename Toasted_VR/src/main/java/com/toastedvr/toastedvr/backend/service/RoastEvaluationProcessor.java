@@ -24,7 +24,7 @@ import org.springframework.stereotype.Service;
 
 // Pide al servicio IA la calificación de las evaluaciones pendientes. Si Groq o el servicio fallan,
 // la deja para más tarde con una espera que se duplica en cada intento.
-// ponytail: un solo backend procesa la cola; con varias instancias haría falta bloquear las filas.
+// El backend corre como una sola instancia, así que procesa la cola sin bloquear filas.
 @Service
 public class RoastEvaluationProcessor {
 

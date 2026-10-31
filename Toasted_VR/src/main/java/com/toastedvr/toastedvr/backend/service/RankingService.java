@@ -117,8 +117,7 @@ public class RankingService {
 
     // Las sesiones llegan de mejor a peor (y de la más antigua a la más nueva
     // en empate): la primera de cada jugador es su mejor marca.
-    // ponytail: recorre todas las sesiones del nivel; si el volumen crece,
-    // pasar a ROW_NUMBER() en SQL.
+    // Por ese orden basta con quedarse con la primera de cada jugador al recorrerlas.
     private List<RankedPlayer> rankPlayers(KnowledgeLevel level) {
         Map<Long, RoastEvaluation> bestByUser = new LinkedHashMap<>();
         evaluationRepository.findRankingCandidates(RoastEvaluationStatus.COMPLETED, level, scoreBasis.combinedSince(), Role.ADMIN)

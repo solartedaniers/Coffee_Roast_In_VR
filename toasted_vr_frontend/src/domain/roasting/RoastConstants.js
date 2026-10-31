@@ -266,7 +266,10 @@ export const BURN_SEVERE_SECONDS_ABOVE_CEILING = 15;
 // Condición combinada (sección 5 del modelo): un incremento de temperatura
 // demasiado agresivo mientras casi no queda humedad para amortiguarlo
 // también quema el grano, aunque no se cumpla la regla de tiempo.
-export const ROR_SCORCH_THRESHOLD_C_PER_MIN = 35;
+// Parámetro de diseño: con el aire calibrado al experto el Increm °T llega
+// a ~17 °C/min siguiendo la guía y a ~20 °C/min con el gas al 100 %, así
+// que 19 °C/min solo se alcanza forzando el gas con el grano ya seco.
+export const ROR_SCORCH_THRESHOLD_C_PER_MIN = 19;
 export const MOISTURE_SCORCH_THRESHOLD_PCT = 2;
 
 // ---- Estancamiento en Maillard (defecto "horneado") --------------------

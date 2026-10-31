@@ -34,6 +34,8 @@ Queda en `http://127.0.0.1:8083`.
 | `SIMULATION_MAX_STORED_TICKS` | `3600` | Ticks que guardo por simulación; 3600 es una hora simulada, cerca de 1,5 MB |
 | `SIMULATOR_MAX_BODY_BYTES` | `16384` | Tamaño máximo del cuerpo de un pedido |
 
+Si el backend corre en Docker, el contenedor no llega a `127.0.0.1` del host: arranco el simulador con `SIMULATOR_HOST=0.0.0.0` y el backend usa `DOCKER_ROAST_SIMULATOR_BASE_URL`. En ese caso el puerto 8083 queda abierto en la red y cualquiera que llegue a él puede actuar como cualquier jugador con `X-User-Id`, así que bloqueo el 8083 para la red en el firewall de Windows y solo dejo pasar al contenedor.
+
 ## API interna
 
 Todas las rutas piden `X-User-Id`. Los errores responden `{"code": "..."}` y el backend pone el mensaje en español.

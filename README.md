@@ -132,6 +132,26 @@ la aplicacion funciona con normalidad; simplemente no se muestra la
 retroalimentacion de IA y en su lugar aparece el mensaje "Retroalimentacion
 no disponible por ahora".
 
+### 4. Simulador de tueste para Unity (Node)
+
+Unity usa la misma fisica del simulador web sin copiarla: la carpeta
+`roast-simulator/` es un servicio en Node 24, sin dependencias, que importa
+directamente `toasted_vr_frontend/src/domain/roasting`. Corre en el host, fuera
+de Docker, igual que el servicio IA, y escucha solo en `127.0.0.1:8083`. Unity
+nunca lo llama directo: juega a traves de `/api/v1/roasting/simulations` del
+backend, que valida el token y guarda la sesion al descargar.
+
+```bash
+cd roast-simulator
+npm start
+```
+
+El backend lo encuentra con `ROAST_SIMULATOR_BASE_URL` (backend en el host) o
+`DOCKER_ROAST_SIMULATOR_BASE_URL` (backend en Docker) en `Toasted_VR/.env`. El
+contrato para Unity esta en `IA/docs/unity-roast-simulation-contract.md` y los
+detalles del servicio en `roast-simulator/README.md`. La web no lo necesita:
+sigue corriendo la fisica en el navegador.
+
 ---
 
 ## Flujo de Pull Requests y CI

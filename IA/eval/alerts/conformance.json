@@ -1,6 +1,6 @@
 {
  "schemaVersion": 1,
- "catalogRevision": 2,
+ "catalogRevision": 3,
  "sampleFields": ["phase", "temperature", "roastSeconds", "firstCrackReached", "moisturePct", "recording", "assistantBusy"],
  "vectors": [
   {

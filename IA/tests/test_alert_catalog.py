@@ -134,3 +134,12 @@ def test_reads_the_catalog_from_a_file(tmp_path):
     path = tmp_path / "alerts.json"
     path.write_text(json.dumps(MINIMAL_CATALOG), encoding="utf-8")
     assert AlertCatalog.from_file(path).rules[0].id == "FIRST_CRACK"
+
+
+def test_drying_slow_and_stall_alerts_wait_after_the_turning_point(catalog):
+    # La sonda arranca despacio después del retorno; sin esta espera las dos alertas sonaban en falso.
+    for rule_id in ("TEMP_STALL_DRYING", "DRYING_RISE_SLOW"):
+        rule = next(rule for rule in catalog.rules if rule.id == rule_id)
+        assert any(c.signal is Signal.PHASE and c.value == "ROASTING" for c in rule.when)
+        assert any(c.signal is Signal.SECONDS_IN_PHASE and c.value >= catalog.signals.rise_window_seconds
+                   for c in rule.when)

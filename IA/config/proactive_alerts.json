@@ -1,7 +1,7 @@
 {
   "description": "Catálogo de alertas proactivas del tueste. Unity lo recibe por nivel y lo evalúa una vez por segundo simulado (ver docs/unity-proactive-alerts-contract.md). Cada regla dice en 'source' de dónde sale cada valor: Fuente (PDFs o tesis), Parámetro de diseño (reglas del simulador sin respaldo en los PDFs) o Propuesto (se afina con scripts/alert_simulator.py).",
   "schemaVersion": 1,
-  "catalogRevision": 2,
+  "catalogRevision": 3,
   "defaultLevel": "INTERMEDIATE",
   "signals": {
     "riseWindowSeconds": 30,
@@ -83,6 +83,8 @@
       "levels": ["BEGINNER", "INTERMEDIATE"],
       "when": [
         {"signal": "turningPointReached", "op": "eq", "value": true},
+        {"signal": "phase", "op": "eq", "value": "ROASTING"},
+        {"signal": "secondsInPhase", "op": "ge", "value": 90},
         {"signal": "temperature", "op": "ge", "value": 100},
         {"signal": "temperature", "op": "lt", "value": 160},
         {"signal": "risePerMinute", "op": "gt", "value": 0},
@@ -93,7 +95,7 @@
       "cooldownSeconds": 60,
       "maxRepeats": 2,
       "requiresQuietSeconds": 0,
-      "source": "Fuente: artículo de Jama, tabla 2 (la curva aceptada más lenta sube ~6,5 °C/min) y manual de tostado p.11 (horneado por tueste muy lento). Propuesto: 5 °C/min, re-arme a 8 y 20 s de sostén.",
+      "source": "Fuente: artículo de Jama, tabla 2 (la curva aceptada más lenta sube ~6,5 °C/min) y manual de tostado p.11 (horneado por tueste muy lento). Propuesto: 5 °C/min, re-arme a 8 y 20 s de sostén. Propuesto: esperar 90 s desde el punto de retorno, porque la sonda arranca despacio (en los tuestes del experto la subida pasa de 5 °C/min entre 20 y 60 s después del retorno y en el simulador a los 70 s).",
       "phrases": {
         "BEGINNER": "La temperatura está subiendo muy despacio. Sube un poco el gas para que el café no quede horneado.",
         "INTERMEDIATE": "Subida muy lenta en el secado; sube un poco el gas."
@@ -105,6 +107,8 @@
       "levels": ["BEGINNER", "INTERMEDIATE", "ADVANCED"],
       "when": [
         {"signal": "turningPointReached", "op": "eq", "value": true},
+        {"signal": "phase", "op": "eq", "value": "ROASTING"},
+        {"signal": "secondsInPhase", "op": "ge", "value": 30},
         {"signal": "temperature", "op": "lt", "value": 160},
         {"signal": "risePerMinute", "op": "le", "value": 0}
       ],
@@ -113,7 +117,7 @@
       "cooldownSeconds": 30,
       "maxRepeats": 2,
       "requiresQuietSeconds": 0,
-      "source": "Propuesto: el simulador no vigila el estancamiento antes de 160 °C.",
+      "source": "Propuesto: el simulador no vigila el estancamiento antes de 160 °C. Propuesto: esperar 30 s desde el punto de retorno, para que la ventana de la subida solo tenga lecturas posteriores al retorno.",
       "phrases": {
         "BEGINNER": "La temperatura dejó de subir. Sube el gas para que el tueste no se detenga.",
         "INTERMEDIATE": "La temperatura se estancó; sube el gas.",

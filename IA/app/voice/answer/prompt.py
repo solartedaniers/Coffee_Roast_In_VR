@@ -12,6 +12,7 @@ from app.roast_reference import CHARGE_IDEAL_MAX_C, CHARGE_IDEAL_MIN_C, charge_o
 from app.voice.contracts import RoastState
 
 ROAST_SOURCE_ID = "ROAST"
+GUIDE_SOURCE_ID = "GUIA"
 SOURCE_ID_PREFIX = "S"
 SECONDS_PER_MINUTE = 60
 
@@ -19,14 +20,15 @@ SYSTEM_TEMPLATE = (
     "Eres un profesor de tueste de café que acompaña al jugador mientras tuesta en un simulador de "
     "realidad virtual. Tu respuesta se va a escuchar, no a leer: escribe como máximo {max_sentences} frases "
     "cortas en español, en texto plano, sin listas, sin markdown y sin mencionar las fuentes ni sus nombres.\n"
-    "Solo puedes afirmar lo que respaldan las FUENTES o el ESTADO DEL TUESTE que te doy. La conversación "
+    "Solo puedes afirmar lo que respaldan las FUENTES, el ESTADO DEL TUESTE o la GUÍA DEL SIMULADOR que te doy. "
+    "Para aconsejar el gas sigue la GUÍA DEL SIMULADOR según el estado del tueste. La conversación "
     "reciente es solo contexto, no evidencia. No inventes objetos ni pasos.\n"
     "Cifras: solo puedes dar un número (temperatura, porcentaje de gas, tiempo) si aparece tal cual en las "
-    "FUENTES que uses, en el ESTADO DEL TUESTE o en la pregunta, y siempre escrito con dígitos. Si no tienes "
-    "una cifra con respaldo, da solo la dirección, por ejemplo \"baja un poco el gas\" o \"espera a que suba "
-    "la temperatura\". Nunca calcules ni estimes cifras nuevas.\n"
+    "FUENTES que uses, en el ESTADO DEL TUESTE, en la GUÍA DEL SIMULADOR o en la pregunta, y siempre escrito "
+    "con dígitos. Si no tienes una cifra con respaldo, da solo la dirección, por ejemplo \"baja un poco el gas\" "
+    "o \"espera a que suba la temperatura\". Nunca calcules ni estimes cifras nuevas.\n"
     "Si con eso no alcanza para responder la pregunta, pon sufficient en false y deja answer vacío.\n"
-    "En sourceIds pon los identificadores exactos (por ejemplo S1 o ROAST) de lo que usaste para responder.\n"
+    "En sourceIds pon los identificadores exactos (por ejemplo S1, ROAST o GUIA) de lo que usaste para responder.\n"
     "El jugador es de nivel {level}."
 )
 
@@ -48,10 +50,11 @@ class AnswerPrompt:
     passages: dict[str, RetrievedPassage]
     question: str = ""
     state_text: str = ""
+    guide_text: str = ""
 
     @property
     def evidence_ids(self) -> set[str]:
-        return set(self.passages) | {ROAST_SOURCE_ID}
+        return set(self.passages) | {ROAST_SOURCE_ID} | ({GUIDE_SOURCE_ID} if self.guide_text else set())
 
 
 def duration_text(seconds: float) -> str:
@@ -60,8 +63,9 @@ def duration_text(seconds: float) -> str:
 
 
 class VoiceAnswerPromptBuilder:
-    def __init__(self, max_sentences: int):
+    def __init__(self, max_sentences: int, guide_text: str = ""):
         self.max_sentences = max_sentences
+        self.guide_text = guide_text
 
     def build(self, question: str, state: RoastState, level: KnowledgeLevel | None,
               passages: list[RetrievedPassage], history: list[ConversationTurn]) -> AnswerPrompt:
@@ -70,13 +74,15 @@ class VoiceAnswerPromptBuilder:
         state_text = "\n".join(f"- {line}" for line in self._state_lines(state))
         user = "\n\n".join([
             f"ESTADO DEL TUESTE [{ROAST_SOURCE_ID}]:\n" + state_text,
+            *([f"GUÍA DEL SIMULADOR [{GUIDE_SOURCE_ID}] (lo que la web le enseña al jugador):\n{self.guide_text}"]
+              if self.guide_text else []),
             "FUENTES:\n" + ("\n".join(self._source_line(source_id, passage)
                                       for source_id, passage in identified.items()) or NO_SOURCES),
             *([self._history_block(history)] if history else []),
             f"PREGUNTA DEL JUGADOR: {question}",
         ])
         system = SYSTEM_TEMPLATE.format(max_sentences=self.max_sentences, level=LEVEL_LABELS[level])
-        return AnswerPrompt(system, user, identified, question, state_text)
+        return AnswerPrompt(system, user, identified, question, state_text, self.guide_text)
 
     @staticmethod
     def _state_lines(state: RoastState) -> list[str]:

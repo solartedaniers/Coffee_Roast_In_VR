@@ -1,0 +1,4 @@
+{
+  "description": "Guía del tueste que la web le muestra al jugador (es.json, simulation.guidance.complete.ROASTING). El asistente de voz la usa como referencia para aconsejar el gas. Tiene que ser el mismo texto: lo comprueba roastGuideContract.test.js en el frontend, junto con los números de RoastConstants.js.",
+  "text": "Empieza con la Potencia % Llama en 50 %. Cuando la temperatura llegue a unos 185°C bájala a 40 %, y apenas suene el first crack bájala a 20 %. Mira la curva y el Increm °T: si la temperatura sube más de 16°C por minuto, baja a 40 % antes de llegar a 185°C y déjalo ahí. Solo si ya estás en 40 % y sube menos de 10°C por minuto, vuelve a 50 % y mantenlo hasta el crack. El crack suena entre 196°C y 205°C. Descarga cuando el desarrollo esté entre 18% y 22% del tiempo total. Si dejas el gas en 50 % después del crack la temperatura puede pasar de 215°C: no superes 220°C ni llegues al segundo crack."
+}

@@ -1,5 +1,7 @@
 from app.domain import KnowledgeLevel
 from app.rag.citations import Citation, RetrievedPassage
+from app.config import SERVICE_ROOT
+from app.voice.answer.guide import load_roast_guide
 from app.voice.answer.prompt import ConversationTurn, VoiceAnswerPromptBuilder, duration_text
 from app.voice.contracts import RoastState
 
@@ -93,3 +95,14 @@ def test_keeps_the_question_and_roast_state_to_check_the_figures():
     assert prompt.question == "¿Cuándo llega el primer crack?"
     assert "Temperatura objetivo: 205.0 °C (faltan 17.6 °C)." in prompt.state_text
     assert prompt.state_text in prompt.user
+
+
+def test_offers_the_web_guide_as_evidence_for_the_gas():
+    guide = load_roast_guide(SERVICE_ROOT / "config" / "roast_guide.json")
+
+    prompt = VoiceAnswerPromptBuilder(3, guide).build("¿Qué hago con el gas?", STATE, None, [], [])
+
+    assert f"GUÍA DEL SIMULADOR [GUIA] (lo que la web le enseña al jugador):\n{guide}" in prompt.user
+    assert prompt.evidence_ids == {"ROAST", "GUIA"}
+    assert prompt.guide_text == guide
+    assert "sigue la GUÍA DEL SIMULADOR" in prompt.system

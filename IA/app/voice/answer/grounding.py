@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from app.rag.citations import Citation
 from app.voice.answer.groq import ModelAnswer
 from app.voice.answer.figures import SupportedFigures
-from app.voice.answer.prompt import ROAST_SOURCE_ID, AnswerPrompt
+from app.voice.answer.prompt import GUIDE_SOURCE_ID, ROAST_SOURCE_ID, AnswerPrompt
 from app.voice.contracts import AnswerStatus
 
 log = logging.getLogger(__name__)
@@ -84,6 +84,8 @@ class AnswerGrounding:
         texts = [prompt.question, *(prompt.passages[source_id].text for source_id in used if source_id in prompt.passages)]
         if ROAST_SOURCE_ID in used:
             texts.append(prompt.state_text)
+        if GUIDE_SOURCE_ID in used:
+            texts.append(prompt.guide_text)
         return "\n".join(texts)
 
     def abstain(self) -> GroundedAnswer:

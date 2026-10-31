@@ -37,6 +37,7 @@ import {
   GUIDE_SLOW_RISE_C_PER_MIN,
   IDEAL_FINAL_TEMP_MIN_C,
   IDEAL_FINAL_TEMP_MAX_C,
+  TARGET_TEMP_DEFAULT_C,
 } from './RoastConstants';
 
 // ================================================================
@@ -326,5 +327,23 @@ describe('el jugador sigue libre de equivocarse', () => {
       dischargeAtDtr: null,
     });
     expect(hottest(roast)).toBeGreaterThanOrEqual(SECOND_CRACK_TEMP_MAX_C + densityShift(BEAN_DENSITY_MAX));
+  });
+});
+
+describe('el modo automático con el objetivo por defecto', () => {
+  const highestFirstCrackC = FIRST_CRACK_TEMP_MAX_C + (BEAN_DENSITY_MAX - BEAN_DENSITY_REFERENCE) * CRACK_DENSITY_SHIFT_C_PER_DENSITY_UNIT;
+  const autoGas = ({ probe, rateOfRise }) => RoastThermalModel.computeAutoFlamePowerPercent(probe, TARGET_TEMP_DEFAULT_C, rateOfRise);
+
+  test.each(batchWeights)('lote de %d kg: el grano más denso llega al primer crack más alto', (batchWeightKg) => {
+    const { firstCrack } = simulateRoast({
+      chargeTemp: CHARGE_TEMP_DEFAULT_C,
+      batchWeightKg,
+      density: BEAN_DENSITY_MAX,
+      moisturePct: BEAN_MOISTURE_MAX_PCT,
+      entryTempC: BEAN_ENTRY_TEMP_MIN_C,
+      firstCrackThresholdTemp: highestFirstCrackC,
+      gasFor: autoGas,
+    });
+    expect(firstCrack).not.toBeNull();
   });
 });

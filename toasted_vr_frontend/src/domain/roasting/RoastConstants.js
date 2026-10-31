@@ -85,7 +85,10 @@ export const CHARGE_TEMP_PENALTY_WEIGHT = 1.5;
 
 export const TARGET_TEMP_MIN_C = 150;
 export const TARGET_TEMP_MAX_C = 230;
-export const TARGET_TEMP_DEFAULT_C = 200;
+// Dentro de la franja de temperatura final ideal y sobre el primer crack más
+// alto (205 °C + corrimiento del grano más denso = 209 °C): con menos, el modo
+// automático se queda cerca del objetivo y ese grano nunca cruje.
+export const TARGET_TEMP_DEFAULT_C = 210;
 
 // ---- Quemador / potencia de llama --------------------------------
 

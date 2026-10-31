@@ -1,7 +1,7 @@
 Datos de una sesión de tueste de café en un simulador por computadora (no hay objetos físicos: solo estos números).
 Resultado: RAW. Puntaje: 20/100.
 Temperatura de carga: N/A.
-Temperatura objetivo: 210.0°C. Temperatura final: 180.0°C. Quedó 30.0°C POR DEBAJO del objetivo.
+Temperatura final: 180.0°C. Quedó 25.0°C POR DEBAJO del rango ideal de 205-212°C.
 Fase del tueste alcanzada al finalizar: Caramelización (reacción de Maillard).
 Duración total: 500 segundos. First crack alcanzado: no.
 Tiempo de desarrollo tras el first crack: N/A.

@@ -9,8 +9,11 @@ from app.java_format import fixed, integer, text
 from app.roast_reference import (
     CHARGE_IDEAL_MAX_C,
     CHARGE_IDEAL_MIN_C,
+    IDEAL_FINAL_MAX_C,
+    IDEAL_FINAL_MIN_C,
     DevelopmentTimeRange,
     charge_out_of_range,
+    distance_outside_ideal_final,
     roast_phase_label,
 )
 
@@ -21,7 +24,7 @@ PROMPT_TEMPLATE = (
     "(no hay objetos físicos: solo estos números).\n"
     "Resultado: {result}. Puntaje: {score}/100.\n"
     "Temperatura de carga: {charge}.\n"
-    "Temperatura objetivo: {target}°C. Temperatura final: {final}°C. {delta}\n"
+    "Temperatura final: {final}°C. {final_band}\n"
     "Fase del tueste alcanzada al finalizar: {phase}.\n"
     "Duración total: {duration} segundos. First crack alcanzado: {first_crack}.\n"
     "{development}\n"
@@ -41,8 +44,8 @@ PROMPT_TEMPLATE = (
 YES = "sí"
 NO = "no"
 NOT_AVAILABLE = "N/A"
-BELOW_TARGET_LABEL = "POR DEBAJO"
-ABOVE_TARGET_LABEL = "POR ENCIMA"
+BELOW_IDEAL_LABEL = "POR DEBAJO"
+ABOVE_IDEAL_LABEL = "POR ENCIMA"
 DEVELOPMENT_TIME_SHORT_LABEL = "CORTO"
 DEVELOPMENT_TIME_LONG_LABEL = "PROLONGADO"
 DEVELOPMENT_TIME_OPTIMAL_LABEL = "dentro del rango óptimo"
@@ -91,9 +94,8 @@ class FeedbackPromptBuilder:
             result=text(session.result),
             score=integer(session.quality_score),
             charge=charge,
-            target=fixed(session.target_temperature, 1),
             final=fixed(session.final_temperature, 1),
-            delta=self._target_vs_final_delta_text(session),
+            final_band=self._final_band_text(session.final_temperature),
             phase=roast_phase_label(session.final_temperature),
             duration=integer(session.total_duration_seconds),
             first_crack=YES if session.first_crack_reached is True else NO,
@@ -104,13 +106,15 @@ class FeedbackPromptBuilder:
         )
 
     @staticmethod
-    def _target_vs_final_delta_text(session: RoastFeedbackRequest) -> str:
-        # La dirección y la magnitud van ya calculadas: el modelo llegó a inventar el objetivo.
-        delta = session.final_temperature - session.target_temperature
-        if delta == 0:
-            return "La temperatura final coincidió exactamente con el objetivo."
-        direction = BELOW_TARGET_LABEL if delta < 0 else ABOVE_TARGET_LABEL
-        return f"Quedó {fixed(abs(delta), 1)}°C {direction} del objetivo."
+    def _final_band_text(final_temperature: float) -> str:
+        # Se compara con la franja del puntaje y no con el objetivo del jugador: un tueste bueno
+        # quedaba "por encima del objetivo". La dirección va calculada: el modelo la inventaba.
+        band = f"{fixed(IDEAL_FINAL_MIN_C, 0)}-{fixed(IDEAL_FINAL_MAX_C, 0)}°C"
+        distance = distance_outside_ideal_final(final_temperature)
+        if distance == 0:
+            return f"Quedó dentro del rango ideal de {band}."
+        direction = BELOW_IDEAL_LABEL if distance < 0 else ABOVE_IDEAL_LABEL
+        return f"Quedó {fixed(abs(distance), 1)}°C {direction} del rango ideal de {band}."
 
     def _development_time_text(self, session: RoastFeedbackRequest) -> str:
         development_time = session.development_time_seconds

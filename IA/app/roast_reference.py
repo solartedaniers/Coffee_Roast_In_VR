@@ -12,6 +12,10 @@ DRYING_PHASE_END_C = 160.0
 MAILLARD_PHASE_END_C = 200.0
 SECOND_CRACK_PHASE_START_C = 224.0
 
+# Franja de temperatura final sin castigo del puntaje perfecto (IDEAL_FINAL_TEMP_MIN_C/MAX_C).
+IDEAL_FINAL_MIN_C = 205.0
+IDEAL_FINAL_MAX_C = 212.0
+
 DRYING_PHASE_LABEL = "Secado"
 MAILLARD_PHASE_LABEL = "Caramelización (reacción de Maillard)"
 FIRST_CRACK_PHASE_LABEL = "Primer Crack"
@@ -28,6 +32,15 @@ def roast_phase_label(final_temperature: float) -> str:
     if final_temperature < SECOND_CRACK_PHASE_START_C:
         return FIRST_CRACK_PHASE_LABEL
     return SECOND_CRACK_PHASE_LABEL
+
+
+def distance_outside_ideal_final(final_temperature: float) -> float:
+    """Negativa si quedó por debajo de la franja ideal, positiva si quedó por encima y 0 dentro."""
+    if final_temperature < IDEAL_FINAL_MIN_C:
+        return final_temperature - IDEAL_FINAL_MIN_C
+    if final_temperature > IDEAL_FINAL_MAX_C:
+        return final_temperature - IDEAL_FINAL_MAX_C
+    return 0.0
 
 
 def charge_out_of_range(charge_temperature: float) -> bool:

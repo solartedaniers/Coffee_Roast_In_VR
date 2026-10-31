@@ -1,7 +1,7 @@
 Datos de una sesión de tueste de café en un simulador por computadora (no hay objetos físicos: solo estos números).
 Resultado: BURNED. Puntaje: 30/100.
 Temperatura de carga: 230.0°C (fuera del rango recomendado de 180-200°C).
-Temperatura objetivo: 205.0°C. Temperatura final: 228.0°C. Quedó 23.0°C POR ENCIMA del objetivo.
+Temperatura final: 228.0°C. Quedó 16.0°C POR ENCIMA del rango ideal de 205-212°C.
 Fase del tueste alcanzada al finalizar: Segundo Crack.
 Duración total: 600 segundos. First crack alcanzado: sí.
 Tiempo de desarrollo tras el first crack: 60 segundos de 600 segundos totales (10% del tueste) — esto es CORTO, no prolongado, respecto al rango óptimo de 18%-22%.

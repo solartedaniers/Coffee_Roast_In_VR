@@ -1,8 +1,8 @@
 Datos de una sesión de tueste de café en un simulador por computadora (no hay objetos físicos: solo estos números).
-Resultado: PERFECT. Puntaje: 92/100.
+Resultado: PERFECT. Puntaje: 100/100.
 Temperatura de carga: 190.0°C (dentro del rango recomendado de 180-200°C).
-Temperatura objetivo: 200.0°C. Temperatura final: 200.0°C. La temperatura final coincidió exactamente con el objetivo.
-Fase del tueste alcanzada al finalizar: Caramelización (reacción de Maillard).
+Temperatura final: 207.0°C. Quedó dentro del rango ideal de 205-212°C.
+Fase del tueste alcanzada al finalizar: Primer Crack.
 Duración total: 780 segundos. First crack alcanzado: sí.
 Tiempo de desarrollo tras el first crack: 156 segundos de 780 segundos totales (20% del tueste) — dentro del rango óptimo.
 Nivel del usuario: principiante, usa vocabulario simple y explica cualquier término técnico que uses.
@@ -11,6 +11,6 @@ Recuerda: nivel principiante. Usa palabras simples como "tueste", "tiempo" y "te
 Contexto de referencia de material académico (úsalo solo si es relevante, no lo cites textualmente):
 - Fragmento uno.
 - Fragmento dos.
-Recuerda el resultado real de esta sesión: PERFECT (puntaje 92/100). Tu sugerencia debe ser consistente con ese resultado, no contradecirlo.
+Recuerda el resultado real de esta sesión: PERFECT (puntaje 100/100). Tu sugerencia debe ser consistente con ese resultado, no contradecirlo.
 
 Retroalimentación:

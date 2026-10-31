@@ -1,7 +1,7 @@
 Datos de una sesión de tueste de café en un simulador por computadora (no hay objetos físicos: solo estos números).
 Resultado: BAKED. Puntaje: 15/100.
 Temperatura de carga: 150.0°C (fuera del rango recomendado de 180-200°C).
-Temperatura objetivo: 215.0°C. Temperatura final: 150.0°C. Quedó 65.0°C POR DEBAJO del objetivo.
+Temperatura final: 150.0°C. Quedó 55.0°C POR DEBAJO del rango ideal de 205-212°C.
 Fase del tueste alcanzada al finalizar: Secado.
 Duración total: 900 segundos. First crack alcanzado: sí.
 Tiempo de desarrollo tras el first crack: 300 segundos de 900 segundos totales (33% del tueste) — esto es PROLONGADO, no corto, respecto al rango óptimo de 18%-22%.

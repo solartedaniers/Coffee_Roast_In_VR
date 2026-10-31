@@ -15,17 +15,17 @@ La traza es opcional. Si Unity no la manda, la sesión se guarda igual que antes
     "operationMode": "MANUAL",
     "sampleIntervalSeconds": 5,
     "samples": [
-      { "t": 1, "bean": 189.46, "gas": 30 },
-      { "t": 5, "bean": 184.15, "gas": 30 },
-      { "t": 836, "bean": 207.69, "gas": 25 }
+      { "t": 1, "bean": 189.86, "gas": 50 },
+      { "t": 5, "bean": 181.78, "gas": 50 },
+      { "t": 782, "bean": 206.61, "gas": 20 }
     ],
-    "gasChanges": [ { "t": 668, "gas": 25 } ],
+    "gasChanges": [ { "t": 517, "gas": 40 }, { "t": 547, "gas": 50 }, { "t": 626, "gas": 20 } ],
     "events": [
       { "type": "CHARGE", "t": 0 },
-      { "type": "FIRST_CRACK", "t": 668 },
-      { "type": "DISCHARGE", "t": 836 }
+      { "type": "FIRST_CRACK", "t": 625 },
+      { "type": "DISCHARGE", "t": 782 }
     ],
-    "alerts": [ { "id": "BURN_WARNING", "t": 774 } ]
+    "alerts": [ { "id": "FIRST_CRACK_NEAR", "t": 548 }, { "id": "DEVELOPMENT_READY", "t": 763 } ]
   }
 }
 ```

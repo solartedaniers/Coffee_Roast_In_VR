@@ -197,9 +197,6 @@ describe.each(expertCases)('gas del tueste %i del experto, carga a %i °C con un
   test('el punto de retorno queda en el rango que admite la masa del lote', () => {
     expect(turningPointTemp).toBeGreaterThanOrEqual(TURNING_POINT_MIN_C);
     expect(turningPointTemp).toBeLessThanOrEqual(TURNING_POINT_MAX_C);
-    if (batchWeightKg === BATCH_WEIGHT_MAX_KG) {
-      expect(Math.abs(turningPointTemp - EXPERT_TURNING_POINT_C)).toBeLessThanOrEqual(EXPERT_TURNING_POINT_TOLERANCE_C);
-    }
   });
 
   test('después del punto de retorno la sonda no vuelve a bajar hasta el primer crack', () => {
@@ -216,6 +213,18 @@ describe.each(expertCases)('gas del tueste %i del experto, carga a %i °C con un
     expect(finalTemp).toBeLessThan(BURN_WARNING_TEMP_C);
   });
 });
+
+test.each(expertRoasts.map((readings, index) => [index + 1, readings]))(
+  'con el gas del tueste %i del experto, el lote de 6 kg marca el retorno cerca de 98-99 °C',
+  (roast, expertReadings) => {
+    const { turningPointTemp } = simulateRoast({
+      chargeTemp: expertReadings[0].probe,
+      batchWeightKg: BATCH_WEIGHT_MAX_KG,
+      gasFor: expertGas(expertReadings),
+    });
+    expect(Math.abs(turningPointTemp - EXPERT_TURNING_POINT_C)).toBeLessThanOrEqual(EXPERT_TURNING_POINT_TOLERANCE_C);
+  }
+);
 
 describe('siguiendo la guía de es.json', () => {
   const referenceCases = batchWeights.flatMap((batchWeightKg) =>

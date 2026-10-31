@@ -4,6 +4,8 @@ Aquí tengo separada toda la parte de IA del proyecto: la retroalimentación de 
 
 La retroalimentación la redacta un LLM con cadena de respaldo: primero Groq (`openai/gpt-oss-120b`) y, si falla o se queda sin cuota, Ollama local (`phi4-mini`). Si ninguno responde, la retroalimentación queda vacía y la sesión se ve igual que siempre.
 
+Al modelo le paso el resultado en español (Desarrollado, Crudo, Quemado u Horneado, como en el historial), porque con el valor interno en inglés lo copiaba en el texto que lee el jugador. La temperatura final la comparo con la franja ideal del puntaje (205–212 °C) y no con el objetivo del jugador, que es el del modo automático: antes un tueste bueno a 207 °C salía "por encima del objetivo". Si el resultado es Desarrollado y la temperatura final, la duración (10–15 min) y el desarrollo (18–22 %) quedaron en rango, le pido que felicite y sugiera repetir la misma estrategia, porque sin eso proponía alargar o acortar el desarrollo y lo sacaba de la franja.
+
 El frontend y Unity no lo llaman directamente: siguen usando los mismos endpoints del backend (`GET /api/v1/roasting/sessions/{id}/feedback` y `POST /api/v1/admin/rag/ingest`), y el backend le delega el trabajo a este servicio por HTTP.
 
 ## Requisitos
@@ -207,7 +209,7 @@ Cada pregunta pasa por cuatro pasos, cada uno con respaldo:
 
 1. **Voz a texto:** Groq Whisper (`whisper-large-v3-turbo`); si falla, Azure Speech. Las frases que Whisper inventa con el silencio ("Gracias por ver el video"…) se filtran con `config/whisper_silence_phrases.json` y responden 422.
 2. **Fragmentos del RAG:** los 3 más cercanos a la pregunta, con su cita validada.
-3. **Respuesta:** Groq `openai/gpt-oss-20b` con salida JSON estricta, máximo 3 frases, adaptada al nivel del jugador y con las 2 últimas respuestas del mismo intento como contexto. El modelo tiene que decir qué fuentes usó (PDFs o el estado del tueste); si no usa ninguna o cita una que no se le dio, el asistente se abstiene en vez de inventar. Además, cada cifra de la respuesta (temperatura, porcentaje de gas, tiempo) tiene que aparecer en los fragmentos que citó, en el estado del tueste (si lo citó) o en la pregunta, con un margen de redondeo de `VOICE_FIGURE_TOLERANCE`. Las frases con cifras sin respaldo se quitan y, si no queda ninguna, se abstiene: es un simulador para enseñar y una cifra inventada enseña algo falso. El prompt le pide al modelo dar solo la dirección ("baja un poco el gas") cuando no tiene una cifra con respaldo. Solo reviso cifras escritas con dígitos, que es como el prompt le pide escribirlas. No hay respaldo en Ollama a propósito: phi4-mini tarda demasiado para una respuesta hablada.
+3. **Respuesta:** Groq `openai/gpt-oss-20b` con salida JSON estricta, máximo 3 frases, adaptada al nivel del jugador y con las 2 últimas respuestas del mismo intento como contexto. Para aconsejar el gas también le paso la guía de la web (`config/roast_guide.json`), que es el mismo texto de `es.json`: el test `roastGuideContract.test.js` del frontend comprueba que coincide y que trae los números de `RoastConstants.js`. El objetivo de temperatura solo aparece en el estado después del primer crack: antes, "faltan 83 °C del objetivo" hacía que pidiera subir el gas en pleno secado. El modelo tiene que decir qué fuentes usó (PDFs, el estado del tueste o la guía); si no usa ninguna o cita una que no se le dio, el asistente se abstiene en vez de inventar. Además, cada cifra de la respuesta (temperatura, porcentaje de gas, tiempo) tiene que aparecer en los fragmentos que citó, en el estado del tueste o en la guía (si los citó) o en la pregunta, con un margen de redondeo de `VOICE_FIGURE_TOLERANCE`. Las frases con cifras sin respaldo se quitan y, si no queda ninguna, se abstiene: es un simulador para enseñar y una cifra inventada enseña algo falso. El prompt le pide al modelo dar solo la dirección ("baja un poco el gas") cuando no tiene una cifra con respaldo. Solo reviso cifras escritas con dígitos, que es como el prompt le pide escribirlas. No hay respaldo en Ollama a propósito: phi4-mini tarda demasiado para una respuesta hablada.
 4. **Texto a voz:** Azure (`es-CO-SalomeNeural`); si falla o se llega al límite mensual, Piper local con `es_MX-claude-high`.
 
 Si Groq no responde, el jugador oye una frase fija ("No puedo responder en este momento…"). Esa frase y la de abstención están en `config/voice_messages.json` y su audio se genera al arrancar y queda guardado en `voice-cache/`, así que se oyen al instante y sin gastar cuota.
@@ -325,7 +327,7 @@ Cada sesión tiene una nota final que combina las reglas del simulador con una c
 
 ### Validación con Groq
 
-`scripts/evaluation_validation.py` corre la rúbrica con Groq real sobre los casos de `eval/evaluation/cases.json`. Son 18 trazas con el nivel que le corresponde a cada criterio, que fijé leyendo la rúbrica y no las respuestas del modelo. Mide el acuerdo con el nivel esperado y la repetibilidad corriendo cada caso varias veces:
+`scripts/evaluation_validation.py` corre la rúbrica con Groq real sobre los casos de `eval/evaluation/cases.json`. Son 19 trazas con el nivel que le corresponde a cada criterio, que fijé leyendo la rúbrica y no las respuestas del modelo. Mide el acuerdo con el nivel esperado y la repetibilidad corriendo cada caso varias veces:
 
 ```bash
 .venv/Scripts/python scripts/evaluation_validation.py --runs 5 --pause 8
@@ -356,7 +358,7 @@ Como esta vez solo cambió la redacción, corrí una sola vuelta de los 18 casos
 .venv/Scripts/python scripts/evaluation_validation.py --runs 1 --pause 8
 ```
 
-Resultado de una corrida (`eval/results/evaluation-draft-2026-10-30.json`):
+Resultado de la primera corrida con esta versión:
 
 | Medida | Valor |
 |---|---|
@@ -373,6 +375,36 @@ Tres justificaciones reales de esa corrida:
 - Gas después del primer crack, nivel 1: "Bajaste el gas 5 puntos, pero lo hiciste 1 min 50 s después del primer crack."
 
 Después de esa corrida ajusté dos detalles de la redacción. En `gas_small_drop` una justificación decía "no fue suficiente para el nivel más alto", así que ahora también bloqueo "para el nivel", "el nivel más alto" y "el nivel más bajo". En el secado de `first_crack_very_late` otra mencionaba correcciones del gas que no hubo, así que agregué al prompt que solo cuente lo que está en los hechos. Comprobé esos dos casos con Groq: los niveles quedaron iguales (1 y 2), y las justificaciones ya no hablan de niveles ni inventan correcciones. Por ejemplo: "Bajaste el gas poco después del primer crack, aunque solo en 2 puntos, y evitaste que la temperatura alcanzara los 215 °C."
+
+#### Validación con la física recalibrada
+
+Recalibré el simulador con los tuestes del experto, así que reconstruí los casos que salen de la curva buena (primer crack a los 10 min 24 s y descarga a los 13 min 1 s). La franja de subida del secado bajó a 5–18 °C/min, igual que las alertas, y la reacción a las alertas ahora cuenta el aviso de tueste lento (`ROAST_RUNNING_SLOW`, se espera subir el gas), con el caso nuevo `slow_alert_reacted`. Corrí una vuelta de los 19 casos (`eval/results/evaluation-draft-2026-10-30.json`):
+
+| Medida | Valor |
+|---|---|
+| Niveles calificados | 55 |
+| Acuerdo exacto | 100 % (55 de 55) |
+| Criterios aplicados y estado (AUTO) | Sin diferencias |
+| Justificaciones con nombres internos | 0 |
+| De dónde salió cada justificación | 50 del modelo, 2 reescritas, 3 de respaldo |
+| Tokens de Groq | 47.942 en 25 llamadas, contando 2 de la prueba de la retroalimentación |
+
+El caso del tueste lento quedó con 3 en el secado, 2 en la subida hasta el primer crack (12 min 30 s), 3 en el gas después del crack y 3 en la reacción a las alertas.
+
+#### Prueba de los consejos con la guía nueva
+
+Después probé con Groq que la retroalimentación y el asistente de voz aconsejen lo mismo que la guía de la web:
+
+| Caso | Respuesta |
+|---|---|
+| Retroalimentación, tueste según la guía (206,6 °C, 13 min 2 s, desarrollo 20 %) | Felicita y sugiere repetir la misma carga y el mismo tiempo total |
+| Retroalimentación, gas al 50 % después del crack y descarga tarde (216,3 °C, desarrollo 28 %) | Dice que la temperatura final se pasó del rango y que el desarrollo fue largo; sugiere volver a cerca del 20 % ajustando el calor después del crack |
+| Voz a los 4 min, 126 °C, gas al 50 % y subida de 14 °C por minuto | "Mantén el gas al 50 %" |
+| Voz a 185 °C con el gas al 50 % | "Baja el gas al 40 %. Mantén esa potencia hasta que suene el primer crack" |
+| Voz justo después del primer crack | "Baja el gas al 20 %" |
+| Voz 1 min después del crack con el gas todavía al 50 % | "Baja el gas al 20 %" |
+
+En el borde de la regla, con la subida justo en 16 °C por minuto, el asistente pidió bajar a 40 %, aunque la guía lo pide solo si sube más de 16.
 
 Los tests de `tests/test_evaluation_validation.py` revisan sin Groq que cada caso aplique exactamente los criterios que espera y que los casos cubran todos los niveles.
 

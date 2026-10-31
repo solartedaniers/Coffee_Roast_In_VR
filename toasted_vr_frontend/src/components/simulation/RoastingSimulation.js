@@ -29,6 +29,7 @@ import {
   ALARM_LIMIT_DEFAULT_C,
   CHART_VERTICAL_STEP_C,
   CHART_TIME_WINDOW_SECONDS,
+  CHART_SAMPLE_INTERVAL_SECONDS,
   FIRST_CRACK_TEMP_MIN_C,
   FIRST_CRACK_TEMP_MAX_C,
   IDEAL_FINAL_TEMP_C,
@@ -651,11 +652,14 @@ export default function RoastingSimulation({
   // La gráfica dibuja la lectura del termómetro desde el encendido del
   // horno (ver displayTemp en runTick). El tiempo es relativo al
   // encendido (elapsedSeconds ya arranca en 0 ahí).
+  const chartSamples = useMemo(
+    () => s.samples.filter((sample) => sample.time % CHART_SAMPLE_INTERVAL_SECONDS === 0),
+    [s.samples]
+  );
   const chartPoints = useMemo(() => {
-    if (s.samples.length === 0) return [];
     const windowStart = Math.max(0, s.chartViewResetAtSeconds ?? -Infinity, s.elapsedSeconds - CHART_TIME_WINDOW_SECONDS);
-    return s.samples.filter((sample) => sample.time >= windowStart);
-  }, [s.samples, s.chartViewResetAtSeconds, s.elapsedSeconds]);
+    return chartSamples.filter((sample) => sample.time >= windowStart);
+  }, [chartSamples, s.chartViewResetAtSeconds, s.elapsedSeconds]);
 
   const isFinished = s.phase === PHASES.FINISHED;
   // s.elapsedSeconds (no roastingElapsedSeconds): la gráfica arranca en el
@@ -664,7 +668,7 @@ export default function RoastingSimulation({
   // se recorta cuando el total pasa de 6 min aunque la parte cargada sola
   // no llegue a esa marca.
   const isLongFinishedRoast = isFinished && s.elapsedSeconds > CHART_TIME_WINDOW_SECONDS;
-  const displayedChartPoints = isLongFinishedRoast ? s.samples : chartPoints;
+  const displayedChartPoints = isLongFinishedRoast ? chartSamples : chartPoints;
   const chartTitle = isFinished ? texts.chart.titleFinal : texts.chart.title;
 
   const chargeSliderPct =

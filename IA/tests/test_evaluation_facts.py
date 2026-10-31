@@ -7,7 +7,7 @@ from app.evaluation.synthetic_trace import SyntheticTrace
 
 RUBRIC = Rubric.from_file(SERVICE_ROOT / "config" / "roast_rubric.json")
 
-# Curva "good" de eval/alerts/curves.json en segundos del tueste: primer crack a los 604 s y DTR 20 %.
+# Tueste correcto fijo en segundos del tueste (la curva "good" de antes de la sonda): primer crack a los 604 s y DTR 20 %.
 GOOD_POINTS = [(0, 108.59), (9, 110.62), (50, 120.88), (67, 124.78), (87, 128.77), (117, 133.84), (152, 138.88),
                (300, 158.12), (333, 162.74), (359, 167.46), (409, 175.7), (465, 183.81), (497, 187.97),
                (531, 192.05), (568, 196.12), (610, 200.25), (629, 201.11), (756, 204.81)]

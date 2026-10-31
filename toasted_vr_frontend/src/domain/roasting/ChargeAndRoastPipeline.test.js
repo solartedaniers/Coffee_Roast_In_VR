@@ -7,7 +7,7 @@ import {
   BEAN_MOISTURE_REFERENCE_PCT,
   FIRST_CRACK_TEMP_MIN_C,
   BURN_ABSOLUTE_CEILING_TEMP_C,
-  IDEAL_TOTAL_ROAST_MINUTES,
+  IDEAL_TOTAL_ROAST_MAX_MINUTES,
   FLAME_POWER_DEFAULT_PCT,
   CHARGE_TEMP_MIN_C,
   CHARGE_TEMP_MAX_C,
@@ -39,7 +39,7 @@ function runChargeAndRoast(airTempAtCharge, flamePowerPercent, maxSeconds, { ent
   let moisturePct = moisture0Pct;
   let firstCrackReached = false;
   let firstCrackTimeSeconds = null;
-  let beanAt13Min = null;
+  let beanAtIdealEnd = null;
 
   for (let second = 1; second <= maxSeconds; second++) {
     const inChargeDip = second <= duration;
@@ -64,10 +64,10 @@ function runChargeAndRoast(airTempAtCharge, flamePowerPercent, maxSeconds, { ent
       firstCrackReached = true;
       firstCrackTimeSeconds = second;
     }
-    if (second === IDEAL_TOTAL_ROAST_MINUTES * 60) beanAt13Min = beanTemp;
+    if (second === IDEAL_TOTAL_ROAST_MAX_MINUTES * 60) beanAtIdealEnd = beanTemp;
   }
 
-  return { beanTemp, firstCrackTimeSeconds, beanAt13Min };
+  return { beanTemp, firstCrackTimeSeconds, beanAtIdealEnd };
 }
 
 // Rango medido con el umbral en sus dos extremos: 7:13-8:20 en todas las cargas.
@@ -91,9 +91,9 @@ test.each([
   }
 );
 
-test('incluso con la carga más alta permitida, el grano a los 13 min sigue en tueste, no crudo ni quemado', () => {
-  const { beanAt13Min } = runChargeAndRoast(CHARGE_TEMP_MAX_C, FLAME_POWER_DEFAULT_PCT, 20 * 60);
+test('incluso con la carga más alta permitida, el grano al final de la duración ideal sigue en tueste, no crudo ni quemado', () => {
+  const { beanAtIdealEnd } = runChargeAndRoast(CHARGE_TEMP_MAX_C, FLAME_POWER_DEFAULT_PCT, 20 * 60);
 
-  expect(beanAt13Min).toBeGreaterThanOrEqual(FIRST_CRACK_TEMP_MIN_C);
-  expect(beanAt13Min).toBeLessThan(BURN_ABSOLUTE_CEILING_TEMP_C);
+  expect(beanAtIdealEnd).toBeGreaterThanOrEqual(FIRST_CRACK_TEMP_MIN_C);
+  expect(beanAtIdealEnd).toBeLessThan(BURN_ABSOLUTE_CEILING_TEMP_C);
 });

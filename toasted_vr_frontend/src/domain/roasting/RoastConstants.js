@@ -235,6 +235,7 @@ export const RATE_OF_RISE_WINDOW_SEC = 30;
 // (antes 189-198°C).
 export const FIRST_CRACK_TEMP_MIN_C = 196;
 export const FIRST_CRACK_TEMP_MAX_C = 205;
+export const FIRST_CRACK_TEMP_MIDPOINT_C = (FIRST_CRACK_TEMP_MIN_C + FIRST_CRACK_TEMP_MAX_C) / 2;
 
 // ---- Second crack ---------------------------------------------------
 
@@ -382,12 +383,14 @@ export const DEFECT_SCORE_MAX = 50;
 
 // ---- Evaluación: Perfecto --------------------------------------------------
 
-export const IDEAL_FINAL_TEMP_C = (FIRST_CRACK_TEMP_MIN_C + FIRST_CRACK_TEMP_MAX_C) / 2;
-// Con el modelo térmico realista, un lote de 5-6 kg a potencia "eficiente"
-// llega al first crack en 8-10 min y un tueste completo típico dura
-// 12-15 min — el punto medio de esa ventana es el nuevo ideal (antes 9,
-// calibrado para el modelo simplificado anterior).
-export const IDEAL_TOTAL_ROAST_MINUTES = 13;
+// Franjas de diseño sin castigo: dentro no se resta nada y fuera se resta por
+// cada °C o minuto de distancia al borde. La temperatura es la del tueste
+// medio con DTR del 20 % en los lotes de 5 a 6 kg (gas del experto); la
+// duración sale de la ventana del primer crack de 8 a 12 min con ese DTR.
+export const IDEAL_FINAL_TEMP_MIN_C = 205;
+export const IDEAL_FINAL_TEMP_MAX_C = 212;
+export const IDEAL_TOTAL_ROAST_MIN_MINUTES = 10;
+export const IDEAL_TOTAL_ROAST_MAX_MINUTES = 15;
 export const PERFECT_TEMP_PENALTY_WEIGHT = 2.5;
 export const PERFECT_TIME_PENALTY_WEIGHT = 4;
 export const PERFECT_SCORE_MIN = 0;

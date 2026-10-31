@@ -31,7 +31,7 @@ import {
   CHART_TIME_WINDOW_SECONDS,
   FIRST_CRACK_TEMP_MIN_C,
   FIRST_CRACK_TEMP_MAX_C,
-  IDEAL_FINAL_TEMP_C,
+  FIRST_CRACK_TEMP_MIDPOINT_C,
   CHARGE_TEMP_IDEAL_MAX_C,
   BURN_ABSOLUTE_CEILING_TEMP_C,
 } from '../../domain/roasting/RoastConstants';
@@ -63,12 +63,12 @@ function createDefaultRoastCurves() {
       curveNumber: 1,
       startTemp: CHARGE_TEMP_DEFAULT_C,
       crackleTemp: FIRST_CRACK_TEMP_MIN_C,
-      finalTemp: Math.round(IDEAL_FINAL_TEMP_C),
+      finalTemp: Math.round(FIRST_CRACK_TEMP_MIDPOINT_C),
     }),
     new RoastCurveProfile({
       curveNumber: 2,
       startTemp: CHARGE_TEMP_DEFAULT_C,
-      crackleTemp: Math.round(IDEAL_FINAL_TEMP_C),
+      crackleTemp: Math.round(FIRST_CRACK_TEMP_MIDPOINT_C),
       finalTemp: FIRST_CRACK_TEMP_MAX_C,
     }),
     new RoastCurveProfile({

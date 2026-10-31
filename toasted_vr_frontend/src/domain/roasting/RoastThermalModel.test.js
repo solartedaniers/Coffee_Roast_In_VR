@@ -7,7 +7,8 @@ import {
   BEAN_MOISTURE_REFERENCE_PCT,
   FIRST_CRACK_TEMP_MIN_C,
   BURN_ABSOLUTE_CEILING_TEMP_C,
-  IDEAL_TOTAL_ROAST_MINUTES,
+  IDEAL_TOTAL_ROAST_MIN_MINUTES,
+  IDEAL_TOTAL_ROAST_MAX_MINUTES,
   AUTO_MODE_BASE_POWER_PCT,
   AUTO_MODE_MAX_POWER_PCT,
 } from './RoastConstants';
@@ -61,8 +62,8 @@ test('el grano del lote de referencia a 50 % llega al first crack entre 7 y 9 mi
   expect(firstCrackTimeSeconds).toBeLessThanOrEqual(9 * 60);
 });
 
-test('a los 12-15 minutos (ventana de tueste típica) el grano está en tueste, no crudo ni quemado', () => {
-  const { beanTemp } = runReferenceRoast(IDEAL_TOTAL_ROAST_MINUTES * 60);
+test.each([IDEAL_TOTAL_ROAST_MIN_MINUTES, IDEAL_TOTAL_ROAST_MAX_MINUTES])('a los %i minutos (borde de la duración ideal) el grano está en tueste, no crudo ni quemado', (minutes) => {
+  const { beanTemp } = runReferenceRoast(minutes * 60);
 
   expect(beanTemp).toBeGreaterThanOrEqual(FIRST_CRACK_TEMP_MIN_C);
   expect(beanTemp).toBeLessThan(BURN_ABSOLUTE_CEILING_TEMP_C);

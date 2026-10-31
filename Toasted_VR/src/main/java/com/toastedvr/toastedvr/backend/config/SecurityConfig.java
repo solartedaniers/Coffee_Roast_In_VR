@@ -74,6 +74,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/v1/roasting/assistant/questions").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/v1/roasting/assistant/alerts").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/v1/roasting/sessions/*/feedback").authenticated()
+                .requestMatchers("/api/v1/roasting/simulations/**").authenticated()
                 .requestMatchers(
                     HttpMethod.GET,
                     "/api/v1/roasting/sessions",

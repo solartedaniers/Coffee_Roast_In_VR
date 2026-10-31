@@ -67,6 +67,17 @@ Con granos aleatorios no todos caben en la ventana: la densidad sola mueve el pr
 
 El rango completo va de 7:46 a 13:42 y la temperatura final, de 202,0 a 210,3 °C. El test usa 500 granos con semilla fija y pide al menos el 90 %. Para los granos lentos hay una alerta a los 9 min (`ROAST_RUNNING_SLOW` en el catálogo de la IA) que le pide al jugador subir el gas mientras todavía alcanza a corregir.
 
+### El puntaje del tueste perfecto
+
+Antes el puntaje restaba desde un punto exacto: 200,5 °C de temperatura final y 13 min de duración. Con la física calibrada eso castigaba al propio experto, que perdía entre 11 y 34 puntos solo por temperatura y hasta 7 por duración. Ahora uso franjas de diseño sin castigo:
+
+| Franja | Valor | De dónde sale |
+|---|---|---|
+| Temperatura final (`IDEAL_FINAL_TEMP_MIN_C` a `IDEAL_FINAL_TEMP_MAX_C`) | 205 a 212 °C | La del tueste medio con DTR del 20 % siguiendo al experto en lotes de 5 a 6 kg |
+| Duración total (`IDEAL_TOTAL_ROAST_MIN_MINUTES` a `IDEAL_TOTAL_ROAST_MAX_MINUTES`) | 10 a 15 min | La ventana del primer crack de 8 a 12 min con DTR del 20 % |
+
+Fuera de la franja se resta con los mismos pesos de antes: 2,5 puntos por °C y 4 por minuto de distancia al borde, multiplicados por el nivel. Con esto los seis tuestes del experto y el grano de referencia con la guía sacan 100 en los tres niveles, y en 1000 granos al azar con la guía la mediana es 100 y el peor saca 91 en INTERMEDIATE. Entre tuestes buenos la diferencia la ponen el DTR y la nota de la rúbrica. Un test comprueba que el gas del experto no pierde puntos por temperatura ni por duración.
+
 ### Lo que medí y no apliqué
 
 Probé que la evaporación empiece a 100 °C en vez de 120 °C. Contra el experto empeora: el error medio de la sonda después del retorno sube de ~15 a ~16 °C en el lote de 6 kg y de ~26 a ~28 °C en el de 5 kg, y la temperatura final del lote de 5 kg llega a 212,0 °C. Por eso la dejé en 120 °C.

@@ -165,10 +165,11 @@ sigue corriendo la fisica en el navegador.
 
 ## Flujo de Pull Requests y CI
 
-Trabajo cada cambio en su propia rama y lo integro a `main` solo por Pull Request. Cada PR hacia `main` (y cada push a `main`) dispara el workflow `.github/workflows/ci.yml` en GitHub Actions, que corre tres checks:
+Trabajo cada cambio en su propia rama y lo integro a `main` solo por Pull Request. Cada PR hacia `main` (y cada push a `main`) dispara el workflow `.github/workflows/ci.yml` en GitHub Actions, que corre cuatro checks:
 
 - `backend-tests`: los tests de `Toasted_VR` con Java 17 y Maven (`./mvnw -B test`). Usan el perfil `test` (H2 en memoria, correo deshabilitado y servicio IA simulado), así que no necesitan PostgreSQL, el servicio IA ni SMTP.
 - `frontend-tests`: en `toasted_vr_frontend` con Node 20 corre `npm ci`, los tests con `CI=true` y `npm run build`.
+- `simulator-tests`: los tests de `roast-simulator` con Node 24 (`npm test`). No tienen dependencias: importan el dominio de la web directamente.
 - `ai-tests`: los tests del servicio `IA/` con Python 3.12 y pytest. No necesitan PostgreSQL, Ollama ni Groq.
 
 Solo fusiono un PR cuando los checks están en verde. Para revisarlo antes de abrir el PR, corro lo mismo localmente:
@@ -176,6 +177,7 @@ Solo fusiono un PR cuando los checks están en verde. Para revisarlo antes de ab
 ```bash
 cd Toasted_VR && ./mvnw -B test
 cd IA && .venv/Scripts/python -m pytest -q
+cd roast-simulator && npm test
 cd toasted_vr_frontend && npm ci && CI=true npm test -- --watchAll=false && CI=true npm run build
 ```
 

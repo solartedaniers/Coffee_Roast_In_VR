@@ -211,6 +211,14 @@ export const CHARGE_DIP_MIN_POWER_FOR_DURATION_PCT = 5;
 // detecta porque simula un tueste sin fase de carga — sigue pasando.
 export const CHARGE_DIP_FLOOR_AIR_WEIGHT = 0.5;
 
+// ---- Sonda de temperatura ---------------------------------------------
+// El termómetro de la tostadora es una sonda metida en la masa de grano:
+// al cargar todavía marca el calor del tambor y se enfría poco a poco
+// hasta igualarse con el grano (retraso de primer orden). Ajustado por
+// mínimos cuadrados a la caída de los dos tuestes del experto
+// (calibration/expert-roasts.csv), que dan 56-64 s.
+export const PROBE_RESPONSE_TIME_CONSTANT_SEC = 60;
+
 // ---- Ritmo del reloj real por fase --------------------------------
 
 // Antes la carga corría a 2.5x más lento que el tueste (deliberado, para

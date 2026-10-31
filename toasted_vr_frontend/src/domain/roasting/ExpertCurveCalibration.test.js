@@ -7,6 +7,8 @@ import TurningPointDetector from './TurningPointDetector';
 import FirstCrackDetector from './FirstCrackDetector';
 import GreenBeanProfileFactory from './GreenBeanProfileFactory';
 import RoastMetrics from './RoastMetrics';
+import PerfectRoastEvaluator from './PerfectRoastEvaluator';
+import KnowledgeLevelRules from './KnowledgeLevelRules';
 import {
   AMBIENT_TEMP_C,
   BEAN_DENSITY_REFERENCE,
@@ -33,6 +35,8 @@ import {
   GUIDE_STEP_DOWN_TEMP_C,
   GUIDE_FAST_RISE_C_PER_MIN,
   GUIDE_SLOW_RISE_C_PER_MIN,
+  IDEAL_FINAL_TEMP_MIN_C,
+  IDEAL_FINAL_TEMP_MAX_C,
 } from './RoastConstants';
 
 // ================================================================
@@ -53,9 +57,6 @@ const EXPERT_TURNING_POINT_C = 98.5;
 const EXPERT_TURNING_POINT_TOLERANCE_C = 3;
 const TURNING_POINT_MIN_C = 94;
 const TURNING_POINT_MAX_C = 106;
-// Temperatura final al descargar con DTR del 20 % siguiendo al experto.
-const EXPERT_FINAL_MIN_C = 205;
-const EXPERT_FINAL_MAX_C = 212;
 // Perfiles aleatorios que deben caer en la ventana siguiendo la guía.
 const RANDOM_PROFILE_COUNT = 500;
 const RANDOM_PROFILE_SEED = 2024;
@@ -219,9 +220,19 @@ describe.each(expertCases)('gas del tueste %i del experto, carga a %i °C con un
   });
 
   test('al descargar con DTR del 20 % la temperatura final queda entre 205 y 212 °C', () => {
-    expect(finalTemp).toBeGreaterThanOrEqual(EXPERT_FINAL_MIN_C);
-    expect(finalTemp).toBeLessThanOrEqual(EXPERT_FINAL_MAX_C);
+    expect(finalTemp).toBeGreaterThanOrEqual(IDEAL_FINAL_TEMP_MIN_C);
+    expect(finalTemp).toBeLessThanOrEqual(IDEAL_FINAL_TEMP_MAX_C);
     expect(finalTemp).toBeLessThan(BURN_WARNING_TEMP_C);
+  });
+
+  test.each(['BEGINNER', 'INTERMEDIATE', 'ADVANCED'])('en nivel %s no pierde puntos por temperatura final ni por duración', (level) => {
+    const totalSeconds = readings.length - 1;
+    const { tempPenalty, timePenalty } = PerfectRoastEvaluator.computeBreakdown(
+      finalTemp, totalSeconds, totalSeconds - firstCrack, KnowledgeLevelRules.forLevel(level)
+    );
+
+    expect(tempPenalty).toBe(0);
+    expect(timePenalty).toBe(0);
   });
 });
 

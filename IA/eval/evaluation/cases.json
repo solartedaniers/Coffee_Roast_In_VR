@@ -153,6 +153,17 @@
       "expected": {"DRYING_GAS": 3, "RISE_TO_FIRST_CRACK": 3, "GAS_AFTER_FIRST_CRACK": 3, "ALERT_REACTION": 3}
     },
     {
+      "id": "slow_alert_reacted",
+      "description": "Tueste lento: a los 9 min suena el aviso de tueste lento y el jugador sube el gas a los 8 s; el primer crack llega a los 12,5 min.",
+      "durationSeconds": 900,
+      "points": [[0, 100.0], [120, 130.0], [330, 160.0], [750, 200.0], [900, 205.0]],
+      "initialGas": 30,
+      "gasChanges": [[548, 35], [750, 30]],
+      "firstCrackSecond": 750,
+      "alerts": [["ROAST_RUNNING_SLOW", 540]],
+      "expected": {"DRYING_GAS": 3, "RISE_TO_FIRST_CRACK": 2, "GAS_AFTER_FIRST_CRACK": 3, "ALERT_REACTION": 3}
+    },
+    {
       "id": "alerts_ignored",
       "description": "Tueste correcto que no responde a ninguna de las tres alertas que recibe.",
       "durationSeconds": 781,

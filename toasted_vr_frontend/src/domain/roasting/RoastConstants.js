@@ -91,7 +91,8 @@ export const TARGET_TEMP_DEFAULT_C = 200;
 
 export const FLAME_POWER_MIN_PCT = 0;
 export const FLAME_POWER_MAX_PCT = 100;
-export const FLAME_POWER_DEFAULT_PCT = 30;
+// El experto arranca cada tueste con la llama al 50 %.
+export const FLAME_POWER_DEFAULT_PCT = 50;
 
 // ---- Modelo de aire/tambor (ET) -----------------------------------------
 // Modelo de dos cuerpos: el aire/tambor persigue un objetivo que depende de
@@ -100,18 +101,18 @@ export const FLAME_POWER_DEFAULT_PCT = 30;
 // (FLAME_RESPONSE_LAG_PER_SEC), solo que ahora el aire es una serie propia
 // en vez de mezclarse directo con la temperatura del grano.
 
-// Temperatura de equilibrio del aire si el quemador se sostuviera al 100%
-// de potencia indefinidamente. Bajado de 800 a 750 (junto con
-// HEAT_TRANSFER_COEFF_PER_SEC más abajo): con el aire respondiendo rápido
-// (~15-20s), un techo tan alto hacía que el aire llegara casi de inmediato
-// a ~254°C a potencia "eficiente" (30%) y se quedara ahí fijo el resto del
-// tueste, exponiendo al grano a un salto térmico enorme desde el primer
-// segundo de carga — la curva subía mucho más agresivo de lo creíble. Con
-// 750 el pico de subida baja de ~35°C/min a ~30°C/min (validado con
-// simulación numérica, no solo el test). Sigue por encima del rango de
-// first crack, así el grano nunca alcanza del todo al aire.
+// Temperatura de equilibrio del aire con el quemador al 100 %. El objetivo
+// del aire crece como (gas/100)^AIR_TARGET_GAS_EXPONENT: con un exponente
+// tan bajo la curva es casi plana (20 % → ~205 °C, 50 % → ~224 °C), que es
+// lo que piden los tuestes del experto (calibration/expert-roasts.csv) —
+// con 50 / 40 / 20 % su sonda sigue subiendo después del primer crack sin
+// pasarse. Calibrado junto con HEAT_TRANSFER_COEFF_PER_SEC,
+// CHARGE_DIP_FLOOR_AIR_WEIGHT, EXO_HEAT_RATE_C_PER_SEC y
+// PROBE_RESPONSE_TIME_CONSTANT_SEC, con el experto como lote de 6 kg. El
+// experto no pasó de 50 %: lo que hay por encima es extrapolación.
 export const MIN_AIR_TEMP_C = AMBIENT_TEMP_C;
-export const MAX_AIR_TEMP_C = 750;
+export const MAX_AIR_TEMP_C = 239;
+export const AIR_TARGET_GAS_EXPONENT = 0.105;
 
 // El aire tiene poca masa térmica frente al grano, así que debe responder
 // rápido a un cambio de potencia — 0.18 da un asentamiento de ~15s al 95%
@@ -143,13 +144,10 @@ export const PREHEAT_TICK_INTERVAL_MS = 225;
 // grandes calientan más lento) y se divide por la densidad del grano
 // (grano más denso absorbe más lento) y por el "calor específico efectivo"
 // (grano más húmedo necesita más energía para subir un grado). Calibrado
-// (junto con AIR_RESPONSE_RATE_PER_SEC y MAX_AIR_TEMP_C de arriba) para
-// que un lote de referencia (5 kg, grano de densidad/humedad promedio) a
-// potencia "eficiente" (30%) llegue al first crack en 8-12 min — ver
-// RoastThermalModel.test.js, que es la herramienta usada para calibrar
-// este valor. La ventana se amplió de 8-10 a 8-12 min a propósito: es el
-// costo de bajar el pico de subida a algo más creíble (ver MAX_AIR_TEMP_C).
-export const HEAT_TRANSFER_COEFF_PER_SEC = 0.0019;
+// con MAX_AIR_TEMP_C para que, siguiendo la guía, el grano de referencia
+// llegue al primer crack en 8-12 min en lotes de 5 a 6 kg — ver
+// ExpertCurveCalibration.test.js.
+export const HEAT_TRANSFER_COEFF_PER_SEC = 0.0038;
 export const SPECIFIC_HEAT_MOISTURE_FACTOR = 0.02;
 
 // ---- Evaporación de humedad -----------------------------------------------
@@ -171,8 +169,9 @@ export const EVAP_COOLING_FACTOR_C_PER_PCT = 3.0;
 
 // Calor propio que libera el grano una vez pasado el first crack —
 // mantiene la curva subiendo aunque baje la potencia, como en un tueste
-// real.
-export const EXO_HEAT_RATE_C_PER_SEC = 0.03;
+// real. Con el aire nuevo basta un aporte pequeño: más alto, la estrategia
+// del experto pasa de 212 °C al descargar con DTR del 20 %.
+export const EXO_HEAT_RATE_C_PER_SEC = 0.002;
 
 // ---- Carga del café (caída al cargar, ya no fija) --------------------
 
@@ -193,30 +192,23 @@ export const CHARGE_DIP_DURATION_BASE_SEC = 45;
 // (o una duración absurdamente larga) si la potencia está en 0%.
 export const CHARGE_DIP_MIN_POWER_FOR_DURATION_PCT = 5;
 
-// Piso real del grano al momento de cargar (dónde "toca fondo" antes de
-// empezar a subir) — promedio ponderado entre la temperatura del aire al
-// cargar y la temperatura de entrada del grano, con el aire como variable
-// principal: un ambiente caliente amortigua el choque térmico del grano
-// frío (el grano "no alcanza a sentir" lo frío que estaba). Con
-// AIR_WEIGHT=0.5, cargar a 200°C da un piso de ~110°C en vez de quedarse
-// cerca de la temperatura de entrada (~20°C) como antes.
-//
-// ADVERTENCIA: con este peso, el first crack ya NO cae siempre dentro de
-// la ventana 8-12 min que valida RoastThermalModel.test.js para el caso
-// de referencia (sin carga) — a partir de ~180-200°C de carga, el tueste
-// se adelanta notablemente (ver simulación de la sesión que introdujo
-// este cambio). Decisión consciente: se priorizó el realismo físico del
-// piso sobre esa ventana de tiempo. RoastThermalModel.test.js no lo
-// detecta porque simula un tueste sin fase de carga — sigue pasando.
-export const CHARGE_DIP_FLOOR_AIR_WEIGHT = 0.5;
+// Temperatura con la que arranca el grano al cargar — promedio ponderado
+// entre el aire al cargar y la temperatura de entrada del grano. Antes el
+// aire pesaba 0.5 para que la lectura no se desplomara; ahora la sonda
+// muestra el enfriamiento gradual, así que el grano entra a su propia
+// temperatura (peso 0) y el punto de retorno del lote de 6 kg cae en
+// 98-99 °C, como en los tuestes del experto.
+export const CHARGE_DIP_FLOOR_AIR_WEIGHT = 0;
 
 // ---- Sonda de temperatura ---------------------------------------------
 // El termómetro de la tostadora es una sonda metida en la masa de grano:
 // al cargar todavía marca el calor del tambor y se enfría poco a poco
-// hasta igualarse con el grano (retraso de primer orden). Ajustado por
-// mínimos cuadrados a la caída de los dos tuestes del experto
-// (calibration/expert-roasts.csv), que dan 56-64 s.
-export const PROBE_RESPONSE_TIME_CONSTANT_SEC = 60;
+// hasta igualarse con el grano (retraso de primer orden). La caída de los
+// dos tuestes del experto (calibration/expert-roasts.csv) baja a lo sumo
+// 2.2 °C/s: con el grano entrando a su temperatura, 79 s es lo mínimo que
+// no baja más rápido que eso, y deja el punto de retorno del lote de 6 kg
+// en 98-99 °C.
+export const PROBE_RESPONSE_TIME_CONSTANT_SEC = 79;
 
 // Grados que la sonda debe subir sobre su mínima desde la carga para
 // marcar el punto de retorno: ahí termina la fase de carga. Mismo valor

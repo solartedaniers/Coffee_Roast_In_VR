@@ -268,13 +268,13 @@ El paso más lento es generar la voz, porque espera el audio completo antes de r
 
 ## Alertas proactivas
 
-Durante el tueste el asistente también habla por su cuenta, como un profesor al lado: carga fuera de rango, subida muy rápida o muy lenta, estancamiento, primer crack, desarrollo y riesgo de quemado. Las reglas no corren aquí: armo un paquete por nivel con las reglas como datos, la frase del nivel y su audio ya sintetizado, y Unity lo descarga al empezar el tueste y lo evalúa localmente cada segundo. Así no hay latencia de red, funciona sin WiFi y Azure se gasta una sola vez por frase. El contrato y la especificación del evaluador para Unity están en [docs/unity-proactive-alerts-contract.md](docs/unity-proactive-alerts-contract.md).
+Durante el tueste el asistente también habla por su cuenta, como un profesor al lado: carga fuera de rango, subida muy rápida o muy lenta, estancamiento, tueste lento o largo, primer crack, desarrollo y riesgo de quemado. Las reglas no corren aquí: armo un paquete por nivel con las reglas como datos, la frase del nivel y su audio ya sintetizado, y Unity lo descarga al empezar el tueste y lo evalúa localmente cada segundo. Así no hay latencia de red, funciona sin WiFi y Azure se gasta una sola vez por frase. El contrato y la especificación del evaluador para Unity están en [docs/unity-proactive-alerts-contract.md](docs/unity-proactive-alerts-contract.md).
 
 - **Catálogo:** `config/proactive_alerts.json`. Cada regla dice de dónde sale cada umbral: *Fuente* (PDFs o tesis), *Parámetro de diseño* (reglas del simulador sin respaldo en los PDFs) o *Propuesto* (valores míos, afinados con el simulador). Se valida al arrancar: señales, operadores, niveles y una frase por nivel.
 - **Reglas de quemado:** aviso a 215 °C, segundo crack inminente a 218 °C y techo superado por encima de 220 °C. El estancamiento de Maillard solo cuenta antes del primer crack y el desarrollo avisa con el DTR en 18 % y 22 %.
-- **Niveles:** el backend entrega solo el paquete del nivel del jugador (INTERMEDIATE si no tiene). BEGINNER e INTERMEDIATE reciben las 17 reglas con frases distintas; ADVANCED recibe 12, sin la guía de subida del secado, el aviso de primer crack cercano ni los refuerzos LOW.
+- **Niveles:** el backend entrega solo el paquete del nivel del jugador (INTERMEDIATE si no tiene). BEGINNER e INTERMEDIATE reciben las 18 reglas con frases distintas; ADVANCED recibe 13, sin la guía de subida del secado, el aviso de primer crack cercano ni los refuerzos LOW.
 - **Canal de voz:** una sola voz con prioridades CRITICAL > HIGH > NORMAL > LOW, cola de 5 s, LOW nunca espera y mínimo 8 s entre alertas que no son CRITICAL. Mientras el jugador graba una pregunta solo se muestra el subtítulo.
-- **Audio:** se genera al arrancar, en segundo plano, con la misma voz y el mismo `voice-cache/` del asistente. Las 46 frases de los tres niveles gastan 2 775 caracteres de Azure una sola vez, contados en `tts_monthly_usage` (0,6 % del límite mensual). Si una frase no se pudo sintetizar va con audio `null` y se reintenta en el siguiente pedido.
+- **Audio:** se genera al arrancar, en segundo plano, con la misma voz y el mismo `voice-cache/` del asistente. Las 49 frases de los tres niveles gastan 2 986 caracteres de Azure una sola vez, contados en `tts_monthly_usage` (0,7 % del límite mensual). Si una frase no se pudo sintetizar va con audio `null` y se reintenta en el siguiente pedido.
 - **ETag:** el backend reenvía `If-None-Match` y responde 304 si Unity ya tiene esa versión. Tiempo para sintetizar lo que falte en un pedido: `ALERTS_PACKAGE_TIMEOUT_MILLIS` (20 s), menor que los 30 s de `AI_SERVICE_ALERTS_READ_TIMEOUT_MILLIS` en el backend.
 
 | Método | Ruta | Uso |
@@ -293,27 +293,25 @@ Con `scripts/alert_simulator.py` veo qué alerta suena en cada curva, en qué se
 
 Las curvas de prueba (`eval/alerts/curves.json`) salen del simulador del frontend, sin modificar su física, y son lo que marca la sonda del grano. Con ellas genero los vectores de conformidad (`eval/alerts/conformance.json`, con `python -m app.alerts.conformance`) que Unity usa para comprobar su evaluador en C#; un test falla si el catálogo cambia y no los regenero.
 
-Alertas por tueste en la revisión 3, con las curvas de prueba del repositorio:
+Alertas por tueste en la revisión 4, con las curvas de prueba del repositorio:
 
 | Curva | BEGINNER | INTERMEDIATE | ADVANCED |
 |---|---|---|---|
-| Buena | 4 | 4 | 2 |
-| Quemada | 9 | 9 | 7 |
-| Horneada | 8 | 8 | 5 |
-| Cruda | 0 | 0 | 0 |
-| Con caída | 6 | 6 | 3 |
-| Carga baja | 5 | 5 | 3 |
-| Sobredesarrollada | 6 | 6 | 4 |
+| Buena | 5 | 5 | 2 |
+| Quemada | 10 | 10 | 7 |
+| Horneada | 10 | 10 | 6 |
+| Cruda | 1 | 1 | 0 |
+| Con caída | 6 | 6 | 4 |
+| Carga baja | 6 | 6 | 3 |
+| Sobredesarrollada | 7 | 7 | 4 |
 
-Afiné los umbrales además con 10 semillas por escenario del simulador real; en BEGINNER la buena queda en 5, la quemada entre 8 y 10 y la horneada entre 7 y 8.
+La subida de las alertas empieza de nuevo en la carga, porque ahí el termómetro pasa de marcar el aire a marcar la sonda del grano.
 
-Dos ajustes salieron de esas curvas: la subida de las alertas empieza de nuevo en la carga, porque ahí el termómetro pasa de marcar el aire a marcar la sonda del grano; y la subida rápida del secado avisa desde 25 °C/min, porque un tueste normal llega como máximo a 21.
+En la revisión 3 el termómetro del simulador pasó a ser una sonda metida en la masa de grano, como en la máquina real: al cargar se enfría poco a poco hasta el punto de retorno, cerca de los 2 min, y ahí termina la carga. Por eso la subida lenta del secado espera 90 s después del retorno y el estancamiento del secado 30 s (la sonda arranca despacio, igual que en los tuestes del experto), y el pico y el techo de quemado cuentan desde el retorno.
 
-En la revisión 3 el termómetro del simulador pasó a ser una sonda metida en la masa de grano, como en la máquina real: al cargar se enfría poco a poco hasta el punto de retorno, cerca de los 2 min, y ahí termina la carga. Por eso la subida lenta del secado espera 90 s después del retorno y el estancamiento del secado 30 s (la sonda arranca despacio, igual que en los tuestes del experto), y el pico y el techo de quemado cuentan desde el retorno. Ya no suena el refuerzo de buen ritmo en el secado (pide 10 °C/min o más durante 60 s): con la sonda, la subida del secado llega como máximo a 9 °C/min en las curvas de prueba.
+En la revisión 4 recalibré el gas con los tuestes del experto y ajusté los umbrales de subida a lo que alcanza la física nueva, como parámetros de diseño. Lo medí con 400 granos al azar: siguiendo la guía, la subida redondeada llega como máximo a 17 °C/min, y con el gas al 100 % llega a 20. Por eso la subida rápida del secado y el riesgo de chamuscado avisan desde 18 °C/min y se rearman al bajar a 16: siguiendo la guía no suenan nunca, y con el gas al 100 % la subida rápida suena en 65 de 400 tuestes y el chamuscado en 28. Los refuerzos de buen ritmo van de 10 a 17 °C/min en el secado y de 5 a 17 después, y en la curva buena vuelven a sonar los dos.
 
-### Observación pendiente
-
-Después del primer crack el resultado es muy sensible al gas: con el 25 % el tueste sale bien, con el 30 % el grano llega a 216–220 °C y con el 15 % se enfría hasta quedar crudo. Lo anoto para revisarlo con la física del simulador; en esta fase no la cambié.
+También agregué el aviso de tueste lento: a los 9 min, si la sonda sigue bajo 182 °C y no hay primer crack, pide subir el gas. No reemplaza el de tueste largo de los 13 min. Con la guía al pie de la letra suena en 62 de los 112 tuestes que se pasarían de 12 min, y en 54 de esos 62 subir el gas a tiempo deja el primer crack en 12 min o antes; en los que iban bien suena en 75 de 1 888. En las curvas horneada y con caída el canal lo descarta porque llega 2 s después de otra alerta y entre alertas hay un mínimo de 8 s; en la horneada sigue avisando el de tueste largo.
 
 ## Calificación del tueste
 

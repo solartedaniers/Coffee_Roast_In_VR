@@ -64,14 +64,14 @@
       "when": [
         {"signal": "turningPointReached", "op": "eq", "value": true},
         {"signal": "temperature", "op": "lt", "value": 160},
-        {"signal": "risePerMinute", "op": "ge", "value": 25}
+        {"signal": "risePerMinute", "op": "ge", "value": 18}
       ],
       "sustainSeconds": 10,
-      "rearmWhen": [{"signal": "risePerMinute", "op": "le", "value": 22}],
+      "rearmWhen": [{"signal": "risePerMinute", "op": "le", "value": 16}],
       "cooldownSeconds": 45,
       "maxRepeats": 2,
       "requiresQuietSeconds": 0,
-      "source": "Fuente: manual de tostado p.11 (puntas oscuras por tueste muy rápido). Propuesto: 25 °C/min, re-arme a 22 y 10 s de sostén; con el simulador, un tueste normal sube como máximo 21 °C/min en el secado y uno con el gas al 40 % llega a 24-30.",
+      "source": "Fuente: manual de tostado p.11 (puntas oscuras por tueste muy rápido). Parámetro de diseño: 18 °C/min, re-arme a 16 y 10 s de sostén. Con el aire calibrado a los tuestes del experto, siguiendo la guía el Increm °T llega como máximo a 17 °C/min y no suena en ningún grano; con el gas al 100 % suena en 65 de 400 granos.",
       "phrases": {
         "BEGINNER": "La temperatura está subiendo muy rápido. Baja un poco el gas para que el grano se seque parejo.",
         "INTERMEDIATE": "Subida muy rápida en el secado; baja un poco el gas."
@@ -199,7 +199,7 @@
       "cooldownSeconds": 0,
       "maxRepeats": 1,
       "requiresQuietSeconds": 0,
-      "source": "Parámetro de diseño: a los 9 min la sonda de un grano que va a cruzar en la ventana ya pasa de 182 °C (el lote de referencia de 6 kg va en ~189 °C); más abajo el primer crack suele llegar después de los 12 min. Fuente: Avances Técnicos 573 (8-12 min hasta el primer crack). Con el simulador, de los granos que pasan de 12 min avisa a 93 de 144, y subiendo el gas desde aquí 84 de esos 93 todavía cruzan antes de los 12 min.",
+      "source": "Parámetro de diseño: a los 9 min la sonda de un grano que va a cruzar en la ventana ya pasa de 182 °C (el lote de referencia de 6 kg va en ~189 °C); más abajo el primer crack suele llegar después de los 12 min. Fuente: Avances Técnicos 573 (8-12 min hasta el primer crack). Con el simulador y la guía, de los granos que pasan de 12 min avisa a 62 de 112, y subiendo el gas desde aquí 54 de esos 62 todavía cruzan antes de los 12 min.",
       "phrases": {
         "BEGINNER": "El tueste va lento y el primer crack puede llegar tarde. Sube el gas para que el café no quede horneado.",
         "INTERMEDIATE": "Tueste lento, el primer crack va a llegar tarde; sube el gas.",
@@ -294,15 +294,15 @@
       "levels": ["BEGINNER", "INTERMEDIATE", "ADVANCED"],
       "when": [
         {"signal": "phase", "op": "eq", "value": "ROASTING"},
-        {"signal": "risePerMinute", "op": "ge", "value": 30},
+        {"signal": "risePerMinute", "op": "ge", "value": 18},
         {"signal": "moisturePct", "op": "le", "value": 3}
       ],
       "sustainSeconds": 1,
-      "rearmWhen": [{"signal": "risePerMinute", "op": "le", "value": 26}],
+      "rearmWhen": [{"signal": "risePerMinute", "op": "le", "value": 16}],
       "cooldownSeconds": 10,
       "maxRepeats": 3,
       "requiresQuietSeconds": 0,
-      "source": "Parámetro de diseño: quemado por subida ≥ 35 °C/min con humedad ≤ 2 % (sección 5 del modelo). Propuesto: avisar con 5 °C/min y 1 % de margen. Solo suena si Unity envía la humedad.",
+      "source": "Parámetro de diseño: quemado por subida ≥ 19 °C/min con humedad ≤ 2 % (ROR_SCORCH_THRESHOLD_C_PER_MIN, sección 5 del modelo). Parámetro de diseño: avisar con 1 °C/min y 1 % de margen; siguiendo la guía nunca suena y con el gas al 100 % suena en 28 de 400 granos. Solo suena si Unity envía la humedad.",
       "phrases": {
         "BEGINNER": "¡Baja el gas! La temperatura sube demasiado rápido y al grano ya casi no le queda humedad.",
         "INTERMEDIATE": "Baja el gas: subida agresiva con el grano casi seco.",
@@ -357,14 +357,14 @@
         {"signal": "turningPointReached", "op": "eq", "value": true},
         {"signal": "temperature", "op": "lt", "value": 160},
         {"signal": "risePerMinute", "op": "ge", "value": 10},
-        {"signal": "risePerMinute", "op": "le", "value": 25}
+        {"signal": "risePerMinute", "op": "le", "value": 17}
       ],
       "sustainSeconds": 60,
       "rearmWhen": null,
       "cooldownSeconds": 0,
       "maxRepeats": 1,
       "requiresQuietSeconds": 60,
-      "source": "Propuesto: franja entre los umbrales de subida lenta y rápida.",
+      "source": "Parámetro de diseño: franja entre la subida lenta y la rápida (10 a 17 °C/min).",
       "phrases": {
         "BEGINNER": "¡Vas muy bien! La temperatura sube a buen ritmo.",
         "INTERMEDIATE": "Buen ritmo de subida."
@@ -379,14 +379,14 @@
         {"signal": "firstCrackReached", "op": "eq", "value": false},
         {"signal": "temperature", "op": "ge", "value": 160},
         {"signal": "risePerMinute", "op": "ge", "value": 5},
-        {"signal": "risePerMinute", "op": "le", "value": 20}
+        {"signal": "risePerMinute", "op": "le", "value": 17}
       ],
       "sustainSeconds": 60,
       "rearmWhen": null,
       "cooldownSeconds": 0,
       "maxRepeats": 1,
       "requiresQuietSeconds": 60,
-      "source": "Propuesto.",
+      "source": "Parámetro de diseño: de 5 a 17 °C/min, por debajo del aviso de subida rápida.",
       "phrases": {
         "BEGINNER": "Excelente, la caramelización avanza pareja hacia el primer crack. Sigue así.",
         "INTERMEDIATE": "Maillard avanzando parejo."

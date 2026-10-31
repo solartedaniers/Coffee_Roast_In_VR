@@ -8,6 +8,8 @@ import {
   FIRST_CRACK_TEMP_MIN_C,
   BURN_ABSOLUTE_CEILING_TEMP_C,
   IDEAL_TOTAL_ROAST_MINUTES,
+  AUTO_MODE_BASE_POWER_PCT,
+  AUTO_MODE_MAX_POWER_PCT,
 } from './RoastConstants';
 
 // Corre el modelo de dos cuerpos tick a tick con un lote dado (masa
@@ -81,4 +83,17 @@ test('el first crack varía de forma notoria según densidad y humedad del grano
 
   const spreadSeconds = highDensitySlowMoist.firstCrackTimeSeconds - lowDensityFastMoist.firstCrackTimeSeconds;
   expect(spreadSeconds).toBeGreaterThanOrEqual(120);
+});
+
+test('el modo automático pide su techo cuando la temperatura está lejos del objetivo', () => {
+  expect(RoastThermalModel.computeAutoFlamePowerPercent(120, 200, 10)).toBe(AUTO_MODE_MAX_POWER_PCT);
+});
+
+test('en el objetivo y sin subida, la base del modo automático deja el aire sobre el inicio del rango del primer crack', () => {
+  const power = RoastThermalModel.computeAutoFlamePowerPercent(200, 200, 0);
+  expect(power).toBe(AUTO_MODE_BASE_POWER_PCT);
+
+  let airTemp = AMBIENT_TEMP_C;
+  for (let second = 0; second < 120; second++) airTemp = RoastThermalModel.computeNextAirTemp(airTemp, power, 1);
+  expect(airTemp).toBeGreaterThan(FIRST_CRACK_TEMP_MIN_C);
 });

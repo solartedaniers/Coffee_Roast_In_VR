@@ -289,14 +289,14 @@ export const MAILLARD_STAGNATION_LIMIT_SEC = 30;
 // El término derivativo hace que el modo automático empiece a soltar
 // potencia en cuanto detecta que el café ya está subiendo rápido, sin
 // esperar a que la temperatura realmente cruce el objetivo — así evita
-// pasarse de largo por la inercia del quemador. El techo de potencia
-// mantiene al modo automático dentro del mismo rango "eficiente y
-// estable" (30%) que se recomienda en modo manual, en vez de tirar
-// siempre al máximo.
-export const AUTO_MODE_BASE_POWER_PCT = 10;
+// pasarse de largo por la inercia del quemador. El techo y la base son los
+// extremos de la guía del experto (50 % y 20 %): con 20 % el aire (~205 °C)
+// queda sobre el inicio del rango del primer crack, así que en el objetivo
+// la temperatura se sostiene en vez de caer.
+export const AUTO_MODE_BASE_POWER_PCT = 20;
 export const AUTO_MODE_GAIN_PCT_PER_C = 8;
 export const AUTO_MODE_DAMPING_PCT_PER_C_PER_MIN = 1.2;
-export const AUTO_MODE_MAX_POWER_PCT = 30;
+export const AUTO_MODE_MAX_POWER_PCT = 50;
 
 // ---- Apariencia del grano ------------------------------------------------
 

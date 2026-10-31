@@ -4,7 +4,7 @@ El texto está en español a propósito: es lo que hace que el modelo responda e
 coincidir byte a byte con el que armaba el servicio en Java (ver tests/snapshots).
 """
 from app.contracts import RoastFeedbackRequest
-from app.domain import KnowledgeLevel
+from app.domain import KnowledgeLevel, RoastingResult
 from app.java_format import fixed, integer, text
 from app.roast_reference import (
     CHARGE_IDEAL_MAX_C,
@@ -53,6 +53,15 @@ CONTEXT_HEADER = (
     "Contexto de referencia de material académico (úsalo solo si es relevante, no lo cites textualmente):"
 )
 
+# Las mismas etiquetas que ve el jugador en el historial (es.json): con el valor interno en inglés
+# el modelo lo copiaba tal cual en la retroalimentación.
+RESULT_LABELS = {
+    RoastingResult.PERFECT: "Desarrollado",
+    RoastingResult.RAW: "Crudo",
+    RoastingResult.BURNED: "Quemado",
+    RoastingResult.BAKED: "Horneado",
+}
+
 LEVEL_LABELS = {
     KnowledgeLevel.BEGINNER: "principiante, usa vocabulario simple y explica cualquier término técnico que uses",
     KnowledgeLevel.INTERMEDIATE: "intermedio, usa vocabulario técnico moderado sin explicaciones básicas",
@@ -91,7 +100,7 @@ class FeedbackPromptBuilder:
         charge = (self._charge_temperature_text(session.charge_temperature)
                   if session.charge_temperature is not None else NOT_AVAILABLE)
         return PROMPT_TEMPLATE.format(
-            result=text(session.result),
+            result=RESULT_LABELS.get(session.result) or text(session.result),
             score=integer(session.quality_score),
             charge=charge,
             final=fixed(session.final_temperature, 1),

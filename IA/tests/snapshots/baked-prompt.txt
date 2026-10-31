@@ -1,5 +1,5 @@
 Datos de una sesión de tueste de café en un simulador por computadora (no hay objetos físicos: solo estos números).
-Resultado: BAKED. Puntaje: 15/100.
+Resultado: Horneado. Puntaje: 15/100.
 Temperatura de carga: 150.0°C (fuera del rango recomendado de 180-200°C).
 Temperatura final: 150.0°C. Quedó 55.0°C POR DEBAJO del rango ideal de 205-212°C.
 Fase del tueste alcanzada al finalizar: Secado.
@@ -10,6 +10,6 @@ Escribe 2 o 3 frases en español, en texto plano, explicando qué salió bien o 
 Recuerda: nivel intermedio. Puedes usar términos como "first crack" o "tiempo de desarrollo" sin explicarlos, pero evita jerga muy especializada como "DTR" o "reacción de Maillard".
 Contexto de referencia de material académico (úsalo solo si es relevante, no lo cites textualmente):
 - Contexto.
-Recuerda el resultado real de esta sesión: BAKED (puntaje 15/100). Tu sugerencia debe ser consistente con ese resultado, no contradecirlo.
+Recuerda el resultado real de esta sesión: Horneado (puntaje 15/100). Tu sugerencia debe ser consistente con ese resultado, no contradecirlo.
 
 Retroalimentación:

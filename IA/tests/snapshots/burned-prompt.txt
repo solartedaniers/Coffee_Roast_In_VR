@@ -1,5 +1,5 @@
 Datos de una sesión de tueste de café en un simulador por computadora (no hay objetos físicos: solo estos números).
-Resultado: BURNED. Puntaje: 30/100.
+Resultado: Quemado. Puntaje: 30/100.
 Temperatura de carga: 230.0°C (fuera del rango recomendado de 180-200°C).
 Temperatura final: 228.0°C. Quedó 16.0°C POR ENCIMA del rango ideal de 205-212°C.
 Fase del tueste alcanzada al finalizar: Segundo Crack.
@@ -9,6 +9,6 @@ Nivel del usuario: avanzado, usa vocabulario técnico de tostador experto y sé 
 Escribe 2 o 3 frases en español, en texto plano, explicando qué salió bien o mal según esos datos y una sugerencia concreta para el próximo tueste. No inventes objetos, herramientas ni escenas que no estén en los datos. No repitas estas instrucciones. No uses markdown ni encabezados.
 Recuerda: nivel avanzado. Usa términos técnicos como "DTR", "ratio de desarrollo" o "reacción de Maillard" libremente, sin explicarlos, y sé directo.
 
-Recuerda el resultado real de esta sesión: BURNED (puntaje 30/100). Tu sugerencia debe ser consistente con ese resultado, no contradecirlo.
+Recuerda el resultado real de esta sesión: Quemado (puntaje 30/100). Tu sugerencia debe ser consistente con ese resultado, no contradecirlo.
 
 Retroalimentación:

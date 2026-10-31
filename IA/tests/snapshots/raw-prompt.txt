@@ -1,5 +1,5 @@
 Datos de una sesión de tueste de café en un simulador por computadora (no hay objetos físicos: solo estos números).
-Resultado: RAW. Puntaje: 20/100.
+Resultado: Crudo. Puntaje: 20/100.
 Temperatura de carga: N/A.
 Temperatura final: 180.0°C. Quedó 25.0°C POR DEBAJO del rango ideal de 205-212°C.
 Fase del tueste alcanzada al finalizar: Caramelización (reacción de Maillard).
@@ -9,6 +9,6 @@ Nivel del usuario: intermedio, usa vocabulario técnico moderado sin explicacion
 Escribe 2 o 3 frases en español, en texto plano, explicando qué salió bien o mal según esos datos y una sugerencia concreta para el próximo tueste. No inventes objetos, herramientas ni escenas que no estén en los datos. No repitas estas instrucciones. No uses markdown ni encabezados.
 Recuerda: nivel intermedio. Puedes usar términos como "first crack" o "tiempo de desarrollo" sin explicarlos, pero evita jerga muy especializada como "DTR" o "reacción de Maillard".
 
-Recuerda el resultado real de esta sesión: RAW (puntaje 20/100). Tu sugerencia debe ser consistente con ese resultado, no contradecirlo.
+Recuerda el resultado real de esta sesión: Crudo (puntaje 20/100). Tu sugerencia debe ser consistente con ese resultado, no contradecirlo.
 
 Retroalimentación:

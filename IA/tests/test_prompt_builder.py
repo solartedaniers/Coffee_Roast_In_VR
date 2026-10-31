@@ -48,3 +48,11 @@ def test_compares_the_final_temperature_with_the_ideal_band_not_the_target(build
 
     assert expected in prompt
     assert "objetivo" not in prompt
+
+
+@pytest.mark.parametrize("recorded", ALL, ids=lambda recorded: recorded.name)
+def test_gives_the_model_the_result_in_spanish(builder, recorded):
+    # El modelo copiaba el valor interno en la retroalimentación que lee el jugador.
+    prompt = builder.build(recorded.request, recorded.level, recorded.context)
+
+    assert not any(result.value in prompt for result in RoastingResult)

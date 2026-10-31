@@ -5,7 +5,7 @@
  "vectors": [
   {
    "curve": "good",
-   "description": "Tueste correcto: carga a 190 °C, gas al 30 % y al 25 % desde el primer crack, descarga con DTR 20 %. Incluye una pregunta por voz grabada justo en el primer crack.",
+   "description": "Tueste correcto: carga a 190 °C, sigue la guía al pie de la letra (50 %, 40 % y 20 % desde el primer crack), descarga con DTR 20 %. Incluye una pregunta por voz grabada justo en el primer crack.",
    "samples": [
     ["READY", 190.07, 0, false, 8.0, false, false],
     ["READY", 190.17, 0, false, 8.0, false, false],
@@ -893,7 +893,7 @@
   },
   {
    "curve": "burned",
-   "description": "Quemado: gas al 30 % todo el tueste; pasa de 220 °C y se descarga 20 s después.",
+   "description": "Quemado: sigue la guía hasta el primer crack y luego pone el gas al 100 %; pasa de 220 °C y se descarga 19 s después.",
    "samples": [
     ["READY", 190.07, 0, false, 8.0, false, false],
     ["READY", 190.17, 0, false, 8.0, false, false],
@@ -1920,7 +1920,7 @@
   },
   {
    "curve": "baked",
-   "description": "Horneado: gas apagado 90 s desde que la sonda marca 170 °C, antes del primer crack; luego gas al 30 % y al 25 % desde el primer crack.",
+   "description": "Horneado: gas apagado 90 s desde que la sonda marca 170 °C, antes del primer crack; el resto sigue la guía.",
    "samples": [
     ["READY", 190.07, 0, false, 8.0, false, false],
     ["READY", 190.17, 0, false, 8.0, false, false],
@@ -3597,7 +3597,7 @@
   },
   {
    "curve": "drop",
-   "description": "Con caída: gas apagado de 2:30 a 3:20 en el secado; el resto como el tueste correcto.",
+   "description": "Con caída: gas apagado de 2:30 a 3:20 en el secado; el resto sigue la guía.",
    "samples": [
     ["READY", 190.07, 0, false, 8.0, false, false],
     ["READY", 190.17, 0, false, 8.0, false, false],

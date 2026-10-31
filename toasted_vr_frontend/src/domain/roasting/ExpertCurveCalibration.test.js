@@ -96,14 +96,17 @@ function steepestDropPerSecond(readings) {
 const expertGas = (readings) => ({ roastSeconds }) =>
   readings.reduce((flame, reading) => (reading.seconds <= roastSeconds ? reading.flame : flame), readings[0].flame);
 
-// Un jugador que sigue la guía de es.json mirando la sonda y el Increm °T.
-function guideGas({ probe, rateOfRise, turningPointReached, firstCrackReached }) {
-  if (firstCrackReached) return GUIDE_DEVELOPMENT_FLAME_PCT;
-  if (!turningPointReached) return GUIDE_DRYING_FLAME_PCT;
-  if (probe < GUIDE_STEP_DOWN_TEMP_C) {
-    return rateOfRise > GUIDE_FAST_RISE_C_PER_MIN ? GUIDE_MAILLARD_FLAME_PCT : GUIDE_DRYING_FLAME_PCT;
-  }
-  return rateOfRise < GUIDE_SLOW_RISE_C_PER_MIN ? GUIDE_DRYING_FLAME_PCT : GUIDE_MAILLARD_FLAME_PCT;
+// Un jugador que sigue la guía de es.json al pie de la letra mirando la sonda y el Increm °T:
+// baja a 40 % una sola vez, y si vuelve a 50 % se queda ahí hasta el crack.
+function followGuide() {
+  let stage = 'DRYING';
+  return ({ probe, rateOfRise, turningPointReached, firstCrackReached }) => {
+    if (firstCrackReached) return GUIDE_DEVELOPMENT_FLAME_PCT;
+    if (!turningPointReached) return GUIDE_DRYING_FLAME_PCT;
+    if (stage === 'DRYING' && (probe >= GUIDE_STEP_DOWN_TEMP_C || rateOfRise > GUIDE_FAST_RISE_C_PER_MIN)) stage = 'MAILLARD';
+    else if (stage === 'MAILLARD' && rateOfRise < GUIDE_SLOW_RISE_C_PER_MIN) stage = 'RECOVERY';
+    return stage === 'MAILLARD' ? GUIDE_MAILLARD_FLAME_PCT : GUIDE_DRYING_FLAME_PCT;
+  };
 }
 
 // Misma secuencia que el tick de RoastingSimulation desde la carga: aire,
@@ -232,7 +235,7 @@ describe('siguiendo la guía de es.json', () => {
   );
 
   test.each(referenceCases)('el grano de referencia en un lote de %d kg (crack a %i °C) cruza en la ventana de la rúbrica', (batchWeightKg, firstCrackThresholdTemp) => {
-    const { firstCrack } = simulateRoast({ chargeTemp: CHARGE_TEMP_DEFAULT_C, batchWeightKg, gasFor: guideGas, firstCrackThresholdTemp });
+    const { firstCrack } = simulateRoast({ chargeTemp: CHARGE_TEMP_DEFAULT_C, batchWeightKg, gasFor: followGuide(), firstCrackThresholdTemp });
     expect(firstCrack).toBeGreaterThanOrEqual(FIRST_CRACK_WINDOW_MIN_SECONDS);
     expect(firstCrack).toBeLessThanOrEqual(FIRST_CRACK_WINDOW_MAX_SECONDS);
   });
@@ -254,7 +257,7 @@ describe('siguiendo la guía de es.json', () => {
       const { firstCrack } = simulateRoast({
         chargeTemp: CHARGE_TEMP_DEFAULT_C,
         batchWeightKg: profile.batchWeightKg,
-        gasFor: guideGas,
+        gasFor: followGuide(),
         density: profile.density,
         moisturePct: profile.moisture0Pct,
         entryTempC: profile.entryTempC,

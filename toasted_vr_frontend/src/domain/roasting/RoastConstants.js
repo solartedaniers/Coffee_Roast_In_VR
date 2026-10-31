@@ -285,16 +285,17 @@ export const MAILLARD_STAGNATION_LIMIT_SEC = 30;
 
 // La estrategia del experto: 50 % hasta GUIDE_STEP_DOWN_TEMP_C, 40 % hasta
 // el primer crack y 20 % desde ahí. El jugador además mira el Increm °T:
-// si sube más que GUIDE_FAST_RISE_C_PER_MIN baja a 40 % antes, y si en 40 %
-// sube menos que GUIDE_SLOW_RISE_C_PER_MIN vuelve a 50 %. Los dos umbrales
-// de subida son parámetros de diseño, ajustados para que el primer crack
-// caiga en 8-12 min en la mayoría de los granos.
+// si sube más que GUIDE_FAST_RISE_C_PER_MIN baja a 40 % antes y lo deja
+// ahí, y solo si en 40 % sube menos que GUIDE_SLOW_RISE_C_PER_MIN vuelve a
+// 50 % hasta el crack (un tostador no mueve el gas a cada rato). Los dos
+// umbrales de subida son parámetros de diseño, ajustados para que el
+// primer crack caiga en 8-12 min en la mayoría de los granos.
 export const GUIDE_DRYING_FLAME_PCT = FLAME_POWER_DEFAULT_PCT;
 export const GUIDE_MAILLARD_FLAME_PCT = 40;
 export const GUIDE_DEVELOPMENT_FLAME_PCT = 20;
 export const GUIDE_STEP_DOWN_TEMP_C = 185;
-export const GUIDE_FAST_RISE_C_PER_MIN = 13;
-export const GUIDE_SLOW_RISE_C_PER_MIN = 9;
+export const GUIDE_FAST_RISE_C_PER_MIN = 16;
+export const GUIDE_SLOW_RISE_C_PER_MIN = 10;
 
 // ---- Controlador del modo automático -----------------------------------
 

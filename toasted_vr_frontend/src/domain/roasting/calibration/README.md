@@ -52,20 +52,20 @@ La hora del retorno también sale un poco antes. Con la misma regla (la sonda su
 
 ### La guía y la cobertura de granos
 
-La guía de `es.json` es la estrategia del experto: 50 % hasta unos 185 °C, 40 % hasta el primer crack y 20 % después. Encima le pide al jugador mirar el Increm °T: si sube más de 13 °C por minuto, bajar a 40 % antes; y si ya está en 40 % y sube menos de 9 °C por minuto, volver a 50 %.
+La guía de `es.json` es la estrategia del experto: 50 % hasta unos 185 °C, 40 % hasta el primer crack y 20 % después. Encima le pide al jugador mirar el Increm °T: si sube más de 16 °C por minuto, bajar a 40 % antes y dejarlo ahí; y solo si ya está en 40 % y sube menos de 10 °C por minuto, volver a 50 % hasta el crack. Así el jugador mueve el gas pocas veces, como un tostador real. El test simula a un jugador que sigue ese texto al pie de la letra.
 
-Siguiendo esa guía, el grano de referencia (densidad 0,75 y humedad 10 %) cruza entre las 8:59 y las 11:41 en lotes de 5, 5,5 y 6 kg, con el umbral del crack en sus dos extremos.
+Siguiendo esa guía, el grano de referencia (densidad 0,75 y humedad 10 %) cruza entre las 8:48 y las 11:32 en lotes de 5, 5,5 y 6 kg, con el umbral del crack en sus dos extremos.
 
-Con granos aleatorios no todos caben en la ventana: la densidad sola mueve el primer crack unos 3 min (de 8:47 a 11:55 en un lote de 5,5 kg), y el peso del lote, el umbral del crack y la humedad suman más. En una muestra de 3000 granos sorteados igual que en una sesión real:
+Con granos aleatorios no todos caben en la ventana: la densidad sola mueve el primer crack unos 3 min (de 8:53 a 11:49 en un lote de 5,5 kg), y el peso del lote, el umbral del crack y la humedad suman más. En una muestra de 3000 granos sorteados igual que en una sesión real:
 
 | Primer crack | Granos |
 |---|---|
-| Entre 8 y 12 min | 92,8 % |
-| Antes de 8 min | 0,2 % |
-| Entre 12 y 13 min | 6,6 % |
+| Entre 8 y 12 min | 93,8 % |
+| Antes de 8 min | 0,3 % |
+| Entre 12 y 13 min | 5,5 % |
 | Después de 13 min | 0,4 % |
 
-El rango completo va de 7:46 a 13:51 y la temperatura final, de 202,4 a 210,2 °C. El test usa 500 granos con semilla fija y pide al menos el 90 %. Para los granos lentos hay una alerta a los 9 min (`ROAST_RUNNING_SLOW` en el catálogo de la IA) que le pide al jugador subir el gas mientras todavía alcanza a corregir.
+El rango completo va de 7:46 a 13:42 y la temperatura final, de 202,0 a 210,3 °C. El test usa 500 granos con semilla fija y pide al menos el 90 %. Para los granos lentos hay una alerta a los 9 min (`ROAST_RUNNING_SLOW` en el catálogo de la IA) que le pide al jugador subir el gas mientras todavía alcanza a corregir.
 
 ### Lo que medí y no apliqué
 

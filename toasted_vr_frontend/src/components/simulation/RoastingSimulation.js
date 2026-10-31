@@ -93,7 +93,10 @@ function createInitialSimState({ chargeTemperature, targetTemperature, operation
     // Lo que marca el termómetro: el aire antes de cargar y la sonda que
     // persigue al grano después (ProbeTemperatureModel).
     probeTemperature: AMBIENT_TEMP_C,
-    prevTemperature: AMBIENT_TEMP_C,
+    // Lectura de la sonda un tick antes de probeTemperature:
+    // MaillardStagnationMonitor compara cada lectura nueva con la de dos
+    // ticks atrás, igual que las alertas de la IA.
+    prevProbeTemperature: AMBIENT_TEMP_C,
     peakTemperature: AMBIENT_TEMP_C,
     finalTemperature: null,
     moisturePct: beanProfile.moisture0Pct,
@@ -272,10 +275,13 @@ export default function RoastingSimulation({
       const newSamples = [...prev.samples, { time: newElapsed, temp: displayTemp, gas: prev.flamePowerPercent }];
       const rateOfRisePerMinute = RoastMetrics.computeRateOfRisePerMinute(newSamples, newElapsed);
 
-      const newConsecutiveBurn = BurnRiskMonitor.computeConsecutiveSecondsOverThreshold(
-        prev.consecutiveBurnSeconds,
-        newTemp
-      );
+      // Las reglas leen la sonda, igual que en una tostadora real, y solo
+      // desde el punto de retorno: antes la sonda todavía marca el calor del
+      // tambor y no la temperatura del café.
+      const newConsecutiveBurn =
+        prev.phase === PHASES.ROASTING
+          ? BurnRiskMonitor.computeConsecutiveSecondsOverThreshold(prev.consecutiveBurnSeconds, newProbeTemp)
+          : prev.consecutiveBurnSeconds;
       const newMaxConsecutiveBurn = Math.max(prev.maxConsecutiveBurnSeconds, newConsecutiveBurn);
       const scorchedByRateAndMoisture =
         prev.phase === PHASES.ROASTING &&
@@ -285,8 +291,8 @@ export default function RoastingSimulation({
         prev.phase === PHASES.ROASTING
           ? MaillardStagnationMonitor.computeNextSeconds(
               prev.maillardStagnationSeconds,
-              newTemp,
-              prev.prevTemperature,
+              newProbeTemp,
+              prev.prevProbeTemperature,
               prev.firstCrackReached
             )
           : prev.maillardStagnationSeconds;
@@ -296,22 +302,24 @@ export default function RoastingSimulation({
         prev.phase === PHASES.ROASTING &&
         !prev.firstCrackReached &&
         prev.firstCrackThresholdTemp != null &&
-        FirstCrackDetector.hasReachedFirstCrack(newTemp, prev.firstCrackThresholdTemp);
+        FirstCrackDetector.hasReachedFirstCrack(newProbeTemp, prev.firstCrackThresholdTemp);
 
       const hitSecondCrack =
         prev.phase === PHASES.ROASTING &&
         (prev.firstCrackReached || hitFirstCrack) &&
         !prev.secondCrackReached &&
         prev.secondCrackThresholdTemp != null &&
-        SecondCrackDetector.hasReachedSecondCrack(newTemp, prev.secondCrackThresholdTemp);
+        SecondCrackDetector.hasReachedSecondCrack(newProbeTemp, prev.secondCrackThresholdTemp);
       const newSecondCrackReached = prev.secondCrackReached || hitSecondCrack;
 
       const newBurnedFlag =
-        prev.burnedFlag || BurnRiskMonitor.isBurned(newTemp, newSecondCrackReached) || scorchedByRateAndMoisture;
+        prev.burnedFlag ||
+        (prev.phase === PHASES.ROASTING && BurnRiskMonitor.isBurned(newProbeTemp, newSecondCrackReached)) ||
+        scorchedByRateAndMoisture;
 
       const nextFlamePowerPercent =
         prev.operationMode === OPERATION_MODES.AUTO
-          ? RoastThermalModel.computeAutoFlamePowerPercent(newTemp, prev.targetTemperature, rateOfRisePerMinute)
+          ? RoastThermalModel.computeAutoFlamePowerPercent(newProbeTemp, prev.targetTemperature, rateOfRisePerMinute)
           : prev.flamePowerPercent;
 
       let nextPhase = prev.phase;
@@ -331,8 +339,9 @@ export default function RoastingSimulation({
         temperature: newTemp,
         probeTemperature: newProbeTemp,
         lowestProbeSinceCharge: newLowestProbe,
-        prevTemperature: prev.temperature,
-        peakTemperature: Math.max(prev.peakTemperature, newTemp),
+        prevProbeTemperature: prev.probeTemperature,
+        peakTemperature:
+          prev.phase === PHASES.ROASTING ? Math.max(prev.peakTemperature, newProbeTemp) : prev.peakTemperature,
         moisturePct: newMoisturePct,
         flamePowerPercent: nextFlamePowerPercent,
         usedAutoMode: prev.usedAutoMode || (beanIsCharged && prev.operationMode === OPERATION_MODES.AUTO),
@@ -409,14 +418,11 @@ export default function RoastingSimulation({
   // cruza el límite configurado por el operador, independiente de la
   // regla de café quemado (BURN_ABSOLUTE_CEILING_TEMP_C).
   useEffect(() => {
-    // Durante PREHEAT/READY el grano todavía no está en el tambor (su
-    // temperatura queda congelada en ambiente bajo el modelo nuevo), así
-    // que la alarma debe mirar la temperatura del aire en esas fases; una
-    // vez cargado el café, vuelve a mirar la temperatura del grano.
+    // Mira lo que marca el termómetro: el aire antes de cargar y la sonda
+    // del grano después.
     const isPreCharge = simState.phase === PHASES.PREHEAT || simState.phase === PHASES.READY;
     const isPostCharge = simState.phase === PHASES.CHARGE_DIP || simState.phase === PHASES.ROASTING;
-    const relevantTemp = isPreCharge ? simState.airTemperature : simState.temperature;
-    const isOverAlarm = (isPreCharge || isPostCharge) && relevantTemp >= alarmLimitTempC;
+    const isOverAlarm = (isPreCharge || isPostCharge) && simState.probeTemperature >= alarmLimitTempC;
 
     if (isOverAlarm && !alarmFiredRef.current) {
       alarmFiredRef.current = true;
@@ -425,7 +431,7 @@ export default function RoastingSimulation({
     } else if (!isOverAlarm) {
       alarmFiredRef.current = false;
     }
-  }, [simState.phase, simState.temperature, simState.airTemperature, alarmLimitTempC]);
+  }, [simState.phase, simState.probeTemperature, alarmLimitTempC]);
 
   useEffect(() => () => stopInterval(), [stopInterval]);
 
@@ -542,7 +548,7 @@ export default function RoastingSimulation({
     const finalSim = {
       ...current,
       phase: PHASES.FINISHED,
-      finalTemperature: current.temperature,
+      finalTemperature: current.probeTemperature,
     };
     const scoreResult = RoastQualityEvaluator.evaluate(finalSim, currentUser.knowledgeLevel);
 
@@ -619,7 +625,7 @@ export default function RoastingSimulation({
   // ── Valores derivados para el render ────────────────────────────
 
   const s = simState;
-  const grainStateLabel = texts.grainStates[GrainAppearanceModel.getGrainStateName(s.temperature, s.firstCrackReached)];
+  const grainStateLabel = texts.grainStates[GrainAppearanceModel.getGrainStateName(s.probeTemperature, s.firstCrackReached)];
   const showBeans =
     s.phase === PHASES.CHARGE_DIP || s.phase === PHASES.ROASTING || s.phase === PHASES.FINISHED;
   const guidanceText = getGuidanceText(texts, s.phase, currentUser.knowledgeLevel);
@@ -787,7 +793,7 @@ export default function RoastingSimulation({
           {texts.labels.alarmNotice}
         </div>
       )}
-      {s.phase === PHASES.ROASTING && s.temperature >= BURN_WARNING_TEMP_C && !s.burnedFlag && (
+      {s.phase === PHASES.ROASTING && s.probeTemperature >= BURN_WARNING_TEMP_C && !s.burnedFlag && (
         <div className="sim-burn-alert" role="alert" aria-live="polite">
           {texts.labels.burnAlert}
         </div>

@@ -182,12 +182,11 @@ export const EXO_HEAT_RATE_C_PER_SEC = 0.03;
 // ChargeDipCalculator.js): 0.9 / (190 - 20).
 export const CHARGE_DIP_LOSS_COEFF_PER_DEGREE_C = 0.00529;
 
-// Duración base de la caída, a la potencia de referencia
+// Duración base de la caída del aire, a la potencia de referencia
 // (FLAME_POWER_DEFAULT_PCT); se escala según la potencia real en cada
-// instante — más potencia, recuperación más rápida y viceversa. Ya no es
-// una duración fija: ver ChargeDipCalculator.computeEffectiveDurationSeconds,
-// que también decide cuándo la fase pasa de carga a tueste, para que ese
-// cambio de fase y el fin real de la caída siempre coincidan.
+// instante — más potencia, recuperación más rápida y viceversa. Ver
+// ChargeDipCalculator.computeEffectiveDurationSeconds. El paso de carga a
+// tueste ya no depende de esto: lo marca el punto de retorno de la sonda.
 export const CHARGE_DIP_DURATION_BASE_SEC = 45;
 
 // Piso de potencia para el cálculo de duración — evita dividir por cero
@@ -218,6 +217,11 @@ export const CHARGE_DIP_FLOOR_AIR_WEIGHT = 0.5;
 // mínimos cuadrados a la caída de los dos tuestes del experto
 // (calibration/expert-roasts.csv), que dan 56-64 s.
 export const PROBE_RESPONSE_TIME_CONSTANT_SEC = 60;
+
+// Grados que la sonda debe subir sobre su mínima desde la carga para
+// marcar el punto de retorno: ahí termina la fase de carga. Mismo valor
+// que turningPointMinRise de las alertas y la rúbrica de la IA.
+export const TURNING_POINT_MIN_RISE_C = 0.5;
 
 // ---- Ritmo del reloj real por fase --------------------------------
 

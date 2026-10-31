@@ -50,6 +50,7 @@ import RoastCurveProfile from '../../domain/roasting/RoastCurveProfile';
 import RoastPacingProfile from '../../domain/roasting/RoastPacingProfile';
 import ChargeDipCalculator from '../../domain/roasting/ChargeDipCalculator';
 import ProbeTemperatureModel from '../../domain/roasting/ProbeTemperatureModel';
+import TurningPointDetector from '../../domain/roasting/TurningPointDetector';
 import RoastTraceRecorder from '../../domain/roasting/RoastTraceRecorder';
 
 // Valores de ejemplo para las 3 curvas de "Programación de Curvas" —
@@ -105,6 +106,7 @@ function createInitialSimState({ chargeTemperature, targetTemperature, operation
     elapsedSeconds: 0,
     roastingElapsedSeconds: 0,
     chargeStartElapsedSeconds: null,
+    lowestProbeSinceCharge: null,
     chartViewResetAtSeconds: null,
     samples: [],
 
@@ -252,6 +254,9 @@ export default function RoastingSimulation({
         ? ProbeTemperatureModel.computeNextProbeTemp(prev.probeTemperature, newTemp)
         : newAirTemp;
 
+      const newLowestProbe =
+        prev.phase === PHASES.CHARGE_DIP ? Math.min(prev.lowestProbeSinceCharge, newProbeTemp) : prev.lowestProbeSinceCharge;
+
       const newElapsed = prev.elapsedSeconds + 1;
       // LISTO cuenta como precalentando para este reloj: el café todavía no
       // se cargó, así que roastingElapsedSeconds debe seguir en 0 aunque la
@@ -314,10 +319,7 @@ export default function RoastingSimulation({
         nextPhase = PHASES.READY;
       } else if (
         prev.phase === PHASES.CHARGE_DIP &&
-        // Misma duración que calcula el dipLoss de arriba (con la potencia
-        // real de este tick): así el cambio de fase y el fin real de la
-        // caída siempre coinciden, aunque la potencia cambie en vivo.
-        newRoastingElapsed >= ChargeDipCalculator.computeEffectiveDurationSeconds(prev.flamePowerPercent)
+        TurningPointDetector.hasReachedTurningPoint(newProbeTemp, newLowestProbe)
       ) {
         nextPhase = PHASES.ROASTING;
       }
@@ -328,6 +330,7 @@ export default function RoastingSimulation({
         airTemperature: newAirTemp,
         temperature: newTemp,
         probeTemperature: newProbeTemp,
+        lowestProbeSinceCharge: newLowestProbe,
         prevTemperature: prev.temperature,
         peakTemperature: Math.max(prev.peakTemperature, newTemp),
         moisturePct: newMoisturePct,
@@ -466,6 +469,7 @@ export default function RoastingSimulation({
       // ChargeDipCalculator.computeEffectiveChargeFloor).
       temperature: ChargeDipCalculator.computeEffectiveChargeFloor(prev.airTemperature, prev.beanProfile.entryTempC),
       chargeStartElapsedSeconds: prev.elapsedSeconds,
+      lowestProbeSinceCharge: prev.probeTemperature,
       firstCrackThresholdTemp: FirstCrackDetector.pickThresholdTemperature(prev.beanProfile.density),
       secondCrackThresholdTemp: SecondCrackDetector.pickThresholdTemperature(prev.beanProfile.density),
     }));

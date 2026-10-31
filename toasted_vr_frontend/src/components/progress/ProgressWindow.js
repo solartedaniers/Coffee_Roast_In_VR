@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import useEscapeKey from '../../hooks/useEscapeKey';
 import useBodyScrollLock from '../../hooks/useBodyScrollLock';
 
@@ -6,6 +7,8 @@ import useBodyScrollLock from '../../hooks/useBodyScrollLock';
 // debe mostrar (historial o ranking); el diseño es el mismo para las dos.
 // Usa las clases de las demás ventanas más un modificador propio
 // (progress-window), así su tamaño no afecta a Perfil, Ayuda ni Configuración.
+// Se monta en body porque la cabecera del simulador encierra a position: fixed
+// y el fondo no alcanzaba a cubrir toda la pantalla.
 export default function ProgressWindow({ title, closeLabel, onClose, children }) {
   useEscapeKey(onClose);
   useBodyScrollLock();
@@ -14,7 +17,7 @@ export default function ProgressWindow({ title, closeLabel, onClose, children })
     if (event.target === event.currentTarget) onClose();
   };
 
-  return (
+  return createPortal(
     <div
       className="profile-modal-backdrop progress-window-backdrop"
       role="dialog"
@@ -31,6 +34,7 @@ export default function ProgressWindow({ title, closeLabel, onClose, children })
         </div>
         <div className="progress-window-body">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

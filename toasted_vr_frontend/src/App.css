@@ -2073,6 +2073,18 @@ select.field-input:focus {
   overflow: auto;
 }
 
+.progress-window .admin-compact-table th,
+.progress-window .admin-compact-table td {
+  white-space: nowrap;
+}
+
+.progress-window .admin-compact-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--color-bg-page);
+}
+
 @media (max-width: 600px) {
   .progress-window.profile-modal {
     width: 100vw;

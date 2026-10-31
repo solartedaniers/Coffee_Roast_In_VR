@@ -1,6 +1,6 @@
 # Contrato de las alertas proactivas (Unity → backend)
 
-Durante el tueste el asistente habla por su cuenta en los momentos clave: carga fuera de rango, subida muy rápida o muy lenta, estancamiento, primer crack, desarrollo y riesgo de quemado. Las reglas no corren en el servidor: Unity descarga al empezar el tueste un **paquete** con las reglas, la frase de su nivel y el audio ya sintetizado, y lo evalúa localmente una vez por segundo. Así no hay latencia de red, funciona sin WiFi y no se gasta la cuota de Azure en cada alerta.
+Durante el tueste el asistente habla por su cuenta en los momentos clave: carga fuera de rango, subida muy rápida o muy lenta, estancamiento, tueste lento o largo, primer crack, desarrollo y riesgo de quemado. Las reglas no corren en el servidor: Unity descarga al empezar el tueste un **paquete** con las reglas, la frase de su nivel y el audio ya sintetizado, y lo evalúa localmente una vez por segundo. Así no hay latencia de red, funciona sin WiFi y no se gasta la cuota de Azure en cada alerta.
 
 El catálogo completo, con la fuente de cada umbral, está en `IA/config/proactive_alerts.json`. Este documento es la especificación que debe seguir el evaluador en C#.
 
@@ -37,7 +37,7 @@ Un `schemaVersion` desconocido significa que cambió la forma de las reglas: ese
 ```json
 {
   "schemaVersion": 1,
-  "catalogRevision": 3,
+  "catalogRevision": 4,
   "level": "BEGINNER",
   "signals": {"riseWindowSeconds": 30, "maillardStartTemperature": 160, "maillardEndTemperature": 200,
               "burnCeilingTemperature": 220, "turningPointMinRise": 0.5},
@@ -129,25 +129,26 @@ Hay un solo canal. En cada tick:
 
 **Cómo se entrega**: con `recording` verdadero solo se muestra el subtítulo (para que Whisper no transcriba la alerta). En otro caso suena el audio y se muestra el subtítulo. Una alerta `CRITICAL` corta la respuesta que esté sonando.
 
-## Catálogo (revisión 3)
+## Catálogo (revisión 4)
 
 | id | Prioridad | Niveles | Cuándo |
 |---|---|---|---|
 | CHARGE_TEMP_LOW / CHARGE_TEMP_HIGH | NORMAL | B I A | READY, < 180 °C o > 200 °C durante 3 s |
-| DRYING_RISE_FAST | NORMAL | B I | Después del punto de retorno, < 160 °C, subida ≥ 25 °C/min durante 10 s |
+| DRYING_RISE_FAST | NORMAL | B I | Después del punto de retorno, < 160 °C, subida ≥ 18 °C/min durante 10 s (se rearma al bajar a 16) |
 | DRYING_RISE_SLOW | NORMAL | B I | 90 s o más después del punto de retorno, 100–160 °C, subida entre 0 y 5 durante 20 s |
 | TEMP_STALL_DRYING | HIGH | B I A | 30 s o más después del punto de retorno, < 160 °C, subida ≤ 0 durante 10 s |
 | TEMP_STALL_MAILLARD | HIGH | B I A | Sin primer crack, 160–200 °C, 15 s estancado (se hornea a los 30) |
 | FIRST_CRACK_NEAR | NORMAL | B I | Sin primer crack, ≥ 190 °C |
 | FIRST_CRACK | HIGH | B I A | Primer crack |
+| ROAST_RUNNING_SLOW | NORMAL | B I A | 9 min de tueste sin primer crack y la sonda bajo 182 °C (parámetro de diseño) |
 | ROAST_RUNNING_LONG | NORMAL | B I A | 13 min de tueste sin primer crack |
 | BURN_WARNING | HIGH | B I A | ≥ 215 °C sin haber pasado 220 |
 | SECOND_CRACK_NEAR | CRITICAL | B I A | ≥ 218 °C sin haber pasado 220 |
 | BURN_CEILING_EXCEEDED | CRITICAL | B I A | Pasó de 220 °C |
-| SCORCH_RISK | CRITICAL | B I A | Subida ≥ 30 °C/min con humedad ≤ 3 % (requiere la humedad) |
+| SCORCH_RISK | CRITICAL | B I A | Subida ≥ 18 °C/min con humedad ≤ 3 % (requiere la humedad; se rearma al bajar a 16) |
 | DEVELOPMENT_READY | HIGH | B I A | DTR ≥ 18 % |
 | DISCHARGE_WINDOW_CLOSING | HIGH | B I A | DTR ≥ 22 %, se repite una vez a los 20 s |
-| ON_TRACK_DRYING / ON_TRACK_MAILLARD | LOW | B I | Buen ritmo durante 60 s sin otra alerta |
+| ON_TRACK_DRYING / ON_TRACK_MAILLARD | LOW | B I | Buen ritmo durante 60 s sin otra alerta: subida de 10 a 17 °C/min en el secado y de 5 a 17 °C/min después |
 
 ## Vectores de conformidad
 
@@ -158,7 +159,7 @@ Hay un solo canal. En cada tick:
 
 El evaluador en C# pasa la prueba si, con el catálogo de la misma `catalogRevision`, entrega **exactamente** la misma lista en las 7 curvas y los 3 niveles. La curva buena incluye una pregunta grabada justo en el primer crack, para probar el modo de solo subtítulo.
 
-Conteo esperado por tueste (BEGINNER / INTERMEDIATE / ADVANCED): buena 4/4/2, quemada 9/9/7, horneada 8/8/5, cruda 0/0/0, con caída 6/6/3, carga baja 5/5/3, sobredesarrollada 6/6/4.
+Conteo esperado por tueste (BEGINNER / INTERMEDIATE / ADVANCED): buena 5/5/2, quemada 10/10/7, horneada 10/10/6, cruda 1/1/0, con caída 6/6/4, carga baja 6/6/3, sobredesarrollada 7/7/4.
 
 ## Probarlo sin Unity
 
@@ -172,7 +173,3 @@ Desde `IA/`:
 # Regenerar los vectores después de cambiar el catálogo
 .venv/Scripts/python -m app.alerts.conformance
 ```
-
-## Observación pendiente (sin cambiar la física)
-
-En las curvas del simulador, después del primer crack el resultado es muy sensible al gas: con el 25 % el tueste sale bien (PERFECT 84–90), con el 30 % el grano llega a 216–220 °C y con el 15 % se enfría hasta quedar crudo. Las alertas avisan en los dos extremos (aviso a 215 °C y descarga por DTR), pero el margen de control es estrecho. Queda anotado para revisarlo con la física del simulador; no se cambió nada en esta fase.

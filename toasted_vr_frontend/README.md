@@ -1,70 +1,62 @@
-# Getting Started with Create React App
+# Frontend de Toasted VR
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Es la aplicación web del simulador, hecha en React con Create React App. Tiene el registro y el inicio de sesión, el simulador de tueste que corre la física en el navegador, el historial de sesiones, el ranking y la retroalimentación de la IA. Solo habla con el backend (`Toasted_VR`), nunca directo con el servicio IA ni con el simulador para Unity.
 
-## Available Scripts
+## Estructura
 
-In the project directory, you can run:
+| Carpeta | Qué tiene |
+|---|---|
+| `src/components` | Componentes de la interfaz. |
+| `src/hooks` | Hooks propios. |
+| `src/services` | Llamadas a la API del backend. |
+| `src/config` | Lectura de las variables de entorno. |
+| `src/locals/es.json` | Todos los textos visibles. |
+| `src/domain/roasting` | La física del tueste y la nota. El simulador para Unity (`roast-simulator/`) importa esta misma carpeta, así que los dos usan exactamente la misma física. |
 
-### `npm start`
+## Requisitos
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Node 20 o más nuevo (el CI y la imagen de Docker usan Node 20) y npm.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Cómo lo corro en el host
 
-### `npm test`
+```bash
+cd toasted_vr_frontend
+npm install
+npm start
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Queda en `http://localhost:3000` y por defecto llama al backend en `http://localhost:8081/api/v1`.
 
-### `npm run build`
+Para generar el build de producción en `build/`:
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```bash
+npm run build
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Variables de entorno
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Copio `.env.example` a `.env` si quiero cambiar algún valor; el `.env` real nunca se sube.
 
-### `npm run eject`
+| Variable | Qué es |
+|---|---|
+| `REACT_APP_API_BASE_URL` | URL base de la API del backend. |
+| `REACT_APP_EVALUATION_POLL_INTERVAL_MS` | Cada cuánto consulto si la calificación de la sesión ya está lista. |
+| `REACT_APP_EVALUATION_POLL_MAX_ATTEMPTS` | Cuántas veces la consulto antes de dejar de esperar. |
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## Docker
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+`docker-compose.frontend.yml` construye la aplicación con Node 20 y la sirve con nginx en el puerto `3000` del host. Lo levanto junto con los demás servicios desde la raíz del repositorio, en PowerShell:
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+```powershell
+docker compose --env-file .\Toasted_VR\.env -f .\docker-compose.yml -f .\Toasted_VR\docker-compose.backend.yml -f .\toasted_vr_frontend\docker-compose.frontend.yml -f .\roast-simulator\docker-compose.simulator.yml up --build -d
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+`REACT_APP_API_BASE_URL` no queda fija en la imagen: el build lleva un marcador y `entrypoint.sh` lo reemplaza por el valor real cada vez que arranca el contenedor. Así la misma imagen sirve para cualquier URL del backend; para cambiarla defino la variable y recreo solo el contenedor del frontend, sin reconstruir (los comandos están en `Toasted_VR/README.md`).
 
-## Learn More
+## Tests
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```bash
+CI=true npm test -- --watchAll=false
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Sin `CI=true`, `npm test` se queda en modo interactivo esperando cambios. En el CI el job `frontend-tests` corre `npm ci`, los tests y `npm run build`.

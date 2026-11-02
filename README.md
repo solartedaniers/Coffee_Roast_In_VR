@@ -1,165 +1,161 @@
-# Simulador Inmersivo VR del Proceso del Cafe
+# Simulador Inmersivo VR del Proceso del Café (Toasted VR)
 
-## Descripcion General
-Este repositorio contiene el codigo fuente del ecosistema del **Simulador Inmersivo VR del Proceso del Cafe**, dividido en dos componentes principales:
+## Descripción general
 
-1. **Backend (`Toasted_VR`)**: servidor de aplicaciones y APIs construido con Java y Spring Boot.
-2. **Frontend (`toasted_vr_frontend`)**: aplicacion web de acompanamiento desarrollada en React.js.
+En este repositorio tengo todo el ecosistema del simulador de tueste de café:
 
-Actualmente el backend utiliza **Supabase** como proveedor administrado de **PostgreSQL**. La aplicacion se conecta mediante **Spring Data JPA + Hibernate**.
+| Carpeta | Qué es |
+|---|---|
+| `Toasted_VR/` | Backend en Java 17 con Spring Boot: API REST, seguridad, persistencia y puente hacia la IA y el simulador. |
+| `toasted_vr_frontend/` | Aplicación web en React: registro, simulador de tueste en el navegador, historial y ranking. |
+| `roast-simulator/` | Servicio en Node 24 que corre la física del tueste para Unity, reutilizando el dominio de la web. |
+| `IA/` | Servicio en Python con FastAPI: retroalimentación de cada tueste, asistente de voz, alertas, calificación y RAG. |
+| `postgres-init/` | Script que crea la extensión `vector` la primera vez que se crea el volumen de PostgreSQL. |
+
+La base de datos es PostgreSQL 16 con pgvector (imagen `pgvector/pgvector:pg16`) y corre en Docker. El backend se conecta con Spring Data JPA + Hibernate, y el servicio IA usa la misma base para las tablas del RAG.
 
 ---
 
-## Arquitectura y Patrones de Diseno
+## Arquitectura
 
-El proyecto sigue una arquitectura cliente-servidor orientada a APIs REST. El backend centraliza la logica de negocio, seguridad y persistencia, mientras que el frontend consume la API y presenta la experiencia al usuario.
+Uso una arquitectura cliente-servidor orientada a APIs REST. El backend centraliza la lógica de negocio, la seguridad y la persistencia; el frontend y Unity solo hablan con el backend, y el backend le delega el trabajo al servicio IA y al simulador por HTTP.
 
-### Backend (Spring Boot / Java)
+### Backend (Spring Boot)
 - **Controllers**: exponen los endpoints REST.
-- **Services**: implementan la logica de negocio, validaciones, OTP y autenticacion.
-- **Repositories**: gestionan la persistencia con Spring Data JPA sobre PostgreSQL/Supabase.
-- **Entities**: mapean objetos Java a tablas PostgreSQL mediante Hibernate.
+- **Services**: lógica de negocio, validaciones, códigos de verificación y autenticación.
+- **Repositories**: persistencia con Spring Data JPA sobre PostgreSQL.
+- **Entities**: mapean las clases Java a tablas con Hibernate.
 - **DTOs**: desacoplan la API de las entidades internas.
-- **Security**: protege rutas y flujos sensibles.
+- **Security**: protege rutas y flujos sensibles con JWT.
 
-### Frontend (React.js)
+### Frontend (React)
 - Componentes funcionales y hooks.
-- Renderizado condicional para flujos de registro y verificacion.
-- Textos centralizados para facilitar mantenimiento.
-- CSS propio sin Bootstrap ni Tailwind.
+- Textos centralizados en los archivos de traducción.
+- CSS propio, sin Bootstrap ni Tailwind.
 
 ---
 
-## Como Correr el Proyecto Localmente
+## Servicios y puertos
 
-Debes levantar backend y frontend en terminales separadas.
+| Servicio | Dónde corre | Puerto |
+|---|---|---|
+| PostgreSQL + pgvector | Docker | `5433` en el host (`5432` dentro de la red de Compose) |
+| Backend | Docker o host | `8081` |
+| Frontend | Docker (nginx) o host (`npm start`) | `3000` |
+| Simulador de tueste | Docker o host | `127.0.0.1:8083`, solo local |
+| Servicio IA | Host, fuera de Docker | `127.0.0.1:8082` |
+| Ollama | Host, fuera de Docker | `11434` |
 
-### 1. Backend (`Toasted_VR`)
+---
 
-**Requisitos previos**
-- JDK 17 o superior.
-- Un proyecto de Supabase creado.
-- Credenciales SMTP validas si vas a enviar correos reales.
+## Cómo levanto el proyecto con Docker
 
-**Configurar Supabase**
-1. Crea un proyecto en Supabase.
-2. Entra al dashboard y abre `Connect`.
-3. Copia el `JDBC connection string`, el usuario y la contrasena de la base de datos.
-4. Crea `Toasted_VR/.env` tomando como base `Toasted_VR/.env.example`.
+Docker solo incluye la base de datos, el backend, el frontend y el simulador. El servicio IA y Ollama corren en el host.
 
-**Variables importantes del `.env`**
-```env
-DB_URL=jdbc:postgresql://TU_HOST/postgres?sslmode=require
-DB_USERNAME=TU_USUARIO_SUPABASE
-DB_PASSWORD=TU_PASSWORD_SUPABASE
-DB_DRIVER_CLASS_NAME=org.postgresql.Driver
-JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
-JPA_DDL_AUTO=update
-JPA_SHOW_SQL=true
+1. Abro Docker Desktop y espero a que esté listo.
+2. Copio `Toasted_VR/.env.example` a `Toasted_VR/.env` y pongo valores privados en `POSTGRES_PASSWORD`, `APP_JWT_SECRET`, `UNITY_CODE_HMAC_PEPPER` y `UNITY_CODE_ENCRYPTION_KEY`. Ese archivo nunca se sube.
+3. Desde la raíz del repositorio, en PowerShell, levanto todo con los 4 compose:
+
+```powershell
+docker compose --env-file .\Toasted_VR\.env -f .\docker-compose.yml -f .\Toasted_VR\docker-compose.backend.yml -f .\toasted_vr_frontend\docker-compose.frontend.yml -f .\roast-simulator\docker-compose.simulator.yml up --build -d
 ```
 
-**Notas**
-- Si Supabase te entrega una conexion pooler por puerto `6543`, agrega `&prepareThreshold=0` al `DB_URL`.
-- Con `JPA_DDL_AUTO=update`, Hibernate crea o actualiza automaticamente las tablas necesarias.
-- No necesitas crear manualmente la tabla `users` si la app arranca correctamente contra Supabase.
+Si no cambié código desde la última vez, quito `--build` y arranca más rápido.
 
-**Ejecutar el backend**
-1. Entra a la carpeta:
-   ```bash
-   cd Toasted_VR
-   ```
-2. Inicia la aplicacion:
-   - **Windows**
-     ```bash
-     mvnw.cmd spring-boot:run
-     ```
-   - **Linux/Mac**
-     ```bash
-     ./mvnw spring-boot:run
-     ```
-3. El backend quedara disponible en `http://localhost:8081`.
+Para ver que todo quedó arriba (todos en `Up`, PostgreSQL además en `healthy`, ninguno en `Restarting`):
 
-### 2. Frontend (`toasted_vr_frontend`)
+```powershell
+docker compose --env-file .\Toasted_VR\.env -f .\docker-compose.yml -f .\Toasted_VR\docker-compose.backend.yml -f .\toasted_vr_frontend\docker-compose.frontend.yml -f .\roast-simulator\docker-compose.simulator.yml ps
+```
 
-**Requisitos previos**
-- Node.js 18 o superior (probado con Node 24.19.0; `package-lock.json` fue regenerado con esa version, pero no exige una version exacta).
-- NPM instalado.
+Para seguir los logs del backend:
 
-**Ejecutar el frontend**
-1. Entra a la carpeta:
-   ```bash
-   cd toasted_vr_frontend
-   ```
-2. Instala dependencias:
-   ```bash
-   npm install
-   ```
-3. Inicia el servidor de desarrollo:
-   ```bash
-   npm start
-   ```
-4. La aplicacion quedara disponible en `http://localhost:3000`.
+```powershell
+docker compose --env-file .\Toasted_VR\.env -f .\docker-compose.yml -f .\Toasted_VR\docker-compose.backend.yml -f .\toasted_vr_frontend\docker-compose.frontend.yml -f .\roast-simulator\docker-compose.simulator.yml logs -f backend
+```
 
-### 3. Retroalimentacion con IA (Groq + Ollama) - Opcional
+Para detener todo sin borrar los datos de la base:
 
-Tengo la parte de IA separada en su propio servicio, la carpeta `IA/`, escrito
-en Python con FastAPI: genera la retroalimentacion que se muestra al finalizar
-un tueste y hace el RAG sobre los PDFs de `IA/rag-docs/`. La retroalimentacion
-la redacta Groq (`openai/gpt-oss-120b`, capa gratuita) y, si Groq falla o se
-queda sin cuota, Ollama local (`phi4-mini`). Corre en el host, fuera de Docker,
-igual que Ollama. El frontend y Unity siguen llamando al backend como siempre,
-y el backend le delega el trabajo al servicio IA.
+```powershell
+docker compose --env-file .\Toasted_VR\.env -f .\docker-compose.yml -f .\Toasted_VR\docker-compose.backend.yml -f .\toasted_vr_frontend\docker-compose.frontend.yml -f .\roast-simulator\docker-compose.simulator.yml down
+```
 
-**Instalacion**
-1. Instalo Ollama desde [https://ollama.com](https://ollama.com).
-2. Descargo los modelos:
+Nunca le agrego `-v` al `down`, porque esa opción borra el volumen de PostgreSQL.
+
+Después abro `http://localhost:3000` en el navegador.
+
+`postgres-init/` se monta en `/docker-entrypoint-initdb.d` y solo corre cuando el volumen se crea por primera vez. Si el volumen ya existía de antes, ejecuto a mano una vez el `CREATE EXTENSION` de `postgres-init/001-create-vector-extension.sql`.
+
+---
+
+## Cómo corro cada parte en el host
+
+### Backend (`Toasted_VR`)
+
+Necesito JDK 17 o superior y la base levantada en Docker (`docker compose up -d postgres` desde la raíz). En `Toasted_VR/.env` apunto `DB_URL` a `jdbc:postgresql://localhost:5433/toasted_vr_db`, con `DB_USERNAME` y `DB_PASSWORD` iguales a los de PostgreSQL. Con `JPA_DDL_AUTO=update`, Hibernate crea o actualiza las tablas al arrancar.
+
+```bash
+cd Toasted_VR
+./mvnw spring-boot:run      # en Windows: mvnw.cmd spring-boot:run
+```
+
+Queda en `http://localhost:8081`. Los detalles de Docker, red local y variables están en `Toasted_VR/README.md`.
+
+### Frontend (`toasted_vr_frontend`)
+
+Uso Node 20 o más nuevo (el CI usa Node 20).
+
+```bash
+cd toasted_vr_frontend
+npm install
+npm start
+```
+
+Queda en `http://localhost:3000`. Más detalles en `toasted_vr_frontend/README.md`.
+
+### Servicio IA (`IA/`)
+
+Genera la retroalimentación al terminar un tueste, responde el asistente de voz y hace el RAG sobre los PDFs de `IA/rag-docs/`. La retroalimentación la redacta Groq (`openai/gpt-oss-120b`) y, si Groq falla o se queda sin cuota, Ollama local (`phi4-mini`).
+
+1. Instalo Ollama desde [https://ollama.com](https://ollama.com) y descargo los modelos:
    ```bash
    ollama pull nomic-embed-text
    ollama pull phi4-mini
    ```
-3. Si quiero usar Groq, creo una llave en [https://console.groq.com](https://console.groq.com)
-   y la pongo como `GROQ_API_KEY` en `IA/.env` (ese archivo nunca se sube).
-4. Levanto el servicio IA siguiendo `IA/README.md` (Python 3.12, entorno
-   virtual en `IA/.venv` y `python -m app` desde `IA/`; queda en
-   `http://127.0.0.1:8082`).
+2. Creo una llave en [https://console.groq.com](https://console.groq.com) y la pongo como `GROQ_API_KEY` en `IA/.env` (ese archivo nunca se sube).
+3. Levanto el servicio siguiendo `IA/README.md` (Python 3.12, entorno virtual en `IA/.venv` y `python -m app` desde `IA/`).
 
-El backend encuentra el servicio IA con `AI_SERVICE_BASE_URL` (backend en el
-host) o `DOCKER_AI_SERVICE_BASE_URL` (backend en Docker) en `Toasted_VR/.env`,
-ver `Toasted_VR/.env.example`.
+El backend lo encuentra con `AI_SERVICE_BASE_URL` (backend en el host) o `DOCKER_AI_SERVICE_BASE_URL` (backend en Docker) en `Toasted_VR/.env`.
 
-**Es opcional.** Si el servicio IA no esta corriendo, o ni Groq ni Ollama responden, el resto de
-la aplicacion funciona con normalidad; simplemente no se muestra la
-retroalimentacion de IA y en su lugar aparece el mensaje "Retroalimentacion
-no disponible por ahora".
+Es opcional: si el servicio IA no está corriendo, o ni Groq ni Ollama responden, el resto de la aplicación funciona igual y en lugar de la retroalimentación aparece el mensaje "Retroalimentación no disponible por ahora".
 
-### 4. Simulador de tueste para Unity (Node)
+### Simulador de tueste para Unity (`roast-simulator/`)
 
-Unity usa la misma fisica del simulador web sin copiarla: la carpeta
-`roast-simulator/` es un servicio en Node 24, sin dependencias, que importa
-directamente `toasted_vr_frontend/src/domain/roasting`. Unity nunca lo llama
-directo: juega a traves de `/api/v1/roasting/simulations` del backend, que
-valida el token y guarda la sesion al descargar. El simulador nunca queda
-abierto hacia la red.
+Unity usa la misma física del simulador web sin copiarla: `roast-simulator/` es un servicio en Node 24, sin dependencias, que importa directamente `toasted_vr_frontend/src/domain/roasting`. Unity nunca lo llama directo: juega a través de `/api/v1/roasting/simulations` del backend, que valida el token y guarda la sesión al descargar. El simulador nunca queda abierto hacia la red.
 
-Lo levanto de una de dos formas:
+En el host, cuando el backend también corre en el host:
 
-- Con Node en el host (`127.0.0.1:8083`), cuando el backend tambien corre en el host:
-  ```bash
-  cd roast-simulator
-  npm start
-  ```
-- Con Docker, junto con los demas servicios, agregando su compose:
-  ```powershell
-  docker compose --env-file .\Toasted_VR\.env -f .\docker-compose.yml -f .\Toasted_VR\docker-compose.backend.yml -f .\toasted_vr_frontend\docker-compose.frontend.yml -f .\roast-simulator\docker-compose.simulator.yml up --build -d
-  ```
-  El backend en Docker lo encuentra por el nombre del servicio y el puerto solo
-  se publica en `127.0.0.1:8083`.
+```bash
+cd roast-simulator
+npm start
+```
 
-El backend lo encuentra con `ROAST_SIMULATOR_BASE_URL` (backend en el host) o
-`DOCKER_ROAST_SIMULATOR_BASE_URL` (backend en Docker) en `Toasted_VR/.env`. El
-contrato para Unity esta en `IA/docs/unity-roast-simulation-contract.md` y los
-detalles del servicio en `roast-simulator/README.md`. La web no lo necesita:
-sigue corriendo la fisica en el navegador.
+Queda en `127.0.0.1:8083`. En Docker ya se levanta con los 4 compose de arriba y el backend lo encuentra por el nombre del servicio.
+
+El backend lo encuentra con `ROAST_SIMULATOR_BASE_URL` (backend en el host) o `DOCKER_ROAST_SIMULATOR_BASE_URL` (backend en Docker). El contrato para Unity está en `IA/docs/unity-roast-simulation-contract.md` y los detalles del servicio en `roast-simulator/README.md`. La web no lo necesita: corre la física en el navegador.
+
+---
+
+## Variables de entorno
+
+Cada parte tiene su `.env.example` con todos los nombres; los `.env` reales nunca se suben.
+
+| Archivo | Para qué |
+|---|---|
+| `Toasted_VR/.env` | Base de datos (`POSTGRES_*`, `DB_*`), JWT, códigos de Unity, correo, reglas del tueste, URLs del servicio IA y del simulador, y administrador inicial. También lo usa Docker Compose con `--env-file`. |
+| `toasted_vr_frontend/.env` | `REACT_APP_API_BASE_URL`, `REACT_APP_EVALUATION_POLL_INTERVAL_MS`, `REACT_APP_EVALUATION_POLL_MAX_ATTEMPTS`. |
+| `IA/.env` | Base de datos, Groq, Ollama, RAG, voz y evaluación. |
+| `roast-simulator/.env` | `SIMULATOR_HOST`, `SIMULATOR_PORT`, `SIMULATION_IDLE_TIMEOUT_SECONDS`, `SIMULATION_MAX_STORED_TICKS`, `SIMULATOR_MAX_BODY_BYTES`. |
 
 ---
 
@@ -172,7 +168,7 @@ Trabajo cada cambio en su propia rama y lo integro a `main` solo por Pull Reques
 - `simulator-tests`: los tests de `roast-simulator` con Node 24 (`npm test`). No tienen dependencias: importan el dominio de la web directamente.
 - `ai-tests`: los tests del servicio `IA/` con Python 3.12 y pytest. No necesitan PostgreSQL, Ollama ni Groq.
 
-Solo fusiono un PR cuando los checks están en verde. Para revisarlo antes de abrir el PR, corro lo mismo localmente:
+Solo fusiono un PR cuando los checks están en verde. Antes de abrirlo corro lo mismo localmente:
 
 ```bash
 cd Toasted_VR && ./mvnw -B test
@@ -183,60 +179,9 @@ cd toasted_vr_frontend && npm ci && CI=true npm test -- --watchAll=false && CI=t
 
 ---
 
-## Contexto Importante para Futuros Desarrolladores
+## Contexto importante
 
-1. **Base de datos actual:** el proyecto usa **Supabase** como proveedor administrado de **PostgreSQL**. Si en documentacion antigua aparece MySQL, ya no aplica.
-2. **Creacion automatica de esquema:** con `JPA_DDL_AUTO=update`, Spring Boot/Hibernate crea o actualiza tablas en PostgreSQL segun las entidades Java.
-3. **Verificacion por correo:** el registro envia un codigo OTP de 6 digitos con expiracion para confirmar el email del usuario.
-4. **SMTP real:** para Gmail debe usarse una App Password, no la contrasena normal de la cuenta.
-5. **Archivos sensibles:** el archivo `.env` no debe subirse al repositorio. Solo debe versionarse `.env.example`.
-
----
-
-## Sobre el Diagrama de Arquitectura
-
-Si tu diagrama actualmente dice **PostgreSQL**, no esta mal, porque Supabase usa PostgreSQL por debajo. Pero para que quede mas claro y actualizado, conviene cambiar la caja de base de datos a alguno de estos nombres:
-
-- `Supabase (PostgreSQL)`
-- `Supabase PostgreSQL`
-- `Base de Datos Gestionada - Supabase (PostgreSQL)`
-
-Mi recomendacion es que no reemplaces `PostgreSQL` por completo, sino que lo dejes explicito como servicio administrado. Por ejemplo:
-
-`Servidor BD UCC` -> `Supabase`
-
-Y dentro de esa caja:
-- `PostgreSQL`
-- `Auth / Managed DB` solo si realmente vas a usar mas servicios de Supabase despues
-- `Backups Administrados` si quieres reflejar que la capa ya no es local/manual
-
-Si por ahora solo usas Supabase como base de datos, la forma mas clara y honesta es dejarlo como **`Supabase (PostgreSQL)`**.
-
-
-
-Abre Docker Desktop y espera a que esté completamente listo.
-Ve a la raíz del proyecto:
-   cd C:\Users\Alexander\Documents\Proyecto de Grado\Graduation_Project
-Levanta los 3 servicios (sin --build si no cambiaste nada de código desde hoy — arranca más rápido):
-   docker compose --env-file .\Toasted_VR\.env -f .\docker-compose.yml -f .\Toasted_VR\docker-compose.backend.yml -f .\toasted_vr_frontend\docker-compose.frontend.yml up -d
-Confirma que los 3 quedaron arriba sin reiniciarse:
-   docker compose --env-file .\Toasted_VR\.env -f .\docker-compose.yml -f .\Toasted_VR\docker-compose.backend.yml -f .\toasted_vr_frontend\docker-compose.frontend.yml ps
-
-Los 3 deben decir Up (postgres además healthy) — ninguno debe decir Restarting.
-
-Prueba en el navegador:
-   http://localhost:3000
-
-
-
-   # Detén los contenedores actuales
-
-   * docker compose down
-
-   # Vuelve a levantar todo el entorno limpio
-
-   * docker compose --env-file .\Toasted_VR\.env -f .\docker-compose.yml -f .\Toasted_VR\docker-compose.backend.yml -f .\toasted_vr_frontend\docker-compose.frontend.yml up --build -d
-
-   # Verifica que todo esté corriendo correctamente:
-
-   * docker ps
+1. **Esquema automático:** con `JPA_DDL_AUTO=update`, Hibernate crea o actualiza las tablas según las entidades Java.
+2. **Verificación por correo:** el registro envía un código de verificación con expiración para confirmar el email.
+3. **SMTP real:** con Gmail uso una contraseña de aplicación, no la contraseña normal de la cuenta.
+4. **Archivos sensibles:** los `.env` no se suben al repositorio; solo se versionan los `.env.example`.

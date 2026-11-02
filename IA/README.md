@@ -199,7 +199,7 @@ En la práctica:
 
 - **El asistente de voz y la retroalimentación se apoyan sobre todo en los PDFs en español** (los 7 de antes y los de Cenicafé, Ramos y Criollo y Gamboa). Ahí está casi todo lo que necesita un jugador.
 - **La rúbrica cita los PDFs en inglés de forma directa**, en el texto de cada criterio de `config/roast_rubric.json`, sin pasar por el buscador. Por ejemplo, el criterio del gas después del primer crack se apoya en Münchow et al. (2020).
-- Los PDFs en inglés quedan indexados igual, así que se aprovechan si el jugador pregunta en inglés o si más adelante cambio el modelo de embeddings.
+- Los PDFs en inglés quedan indexados igual, así que se aprovechan si el jugador pregunta en inglés.
 
 ## Asistente de voz
 

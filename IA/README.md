@@ -1,27 +1,27 @@
-# Servicio IA (Toasted VR)
+# 🤖☕ Servicio IA (Toasted VR)
 
 Aquí tengo separada toda la parte de IA del proyecto: la retroalimentación de cada sesión de tueste, el asistente de voz que responde preguntas durante el tueste y el RAG sobre los PDFs de `rag-docs/`. Es un servicio en Python con FastAPI que corre en el host, fuera de Docker, igual que Ollama.
 
-La retroalimentación la redacta un LLM con cadena de respaldo: primero Groq (`openai/gpt-oss-120b`) y, si falla o se queda sin cuota, Ollama local (`phi4-mini`). Si ninguno responde, la retroalimentación queda vacía y la sesión se ve igual que siempre.
+🔁 La retroalimentación la redacta un LLM con cadena de respaldo: primero Groq (`openai/gpt-oss-120b`) y, si falla o se queda sin cuota, Ollama local (`phi4-mini`). Si ninguno responde, la retroalimentación queda vacía y la sesión se ve igual que siempre.
 
-Al modelo le paso el resultado en español (Desarrollado, Crudo, Quemado u Horneado, como en el historial), porque con el valor interno en inglés lo copiaba en el texto que lee el jugador. La temperatura final la comparo con la franja ideal del puntaje (205–212 °C) y no con el objetivo del jugador, que es el del modo automático: antes un tueste bueno a 207 °C salía "por encima del objetivo". Si el resultado es Desarrollado y la temperatura final, la duración (10–15 min) y el desarrollo (18–22 %) quedaron en rango, le pido que felicite y sugiera repetir la misma estrategia, porque sin eso proponía alargar o acortar el desarrollo y lo sacaba de la franja.
+🇪🇸 Al modelo le paso el resultado en español (Desarrollado, Crudo, Quemado u Horneado, como en el historial), porque con el valor interno en inglés lo copiaba en el texto que lee el jugador. La temperatura final la comparo con la franja ideal del puntaje (205–212 °C) y no con el objetivo del jugador, que es el del modo automático: antes un tueste bueno a 207 °C salía "por encima del objetivo". Si el resultado es Desarrollado y la temperatura final, la duración (10–15 min) y el desarrollo (18–22 %) quedaron en rango, le pido que felicite y sugiera repetir la misma estrategia, porque sin eso proponía alargar o acortar el desarrollo y lo sacaba de la franja.
 
-El frontend y Unity no lo llaman directamente: siguen usando los mismos endpoints del backend (`GET /api/v1/roasting/sessions/{id}/feedback` y `POST /api/v1/admin/rag/ingest`), y el backend le delega el trabajo a este servicio por HTTP.
+🔒 El frontend y Unity no lo llaman directamente: siguen usando los mismos endpoints del backend (`GET /api/v1/roasting/sessions/{id}/feedback` y `POST /api/v1/admin/rag/ingest`), y el backend le delega el trabajo a este servicio por HTTP.
 
-## Requisitos
+## 📋 Requisitos
 
-- Python 3.12 o superior.
-- La base de datos del proyecto levantada (`docker compose up -d postgres` desde la raíz). Uso la misma base que el backend y solo toco las tablas del RAG: `rag_ingested_documents` y `rag_document_chunks` (índice HNSW de 768 dimensiones, distancia coseno). Al arrancar no se borra ni se recrea nada: solo se crean si no existen.
-- Ollama instalado y corriendo en el host. `nomic-embed-text` es obligatorio porque con él está indexado el RAG; `phi4-mini` es el respaldo de Groq:
+- 🐍 Python 3.12 o superior.
+- 🐘 La base de datos del proyecto levantada (`docker compose up -d postgres` desde la raíz). Uso la misma base que el backend y solo toco las tablas del RAG: `rag_ingested_documents` y `rag_document_chunks` (índice HNSW de 768 dimensiones, distancia coseno). Al arrancar no se borra ni se recrea nada: solo se crean si no existen.
+- 🦙 Ollama instalado y corriendo en el host. `nomic-embed-text` es obligatorio porque con él está indexado el RAG; `phi4-mini` es el respaldo de Groq:
 
 ```bash
 ollama pull nomic-embed-text
 ollama pull phi4-mini
 ```
 
-- Una llave de Groq (https://console.groq.com, capa gratuita). Es opcional: sin llave se usa solo Ollama.
+- 🔑 Una llave de Groq (https://console.groq.com, capa gratuita). Es opcional: sin llave se usa solo Ollama.
 
-## Cómo lo levanto
+## 🚀 Cómo lo levanto
 
 1. Creo `IA/.env` a partir de `IA/.env.example` y pongo la contraseña de la base (la misma `POSTGRES_PASSWORD` de `Toasted_VR/.env`) y `GROQ_API_KEY`. Ese archivo nunca se sube a git.
 2. La primera vez creo el entorno virtual desde la carpeta `IA/`:
@@ -43,7 +43,7 @@ El servicio queda en `http://127.0.0.1:8082`.
 
 4. En `Toasted_VR/.env` el backend apunta al servicio con `AI_SERVICE_BASE_URL=http://localhost:8082` (backend corriendo en el host) o `DOCKER_AI_SERVICE_BASE_URL=http://host.docker.internal:8082` (backend en Docker).
 
-## Endpoints
+## 🔌 Endpoints
 
 Son internos, solo para el backend, y no tienen autenticación propia: la autenticación y el rol ADMIN los valida el backend antes de llamarlos. Por eso el servicio escucha por defecto solo en `127.0.0.1`.
 
@@ -56,7 +56,7 @@ Son internos, solo para el backend, y no tienen autenticación propia: la autent
 
 El contrato es exactamente el mismo que tenía la versión anterior en Java, así que el backend no cambió. Un cuerpo inválido responde 400.
 
-La ingesta no corre sola al arrancar. Cuando agrego o cambio un PDF en `rag-docs/`, la lanzo desde el backend con un usuario ADMIN (`POST /api/v1/admin/rag/ingest`). Los PDFs que no cambiaron se saltan por su hash, y cada archivo se guarda en una sola transacción: si algo falla a mitad, sus fragmentos anteriores siguen intactos.
+📥 La ingesta no corre sola al arrancar. Cuando agrego o cambio un PDF en `rag-docs/`, la lanzo desde el backend con un usuario ADMIN (`POST /api/v1/admin/rag/ingest`). Los PDFs que no cambiaron se saltan por su hash, y cada archivo se guarda en una sola transacción: si algo falla a mitad, sus fragmentos anteriores siguen intactos.
 
 También la puedo correr sin el backend, directo contra la base y la tabla de `IA/.env`:
 
@@ -67,7 +67,7 @@ También la puedo correr sin el backend, directo contra la base y la tabla de `I
 
 Imprime el resultado de cada archivo y termina con código 1 si alguno falló. Después de una ingesta con material nuevo reinicio el servicio para vaciar la caché de retroalimentación.
 
-## PDFs del RAG
+## 📚 PDFs del RAG
 
 En `rag-docs/` hay 16 PDFs. Diez están en el repositorio: los 7 de antes y 3 artículos con licencia CC BY (Münchow et al. 2020, Yang et al. 2016 y Vakaryk et al. 2023). Los otros 6 tienen el prefijo `local-` y no los subo, porque su licencia no me deja publicarlos aquí; git los ignora con la regla `rag-docs/local-*.pdf` de `.gitignore`:
 
@@ -88,13 +88,13 @@ scp rag-docs/local-*.pdf usuario@servidor:/ruta/al/proyecto/IA/rag-docs/
 
 Después corro la ingesta (`python -m app.rag.ingest_cli` en el servidor, o `POST /api/v1/admin/rag/ingest` desde el backend) y reinicio el servicio. Sus títulos y autores ya están en `rag-docs/document_titles.json`, marcados con `"distribution": "local"`, y las citas salen igual que las de los demás.
 
-Si falta alguno, nada se rompe: la ingesta trabaja con los PDFs que encuentre, el catálogo de citas solo exige los que no son locales y los tests revisan el set de preguntas aunque falten. Para medir el RAG sí tienen que estar todos, porque sin ellos no se pueden revisar las páginas esperadas.
+💡 Si falta alguno, nada se rompe: la ingesta trabaja con los PDFs que encuentre, el catálogo de citas solo exige los que no son locales y los tests revisan el set de preguntas aunque falten. Para medir el RAG sí tienen que estar todos, porque sin ellos no se pueden revisar las páginas esperadas.
 
-## Caché de retroalimentación
+## 🗃️ Caché de retroalimentación
 
 El backend pide la retroalimentación cada vez que se abre una sesión. Para no gastar cuota del proveedor en cada apertura, guardo en memoria las respuestas por 24 horas (máximo 500). La llave incluye los datos de la sesión, el nivel y los modelos configurados, así que cambiar de modelo no reutiliza respuestas viejas. La caché se vacía si una ingesta agrega material nuevo y se pierde al reiniciar el servicio. Con `FEEDBACK_CACHE_TTL_SECONDS=0` queda desactivada.
 
-## Configuración
+## ⚙️ Configuración
 
 Todo sale de variables de entorno o de `IA/.env` (ver `IA/.env.example`): dirección y puerto, base de datos, orden de proveedores (`FEEDBACK_PROVIDERS`), modelo y tiempos de Groq, modelo y opciones de Ollama, caché, cantidad de fragmentos por consulta (`RAG_TOP_K`) y tamaño de los fragmentos.
 
@@ -104,7 +104,7 @@ Para usar el modelo más rápido de Groq pongo `GROQ_MODEL=openai/gpt-oss-20b`; 
 
 Del RAG también configuro los filtros sobre lo recuperado (`RAG_DEDUPLICATE_CHUNKS`, `RAG_MAX_CHUNKS_PER_PAGE`, `RAG_CANDIDATE_POOL`) y la partición del texto al indexar (`RAG_TEXT_SPLITTER`, `RAG_MIN_CHUNK_CHARS`, `RAG_REPEATED_LINE_PAGE_RATIO`). Los títulos legibles de cada PDF, que uso en las citas, están en `rag-docs/document_titles.json`: cuando agrego un PDF le agrego su título ahí (un test revisa que no falte ninguno).
 
-## Evaluación del RAG
+## 📊 Evaluación del RAG
 
 Para saber si los fragmentos que llegan al prompt son relevantes, mido la recuperación con un set de preguntas en `eval/rag_questions.json`:
 
@@ -146,13 +146,13 @@ La evaluación y el diagnóstico abren la base en solo lectura. Todas las medici
 
 La latencia de la línea base (891 ms) incluye cargar el modelo en frío; con el modelo ya cargado la misma búsqueda tarda unos 450 ms, así que los filtros no agregan tiempo.
 
-Lo que se quedó:
+✅ Lo que se quedó:
 
 - **Quitar fragmentos repetidos y tomar uno por página** (05 y 06, activos por defecto): el prompt deja de recibir textos repetidos y el MRR sube de 0,409 a 0,437. No exige reindexar.
 - **Citas validadas** (archivo, página y título): `RagContextRetriever.find_relevant_passages` devuelve cada fragmento con su cita solo si el PDF existe y la página está dentro de él. El prompt de la retroalimentación sigue recibiendo exactamente los mismos textos.
 - **Partición por frases de 500 caracteres** (14), activa por defecto desde la re-ingesta con los 16 PDFs (21): limpia el PDF (une palabras cortadas, quita encabezados repetidos, nombres de glifo sueltos, números de línea y la bibliografía) y junta frases completas. Fue la mejor variante medida con los 7 PDFs (MRR 0,482, hit@1 0,40) y lo siguió siendo con los 16.
 
-Lo que revertí, con sus mediciones guardadas como evidencia:
+↩️ Lo que revertí, con sus mediciones guardadas como evidencia:
 
 - **Búsqueda híbrida con RRF** (02 y 03): la búsqueda de texto en español la dominan palabras como "café" o "tueste", que aparecen en más del 19 % de los fragmentos. Quitándolas mejora, pero aun así no supera a la línea base.
 - **Umbral de relevancia** (04): con nomic-embed-text la similitud de los fragmentos correctos (mediana 0,71) y la del mejor fragmento de las preguntas sin respuesta (0,71–0,76) se solapan, así que cualquier umbral quita aciertos antes que ruido. Por eso las 5 negativas siempre reciben contexto.
@@ -160,9 +160,9 @@ Lo que revertí, con sus mediciones guardadas como evidencia:
 - **Traducir la consulta con Groq** (09 y `09b-traduccion-union-por-posicion.txt`): sube mucho las preguntas cuya respuesta está en los PDFs en inglés (MRR 0,20 → 0,65), pero desplaza a los españoles; ninguna forma de unir los resultados supera a 06 y cada consulta tarda ~1,5 s más.
 - **Modelo multilingüe bge-m3** (16): con la misma partición queda por debajo de nomic (0,342 contra 0,482). Revisándolo, varias de sus respuestas son páginas relevantes que no están entre las esperadas: es una limitación de etiquetar por página.
 
-Un hallazgo importante: el índice actual (1243 fragmentos) lo armó la versión en Java, cuyo lector de PDF dejaba el texto con muchos espacios. Reingestar los mismos PDFs con el lector de Python, sin ningún otro cambio, deja 390 fragmentos y baja el MRR a 0,335 (10). Por eso, cuando reingeste, lo hago con la partición por frases de 500 y no con la de caracteres.
+🔎 Un hallazgo importante: el índice actual (1243 fragmentos) lo armó la versión en Java, cuyo lector de PDF dejaba el texto con muchos espacios. Reingestar los mismos PDFs con el lector de Python, sin ningún otro cambio, deja 390 fragmentos y baja el MRR a 0,335 (10). Por eso, cuando reingeste, lo hago con la partición por frases de 500 y no con la de caracteres.
 
-### Re-ingesta con los PDFs nuevos
+### 🔄 Re-ingesta con los PDFs nuevos
 
 Con los 9 PDFs nuevos (16 en total) repetí la comparación sobre una copia desechable de la base, con el set ampliado a 43 preguntas de jugador y 7 negativas. A 7 de las preguntas de antes (P01, P02, P03, P05, P08, P22 y P25) les agregué páginas de los PDFs nuevos que también las responden.
 
@@ -189,7 +189,7 @@ Por grupo de PDFs de cada pregunta:
 
 Las cifras son MRR@10. Me quedé con la 21, que es la que uso ahora por defecto (`RAG_TEXT_SPLITTER=sentences`, `RAG_CHUNK_SIZE_CHARS=500`): es la mejor en el total y en los dos grupos que se pueden recuperar. En los PDFs de antes sube de 0,437 a 0,457; en el hit@4 baja de 0,56 a 0,52, que es una sola pregunta y lo tomo como empate. La 22 es más barata de aplicar, pero queda por debajo de la 21 en los tres grupos, así que reingesté todo con `--force`.
 
-### Limitación: los PDFs en inglés
+### ⚠️ Limitación: los PDFs en inglés
 
 El buscador casi no encuentra los PDFs en inglés cuando la pregunta es en español. En la variante 21 las 11 preguntas que se responden con Münchow, Yang, Vakaryk, Giacalone o Campo-Ceballos sacan 0,000 de MRR, mientras que las 7 de los PDFs nuevos en español sacan 0,482. De los 540 fragmentos que devolvieron las 54 búsquedas, solo 6 son de los PDFs en inglés. Tampoco cuentan las páginas en inglés que les agregué a las preguntas de antes: el grupo P01–P25 da lo mismo con ellas o sin ellas.
 
@@ -201,31 +201,31 @@ En la práctica:
 - **La rúbrica cita los PDFs en inglés de forma directa**, en el texto de cada criterio de `config/roast_rubric.json`, sin pasar por el buscador. Por ejemplo, el criterio del gas después del primer crack se apoya en Münchow et al. (2020).
 - Los PDFs en inglés quedan indexados igual, así que se aprovechan si el jugador pregunta en inglés.
 
-## Asistente de voz
+## 🎙️ Asistente de voz
 
 Durante el tueste el jugador puede preguntar por voz y oír la respuesta en pocos segundos. Unity llama al backend (`POST /api/v1/roasting/assistant/questions`) y el backend llama aquí a `POST /api/v1/voice/questions` con el audio, el usuario, su nivel y el estado del tueste. El contrato completo para Unity está en [docs/unity-voice-contract.md](docs/unity-voice-contract.md).
 
 Cada pregunta pasa por cuatro pasos, cada uno con respaldo:
 
-1. **Voz a texto:** Groq Whisper (`whisper-large-v3-turbo`); si falla, Azure Speech. Las frases que Whisper inventa con el silencio ("Gracias por ver el video"…) se filtran con `config/whisper_silence_phrases.json` y responden 422.
-2. **Fragmentos del RAG:** los 3 más cercanos a la pregunta, con su cita validada.
-3. **Respuesta:** Groq `openai/gpt-oss-20b` con salida JSON estricta, máximo 3 frases, adaptada al nivel del jugador y con las 2 últimas respuestas del mismo intento como contexto. Para aconsejar el gas también le paso la guía de la web (`config/roast_guide.json`), que es el mismo texto de `es.json`: el test `roastGuideContract.test.js` del frontend comprueba que coincide y que trae los números de `RoastConstants.js`. El objetivo de temperatura solo aparece en el estado después del primer crack: antes, "faltan 83 °C del objetivo" hacía que pidiera subir el gas en pleno secado. El modelo tiene que decir qué fuentes usó (PDFs, el estado del tueste o la guía); si no usa ninguna o cita una que no se le dio, el asistente se abstiene en vez de inventar. Además, cada cifra de la respuesta (temperatura, porcentaje de gas, tiempo) tiene que aparecer en los fragmentos que citó, en el estado del tueste o en la guía (si los citó) o en la pregunta, con un margen de redondeo de `VOICE_FIGURE_TOLERANCE`. Las frases con cifras sin respaldo se quitan y, si no queda ninguna, se abstiene: es un simulador para enseñar y una cifra inventada enseña algo falso. El prompt le pide al modelo dar solo la dirección ("baja un poco el gas") cuando no tiene una cifra con respaldo. Solo reviso cifras escritas con dígitos, que es como el prompt le pide escribirlas. No hay respaldo en Ollama a propósito: phi4-mini tarda demasiado para una respuesta hablada.
-4. **Texto a voz:** Azure (`es-CO-SalomeNeural`); si falla o se llega al límite mensual, Piper local con `es_MX-claude-high`.
+1. 🎧 **Voz a texto:** Groq Whisper (`whisper-large-v3-turbo`); si falla, Azure Speech. Las frases que Whisper inventa con el silencio ("Gracias por ver el video"…) se filtran con `config/whisper_silence_phrases.json` y responden 422.
+2. 📚 **Fragmentos del RAG:** los 3 más cercanos a la pregunta, con su cita validada.
+3. 💬 **Respuesta:** Groq `openai/gpt-oss-20b` con salida JSON estricta, máximo 3 frases, adaptada al nivel del jugador y con las 2 últimas respuestas del mismo intento como contexto. Para aconsejar el gas también le paso la guía de la web (`config/roast_guide.json`), que es el mismo texto de `es.json`: el test `roastGuideContract.test.js` del frontend comprueba que coincide y que trae los números de `RoastConstants.js`. El objetivo de temperatura solo aparece en el estado después del primer crack: antes, "faltan 83 °C del objetivo" hacía que pidiera subir el gas en pleno secado. El modelo tiene que decir qué fuentes usó (PDFs, el estado del tueste o la guía); si no usa ninguna o cita una que no se le dio, el asistente se abstiene en vez de inventar. Además, cada cifra de la respuesta (temperatura, porcentaje de gas, tiempo) tiene que aparecer en los fragmentos que citó, en el estado del tueste o en la guía (si los citó) o en la pregunta, con un margen de redondeo de `VOICE_FIGURE_TOLERANCE`. Las frases con cifras sin respaldo se quitan y, si no queda ninguna, se abstiene: es un simulador para enseñar y una cifra inventada enseña algo falso. El prompt le pide al modelo dar solo la dirección ("baja un poco el gas") cuando no tiene una cifra con respaldo. Solo reviso cifras escritas con dígitos, que es como el prompt le pide escribirlas. No hay respaldo en Ollama a propósito: phi4-mini tarda demasiado para una respuesta hablada.
+4. 🔊 **Texto a voz:** Azure (`es-CO-SalomeNeural`); si falla o se llega al límite mensual, Piper local con `es_MX-claude-high`.
 
 Si Groq no responde, el jugador oye una frase fija ("No puedo responder en este momento…"). Esa frase y la de abstención están en `config/voice_messages.json` y su audio se genera al arrancar y queda guardado en `voice-cache/`, así que se oyen al instante y sin gastar cuota.
 
 Límites (todos en `IA/.env`): una pregunta a la vez y 6 por minuto por jugador, audio de hasta 15 s y 600 000 bytes, y 25 s en total por pregunta (`VOICE_TOTAL_TIMEOUT_MILLIS`, menor que los 30 s que espera el backend en `AI_SERVICE_VOICE_READ_TIMEOUT_MILLIS`).
 
-### Cuotas gratuitas
+### 💸 Cuotas gratuitas
 
 - **Azure Speech F0:** 500 000 caracteres de voz al mes. Llevo mi propio contador en la tabla `tts_monthly_usage` y al llegar a `AZURE_TTS_MONTHLY_CHAR_LIMIT` (450 000) paso directo a Piper. Una respuesta típica gasta unos 150–300 caracteres.
 - **Groq:** Whisper 20 pedidos por minuto y 2 000 al día; `gpt-oss-20b` 30 por minuto y 1 000 al día. La documentación de Groq da los límites por modelo, pero no dice explícitamente si se comparten entre modelos de la misma organización; por eso uso `gpt-oss-20b` para la voz y dejo `gpt-oss-120b` para la retroalimentación. Cada pregunta gasta una transcripción y una respuesta.
 
-### Tablas nuevas
+### 🗄️ Tablas nuevas
 
 Al arrancar se crean, si no existen, `tts_monthly_usage` (caracteres de Azure por mes) y `voice_assistant_exchanges` (historial de preguntas y respuestas por usuario e intento, con proveedores y latencia). No tienen endpoint de consulta todavía.
 
-### Instalar Piper
+### 🐦 Instalar Piper
 
 Piper va en `IA/voice-runtime/`, que git ignora. Lo descargo solo de las fuentes oficiales:
 
@@ -241,7 +241,7 @@ PIPER_MODEL=voice-runtime/voices/es_MX-claude-high.onnx
 
 y le doy permiso de ejecución con `chmod +x voice-runtime/piper/piper`. Para probar solo Piper uso `VOICE_SPEECH_PROVIDERS=piper`.
 
-### Latencia medida
+### ⏱️ Latencia medida
 
 Medí con el servicio real (Groq, Azure y Piper de verdad) desde mi equipo con Windows, contra una copia desechable de la base, con preguntas de 2–3 s:
 
@@ -272,18 +272,18 @@ El paso más lento es generar la voz, porque espera el audio completo antes de r
 
 Durante el tueste el asistente también habla por su cuenta, como un profesor al lado: carga fuera de rango, subida muy rápida o muy lenta, estancamiento, tueste lento o largo, primer crack, desarrollo y riesgo de quemado. Las reglas no corren aquí: armo un paquete por nivel con las reglas como datos, la frase del nivel y su audio ya sintetizado, y Unity lo descarga al empezar el tueste y lo evalúa localmente cada segundo. Así no hay latencia de red, funciona sin WiFi y Azure se gasta una sola vez por frase. El contrato y la especificación del evaluador para Unity están en [docs/unity-proactive-alerts-contract.md](docs/unity-proactive-alerts-contract.md).
 
-- **Catálogo:** `config/proactive_alerts.json`. Cada regla dice de dónde sale cada umbral: *Fuente* (PDFs o tesis), *Parámetro de diseño* (reglas del simulador sin respaldo en los PDFs) o *Propuesto* (valores míos, afinados con el simulador). Se valida al arrancar: señales, operadores, niveles y una frase por nivel.
-- **Reglas de quemado:** aviso a 215 °C, segundo crack inminente a 218 °C y techo superado por encima de 220 °C. El estancamiento de Maillard solo cuenta antes del primer crack y el desarrollo avisa con el DTR en 18 % y 22 %.
-- **Niveles:** el backend entrega solo el paquete del nivel del jugador (INTERMEDIATE si no tiene). BEGINNER e INTERMEDIATE reciben las 18 reglas con frases distintas; ADVANCED recibe 13, sin la guía de subida del secado, el aviso de primer crack cercano ni los refuerzos LOW.
-- **Canal de voz:** una sola voz con prioridades CRITICAL > HIGH > NORMAL > LOW, cola de 5 s, LOW nunca espera y mínimo 8 s entre alertas que no son CRITICAL. Mientras el jugador graba una pregunta solo se muestra el subtítulo.
-- **Audio:** se genera al arrancar, en segundo plano, con la misma voz y el mismo `voice-cache/` del asistente. Las 49 frases de los tres niveles gastan 2 986 caracteres de Azure una sola vez, contados en `tts_monthly_usage` (0,7 % del límite mensual). Si una frase no se pudo sintetizar va con audio `null` y se reintenta en el siguiente pedido.
-- **ETag:** el backend reenvía `If-None-Match` y responde 304 si Unity ya tiene esa versión. Tiempo para sintetizar lo que falte en un pedido: `ALERTS_PACKAGE_TIMEOUT_MILLIS` (20 s), menor que los 30 s de `AI_SERVICE_ALERTS_READ_TIMEOUT_MILLIS` en el backend.
+- 📒 **Catálogo:** `config/proactive_alerts.json`. Cada regla dice de dónde sale cada umbral: *Fuente* (PDFs o tesis), *Parámetro de diseño* (reglas del simulador sin respaldo en los PDFs) o *Propuesto* (valores míos, afinados con el simulador). Se valida al arrancar: señales, operadores, niveles y una frase por nivel.
+- 🔥 **Reglas de quemado:** aviso a 215 °C, segundo crack inminente a 218 °C y techo superado por encima de 220 °C. El estancamiento de Maillard solo cuenta antes del primer crack y el desarrollo avisa con el DTR en 18 % y 22 %.
+- 🎚️ **Niveles:** el backend entrega solo el paquete del nivel del jugador (INTERMEDIATE si no tiene). BEGINNER e INTERMEDIATE reciben las 18 reglas con frases distintas; ADVANCED recibe 13, sin la guía de subida del secado, el aviso de primer crack cercano ni los refuerzos LOW.
+- 📢 **Canal de voz:** una sola voz con prioridades CRITICAL > HIGH > NORMAL > LOW, cola de 5 s, LOW nunca espera y mínimo 8 s entre alertas que no son CRITICAL. Mientras el jugador graba una pregunta solo se muestra el subtítulo.
+- 🔊 **Audio:** se genera al arrancar, en segundo plano, con la misma voz y el mismo `voice-cache/` del asistente. Las 49 frases de los tres niveles gastan 2 986 caracteres de Azure una sola vez, contados en `tts_monthly_usage` (0,7 % del límite mensual). Si una frase no se pudo sintetizar va con audio `null` y se reintenta en el siguiente pedido.
+- 🏷️ **ETag:** el backend reenvía `If-None-Match` y responde 304 si Unity ya tiene esa versión. Tiempo para sintetizar lo que falte en un pedido: `ALERTS_PACKAGE_TIMEOUT_MILLIS` (20 s), menor que los 30 s de `AI_SERVICE_ALERTS_READ_TIMEOUT_MILLIS` en el backend.
 
 | Método | Ruta | Uso |
 |---|---|---|
 | `GET` | `/api/v1/alerts/package?level=BEGINNER` | Paquete del nivel (sin `level`, el nivel por defecto del catálogo), con `ETag` y 304 |
 
-### Simulador de alertas
+### 🧪 Simulador de alertas
 
 Con `scripts/alert_simulator.py` veo qué alerta suena en cada curva, en qué segundo y cuántas por nivel, sin Unity:
 
@@ -319,13 +319,13 @@ También agregué el aviso de tueste lento: a los 9 min, si la sonda sigue bajo 
 
 Cada sesión tiene una nota final que combina las reglas del simulador con una calificación de las decisiones del jugador: `0.7 × qualityScore + 0.3 × nota de la rúbrica`, con un tope de 50 si el resultado tiene un defecto (crudo, quemado u horneado). Los pesos, el tope y los rangos de la calificación (Excelente 85, Bueno 70, Regular 50) están en `app.roast-evaluation` del backend.
 
-- **Rúbrica:** `config/roast_rubric.json`, en estado *DRAFT*. Tiene cuatro criterios: gas en el secado, subida hasta el primer crack, gas después del primer crack y reacción a las alertas. Cada uno dice de dónde sale: *Fuente*, *Inferencia* o *Parámetro de diseño*. Con los PDFs nuevos, el criterio del gas después del primer crack pasó de inferencia a fuente: Münchow et al. (2020) dice que el tueste necesita menos energía al final, cuando se vuelve exotérmico. Lo complementa el calor que genera el grano según Bustos-Vanegas et al. (2025). Si el jugador descarga menos de 30 s después del primer crack, el criterio solo se califica si ya había bajado el gas. Las fuentes y los umbrales se cambian en ese archivo sin tocar código.
-- **Quién calcula qué:** el código mide los hechos sobre la traza (porcentaje en la franja, demoras de corrección, estancamientos, minuto del primer crack, bajada del gas, reacción a cada alerta). El modelo solo elige un nivel de 0 a 3 por criterio y escribe una justificación corta, con un esquema JSON estricto. La nota de la rúbrica la calculo yo: `100 × suma de niveles / (3 × criterios que aplican)`. Los criterios que no aplican quedan fuera del denominador.
-- **Modelo:** Groq `openai/gpt-oss-120b`, temperatura 0, semilla fija y razonamiento `low` (`EVALUATION_GROQ_*`). No uso respaldo con Ollama: otro modelo podría darle otra nota a la misma sesión. Si Groq no responde, el backend reintenta con espera creciente y, al final, deja la nota de las reglas.
-- **Modo automático:** no se califica (`NOT_APPLICABLE`), porque el gas no lo maneja el jugador. Esas sesiones no entran al ranking.
-- **Traza:** el contrato de lo que Unity debe enviar está en [docs/unity-roast-trace-contract.md](docs/unity-roast-trace-contract.md).
+- 📝 **Rúbrica:** `config/roast_rubric.json`, en estado *DRAFT*. Tiene cuatro criterios: gas en el secado, subida hasta el primer crack, gas después del primer crack y reacción a las alertas. Cada uno dice de dónde sale: *Fuente*, *Inferencia* o *Parámetro de diseño*. Con los PDFs nuevos, el criterio del gas después del primer crack pasó de inferencia a fuente: Münchow et al. (2020) dice que el tueste necesita menos energía al final, cuando se vuelve exotérmico. Lo complementa el calor que genera el grano según Bustos-Vanegas et al. (2025). Si el jugador descarga menos de 30 s después del primer crack, el criterio solo se califica si ya había bajado el gas. Las fuentes y los umbrales se cambian en ese archivo sin tocar código.
+- 🧮 **Quién calcula qué:** el código mide los hechos sobre la traza (porcentaje en la franja, demoras de corrección, estancamientos, minuto del primer crack, bajada del gas, reacción a cada alerta). El modelo solo elige un nivel de 0 a 3 por criterio y escribe una justificación corta, con un esquema JSON estricto. La nota de la rúbrica la calculo yo: `100 × suma de niveles / (3 × criterios que aplican)`. Los criterios que no aplican quedan fuera del denominador.
+- 🧠 **Modelo:** Groq `openai/gpt-oss-120b`, temperatura 0, semilla fija y razonamiento `low` (`EVALUATION_GROQ_*`). No uso respaldo con Ollama: otro modelo podría darle otra nota a la misma sesión. Si Groq no responde, el backend reintenta con espera creciente y, al final, deja la nota de las reglas.
+- 🤖 **Modo automático:** no se califica (`NOT_APPLICABLE`), porque el gas no lo maneja el jugador. Esas sesiones no entran al ranking.
+- 📈 **Traza:** el contrato de lo que Unity debe enviar está en [docs/unity-roast-trace-contract.md](docs/unity-roast-trace-contract.md).
 
-### Validación con Groq
+### ✅ Validación con Groq
 
 `scripts/evaluation_validation.py` corre la rúbrica con Groq real sobre los casos de `eval/evaluation/cases.json`. Son 19 trazas con el nivel que le corresponde a cada criterio, que fijé leyendo la rúbrica y no las respuestas del modelo. Mide el acuerdo con el nivel esperado y la repetibilidad corriendo cada caso varias veces:
 
@@ -408,7 +408,7 @@ En el borde de la regla, con la subida justo en 16 °C por minuto, el asistente 
 
 Los tests de `tests/test_evaluation_validation.py` revisan sin Groq que cada caso aplique exactamente los criterios que espera y que los casos cubran todos los niveles.
 
-## Servidor Ubuntu
+## 🖥️ Servidor Ubuntu
 
 `AI_SERVER_ADDRESS` define en qué interfaz escucha el servicio (por defecto `127.0.0.1`). En Docker Desktop (Windows) eso basta, porque `host.docker.internal` llega al localhost del host. En un servidor Linux no: el contenedor del backend llega al host por la IP del gateway de la red de Docker, y en Linux `host.docker.internal` no existe salvo que se declare en el compose. Ahí hago esto:
 
@@ -416,7 +416,7 @@ Los tests de `tests/test_evaluation_validation.py` revisan sin Groq que cada cas
 2. Levanto el servicio con `AI_SERVER_ADDRESS` en esa IP (o `0.0.0.0` si el firewall bloquea el puerto 8082 desde fuera).
 3. En `Toasted_VR/.env` pongo `DOCKER_AI_SERVICE_BASE_URL=http://<esa IP>:8082`.
 
-## Tests
+## 🧪 Tests
 
 ```bash
 .venv/Scripts/python -m pytest -q

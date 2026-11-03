@@ -16,6 +16,7 @@ import com.toastedvr.toastedvr.backend.security.UserPrincipal;
 import com.toastedvr.toastedvr.backend.service.RoastSimulationService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -58,7 +59,7 @@ public class RoastSimulationController {
         this.messages = messages;
     }
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public JsonNode start(
         @AuthenticationPrincipal UserPrincipal principal,
@@ -66,6 +67,13 @@ public class RoastSimulationController {
     ) {
         SimulationStartRequest settings = request == null ? new SimulationStartRequest(null, null) : request;
         return simulationService.start(principal.getId(), settings.chargeTemperature(), settings.targetTemperature());
+    }
+
+    // UnityWebRequest manda el POST sin cuerpo como form-urlencoded: arranca con los valores por defecto.
+    @PostMapping(consumes = "!" + MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.CREATED)
+    public JsonNode startWithDefaults(@AuthenticationPrincipal UserPrincipal principal) {
+        return simulationService.start(principal.getId(), null, null);
     }
 
     // Trae el estado actual y los ticks posteriores a afterTick, para dibujar la curva sin huecos.

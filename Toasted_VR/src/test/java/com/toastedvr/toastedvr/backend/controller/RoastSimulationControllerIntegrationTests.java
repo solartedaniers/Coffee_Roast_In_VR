@@ -138,6 +138,27 @@ class RoastSimulationControllerIntegrationTests {
         verify(simulatorClient).create(player.getId(), null, null);
     }
 
+    // Así llega de verdad el POST de UnityWebRequest sin uploadHandler.
+    @Test
+    void startsWithTheDefaultsWhenUnitySendsAnEmptyFormUrlEncodedBody() throws Exception {
+        when(simulatorClient.create(player.getId(), null, null)).thenReturn(objectMapper.readTree("{\"simulationId\":\"x\"}"));
+
+        mockMvc.perform(post(SIMULATIONS).header("Authorization", bearer())
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED).content(""))
+            .andExpect(status().isCreated());
+        verify(simulatorClient).create(player.getId(), null, null);
+    }
+
+    @Test
+    void startsWithTheDefaultsWhenTheJsonBodyIsEmpty() throws Exception {
+        when(simulatorClient.create(player.getId(), null, null)).thenReturn(objectMapper.readTree("{\"simulationId\":\"x\"}"));
+
+        mockMvc.perform(post(SIMULATIONS).header("Authorization", bearer())
+                .contentType(MediaType.APPLICATION_JSON).content(""))
+            .andExpect(status().isCreated());
+        verify(simulatorClient).create(player.getId(), null, null);
+    }
+
     @Test
     void passesTheStateAndTheTicksThrough() throws Exception {
         when(simulatorClient.read(player.getId(), ID, 12)).thenReturn(objectMapper.readTree(STATE));

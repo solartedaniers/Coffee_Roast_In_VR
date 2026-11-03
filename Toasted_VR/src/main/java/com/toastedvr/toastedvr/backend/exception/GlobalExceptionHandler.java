@@ -162,6 +162,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleUnexpectedError(Exception exception, HttpServletRequest request) {
+        LOGGER.error("Unexpected error method={} path={}", request.getMethod(), request.getRequestURI(), exception);
         return buildResponse(
             HttpStatus.INTERNAL_SERVER_ERROR,
             ErrorCode.INTERNAL_ERROR,

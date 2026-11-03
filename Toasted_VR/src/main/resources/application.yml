@@ -63,6 +63,8 @@
       evaluation-read-timeout-millis: ${AI_SERVICE_EVALUATION_READ_TIMEOUT_MILLIS:40000}
       # Lectura en voz alta de la nota y la retroalimentación; mayor que VOICE_TOTAL_TIMEOUT_MILLIS del servicio IA.
       speech-read-timeout-millis: ${AI_SERVICE_SPEECH_READ_TIMEOUT_MILLIS:30000}
+      # Igual a VOICE_SPEECH_MAX_CHARS del servicio IA.
+      speech-max-chars: ${AI_SERVICE_SPEECH_MAX_CHARS:700}
     # Simulador de tueste en Node (roast-simulator/), fuera de Docker. Unity juega a través de
     # /api/v1/roasting/simulations y el backend le reenvía cada pedido con el id del jugador.
     roast-simulator:

@@ -18,6 +18,16 @@ public class AiServiceProperties {
     private int evaluationReadTimeoutMillis = 40_000;
     // Lectura en voz alta de la nota y la retroalimentación; mayor que VOICE_TOTAL_TIMEOUT_MILLIS del servicio IA (25 s).
     private int speechReadTimeoutMillis = 30_000;
+    // Igual a VOICE_SPEECH_MAX_CHARS del servicio IA: el texto hablado se recorta antes de mandarlo.
+    private int speechMaxChars = 700;
+
+    public int getSpeechMaxChars() {
+        return speechMaxChars;
+    }
+
+    public void setSpeechMaxChars(int speechMaxChars) {
+        this.speechMaxChars = speechMaxChars;
+    }
 
     public int getSpeechReadTimeoutMillis() {
         return speechReadTimeoutMillis;

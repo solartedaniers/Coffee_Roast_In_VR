@@ -15,9 +15,16 @@ from app.voice.deadline import Deadline
 from app.evaluation.contracts import EvaluationRequest, EvaluationResponse
 from app.evaluation.grader import GradingUnavailable
 from app.contracts import FeedbackResponse, RagIngestionSummaryResponse, RoastFeedbackRequest
-from app.voice.contracts import VoiceAnswerResponse, VoiceErrorResponse, VoiceQuestionContext
+from app.voice.contracts import (
+    SpeechRequest,
+    SpeechResponse,
+    VoiceAnswerResponse,
+    VoiceErrorResponse,
+    VoiceQuestionContext,
+)
 from app.voice.errors import VoiceErrorCode, VoiceRequestError
-from app.voice.response_mapper import to_response
+from app.voice.response_mapper import to_audio_response, to_response
+from app.voice.speech.text_speech import SpeechTextRejected
 
 log = logging.getLogger(__name__)
 
@@ -51,6 +58,20 @@ def build_router(services: Services) -> APIRouter:
             # Se lee un byte de más para saber si se pasó del límite sin cargar archivos enormes.
             wav = audio.file.read(max_audio_bytes + 1)
             return to_response(voice.ask(question_context, wav))
+
+    if services.speech is not None:
+        speech = services.speech
+
+        # Lo llama el backend desde POST /api/v1/roasting/sessions/{id}/feedback/speech con el texto ya armado.
+        @router.post("/voice/speech", response_model=SpeechResponse)
+        def speak(request: SpeechRequest) -> SpeechResponse:
+            try:
+                audio = speech.speak(request.text)
+            except SpeechTextRejected:
+                raise VoiceRequestError(VoiceErrorCode.SPEECH_TEXT_INVALID) from None
+            if audio is None:
+                raise VoiceRequestError(VoiceErrorCode.SPEECH_UNAVAILABLE)
+            return SpeechResponse(audio=to_audio_response(audio), provider=audio.provider)
 
     if services.alerts is not None:
         alerts, package_seconds = services.alerts, services.alerts_package_timeout_seconds

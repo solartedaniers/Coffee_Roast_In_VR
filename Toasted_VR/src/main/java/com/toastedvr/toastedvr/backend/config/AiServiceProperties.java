@@ -16,6 +16,26 @@ public class AiServiceProperties {
     private int alertsReadTimeoutMillis = 30_000;
     // Mayor que EVALUATION_GROQ_READ_TIMEOUT_MILLIS del servicio IA (30 s) más la conexión a Groq.
     private int evaluationReadTimeoutMillis = 40_000;
+    // Lectura en voz alta de la nota y la retroalimentación; mayor que VOICE_TOTAL_TIMEOUT_MILLIS del servicio IA (25 s).
+    private int speechReadTimeoutMillis = 30_000;
+    // Igual a VOICE_SPEECH_MAX_CHARS del servicio IA: el texto hablado se recorta antes de mandarlo.
+    private int speechMaxChars = 700;
+
+    public int getSpeechMaxChars() {
+        return speechMaxChars;
+    }
+
+    public void setSpeechMaxChars(int speechMaxChars) {
+        this.speechMaxChars = speechMaxChars;
+    }
+
+    public int getSpeechReadTimeoutMillis() {
+        return speechReadTimeoutMillis;
+    }
+
+    public void setSpeechReadTimeoutMillis(int speechReadTimeoutMillis) {
+        this.speechReadTimeoutMillis = speechReadTimeoutMillis;
+    }
 
     public int getEvaluationReadTimeoutMillis() {
         return evaluationReadTimeoutMillis;

@@ -130,3 +130,8 @@ def test_grades_the_rubric_with_gpt_oss_120b_deterministically(settings):
     assert settings.evaluation_groq_model == "openai/gpt-oss-120b"
     assert settings.evaluation_groq_temperature == 0
     assert settings.evaluation_rubric_file.name == "roast_rubric.json"
+
+
+def test_keeps_the_spoken_feedback_defaults(settings):
+    assert settings.voice_speech_max_chars == 700
+    assert settings.voice_speech_cache_max_entries == 20

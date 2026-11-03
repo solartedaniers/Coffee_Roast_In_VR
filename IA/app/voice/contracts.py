@@ -83,3 +83,13 @@ class VoiceAnswerResponse(CamelCaseModel):
 class VoiceErrorResponse(CamelCaseModel):
     code: str
     message: str
+
+
+class SpeechRequest(CamelCaseModel):
+    """Texto que el backend arma desde la sesión del jugador; el largo máximo sale de la configuración."""
+    text: str = Field(min_length=1)
+
+
+class SpeechResponse(CamelCaseModel):
+    audio: AudioResponse
+    provider: str

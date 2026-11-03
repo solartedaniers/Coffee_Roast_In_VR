@@ -2,7 +2,7 @@ import pytest
 from pydantic import ValidationError
 
 from app.domain import KnowledgeLevel
-from app.voice.contracts import RoastState, VoiceQuestionContext
+from app.voice.contracts import AudioResponse, RoastState, SpeechRequest, SpeechResponse, VoiceQuestionContext
 
 STATE = {"elapsedSeconds": 312.5, "beanTemperature": 187.4, "firstCrackReached": False,
          "targetTemperature": 205.0, "chargeTemperature": 190.0, "firstCrackElapsedSeconds": None}
@@ -45,3 +45,21 @@ def test_accepts_a_user_without_a_chosen_level():
     context = VoiceQuestionContext.model_validate(CONTEXT | {"knowledgeLevel": None})
 
     assert context.knowledge_level is None
+
+
+def test_reads_the_text_to_speak():
+    assert SpeechRequest.model_validate({"text": "Tu nota final es 78 %."}).text == "Tu nota final es 78 %."
+
+
+@pytest.mark.parametrize("body", [{}, {"text": ""}, {"text": None}])
+def test_rejects_a_speech_request_without_text(body):
+    with pytest.raises(ValidationError):
+        SpeechRequest.model_validate(body)
+
+
+def test_writes_the_speech_audio_in_camel_case():
+    response = SpeechResponse(audio=AudioResponse(format="wav", sample_rate_hz=22_050, base64="UklGRg=="),
+                              provider="azure")
+
+    assert response.model_dump(by_alias=True) == {
+        "audio": {"format": "wav", "sampleRateHz": 22_050, "base64": "UklGRg=="}, "provider": "azure"}

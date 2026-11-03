@@ -96,6 +96,11 @@ class Settings(BaseSettings):
     voice_roast_guide_file: Path = SERVICE_ROOT / "config" / "roast_guide.json"
     voice_silence_phrases_file: Path = SERVICE_ROOT / "config" / "whisper_silence_phrases.json"
     voice_audio_cache_dir: Path = SERVICE_ROOT / "voice-cache"
+    # Lectura en voz alta de la nota y la retroalimentación al terminar el tueste en Unity. Con el tope de
+    # audio de salida (3 MB, unos 68 s a 22 kHz) caben de sobra 700 caracteres.
+    voice_speech_max_chars: int = Field(default=700, gt=0)
+    # Solo en memoria: el mismo tueste pedido otra vez no gasta caracteres, y el disco no crece por tueste.
+    voice_speech_cache_max_entries: int = Field(default=20, ge=0)
 
     voice_transcription_providers: str = "groq,azure"
     groq_transcription_model: str = "whisper-large-v3-turbo"

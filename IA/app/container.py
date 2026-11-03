@@ -40,6 +40,7 @@ from app.voice.assembly import build_voice, voice_base_urls
 from app.voice.messages import VoiceMessages
 from app.voice.schema import VoiceSchema
 from app.voice.service import VoiceAssistantService
+from app.voice.speech.text_speech import TextSpeech
 
 MILLIS_PER_SECOND = 1000
 
@@ -60,6 +61,8 @@ class Services:
     alerts: AlertPackageBuilder | None = None
     alerts_package_timeout_seconds: float = 0.0
     evaluation: RoastEvaluationService | None = None
+    # Lectura en voz alta de la nota y la retroalimentación; usa la misma cadena de voces del asistente.
+    speech: TextSpeech | None = None
 
 
 def seconds(millis: int) -> float:
@@ -176,4 +179,7 @@ def build_services(settings: Settings) -> Services:
                     voice_messages=voice.messages, voice_max_audio_bytes=settings.voice_max_audio_bytes,
                     voice_warm_up_seconds=seconds(settings.voice_total_timeout_millis), alerts=alerts,
                     alerts_package_timeout_seconds=seconds(settings.alerts_package_timeout_millis),
-                    evaluation=build_evaluation(settings, http))
+                    evaluation=build_evaluation(settings, http),
+                    speech=TextSpeech(voice.pipeline.speech, settings.voice_speech_max_chars,
+                                      settings.voice_speech_cache_max_entries,
+                                      seconds(settings.voice_total_timeout_millis)))

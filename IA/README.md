@@ -53,6 +53,7 @@ Son internos, solo para el backend, y no tienen autenticación propia: la autent
 | `POST` | `/api/v1/rag/ingest` | Ingesta los PDFs de `rag-docs/` que sean nuevos o hayan cambiado |
 | `GET` | `/api/v1/alerts/package` | Paquete de alertas proactivas de un nivel, con `ETag` (ver [Alertas proactivas](#alertas-proactivas)) |
 | `POST` | `/api/v1/evaluation` | Califica las decisiones de una sesión con la rúbrica (ver [Calificación del tueste](#calificación-del-tueste)); 503 si Groq no responde |
+| `POST` | `/api/v1/voice/speech` | Lee en voz alta `{"text": "..."}` (la nota y la retroalimentación que arma el backend al terminar el tueste en Unity) con la misma voz y el mismo contador de Azure del asistente; 400 si pasa de `VOICE_SPEECH_MAX_CHARS` y 503 si ninguna voz pudo |
 
 El contrato es exactamente el mismo que tenía la versión anterior en Java, así que el backend no cambió. Un cuerpo inválido responde 400.
 
